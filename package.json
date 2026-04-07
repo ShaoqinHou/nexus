@@ -1,0 +1,15 @@
+{
+  "name": "nexus",
+  "private": true,
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "dev:api": "npm run dev --workspace=packages/api",
+    "dev:web": "npm run dev --workspace=packages/web",
+    "dev:all": "npm run dev:api & npm run dev:web",
+    "build": "npm run build --workspace=packages/web",
+    "test": "npm run test --workspace=packages/api && npm run test --workspace=packages/web",
+    "db:push": "npm run db:push --workspace=packages/api",
+    "db:generate": "npm run db:generate --workspace=packages/api",
+    "db:studio": "npm run db:studio --workspace=packages/api"
+  }
+}
