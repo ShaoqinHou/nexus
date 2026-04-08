@@ -17,6 +17,7 @@ export interface MenuItem {
   description: string | null;
   price: number;
   imageUrl: string | null;
+  tags: string | null;
   isAvailable: number;
   sortOrder: number;
   isActive: number;
@@ -24,6 +25,12 @@ export interface MenuItem {
   updatedAt: string;
   modifierGroups?: ModifierGroup[];
 }
+
+export const DIETARY_TAGS = [
+  'vegetarian', 'vegan', 'gluten-free', 'dairy-free',
+  'nut-free', 'halal', 'spicy', 'new', 'popular'
+] as const;
+export type DietaryTag = typeof DIETARY_TAGS[number];
 
 export interface ModifierGroup {
   id: string;

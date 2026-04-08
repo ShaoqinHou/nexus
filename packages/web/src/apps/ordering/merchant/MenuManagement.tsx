@@ -35,6 +35,7 @@ import {
   useSetItemModifierGroups,
 } from '../hooks/useModifiers';
 import type { MenuCategory, MenuItem } from '../types';
+import { DIETARY_TAGS } from '../types';
 
 // ---------------------------------------------------------------------------
 // Category form dialog
@@ -131,6 +132,7 @@ interface ItemFormData {
   description: string;
   price: string;
   imageUrl: string;
+  tags: string;
 }
 
 function ItemDialog({
@@ -150,15 +152,31 @@ function ItemDialog({
   const [description, setDescription] = useState(initial?.description ?? '');
   const [price, setPrice] = useState(initial?.price ?? '');
   const [imageUrl, setImageUrl] = useState(initial?.imageUrl ?? '');
+  const [selectedTags, setSelectedTags] = useState<Set<string>>(
+    () => new Set(initial?.tags?.split(',').filter(Boolean) ?? []),
+  );
 
   useEffect(() => {
     setName(initial?.name ?? '');
     setDescription(initial?.description ?? '');
     setPrice(initial?.price?.toString() ?? '');
     setImageUrl(initial?.imageUrl ?? '');
+    setSelectedTags(new Set(initial?.tags?.split(',').filter(Boolean) ?? []));
   }, [initial]);
 
   const isEdit = !!initial;
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags((prev) => {
+      const next = new Set(prev);
+      if (next.has(tag)) {
+        next.delete(tag);
+      } else {
+        next.add(tag);
+      }
+      return next;
+    });
+  };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -168,6 +186,7 @@ function ItemDialog({
       description: description.trim(),
       price,
       imageUrl: imageUrl.trim(),
+      tags: Array.from(selectedTags).join(','),
     });
   };
 
@@ -176,6 +195,7 @@ function ItemDialog({
     setDescription('');
     setPrice('');
     setImageUrl('');
+    setSelectedTags(new Set());
     onClose();
   };
 
@@ -231,6 +251,31 @@ function ItemDialog({
           onChange={(e) => setImageUrl(e.target.value)}
           placeholder="https://..."
         />
+        <div>
+          <label className="block text-sm font-medium text-text mb-1.5">
+            Tags
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {DIETARY_TAGS.map((tag) => {
+              const isSelected = selectedTags.has(tag);
+              return (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => toggleTag(tag)}
+                  className={[
+                    'px-2.5 py-1 rounded-full text-xs font-medium border transition-colors',
+                    isSelected
+                      ? 'bg-primary text-text-inverse border-primary'
+                      : 'bg-bg-muted text-text-secondary border-border hover:border-border-strong',
+                  ].join(' ')}
+                >
+                  {tag}
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </form>
     </Dialog>
   );
@@ -507,6 +552,19 @@ function MenuItemCard({
             </p>
           </div>
 
+          {item.tags && (
+            <div className="flex flex-wrap gap-1 mt-1.5">
+              {item.tags.split(',').filter(Boolean).map((tag) => (
+                <span
+                  key={tag}
+                  className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-bg-muted text-text-secondary"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+
           <div className="flex items-center justify-between mt-3">
             <Toggle
               checked={item.isAvailable === 1}
@@ -669,6 +727,7 @@ export function MenuManagement() {
           description: data.description || null,
           price: parseFloat(data.price),
           imageUrl: data.imageUrl || null,
+          tags: data.tags || null,
         },
         {
           onSuccess: () => {
@@ -688,6 +747,7 @@ export function MenuManagement() {
           description: data.description || undefined,
           price: parseFloat(data.price),
           imageUrl: data.imageUrl || undefined,
+          tags: data.tags || undefined,
         },
         {
           onSuccess: () => {
@@ -827,6 +887,7 @@ export function MenuManagement() {
                 description: editingItem.description ?? '',
                 price: editingItem.price.toString(),
                 imageUrl: editingItem.imageUrl ?? '',
+                tags: editingItem.tags ?? '',
               }
             : undefined
         }

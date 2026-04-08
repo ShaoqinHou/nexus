@@ -7,6 +7,7 @@ import { EmptyState } from '@web/components/patterns';
 import { useCart } from '@web/apps/ordering/customer/CartProvider';
 import { ItemDetailSheet } from '@web/apps/ordering/customer/ItemDetailSheet';
 import type { MenuCategory, MenuItem, ModifierGroup } from '@web/apps/ordering/types';
+import type { DietaryTag } from '@web/apps/ordering/types';
 
 interface PublicMenuItem extends MenuItem {
   modifierGroups?: ModifierGroup[];
@@ -23,6 +24,51 @@ interface MenuBrowseProps {
 
 function formatPrice(price: number): string {
   return `$${price.toFixed(2)}`;
+}
+
+function getTagColor(tag: string): string {
+  switch (tag as DietaryTag) {
+    case 'vegetarian':
+    case 'vegan':
+      return 'bg-success-light text-success';
+    case 'gluten-free':
+    case 'dairy-free':
+    case 'nut-free':
+      return 'bg-primary-light text-primary';
+    case 'halal':
+      return 'bg-primary-light text-primary';
+    case 'spicy':
+      return 'bg-warning-light text-warning';
+    case 'new':
+    case 'popular':
+      return 'bg-warning-light text-warning';
+    default:
+      return 'bg-bg-muted text-text-secondary';
+  }
+}
+
+function parseTags(tags: string | null): string[] {
+  return tags?.split(',').filter(Boolean) ?? [];
+}
+
+function DietaryTagBadges({ tags }: { tags: string | null }) {
+  const parsed = parseTags(tags);
+  if (parsed.length === 0) return null;
+  return (
+    <div className="flex flex-wrap gap-1 mt-1">
+      {parsed.map((tag) => (
+        <span
+          key={tag}
+          className={[
+            'inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium',
+            getTagColor(tag),
+          ].join(' ')}
+        >
+          {tag}
+        </span>
+      ))}
+    </div>
+  );
 }
 
 function MenuItemCard({
@@ -66,6 +112,8 @@ function MenuItemCard({
 
   const isUnavailable = !item.isAvailable;
 
+  const [imgError, setImgError] = useState(false);
+
   return (
     <div
       className={[
@@ -73,6 +121,21 @@ function MenuItemCard({
         isUnavailable ? 'opacity-50' : '',
       ].join(' ')}
     >
+      {/* Item image thumbnail */}
+      {item.imageUrl && !imgError ? (
+        <img
+          src={item.imageUrl}
+          alt={item.name}
+          loading="lazy"
+          onError={() => setImgError(true)}
+          className="w-16 h-16 rounded-lg object-cover shrink-0 bg-bg-muted"
+        />
+      ) : (
+        <div className="w-16 h-16 rounded-lg bg-bg-muted flex items-center justify-center shrink-0">
+          <UtensilsCrossed className="h-6 w-6 text-text-tertiary" />
+        </div>
+      )}
+
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">
           <h3 className="text-sm font-semibold text-text truncate">
@@ -87,6 +150,7 @@ function MenuItemCard({
             {item.description}
           </p>
         )}
+        <DietaryTagBadges tags={item.tags} />
         {hasModifiers && (
           <p className="mt-0.5 text-xs text-text-tertiary">Customizable</p>
         )}

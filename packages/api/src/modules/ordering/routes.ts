@@ -5,7 +5,7 @@ import { setCookie, getCookie } from 'hono/cookie';
 import { eq, and } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { authMiddleware } from '../../middleware/auth.js';
-import { customerSessions, ORDER_STATUSES } from '../../db/schema.js';
+import { customerSessions, ORDER_STATUSES, PROMOTION_TYPES } from '../../db/schema.js';
 import type { DrizzleDB } from '../../db/client.js';
 import type { AuthEnv, TenantEnv } from '../../lib/types.js';
 import {
@@ -26,6 +26,17 @@ import {
   deleteModifierOption,
   getItemModifierGroups,
   setItemModifierGroups,
+  getComboDeals,
+  createComboDeal,
+  updateComboDeal,
+  deleteComboDeal,
+  getPromotions,
+  createPromotion,
+  updatePromotion,
+  deletePromotion,
+  createPromoCode,
+  deletePromoCode,
+  validatePromoCode,
   getPublicMenu,
   createOrder,
   getOrder,
@@ -53,6 +64,7 @@ const createMenuItemSchema = z.object({
   description: z.string().optional(),
   price: z.number().positive('Price must be positive'),
   imageUrl: z.string().url().optional(),
+  tags: z.string().optional(),
 });
 
 const updateMenuItemSchema = z.object({
@@ -60,6 +72,7 @@ const updateMenuItemSchema = z.object({
   description: z.string().optional(),
   price: z.number().positive().optional(),
   imageUrl: z.string().url().optional(),
+  tags: z.string().optional(),
   isAvailable: z.number().int().min(0).max(1).optional(),
   sortOrder: z.number().int().optional(),
   categoryId: z.string().min(1).optional(),
@@ -99,6 +112,90 @@ const setItemModifierGroupsSchema = z.object({
   groupIds: z.array(z.string().min(1)),
 });
 
+// --- Combo Deal Schemas ---
+
+const comboSlotOptionSchema = z.object({
+  menuItemId: z.string().min(1, 'Menu item ID is required'),
+  priceModifier: z.number().optional(),
+  isDefault: z.number().int().min(0).max(1).optional(),
+});
+
+const comboSlotSchema = z.object({
+  name: z.string().min(1, 'Slot name is required'),
+  minSelections: z.number().int().min(0).optional(),
+  maxSelections: z.number().int().min(1).optional(),
+  options: z.array(comboSlotOptionSchema).min(1, 'At least one option is required'),
+});
+
+const createComboDealSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  description: z.string().optional(),
+  imageUrl: z.string().url().optional(),
+  basePrice: z.number().positive('Base price must be positive'),
+  categoryId: z.string().min(1).optional(),
+  slots: z.array(comboSlotSchema).min(1, 'At least one slot is required'),
+});
+
+const updateComboDealSchema = z.object({
+  name: z.string().min(1).optional(),
+  description: z.string().optional(),
+  imageUrl: z.string().url().optional(),
+  basePrice: z.number().positive().optional(),
+  categoryId: z.string().min(1).nullable().optional(),
+  sortOrder: z.number().int().optional(),
+  isActive: z.number().int().min(0).max(1).optional(),
+});
+
+// --- Promotion Schemas ---
+
+const createPromotionSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  description: z.string().optional(),
+  type: z.enum(PROMOTION_TYPES),
+  discountValue: z.number().positive('Discount value must be positive'),
+  minOrderAmount: z.number().positive().optional(),
+  applicableCategories: z.array(z.string().min(1)).optional(),
+  startsAt: z.string().min(1, 'Start date is required'),
+  endsAt: z.string().optional(),
+  maxUses: z.number().int().positive().optional(),
+});
+
+const updatePromotionSchema = z.object({
+  name: z.string().min(1).optional(),
+  description: z.string().optional(),
+  type: z.enum(PROMOTION_TYPES).optional(),
+  discountValue: z.number().positive().optional(),
+  minOrderAmount: z.number().positive().nullable().optional(),
+  applicableCategories: z.array(z.string().min(1)).nullable().optional(),
+  startsAt: z.string().min(1).optional(),
+  endsAt: z.string().nullable().optional(),
+  maxUses: z.number().int().positive().nullable().optional(),
+  isActive: z.number().int().min(0).max(1).optional(),
+});
+
+const createPromoCodeSchema = z.object({
+  code: z.string().min(1, 'Code is required').max(50),
+  usageLimit: z.number().int().positive().optional(),
+});
+
+const validatePromoCodeSchema = z.object({
+  code: z.string().min(1, 'Code is required'),
+});
+
+// --- Order Schema ---
+
+const comboOrderItemSchema = z.object({
+  comboDealId: z.string().min(1, 'Combo deal ID is required'),
+  selections: z.array(
+    z.object({
+      slotId: z.string().min(1, 'Slot ID is required'),
+      menuItemId: z.string().min(1, 'Menu item ID is required'),
+    })
+  ).min(1, 'At least one selection is required'),
+  quantity: z.number().int().positive('Quantity must be positive'),
+  notes: z.string().optional(),
+});
+
 const placeOrderSchema = z.object({
   tableNumber: z.string().min(1, 'Table number is required'),
   notes: z.string().optional(),
@@ -119,8 +216,13 @@ const placeOrderSchema = z.object({
           .optional(),
       })
     )
-    .min(1, 'At least one item is required'),
-});
+    .default([]),
+  comboItems: z.array(comboOrderItemSchema).optional(),
+  promoCode: z.string().min(1).optional(),
+}).refine(
+  (data) => data.items.length > 0 || (data.comboItems && data.comboItems.length > 0),
+  { message: 'Order must contain at least one regular item or combo item' }
+);
 
 // --- Staff Ordering Routes ---
 
@@ -308,6 +410,112 @@ export function staffOrderingRoutes(db: DrizzleDB) {
     }
   );
 
+  // --- Combo Deals ---
+
+  router.get('/combos', (c) => {
+    const tenantId = c.var.tenantId;
+    const combos = getComboDeals(db, tenantId);
+    return c.json({ data: combos });
+  });
+
+  router.post('/combos', zValidator('json', createComboDealSchema), (c) => {
+    const tenantId = c.var.tenantId;
+    const body = c.req.valid('json');
+    const result = createComboDeal(db, tenantId, body);
+    if ('error' in result) {
+      return c.json({ error: result.error }, 400);
+    }
+    return c.json({ data: result.data }, 201);
+  });
+
+  router.put('/combos/:id', zValidator('json', updateComboDealSchema), (c) => {
+    const tenantId = c.var.tenantId;
+    const comboId = c.req.param('id');
+    const body = c.req.valid('json');
+    const result = updateComboDeal(db, tenantId, comboId, body);
+    if ('error' in result) {
+      return c.json({ error: result.error }, 404);
+    }
+    return c.json({ data: result.data });
+  });
+
+  router.delete('/combos/:id', (c) => {
+    const tenantId = c.var.tenantId;
+    const comboId = c.req.param('id');
+    const combo = deleteComboDeal(db, tenantId, comboId);
+    if (!combo) {
+      return c.json({ error: 'Combo deal not found' }, 404);
+    }
+    return c.json({ data: combo });
+  });
+
+  // --- Promotions ---
+
+  router.get('/promotions', (c) => {
+    const tenantId = c.var.tenantId;
+    const promos = getPromotions(db, tenantId);
+    return c.json({ data: promos });
+  });
+
+  router.post('/promotions', zValidator('json', createPromotionSchema), (c) => {
+    const tenantId = c.var.tenantId;
+    const body = c.req.valid('json');
+    const promo = createPromotion(db, tenantId, body);
+    return c.json({ data: promo }, 201);
+  });
+
+  router.put('/promotions/:id', zValidator('json', updatePromotionSchema), (c) => {
+    const tenantId = c.var.tenantId;
+    const promoId = c.req.param('id');
+    const body = c.req.valid('json');
+    const promo = updatePromotion(db, tenantId, promoId, body);
+    if (!promo) {
+      return c.json({ error: 'Promotion not found' }, 404);
+    }
+    return c.json({ data: promo });
+  });
+
+  router.delete('/promotions/:id', (c) => {
+    const tenantId = c.var.tenantId;
+    const promoId = c.req.param('id');
+    const promo = deletePromotion(db, tenantId, promoId);
+    if (!promo) {
+      return c.json({ error: 'Promotion not found' }, 404);
+    }
+    return c.json({ data: promo });
+  });
+
+  // --- Promo Codes ---
+
+  router.post(
+    '/promotions/:id/codes',
+    zValidator('json', createPromoCodeSchema),
+    (c) => {
+      const tenantId = c.var.tenantId;
+      const promotionId = c.req.param('id');
+      const body = c.req.valid('json');
+      const result = createPromoCode(db, tenantId, {
+        promotionId,
+        code: body.code,
+        usageLimit: body.usageLimit,
+      });
+      if ('error' in result) {
+        return c.json({ error: result.error }, 400);
+      }
+      return c.json({ data: result.data }, 201);
+    }
+  );
+
+  router.delete('/promotions/codes/:id', (c) => {
+    const tenantId = c.var.tenantId;
+    const codeId = c.req.param('id');
+    const code = deletePromoCode(db, tenantId, codeId);
+    if (!code) {
+      return c.json({ error: 'Promo code not found' }, 404);
+    }
+    return c.json({ data: code });
+  });
+
   // --- Orders (Staff) ---
 
   router.get('/orders', (c) => {
@@ -356,6 +564,30 @@ export function customerOrderingRoutes(db: DrizzleDB) {
     const tenantId = c.var.tenantId;
     const menu = getPublicMenu(db, tenantId);
     return c.json({ data: menu });
+  });
+
+  // Validate promo code — public, no session required
+  router.post('/validate-promo', zValidator('json', validatePromoCodeSchema), (c) => {
+    const tenantId = c.var.tenantId;
+    const { code } = c.req.valid('json');
+    const result = validatePromoCode(db, tenantId, code);
+    if ('error' in result) {
+      return c.json({ error: result.error }, 400);
+    }
+    const { promotion, promoCode } = result.data;
+    return c.json({
+      data: {
+        code: promoCode.code,
+        promotionName: promotion.name,
+        description: promotion.description,
+        type: promotion.type,
+        discountValue: promotion.discountValue,
+        minOrderAmount: promotion.minOrderAmount,
+        applicableCategories: promotion.applicableCategories
+          ? JSON.parse(promotion.applicableCategories)
+          : null,
+      },
+    });
   });
 
   // Place order — creates session if needed
@@ -416,6 +648,8 @@ export function customerOrderingRoutes(db: DrizzleDB) {
       sessionId,
       notes: body.notes,
       items: body.items,
+      comboItems: body.comboItems,
+      promoCode: body.promoCode,
     });
 
     if ('error' in result) {

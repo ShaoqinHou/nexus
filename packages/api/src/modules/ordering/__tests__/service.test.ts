@@ -76,11 +76,73 @@ function createTestDb() {
       description TEXT,
       price REAL NOT NULL,
       image_url TEXT,
+      tags TEXT,
       is_available INTEGER NOT NULL DEFAULT 1,
       sort_order INTEGER NOT NULL DEFAULT 0,
       is_active INTEGER NOT NULL DEFAULT 1,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE promotions (
+      id TEXT PRIMARY KEY,
+      tenant_id TEXT NOT NULL REFERENCES tenants(id),
+      name TEXT NOT NULL,
+      description TEXT,
+      type TEXT NOT NULL,
+      discount_value REAL NOT NULL,
+      min_order_amount REAL,
+      applicable_categories TEXT,
+      starts_at TEXT NOT NULL,
+      ends_at TEXT,
+      max_uses INTEGER,
+      current_uses INTEGER NOT NULL DEFAULT 0,
+      is_active INTEGER NOT NULL DEFAULT 1,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE promo_codes (
+      id TEXT PRIMARY KEY,
+      tenant_id TEXT NOT NULL REFERENCES tenants(id),
+      promotion_id TEXT NOT NULL REFERENCES promotions(id),
+      code TEXT NOT NULL,
+      usage_limit INTEGER,
+      usage_count INTEGER NOT NULL DEFAULT 0,
+      is_active INTEGER NOT NULL DEFAULT 1,
+      created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE combo_deals (
+      id TEXT PRIMARY KEY,
+      tenant_id TEXT NOT NULL REFERENCES tenants(id),
+      name TEXT NOT NULL,
+      description TEXT,
+      image_url TEXT,
+      base_price REAL NOT NULL,
+      category_id TEXT REFERENCES menu_categories(id),
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      is_active INTEGER NOT NULL DEFAULT 1,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE combo_slots (
+      id TEXT PRIMARY KEY,
+      combo_deal_id TEXT NOT NULL REFERENCES combo_deals(id),
+      name TEXT NOT NULL,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      min_selections INTEGER NOT NULL DEFAULT 1,
+      max_selections INTEGER NOT NULL DEFAULT 1
+    );
+
+    CREATE TABLE combo_slot_options (
+      id TEXT PRIMARY KEY,
+      combo_slot_id TEXT NOT NULL REFERENCES combo_slots(id),
+      menu_item_id TEXT NOT NULL REFERENCES menu_items(id),
+      price_modifier REAL NOT NULL DEFAULT 0,
+      is_default INTEGER NOT NULL DEFAULT 0,
+      sort_order INTEGER NOT NULL DEFAULT 0
     );
 
     CREATE TABLE orders (
@@ -91,6 +153,8 @@ function createTestDb() {
       status TEXT NOT NULL DEFAULT 'pending',
       notes TEXT,
       total REAL NOT NULL,
+      discount_amount REAL DEFAULT 0,
+      promo_code_id TEXT REFERENCES promo_codes(id),
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
@@ -104,6 +168,8 @@ function createTestDb() {
       quantity INTEGER NOT NULL,
       notes TEXT,
       modifiers_json TEXT,
+      combo_deal_id TEXT REFERENCES combo_deals(id),
+      combo_group_id TEXT,
       created_at TEXT NOT NULL
     );
 
@@ -391,7 +457,7 @@ describe('Public Menu', () => {
       price: 30,
     });
 
-    const menu = getPublicMenu(db, tenantId);
+    const { categories: menu } = getPublicMenu(db, tenantId);
     expect(menu).toHaveLength(1);
     expect(menu[0].category.name).toBe('Mains');
     expect(menu[0].items).toHaveLength(2);
@@ -412,9 +478,9 @@ describe('Public Menu', () => {
     });
     deleteCategory(db, tenantId, inactive.id);
 
-    const menu = getPublicMenu(db, tenantId);
-    expect(menu).toHaveLength(1);
-    expect(menu[0].category.name).toBe('Active');
+    const { categories: menu2 } = getPublicMenu(db, tenantId);
+    expect(menu2).toHaveLength(1);
+    expect(menu2[0].category.name).toBe('Active');
   });
 
   it('excludes unavailable items (isAvailable=0)', () => {
@@ -433,15 +499,15 @@ describe('Public Menu', () => {
 
     updateMenuItem(db, tenantId, burger.id, { isAvailable: 0 });
 
-    const menu = getPublicMenu(db, tenantId);
-    expect(menu).toHaveLength(1);
-    expect(menu[0].items).toHaveLength(1);
-    expect(menu[0].items[0].name).toBe('Steak');
+    const { categories: menu3 } = getPublicMenu(db, tenantId);
+    expect(menu3).toHaveLength(1);
+    expect(menu3[0].items).toHaveLength(1);
+    expect(menu3[0].items[0].name).toBe('Steak');
   });
 
   it('returns empty for tenant with no menu', () => {
-    const menu = getPublicMenu(db, tenantId);
-    expect(menu).toHaveLength(0);
+    const { categories: menu4 } = getPublicMenu(db, tenantId);
+    expect(menu4).toHaveLength(0);
   });
 });
 
@@ -795,13 +861,13 @@ describe('Tenant Isolation', () => {
       price: 12,
     });
 
-    const menuA = getPublicMenu(db, tenantAId);
+    const { categories: menuA } = getPublicMenu(db, tenantAId);
     expect(menuA).toHaveLength(1);
     expect(menuA[0].category.name).toBe('A Mains');
     expect(menuA[0].items).toHaveLength(1);
     expect(menuA[0].items[0].name).toBe('A Burger');
 
-    const menuB = getPublicMenu(db, tenantBId);
+    const { categories: menuB } = getPublicMenu(db, tenantBId);
     expect(menuB).toHaveLength(1);
     expect(menuB[0].category.name).toBe('B Mains');
     expect(menuB[0].items).toHaveLength(1);

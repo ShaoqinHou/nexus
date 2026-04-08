@@ -3,7 +3,28 @@ import { createPortal } from 'react-dom';
 import { X, Plus, Minus } from 'lucide-react';
 import { Badge, Button } from '@web/components/ui';
 import { useCart } from '@web/apps/ordering/customer/CartProvider';
-import type { MenuItem, ModifierGroup, ModifierOption } from '@web/apps/ordering/types';
+import type { MenuItem, ModifierGroup, ModifierOption, DietaryTag } from '@web/apps/ordering/types';
+
+function getTagColor(tag: string): string {
+  switch (tag as DietaryTag) {
+    case 'vegetarian':
+    case 'vegan':
+      return 'bg-success-light text-success';
+    case 'gluten-free':
+    case 'dairy-free':
+    case 'nut-free':
+      return 'bg-primary-light text-primary';
+    case 'halal':
+      return 'bg-primary-light text-primary';
+    case 'spicy':
+      return 'bg-warning-light text-warning';
+    case 'new':
+    case 'popular':
+      return 'bg-warning-light text-warning';
+    default:
+      return 'bg-bg-muted text-text-secondary';
+  }
+}
 
 interface ItemDetailSheetProps {
   item: MenuItem;
@@ -164,6 +185,20 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50"
     >
       <div className="w-full max-w-lg max-h-[90vh] bg-bg-elevated rounded-t-2xl sm:rounded-2xl shadow-lg border border-border flex flex-col overflow-hidden">
+        {/* Hero image */}
+        {item.imageUrl && (
+          <div className="relative shrink-0">
+            <img
+              src={item.imageUrl}
+              alt={item.name}
+              className="w-full h-[200px] object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex items-start justify-between px-5 pt-5 pb-3 shrink-0">
           <div className="flex-1 min-w-0 pr-4">
@@ -172,6 +207,21 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
               <p className="text-sm text-text-secondary mt-0.5">
                 {item.description}
               </p>
+            )}
+            {item.tags && (
+              <div className="flex flex-wrap gap-1 mt-1.5">
+                {item.tags.split(',').filter(Boolean).map((tag) => (
+                  <span
+                    key={tag}
+                    className={[
+                      'inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium',
+                      getTagColor(tag),
+                    ].join(' ')}
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
             )}
             <p className="text-base font-semibold text-primary mt-1">
               {formatPrice(item.price)}

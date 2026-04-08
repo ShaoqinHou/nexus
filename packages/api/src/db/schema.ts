@@ -65,6 +65,7 @@ export const menuItems = sqliteTable('menu_items', {
   description: text('description'),
   price: real('price').notNull(),
   imageUrl: text('image_url'),
+  tags: text('tags'), // comma-separated: "vegetarian,gluten-free,spicy"
   isAvailable: integer('is_available').notNull().default(1),
   sortOrder: integer('sort_order').notNull().default(0),
   isActive: integer('is_active').notNull().default(1),
@@ -105,6 +106,74 @@ export const menuItemModifierGroups = sqliteTable('menu_item_modifier_groups', {
   sortOrder: integer('sort_order').notNull().default(0),
 });
 
+// --- Promotions ---
+
+export const PROMOTION_TYPES = ['percentage', 'fixed_amount'] as const;
+export type PromotionType = (typeof PROMOTION_TYPES)[number];
+
+export const promotions = sqliteTable('promotions', {
+  id: text('id').primaryKey().$defaultFn(() => nanoid()),
+  tenantId: text('tenant_id').notNull().references(() => tenants.id),
+  name: text('name').notNull(),
+  description: text('description'),
+  type: text('type').notNull().$type<PromotionType>(),
+  discountValue: real('discount_value').notNull(), // 20 = 20% or $20
+  minOrderAmount: real('min_order_amount'),
+  applicableCategories: text('applicable_categories'), // JSON array of category IDs, null = all
+  startsAt: text('starts_at').notNull(),
+  endsAt: text('ends_at'),
+  maxUses: integer('max_uses'),
+  currentUses: integer('current_uses').notNull().default(0),
+  isActive: integer('is_active').notNull().default(1),
+  createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
+  updatedAt: text('updated_at').notNull().$defaultFn(() => new Date().toISOString()),
+});
+
+export const promoCodes = sqliteTable('promo_codes', {
+  id: text('id').primaryKey().$defaultFn(() => nanoid()),
+  tenantId: text('tenant_id').notNull().references(() => tenants.id),
+  promotionId: text('promotion_id').notNull().references(() => promotions.id),
+  code: text('code').notNull(),
+  usageLimit: integer('usage_limit'),
+  usageCount: integer('usage_count').notNull().default(0),
+  isActive: integer('is_active').notNull().default(1),
+  createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
+});
+
+// --- Combo Deals / Meal Bundles ---
+
+export const comboDeals = sqliteTable('combo_deals', {
+  id: text('id').primaryKey().$defaultFn(() => nanoid()),
+  tenantId: text('tenant_id').notNull().references(() => tenants.id),
+  name: text('name').notNull(),
+  description: text('description'),
+  imageUrl: text('image_url'),
+  basePrice: real('base_price').notNull(),
+  categoryId: text('category_id').references(() => menuCategories.id), // display in this category
+  sortOrder: integer('sort_order').notNull().default(0),
+  isActive: integer('is_active').notNull().default(1),
+  createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
+  updatedAt: text('updated_at').notNull().$defaultFn(() => new Date().toISOString()),
+});
+
+export const comboSlots = sqliteTable('combo_slots', {
+  id: text('id').primaryKey().$defaultFn(() => nanoid()),
+  comboDealId: text('combo_deal_id').notNull().references(() => comboDeals.id),
+  name: text('name').notNull(), // "Choose your Main"
+  sortOrder: integer('sort_order').notNull().default(0),
+  minSelections: integer('min_selections').notNull().default(1),
+  maxSelections: integer('max_selections').notNull().default(1),
+});
+
+export const comboSlotOptions = sqliteTable('combo_slot_options', {
+  id: text('id').primaryKey().$defaultFn(() => nanoid()),
+  comboSlotId: text('combo_slot_id').notNull().references(() => comboSlots.id),
+  menuItemId: text('menu_item_id').notNull().references(() => menuItems.id),
+  priceModifier: real('price_modifier').notNull().default(0), // +$2 upgrade
+  isDefault: integer('is_default').notNull().default(0),
+  sortOrder: integer('sort_order').notNull().default(0),
+});
+
 export const orders = sqliteTable('orders', {
   id: text('id').primaryKey().$defaultFn(() => nanoid()),
   tenantId: text('tenant_id').notNull().references(() => tenants.id),
@@ -113,6 +182,8 @@ export const orders = sqliteTable('orders', {
   status: text('status').notNull().$type<OrderStatus>().default('pending'),
   notes: text('notes'),
   total: real('total').notNull(),
+  discountAmount: real('discount_amount').default(0),
+  promoCodeId: text('promo_code_id').references(() => promoCodes.id),
   createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
   updatedAt: text('updated_at').notNull().$defaultFn(() => new Date().toISOString()),
 });
@@ -126,6 +197,8 @@ export const orderItems = sqliteTable('order_items', {
   quantity: integer('quantity').notNull(),
   notes: text('notes'),
   modifiersJson: text('modifiers_json'),  // JSON snapshot: [{"name":"Large","price":2.50}]
+  comboDealId: text('combo_deal_id').references(() => comboDeals.id),  // which combo this item belongs to
+  comboGroupId: text('combo_group_id'),  // groups items from the same combo instance
   createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
 });
 
@@ -143,3 +216,13 @@ export type Order = typeof orders.$inferSelect;
 export type OrderItem = typeof orderItems.$inferSelect;
 export type ModifierGroup = typeof modifierGroups.$inferSelect;
 export type ModifierOption = typeof modifierOptions.$inferSelect;
+export type Promotion = typeof promotions.$inferSelect;
+export type NewPromotion = typeof promotions.$inferInsert;
+export type PromoCode = typeof promoCodes.$inferSelect;
+export type NewPromoCode = typeof promoCodes.$inferInsert;
+export type ComboDeal = typeof comboDeals.$inferSelect;
+export type NewComboDeal = typeof comboDeals.$inferInsert;
+export type ComboSlot = typeof comboSlots.$inferSelect;
+export type NewComboSlot = typeof comboSlots.$inferInsert;
+export type ComboSlotOption = typeof comboSlotOptions.$inferSelect;
+export type NewComboSlotOption = typeof comboSlotOptions.$inferInsert;

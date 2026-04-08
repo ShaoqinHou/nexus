@@ -86,6 +86,7 @@ export function useCreateMenuItem(tenantSlug: string) {
       description?: string;
       price: number;
       imageUrl?: string;
+      tags?: string;
     }) => apiClient.post<{ data: MenuItem }>(`/t/${tenantSlug}/ordering/items`, body),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: orderingKeys.itemsAll() });
@@ -107,6 +108,7 @@ export function useUpdateMenuItem(tenantSlug: string) {
       description?: string | null;
       price?: number;
       imageUrl?: string | null;
+      tags?: string | null;
       isAvailable?: number;
     }) => apiClient.put<{ data: MenuItem }>(`/t/${tenantSlug}/ordering/items/${id}`, body),
     onSuccess: () => {
