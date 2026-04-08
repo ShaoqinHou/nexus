@@ -9,7 +9,7 @@ import {
   Input,
   Select,
 } from '@web/components/ui';
-import { StatusBadge, EmptyState } from '@web/components/patterns';
+import { StatusBadge, EmptyState, ConfirmButton } from '@web/components/patterns';
 import { useTenant } from '@web/platform/tenant/TenantProvider';
 import { useToast } from '@web/platform/ToastProvider';
 import { useOrders, useUpdateOrderStatus } from '../hooks/useOrders';
@@ -207,17 +207,15 @@ function OrderCard({
                 </Button>
               )}
               {order.status !== 'cancelled' && order.status !== 'delivered' && (
-                <Button
-                  variant="ghost"
+                <ConfirmButton
+                  variant="destructive"
                   size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onUpdateStatus(order.id, 'cancelled');
-                  }}
+                  onConfirm={() => onUpdateStatus(order.id, 'cancelled')}
+                  confirmText="Cancel this order?"
                   disabled={isUpdating}
                 >
                   Cancel Order
-                </Button>
+                </ConfirmButton>
               )}
             </div>
           </CardContent>

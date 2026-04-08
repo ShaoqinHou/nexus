@@ -232,7 +232,7 @@ export function CartSheet({
             <div className="flex items-center gap-3">
               <div className="relative">
                 <ShoppingCart className="h-5 w-5 text-primary" />
-                <span className="absolute -top-2 -right-2 h-4 w-4 rounded-full bg-primary text-text-inverse text-[10px] font-bold flex items-center justify-center">
+                <span className="absolute -top-2 -right-2 h-4 w-4 rounded-full bg-primary text-text-inverse text-xs font-bold flex items-center justify-center">
                   {totalItems}
                 </span>
               </div>
@@ -261,7 +261,7 @@ export function CartSheet({
                 <button
                   type="button"
                   onClick={closeSheet}
-                  className="p-1 rounded-full hover:bg-bg-muted transition-colors text-text-secondary"
+                  className="p-2 rounded-full hover:bg-bg-muted transition-colors text-text-secondary"
                   aria-label="Close cart"
                 >
                   <X className="h-4 w-4" />
@@ -309,14 +309,14 @@ export function CartSheet({
                           )}
                           {/* Modifier details */}
                           {!isCombo && item.modifiers && item.modifiers.length > 0 && (
-                            <p className="text-xs text-text-tertiary mt-0.5">
+                            <p className="text-xs text-text-tertiary mt-0.5 line-clamp-2">
                               +{' '}
-                              {item.modifiers
+                              <span className="line-clamp-2">{item.modifiers
                                 .map(
                                   (m) =>
                                     `${m.name}${m.price > 0 ? ` (+${formatPrice(m.price)})` : ''}`,
                                 )
-                                .join(', ')}
+                                .join(', ')}</span>
                             </p>
                           )}
                         </div>
@@ -333,7 +333,7 @@ export function CartSheet({
                             onClick={() =>
                               updateQuantity(index, item.quantity - 1)
                             }
-                            className="h-7 w-7 flex items-center justify-center rounded-full border border-border text-text-secondary hover:bg-bg-muted transition-colors"
+                            className="h-9 w-9 flex items-center justify-center rounded-full border border-border text-text-secondary hover:bg-bg-muted transition-colors"
                             aria-label={`Decrease ${item.name} quantity`}
                           >
                             <Minus className="h-3.5 w-3.5" />
@@ -346,7 +346,7 @@ export function CartSheet({
                             onClick={() =>
                               updateQuantity(index, item.quantity + 1)
                             }
-                            className="h-7 w-7 flex items-center justify-center rounded-full bg-primary text-text-inverse hover:bg-primary-hover transition-colors"
+                            className="h-9 w-9 flex items-center justify-center rounded-full bg-primary text-text-inverse hover:bg-primary-hover transition-colors"
                             aria-label={`Increase ${item.name} quantity`}
                           >
                             <Plus className="h-3.5 w-3.5" />
@@ -354,7 +354,7 @@ export function CartSheet({
                         </div>
 
                         {/* Action buttons */}
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-2">
                           <button
                             type="button"
                             onClick={() =>
@@ -363,7 +363,7 @@ export function CartSheet({
                               )
                             }
                             className={[
-                              'p-1.5 rounded transition-colors',
+                              'p-2.5 rounded transition-colors',
                               item.notes
                                 ? 'text-primary'
                                 : 'text-text-tertiary hover:text-text-secondary',
@@ -375,7 +375,7 @@ export function CartSheet({
                           <button
                             type="button"
                             onClick={() => removeItem(index)}
-                            className="p-1.5 rounded text-text-tertiary hover:text-danger transition-colors"
+                            className="p-2.5 rounded text-text-tertiary hover:text-danger transition-colors"
                             aria-label={`Remove ${item.name} from cart`}
                           >
                             <Trash2 className="h-4 w-4" />
@@ -392,7 +392,7 @@ export function CartSheet({
                             updateItemNotes(index, e.target.value)
                           }
                           placeholder="Special requests..."
-                          className="w-full text-xs px-2.5 py-1.5 rounded border border-border bg-bg text-text placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-primary"
+                          className="w-full text-sm px-2.5 py-1.5 rounded border border-border bg-bg text-text placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-primary"
                         />
                       )}
                     </div>
@@ -436,7 +436,7 @@ export function CartSheet({
                       <button
                         type="button"
                         onClick={handleRemovePromo}
-                        className="p-1 rounded text-text-tertiary hover:text-danger transition-colors"
+                        className="p-2 rounded text-text-tertiary hover:text-danger transition-colors"
                         aria-label="Remove promo code"
                       >
                         <X className="h-3.5 w-3.5" />

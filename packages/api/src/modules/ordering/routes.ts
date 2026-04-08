@@ -567,6 +567,7 @@ export function customerOrderingRoutes(db: DrizzleDB) {
   });
 
   // Validate promo code — public, no session required
+  // TODO: Add rate limiting to prevent promo code brute force
   router.post('/validate-promo', zValidator('json', validatePromoCodeSchema), (c) => {
     const tenantId = c.var.tenantId;
     const { code } = c.req.valid('json');
@@ -636,7 +637,7 @@ export function customerOrderingRoutes(db: DrizzleDB) {
 
       setCookie(c, 'session_token', token, {
         httpOnly: true,
-        secure: false, // Set to true in production
+        secure: process.env.PORT !== '3001',
         sameSite: 'Lax',
         maxAge: 24 * 60 * 60, // 24 hours in seconds
         path: '/',

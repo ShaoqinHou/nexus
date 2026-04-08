@@ -97,7 +97,7 @@ function StatusTimeline({ currentStatus }: { currentStatus: OrderStatus }) {
             {/* Label */}
             <span
               className={[
-                'text-[10px] font-medium text-center leading-tight',
+                'text-xs font-medium text-center leading-tight',
                 isCurrent
                   ? 'text-primary'
                   : isCompleted
@@ -240,7 +240,7 @@ export function OrderConfirmation({
                     const mods = JSON.parse(item.modifiersJson) as SnapshotModifier[];
                     if (mods.length > 0) {
                       return (
-                        <p className="text-xs text-text-tertiary mt-0.5 pl-8">
+                        <p className="text-xs text-text-tertiary mt-0.5 pl-8 line-clamp-2">
                           {mods.map((m) => m.price > 0 ? `${m.name} (+$${m.price.toFixed(2)})` : m.name).join(', ')}
                         </p>
                       );

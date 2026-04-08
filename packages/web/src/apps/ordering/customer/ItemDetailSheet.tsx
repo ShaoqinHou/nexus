@@ -202,7 +202,7 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
         {/* Header */}
         <div className="flex items-start justify-between px-5 pt-5 pb-3 shrink-0">
           <div className="flex-1 min-w-0 pr-4">
-            <h2 className="text-lg font-bold text-text">{item.name}</h2>
+            <h2 className="text-lg font-bold text-text break-words">{item.name}</h2>
             {item.description && (
               <p className="text-sm text-text-secondary mt-0.5">
                 {item.description}
@@ -214,7 +214,7 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
                   <span
                     key={tag}
                     className={[
-                      'inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium',
+                      'inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-medium',
                       getTagColor(tag),
                     ].join(' ')}
                   >
@@ -230,7 +230,7 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full p-1.5 text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors shrink-0"
+            className="rounded-full p-2.5 text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors shrink-0"
             aria-label="Close"
           >
             <X className="h-5 w-5" />
@@ -278,7 +278,7 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
                           onClick={() => toggleOption(group, option.id)}
                           disabled={isDisabled}
                           className={[
-                            'w-full flex items-center justify-between px-3 py-2.5 rounded-lg border text-left transition-colors',
+                            'w-full flex items-center justify-between px-3 py-3 rounded-lg border text-left transition-colors',
                             isSelected
                               ? 'border-primary bg-primary/5'
                               : 'border-border hover:bg-bg-muted',
@@ -350,7 +350,7 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
             <button
               type="button"
               onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-              className="h-9 w-9 flex items-center justify-center rounded-full border border-border text-text-secondary hover:bg-bg-muted transition-colors"
+              className="h-11 w-11 flex items-center justify-center rounded-full border border-border text-text-secondary hover:bg-bg-muted transition-colors"
               aria-label="Decrease quantity"
             >
               <Minus className="h-4 w-4" />
@@ -361,7 +361,7 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
             <button
               type="button"
               onClick={() => setQuantity((q) => q + 1)}
-              className="h-9 w-9 flex items-center justify-center rounded-full bg-primary text-text-inverse hover:bg-primary-hover transition-colors"
+              className="h-11 w-11 flex items-center justify-center rounded-full bg-primary text-text-inverse hover:bg-primary-hover transition-colors"
               aria-label="Increase quantity"
             >
               <Plus className="h-4 w-4" />

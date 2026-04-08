@@ -61,12 +61,12 @@ function DietaryTagBadges({ tags }: { tags: string | null }) {
   const parsed = parseTags(tags);
   if (parsed.length === 0) return null;
   return (
-    <div className="flex flex-wrap gap-1 mt-1">
+    <div className="flex flex-wrap gap-1.5 mt-1">
       {parsed.map((tag) => (
         <span
           key={tag}
           className={[
-            'inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium',
+            'inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-medium',
             getTagColor(tag),
           ].join(' ')}
         >
@@ -171,7 +171,7 @@ function MenuItemCard({
             variant="primary"
             size="sm"
             onClick={handleAdd}
-            className="h-8 w-8 !p-0"
+            className="h-10 w-10 !p-0"
             aria-label={`Add ${item.name} to cart`}
           >
             <Plus className="h-4 w-4" />
@@ -181,7 +181,7 @@ function MenuItemCard({
             <button
               type="button"
               onClick={handleDecrement}
-              className="h-7 w-7 flex items-center justify-center rounded-full border border-border text-text-secondary hover:bg-bg-muted transition-colors"
+              className="h-9 w-9 flex items-center justify-center rounded-full border border-border text-text-secondary hover:bg-bg-muted transition-colors"
               aria-label={`Decrease ${item.name} quantity`}
             >
               <Minus className="h-3.5 w-3.5" />
@@ -192,7 +192,7 @@ function MenuItemCard({
             <button
               type="button"
               onClick={handleAdd}
-              className="h-7 w-7 flex items-center justify-center rounded-full bg-primary text-text-inverse hover:bg-primary-hover transition-colors"
+              className="h-9 w-9 flex items-center justify-center rounded-full bg-primary text-text-inverse hover:bg-primary-hover transition-colors"
               aria-label={`Increase ${item.name} quantity`}
             >
               <Plus className="h-3.5 w-3.5" />
@@ -283,7 +283,7 @@ function ComboCard({
           {combo.slots.map((slot) => (
             <span
               key={slot.id}
-              className="inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium bg-primary-light text-primary"
+              className="inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-medium bg-primary-light text-primary"
             >
               {slot.name}
             </span>
