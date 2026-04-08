@@ -261,7 +261,7 @@ function ComboCard({
           alt={combo.name}
           loading="lazy"
           onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
-            (e.target as HTMLImageElement).style.display = 'none';
+            (e.target as HTMLImageElement).hidden = true;
           }}
           className="w-16 h-16 rounded-lg object-cover shrink-0 bg-bg-muted"
         />
@@ -534,7 +534,7 @@ export function MenuBrowse({ tenantSlug }: MenuBrowseProps) {
                       alt={item.name}
                       className="w-full h-20 object-cover"
                       loading="lazy"
-                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                      onError={(e) => { (e.target as HTMLImageElement).hidden = true; }}
                     />
                   ) : (
                     <div className="w-full h-20 bg-bg-muted flex items-center justify-center">

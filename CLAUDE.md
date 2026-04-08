@@ -14,8 +14,9 @@ Nexus is a multi-tenant mini-app platform (WeChat-like). The platform provides a
 
 ## Monorepo Structure
 
-npm workspaces monorepo with two packages:
+npm workspaces monorepo with three packages:
 
+- **`packages/shared`** — Shared constants and types (@nexus/shared). ORDER_STATUSES, STAFF_ROLES, PROMOTION_TYPES, DIETARY_TAGS.
 - **`packages/api`** — Hono HTTP server (port 3001), SQLite via Drizzle ORM, multi-tenant backend
 - **`packages/web`** — React SPA (Vite, port 5173), Tailwind CSS v4, TanStack Router + React Query
 
@@ -96,7 +97,7 @@ packages/web/src/
       hooks/        — Query key factory, useMenu, useOrders, useModifiers
       types.ts      — Module-specific types
   components/
-    ui/             — Shared primitives (Button, Badge, Card, Dialog, Input, Toggle, Select, Toast)
+    ui/             — Shared primitives (Button, Badge, Card, Dialog, Input, Toggle, Select, Toast, ImageUpload)
     patterns/       — Reusable patterns (DataTable, FormField, StatusBadge, EmptyState, ConfirmButton)
   lib/              — Utilities, API client
 ```
@@ -134,7 +135,7 @@ Shared components in `components/ui/` (primitives) and `components/patterns/` (r
 
 ### Database Schema (packages/api/src/db/)
 
-SQLite with Drizzle ORM. Platform tables: `tenants`, `staff`, `customer_sessions`. Ordering module: `menu_categories`, `menu_items`, `modifier_groups`, `modifier_options`, `menu_item_modifier_groups`, `orders`, `order_items`.
+SQLite with Drizzle ORM (15 tables). Platform: `tenants`, `staff`, `customer_sessions`. Menu: `menu_categories`, `menu_items`, `modifier_groups`, `modifier_options`, `menu_item_modifier_groups`. Commerce: `promotions`, `promo_codes`, `combo_deals`, `combo_slots`, `combo_slot_options`. Orders: `orders`, `order_items`.
 
 Conventions:
 - All business tables have `tenant_id` with FK to tenants

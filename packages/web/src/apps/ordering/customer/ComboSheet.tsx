@@ -29,11 +29,19 @@ export function ComboSheet({ combo, onClose }: ComboSheetProps) {
 
   const [quantity, setQuantity] = useState(1);
 
-  // Prevent body scroll
+  // Prevent body scroll, save/restore scroll position
   useEffect(() => {
+    const scrollY = window.scrollY;
     document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
     return () => {
       document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      window.scrollTo(0, scrollY);
     };
   }, []);
 
@@ -162,7 +170,7 @@ export function ComboSheet({ combo, onClose }: ComboSheetProps) {
               alt={combo.name}
               className="w-full h-[200px] object-cover"
               onError={(e) => {
-                (e.target as HTMLImageElement).style.display = 'none';
+                (e.target as HTMLImageElement).hidden = true;
               }}
             />
           </div>

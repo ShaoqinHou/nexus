@@ -23,7 +23,7 @@ import {
   Toggle,
 } from '@web/components/ui';
 import { ConfirmButton, EmptyState } from '@web/components/patterns';
-import { formatDate } from '@web/lib/format';
+import { formatDate, formatPrice } from '@web/lib/format';
 import { useTenant } from '@web/platform/tenant/TenantProvider';
 import { useToast } from '@web/platform/ToastProvider';
 import {
@@ -45,7 +45,7 @@ function formatDiscount(type: Promotion['type'], value: number): string {
   if (type === 'percentage') {
     return `${value}% OFF`;
   }
-  return `$${value.toFixed(2)} OFF`;
+  return `${formatPrice(value)} OFF`;
 }
 
 function isExpired(promo: Promotion): boolean {
@@ -469,7 +469,7 @@ function PromotionCard({
             {promo.endsAt ? ` - ${formatDate(promo.endsAt)}` : ' - No end'}
           </span>
           {promo.minOrderAmount != null && promo.minOrderAmount > 0 && (
-            <span>Min: ${promo.minOrderAmount.toFixed(2)}</span>
+            <span>Min: {formatPrice(promo.minOrderAmount)}</span>
           )}
           <span>
             {promo.currentUses}

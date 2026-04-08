@@ -234,7 +234,7 @@ function LivePreview({ settings, isDark }: LivePreviewProps) {
               alt="Logo"
               className="w-10 h-10 rounded-lg object-cover"
               style={{ borderRadius: radius }}
-              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+              onError={(e) => { (e.target as HTMLImageElement).hidden = true; }}
             />
           ) : (
             <div
@@ -270,7 +270,7 @@ function LivePreview({ settings, isDark }: LivePreviewProps) {
               src={settings.coverImageUrl}
               alt="Cover"
               className="w-full h-full object-cover"
-              onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = 'none'; }}
+              onError={(e) => { (e.target as HTMLImageElement).parentElement!.hidden = true; }}
             />
           </div>
         )}

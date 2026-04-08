@@ -55,11 +55,19 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
   const [quantity, setQuantity] = useState(1);
   const [notes, setNotes] = useState('');
 
-  // Prevent body scroll when sheet is open
+  // Prevent body scroll when sheet is open, save/restore scroll position
   useEffect(() => {
+    const scrollY = window.scrollY;
     document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
     return () => {
       document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      window.scrollTo(0, scrollY);
     };
   }, []);
 
@@ -184,7 +192,7 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
               alt={item.name}
               className="w-full h-[200px] object-cover"
               onError={(e) => {
-                (e.target as HTMLImageElement).style.display = 'none';
+                (e.target as HTMLImageElement).hidden = true;
               }}
             />
           </div>

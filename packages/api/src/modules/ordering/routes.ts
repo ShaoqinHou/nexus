@@ -615,8 +615,10 @@ export function staffOrderingRoutes(db: DrizzleDB) {
         id: String(id++),
       });
 
-      // Poll for changes every 3 seconds
-      while (true) {
+      // Poll for changes every 3 seconds, timeout after 60 minutes
+      const MAX_AGE_MS = 60 * 60 * 1000;
+      const startTime = Date.now();
+      while (Date.now() - startTime < MAX_AGE_MS) {
         await stream.sleep(3000);
         const updatedOrders = getKitchenOrders(db, tenantId);
         await stream.writeSSE({
@@ -625,6 +627,7 @@ export function staffOrderingRoutes(db: DrizzleDB) {
           id: String(id++),
         });
       }
+      // Connection closes — client will auto-reconnect
     });
   });
 

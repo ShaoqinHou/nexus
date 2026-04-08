@@ -1,5 +1,4 @@
-import { useState, useCallback } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useState, useCallback, useEffect } from 'react';
 import {
   ShoppingCart,
   Plus,
@@ -12,44 +11,16 @@ import {
   Tag,
   Check,
 } from 'lucide-react';
-import { apiClient } from '@web/lib/api';
 import { formatPrice } from '@web/lib/format';
 import { Button, Badge } from '@web/components/ui';
-import { useToast } from '@web/platform/ToastProvider';
 import { useCart } from '@web/apps/ordering/customer/CartProvider';
-import { useValidatePromoCode } from '@web/apps/ordering/hooks/usePromotions';
+import { useCartOrder } from '@web/apps/ordering/customer/useCartOrder';
 import type { Order } from '@web/apps/ordering/types';
 
 interface CartSheetProps {
   tenantSlug: string;
   tableNumber: string;
   onOrderPlaced: (order: Order) => void;
-}
-
-interface CreateOrderPayload {
-  tableNumber: string;
-  notes?: string;
-  promoCode?: string;
-  items: Array<{
-    menuItemId: string;
-    quantity: number;
-    notes?: string;
-    modifiers?: Array<{ optionId: string; name: string; price: number }>;
-  }>;
-  comboItems?: Array<{
-    comboDealId: string;
-    selections: Array<{ slotId: string; menuItemId: string }>;
-    quantity: number;
-    notes?: string;
-  }>;
-}
-
-interface AppliedPromo {
-  code: string;
-  type: 'percentage' | 'fixed_amount';
-  discountValue: number;
-  minOrderAmount: number | null;
-  applicableCategories: string | null;
 }
 
 export function CartSheet({
@@ -64,134 +35,58 @@ export function CartSheet({
     updateItemNotes,
     removeItem,
     setNotes,
-    clearCart,
     totalItems,
     totalPrice,
   } = useCart();
 
-  const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
-  const [editingNotesFor, setEditingNotesFor] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
-  // Promo code state
-  const [promoInput, setPromoInput] = useState('');
-  const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null);
-  const [promoError, setPromoError] = useState<string | null>(null);
-  const validatePromo = useValidatePromoCode(tenantSlug);
-
-  // Compute discount amount
-  const discountAmount = appliedPromo
-    ? appliedPromo.type === 'percentage'
-      ? totalPrice * (appliedPromo.discountValue / 100)
-      : Math.min(appliedPromo.discountValue, totalPrice)
-    : 0;
-  const finalTotal = Math.max(0, totalPrice - discountAmount);
-
-  const handleApplyPromo = useCallback(() => {
-    const code = promoInput.trim().toUpperCase();
-    if (!code) return;
-    setPromoError(null);
-    validatePromo.mutate(code, {
-      onSuccess: (promo) => {
-        if (
-          promo.minOrderAmount != null &&
-          totalPrice < promo.minOrderAmount
-        ) {
-          setPromoError(
-            `Minimum order of $${promo.minOrderAmount.toFixed(2)} required`,
-          );
-          return;
-        }
-        setAppliedPromo({
-          code: promo.code,
-          type: promo.type,
-          discountValue: promo.discountValue,
-          minOrderAmount: promo.minOrderAmount,
-          applicableCategories: promo.applicableCategories
-            ? promo.applicableCategories.join(',')
-            : null,
-        });
-        setPromoError(null);
-        toast('success', 'Promo code applied!');
-      },
-      onError: (err: Error) => {
-        setPromoError(err.message || 'Invalid promo code');
-      },
-    });
-  }, [promoInput, validatePromo, totalPrice, toast]);
-
-  const handleRemovePromo = useCallback(() => {
-    setAppliedPromo(null);
-    setPromoInput('');
-    setPromoError(null);
-  }, []);
-
-  const placeOrderMutation = useMutation<Order, Error>({
-    mutationFn: async () => {
-      const regularItems = items.filter((item) => !item.comboDealId);
-      const comboCartItems = items.filter((item) => !!item.comboDealId);
-
-      const payload: CreateOrderPayload = {
-        tableNumber: String(tableNumber),
-        items: regularItems.map((item) => ({
-          menuItemId: item.menuItemId,
-          quantity: item.quantity,
-          ...(item.notes ? { notes: item.notes } : {}),
-          ...(item.modifiers && item.modifiers.length > 0
-            ? { modifiers: item.modifiers }
-            : {}),
-        })),
-        ...(comboCartItems.length > 0
-          ? {
-              comboItems: comboCartItems.map((item) => ({
-                comboDealId: item.comboDealId as string,
-                selections: (item.comboSelections ?? []).map((s) => ({
-                  slotId: s.slotId,
-                  menuItemId: s.menuItemId,
-                })),
-                quantity: item.quantity,
-                ...(item.notes ? { notes: item.notes } : {}),
-              })),
-            }
-          : {}),
-        ...(notes ? { notes } : {}),
-        ...(appliedPromo ? { promoCode: appliedPromo.code } : {}),
-      };
-      const res = await apiClient.post<{ data: Order }>(
-        `/order/${tenantSlug}/ordering/orders`,
-        payload,
-      );
-      return res.data;
-    },
-    onSuccess: (order) => {
-      clearCart();
-      setIsOpen(false);
-      setError(null);
-      setAppliedPromo(null);
-      setPromoInput('');
-      setPromoError(null);
-      toast('success', 'Order placed successfully!');
-      onOrderPlaced(order);
-    },
-    onError: (err) => {
-      setError(err.message || 'Failed to place order. Please try again.');
-    },
+  const {
+    promoInput,
+    setPromoInput,
+    appliedPromo,
+    promoError,
+    setPromoError,
+    discountAmount,
+    finalTotal,
+    handleApplyPromo,
+    handleRemovePromo,
+    validatePromo,
+    placeOrderMutation,
+    handlePlaceOrder,
+    editingNotesFor,
+    setEditingNotesFor,
+    error,
+  } = useCartOrder({
+    tenantSlug,
+    tableNumber,
+    onOrderPlaced,
+    onClose: () => { setIsOpen(false); },
   });
 
-  const handlePlaceOrder = useCallback(() => {
-    setError(null);
-    placeOrderMutation.mutate();
-  }, [placeOrderMutation]);
+  // Prevent body scroll when cart sheet is open, save/restore scroll position
+  useEffect(() => {
+    if (!isOpen) return;
+    const scrollY = window.scrollY;
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      window.scrollTo(0, scrollY);
+    };
+  }, [isOpen]);
 
   const toggleSheet = useCallback(() => {
     setIsOpen((prev) => !prev);
-    setError(null);
   }, []);
 
   const closeSheet = useCallback(() => {
     setIsOpen(false);
-    setError(null);
   }, []);
 
   // Don't render anything if cart is empty
