@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Plus, Minus } from 'lucide-react';
 import { Badge, Button } from '@web/components/ui';
+import { formatPrice, formatPriceDelta, parseTags } from '@web/lib/format';
 import { useCart } from '@web/apps/ordering/customer/CartProvider';
 import type { MenuItem, ModifierGroup, ModifierOption, DietaryTag } from '@web/apps/ordering/types';
 
@@ -29,16 +30,6 @@ function getTagColor(tag: string): string {
 interface ItemDetailSheetProps {
   item: MenuItem;
   onClose: () => void;
-}
-
-function formatPrice(price: number): string {
-  return `$${price.toFixed(2)}`;
-}
-
-function formatPriceDelta(delta: number): string {
-  if (delta > 0) return `+$${delta.toFixed(2)}`;
-  if (delta < 0) return `-$${Math.abs(delta).toFixed(2)}`;
-  return '';
 }
 
 export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
@@ -210,7 +201,7 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
             )}
             {item.tags && (
               <div className="flex flex-wrap gap-1 mt-1.5">
-                {item.tags.split(',').filter(Boolean).map((tag) => (
+                {parseTags(item.tags).map((tag) => (
                   <span
                     key={tag}
                     className={[

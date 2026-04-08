@@ -13,6 +13,7 @@ import {
   Check,
 } from 'lucide-react';
 import { apiClient } from '@web/lib/api';
+import { formatPrice } from '@web/lib/format';
 import { Button, Badge } from '@web/components/ui';
 import { useToast } from '@web/platform/ToastProvider';
 import { useCart } from '@web/apps/ordering/customer/CartProvider';
@@ -23,10 +24,6 @@ interface CartSheetProps {
   tenantSlug: string;
   tableNumber: string;
   onOrderPlaced: (order: Order) => void;
-}
-
-function formatPrice(price: number): string {
-  return `$${price.toFixed(2)}`;
 }
 
 interface CreateOrderPayload {

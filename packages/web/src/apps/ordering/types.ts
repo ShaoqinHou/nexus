@@ -1,3 +1,12 @@
+import type { OrderStatus } from '@nexus/shared';
+export type { OrderStatus };
+export { DIETARY_TAGS } from '@nexus/shared';
+export type { DietaryTag } from '@nexus/shared';
+
+// --- API Response Interfaces ---
+// These represent the API response shape (with transformations like nested items).
+// The underlying constants (OrderStatus, DietaryTag, etc.) come from @nexus/shared.
+
 export interface MenuCategory {
   id: string;
   tenantId: string;
@@ -25,12 +34,6 @@ export interface MenuItem {
   updatedAt: string;
   modifierGroups?: ModifierGroup[];
 }
-
-export const DIETARY_TAGS = [
-  'vegetarian', 'vegan', 'gluten-free', 'dairy-free',
-  'nut-free', 'halal', 'spicy', 'new', 'popular'
-] as const;
-export type DietaryTag = typeof DIETARY_TAGS[number];
 
 export interface ModifierGroup {
   id: string;
@@ -69,14 +72,6 @@ export interface SnapshotModifier {
   name: string;
   price: number;
 }
-
-export type OrderStatus =
-  | 'pending'
-  | 'confirmed'
-  | 'preparing'
-  | 'ready'
-  | 'delivered'
-  | 'cancelled';
 
 export interface Order {
   id: string;

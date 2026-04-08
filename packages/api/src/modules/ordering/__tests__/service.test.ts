@@ -1048,7 +1048,7 @@ describe('Modifier Groups', () => {
     expect(large.name).toBe('Large');
     expect(large.priceDelta).toBe(2.5);
 
-    const options = getModifierOptions(db, group.id);
+    const options = getModifierOptions(db, tenantId, group.id);
     expect(options).toHaveLength(2);
   });
 

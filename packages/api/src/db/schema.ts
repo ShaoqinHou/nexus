@@ -1,13 +1,11 @@
 import { sqliteTable, text, integer, real, uniqueIndex } from 'drizzle-orm/sqlite-core';
 import { nanoid } from 'nanoid';
+import { ORDER_STATUSES, STAFF_ROLES, PROMOTION_TYPES } from '@nexus/shared';
+import type { OrderStatus, StaffRole, PromotionType } from '@nexus/shared';
 
-// --- Status Enums ---
-
-export const STAFF_ROLES = ['owner', 'manager', 'staff'] as const;
-export type StaffRole = (typeof STAFF_ROLES)[number];
-
-export const ORDER_STATUSES = ['pending', 'confirmed', 'preparing', 'ready', 'delivered', 'cancelled'] as const;
-export type OrderStatus = (typeof ORDER_STATUSES)[number];
+// Re-export shared constants for backward compatibility
+export { ORDER_STATUSES, STAFF_ROLES, PROMOTION_TYPES };
+export type { OrderStatus, StaffRole, PromotionType };
 
 // --- Platform Tables ---
 
@@ -107,9 +105,6 @@ export const menuItemModifierGroups = sqliteTable('menu_item_modifier_groups', {
 });
 
 // --- Promotions ---
-
-export const PROMOTION_TYPES = ['percentage', 'fixed_amount'] as const;
-export type PromotionType = (typeof PROMOTION_TYPES)[number];
 
 export const promotions = sqliteTable('promotions', {
   id: text('id').primaryKey().$defaultFn(() => nanoid()),

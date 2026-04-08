@@ -17,6 +17,7 @@ import {
   Toggle,
 } from '@web/components/ui';
 import { ConfirmButton, EmptyState } from '@web/components/patterns';
+import { formatPrice, parseTags } from '@web/lib/format';
 import { useTenant } from '@web/platform/tenant/TenantProvider';
 import { useToast } from '@web/platform/ToastProvider';
 import {
@@ -548,13 +549,13 @@ function MenuItemCard({
               )}
             </div>
             <p className="text-sm font-semibold text-text shrink-0">
-              ${item.price.toFixed(2)}
+              {formatPrice(item.price)}
             </p>
           </div>
 
           {item.tags && (
             <div className="flex flex-wrap gap-1 mt-1.5">
-              {item.tags.split(',').filter(Boolean).map((tag) => (
+              {parseTags(item.tags).map((tag) => (
                 <span
                   key={tag}
                   className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-bg-muted text-text-secondary"

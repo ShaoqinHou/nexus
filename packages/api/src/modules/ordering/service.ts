@@ -322,16 +322,19 @@ export function deleteModifierGroup(db: DrizzleDB, tenantId: string, groupId: st
 
 // --- Modifier Option Service ---
 
-export function getModifierOptions(db: DrizzleDB, groupId: string) {
+export function getModifierOptions(db: DrizzleDB, tenantId: string, groupId: string) {
+  // Verify group belongs to tenant before returning options
+  const group = db
+    .select()
+    .from(modifierGroups)
+    .where(and(eq(modifierGroups.id, groupId), eq(modifierGroups.tenantId, tenantId)))
+    .get();
+  if (!group) return [];
+
   return db
     .select()
     .from(modifierOptions)
-    .where(
-      and(
-        eq(modifierOptions.groupId, groupId),
-        eq(modifierOptions.isActive, 1)
-      )
-    )
+    .where(and(eq(modifierOptions.groupId, groupId), eq(modifierOptions.isActive, 1)))
     .orderBy(modifierOptions.sortOrder)
     .all();
 }

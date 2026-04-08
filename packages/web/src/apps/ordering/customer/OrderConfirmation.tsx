@@ -8,11 +8,14 @@ import {
   ArrowLeft,
   Loader2,
 } from 'lucide-react';
+import { ORDER_STATUSES } from '@nexus/shared';
+import type { OrderStatus } from '@nexus/shared';
 import { apiClient } from '@web/lib/api';
+import { formatPrice } from '@web/lib/format';
 import { Button } from '@web/components/ui';
 import { StatusBadge } from '@web/components/patterns';
 import { orderingKeys } from '@web/apps/ordering/hooks/keys';
-import type { Order, OrderStatus, SnapshotModifier } from '@web/apps/ordering/types';
+import type { Order, SnapshotModifier } from '@web/apps/ordering/types';
 
 interface OrderConfirmationProps {
   tenantSlug: string;
@@ -20,17 +23,8 @@ interface OrderConfirmationProps {
   onBackToMenu: () => void;
 }
 
-function formatPrice(price: number): string {
-  return `$${price.toFixed(2)}`;
-}
-
-const ORDER_STATUSES: OrderStatus[] = [
-  'pending',
-  'confirmed',
-  'preparing',
-  'ready',
-  'delivered',
-];
+// Timeline display statuses — excludes 'cancelled' which is shown differently
+const TIMELINE_STATUSES = ORDER_STATUSES.filter((s): s is Exclude<OrderStatus, 'cancelled'> => s !== 'cancelled');
 
 const STATUS_ICONS: Record<OrderStatus, typeof Clock> = {
   pending: Clock,
@@ -41,7 +35,8 @@ const STATUS_ICONS: Record<OrderStatus, typeof Clock> = {
   cancelled: Clock,
 };
 
-const STATUS_LABELS: Record<OrderStatus, string> = {
+// Customer-facing timeline labels — "Order Placed" instead of generic "Pending"
+const TIMELINE_LABELS: Record<OrderStatus, string> = {
   pending: 'Order Placed',
   confirmed: 'Confirmed',
   preparing: 'Preparing',
@@ -51,7 +46,7 @@ const STATUS_LABELS: Record<OrderStatus, string> = {
 };
 
 function getStatusIndex(status: OrderStatus): number {
-  return ORDER_STATUSES.indexOf(status);
+  return (TIMELINE_STATUSES as readonly string[]).indexOf(status);
 }
 
 function StatusTimeline({ currentStatus }: { currentStatus: OrderStatus }) {
@@ -60,7 +55,7 @@ function StatusTimeline({ currentStatus }: { currentStatus: OrderStatus }) {
 
   return (
     <div className="flex items-center justify-between w-full px-2">
-      {ORDER_STATUSES.map((status, index) => {
+      {TIMELINE_STATUSES.map((status, index) => {
         const Icon = STATUS_ICONS[status];
         const isCompleted = !isCancelled && index <= currentIndex;
         const isCurrent = !isCancelled && index === currentIndex;
@@ -105,7 +100,7 @@ function StatusTimeline({ currentStatus }: { currentStatus: OrderStatus }) {
                     : 'text-text-tertiary',
               ].join(' ')}
             >
-              {STATUS_LABELS[status]}
+              {TIMELINE_LABELS[status]}
             </span>
           </div>
         );
@@ -241,7 +236,7 @@ export function OrderConfirmation({
                     if (mods.length > 0) {
                       return (
                         <p className="text-xs text-text-tertiary mt-0.5 pl-8 line-clamp-2">
-                          {mods.map((m) => m.price > 0 ? `${m.name} (+$${m.price.toFixed(2)})` : m.name).join(', ')}
+                          {mods.map((m) => m.price > 0 ? `${m.name} (+${formatPrice(m.price)})` : m.name).join(', ')}
                         </p>
                       );
                     }

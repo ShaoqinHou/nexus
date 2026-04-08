@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Plus, Minus, UtensilsCrossed, Package } from 'lucide-react';
 import { apiClient } from '@web/lib/api';
+import { formatPrice, parseTags } from '@web/lib/format';
 import { Button } from '@web/components/ui';
 import { EmptyState } from '@web/components/patterns';
 import { useCart } from '@web/apps/ordering/customer/CartProvider';
@@ -28,10 +29,6 @@ interface MenuBrowseProps {
   tenantSlug: string;
 }
 
-function formatPrice(price: number): string {
-  return `$${price.toFixed(2)}`;
-}
-
 function getTagColor(tag: string): string {
   switch (tag as DietaryTag) {
     case 'vegetarian':
@@ -51,10 +48,6 @@ function getTagColor(tag: string): string {
     default:
       return 'bg-bg-muted text-text-secondary';
   }
-}
-
-function parseTags(tags: string | null): string[] {
-  return tags?.split(',').filter(Boolean) ?? [];
 }
 
 function DietaryTagBadges({ tags }: { tags: string | null }) {

@@ -1,6 +1,13 @@
 import { useState, useMemo } from 'react';
 import { Clock, ShoppingBag, ChevronDown, ChevronUp } from 'lucide-react';
 import {
+  ORDER_STATUSES,
+  ORDER_STATUS_LABELS,
+  ORDER_STATUS_FLOW,
+  ORDER_FLOW_LABELS,
+} from '@nexus/shared';
+import type { OrderStatus } from '@nexus/shared';
+import {
   Button,
   Card,
   CardHeader,
@@ -10,60 +17,20 @@ import {
   Select,
 } from '@web/components/ui';
 import { StatusBadge, EmptyState, ConfirmButton } from '@web/components/patterns';
+import { formatPrice, timeAgo } from '@web/lib/format';
 import { useTenant } from '@web/platform/tenant/TenantProvider';
 import { useToast } from '@web/platform/ToastProvider';
 import { useOrders, useUpdateOrderStatus } from '../hooks/useOrders';
-import type { Order, OrderStatus } from '../types';
+import type { Order } from '../types';
 
 // ---------------------------------------------------------------------------
-// Order status flow — what can transition to what
+// Order status flow — derived from shared constants
 // ---------------------------------------------------------------------------
 
 const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: '', label: 'All Statuses' },
-  { value: 'pending', label: 'Pending' },
-  { value: 'confirmed', label: 'Confirmed' },
-  { value: 'preparing', label: 'Preparing' },
-  { value: 'ready', label: 'Ready' },
-  { value: 'delivered', label: 'Delivered' },
-  { value: 'cancelled', label: 'Cancelled' },
+  ...ORDER_STATUSES.map((s) => ({ value: s, label: ORDER_STATUS_LABELS[s] })),
 ];
-
-const NEXT_STATUS: Partial<Record<OrderStatus, OrderStatus>> = {
-  pending: 'confirmed',
-  confirmed: 'preparing',
-  preparing: 'ready',
-  ready: 'delivered',
-};
-
-const NEXT_STATUS_LABEL: Partial<Record<OrderStatus, string>> = {
-  pending: 'Confirm',
-  confirmed: 'Start Preparing',
-  preparing: 'Mark Ready',
-  ready: 'Mark Delivered',
-};
-
-// ---------------------------------------------------------------------------
-// Time ago helper
-// ---------------------------------------------------------------------------
-
-function timeAgo(dateString: string): string {
-  const now = Date.now();
-  const then = new Date(dateString).getTime();
-  const diffMs = now - then;
-
-  const seconds = Math.floor(diffMs / 1000);
-  if (seconds < 60) return 'just now';
-
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-
-  const days = Math.floor(hours / 24);
-  return `${days}d ago`;
-}
 
 // ---------------------------------------------------------------------------
 // StatusBadge variant map for orders
@@ -93,8 +60,8 @@ function OrderCard({
 }) {
   const [expanded, setExpanded] = useState(false);
 
-  const nextStatus = NEXT_STATUS[order.status];
-  const nextLabel = NEXT_STATUS_LABEL[order.status];
+  const nextStatus = ORDER_STATUS_FLOW[order.status];
+  const nextLabel = ORDER_FLOW_LABELS[order.status];
 
   return (
     <Card>
@@ -123,7 +90,7 @@ function OrderCard({
           <div className="flex items-center gap-3 shrink-0">
             <div className="text-right">
               <p className="text-sm font-semibold text-text">
-                ${order.total.toFixed(2)}
+                {formatPrice(order.total)}
               </p>
               <div className="flex items-center gap-1 text-xs text-text-tertiary">
                 <Clock className="h-3 w-3" />
@@ -168,7 +135,7 @@ function OrderCard({
                       {item.quantity}
                     </td>
                     <td className="py-2 text-right text-text">
-                      ${(item.price * item.quantity).toFixed(2)}
+                      {formatPrice(item.price * item.quantity)}
                     </td>
                   </tr>
                 ))}
@@ -179,7 +146,7 @@ function OrderCard({
                     Total
                   </td>
                   <td className="pt-2 text-right font-semibold text-text">
-                    ${order.total.toFixed(2)}
+                    {formatPrice(order.total)}
                   </td>
                 </tr>
               </tfoot>

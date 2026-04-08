@@ -12,6 +12,7 @@ import {
   Toggle,
 } from '@web/components/ui';
 import { ConfirmButton, EmptyState } from '@web/components/patterns';
+import { formatPrice } from '@web/lib/format';
 import { useTenant } from '@web/platform/tenant/TenantProvider';
 import { useToast } from '@web/platform/ToastProvider';
 import { useMenuItems } from '../hooks/useMenu';
@@ -66,10 +67,6 @@ function emptyForm(): ComboFormData {
     imageUrl: '',
     slots: [emptySlot()],
   };
-}
-
-function formatPrice(price: number): string {
-  return `$${price.toFixed(2)}`;
 }
 
 // ---------------------------------------------------------------------------

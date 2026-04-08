@@ -12,6 +12,7 @@ import {
   Toggle,
 } from '@web/components/ui';
 import { ConfirmButton, EmptyState } from '@web/components/patterns';
+import { formatPriceDelta } from '@web/lib/format';
 import { useTenant } from '@web/platform/tenant/TenantProvider';
 import { useToast } from '@web/platform/ToastProvider';
 import {
@@ -359,11 +360,9 @@ function OptionCard({
   onDelete: (id: string) => void;
 }) {
   const priceDeltaLabel =
-    option.priceDelta > 0
-      ? `+$${option.priceDelta.toFixed(2)}`
-      : option.priceDelta < 0
-        ? `-$${Math.abs(option.priceDelta).toFixed(2)}`
-        : '$0.00';
+    option.priceDelta === 0
+      ? '$0.00'
+      : formatPriceDelta(option.priceDelta);
 
   return (
     <Card>

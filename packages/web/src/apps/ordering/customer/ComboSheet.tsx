@@ -2,22 +2,13 @@ import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Plus, Minus } from 'lucide-react';
 import { Badge, Button } from '@web/components/ui';
+import { formatPrice, formatPriceDelta } from '@web/lib/format';
 import { useCart } from '@web/apps/ordering/customer/CartProvider';
 import type { ComboDeal, ComboSlot } from '@web/apps/ordering/types';
 
 interface ComboSheetProps {
   combo: ComboDeal;
   onClose: () => void;
-}
-
-function formatPrice(price: number): string {
-  return `$${price.toFixed(2)}`;
-}
-
-function formatPriceModifier(modifier: number): string {
-  if (modifier > 0) return `+${formatPrice(modifier)}`;
-  if (modifier < 0) return `-${formatPrice(Math.abs(modifier))}`;
-  return '';
 }
 
 export function ComboSheet({ combo, onClose }: ComboSheetProps) {
@@ -326,7 +317,7 @@ function SlotSelection({
               </div>
               {option.priceModifier !== 0 && (
                 <span className="text-sm text-text-secondary shrink-0 ml-2">
-                  {formatPriceModifier(option.priceModifier)}
+                  {formatPriceDelta(option.priceModifier)}
                 </span>
               )}
             </button>

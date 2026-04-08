@@ -23,6 +23,7 @@ import {
   Toggle,
 } from '@web/components/ui';
 import { ConfirmButton, EmptyState } from '@web/components/patterns';
+import { formatDate } from '@web/lib/format';
 import { useTenant } from '@web/platform/tenant/TenantProvider';
 import { useToast } from '@web/platform/ToastProvider';
 import {
@@ -38,15 +39,6 @@ import type { Promotion, PromoCode } from '../types';
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
 
 function formatDiscount(type: Promotion['type'], value: number): string {
   if (type === 'percentage') {
