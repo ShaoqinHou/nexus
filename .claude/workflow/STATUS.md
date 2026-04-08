@@ -1,33 +1,49 @@
 # Project Status
 
 ## Current State
-- **Phase:** Production — full ordering platform with theming, kitchen display, image upload
-- **Last verified:** 2026-04-09 (RPI cycle complete, 81 tests passing)
+- **Phase:** Production v1 — complete ordering platform
+- **Last verified:** 2026-04-09 (post-implementation review in progress)
 - **Live at:** https://rehou.games/nexus/
+- **Commits:** 27 | **Lines:** ~40,000 | **Tests:** 94 (72 API + 22 web)
 
-## Completed
-- [x] Package structure (api + web + shared workspaces)
-- [x] Database schema (15 tables: tenants, staff, sessions, menu, modifiers, promotions, combos, orders)
-- [x] Auth middleware (JWT for staff), tenant middleware, customer session middleware
-- [x] Platform shell (AuthProvider, TenantProvider, ThemeProvider, ToastProvider)
-- [x] Design system tokens + 9 UI components (Button, Badge, Card, Dialog, Input, Toggle, Select, Toast, ImageUpload)
-- [x] 5 reusable patterns (DataTable, FormField, StatusBadge, EmptyState, ConfirmButton)
-- [x] Theming engine (6 presets, palette generation, Google Fonts, radius/shadow scales)
-- [x] Ordering — backend (menu CRUD, modifiers, promotions, combos, order lifecycle)
-- [x] Ordering — merchant (menu management, modifier manager, order dashboard, promotion manager, combo manager, QR codes, theme settings, kitchen display)
-- [x] Ordering — customer (QR flow: hero header → featured items → menu browse with search → item detail with modifiers → combo customization → cart with promo codes → order confirmation with status timeline)
-- [x] Responsive 3-zone desktop layout (category rail + menu grid + persistent cart sidebar)
-- [x] Image upload system (multipart form, server storage, drag-drop component)
-- [x] Kitchen display with SSE real-time updates (Kanban board, sound alerts, fullscreen)
+## Completed Features
+
+### Platform
+- [x] Multi-tenant auth (JWT), tenant resolution, session management
+- [x] 3-package monorepo (api + web + shared)
+- [x] 15-table SQLite schema with performance indexes
+- [x] 6 preset themes with palette generation engine
+- [x] Theme settings UI with live preview
+- [x] Operating hours with customer-side enforcement
+- [x] Staff management (CRUD, role hierarchy, permissions)
+- [x] Image upload (multipart, drag-drop, progress)
+- [x] Toast notifications on all mutations
+- [x] Responsive 3-zone desktop layout (category rail + grid + cart sidebar)
+
+### Ordering Module
+- [x] Menu CRUD (categories, items, dietary tags, images)
+- [x] Modifier groups (size, toppings, spice level)
+- [x] Combo deals (fixed-price bundles with slots)
+- [x] Promotions + promo codes (percentage/fixed, validation)
+- [x] QR code generator (dynamic URLs, print styles)
+- [x] Customer QR flow (hero → popular → search → modifiers → cart → promo → order → confirmation)
+- [x] Order modifications (add items, cancel items with staff approval)
+- [x] Kitchen display (SSE real-time, Kanban, sound alerts, fullscreen)
+- [x] Analytics dashboard (revenue, top items, peak hours, promo ROI)
 - [x] Category scroll-spy (IntersectionObserver)
-- [x] Operating hours display (open/closed badge)
-- [x] 81 tests (59 API + 22 web) with tenant isolation coverage
-- [x] Seed script with full demo data (15 items, modifiers, promotions, combos, orders)
-- [x] Production deployment (systemd + nginx on rehou.games)
-- [x] 4 review rounds + 1 full RPI cycle completed
 
-## Tech Stack
-- API: Hono, Drizzle ORM, SQLite, JWT, bcrypt
-- Web: React 19, Vite, Tailwind CSS v4, TanStack Router/Query
-- Shared: @nexus/shared (constants, types)
-- Testing: Vitest, @testing-library/react, MSW
+### Code Quality
+- [x] 94 tests with tenant isolation coverage
+- [x] Service layer split into 6 domain modules
+- [x] Shared types + constants (@nexus/shared)
+- [x] Extracted utility functions (formatPrice, parseTags, timeAgo)
+- [x] Deduplicated cart logic (useCartOrder hook)
+- [x] 6+ review cycles completed
+
+## Deferred (see memory/deferred_features.md)
+- Payment integration (Stripe)
+- Multi-location support
+- Loyalty module
+- Email/SMS notifications
+- Dynamic route builder
+- Inventory tracking

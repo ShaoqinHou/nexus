@@ -792,6 +792,24 @@ export function customerOrderingRoutes(db: DrizzleDB) {
     const tenantId = c.var.tenantId;
     const body = c.req.valid('json');
 
+    // Check operating hours
+    const tenant = c.var.tenant;
+    try {
+      const settings = tenant.settings ? JSON.parse(tenant.settings) : {};
+      const hours = settings.operatingHours as Array<{ day: number; open: string; close: string }> | undefined;
+      if (hours && hours.length > 0) {
+        const now = new Date();
+        const day = now.getDay();
+        const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        const todayHours = hours.find((h) => h.day === day);
+        if (!todayHours || time < todayHours.open || time >= todayHours.close) {
+          return c.json({ error: 'Restaurant is currently closed' }, 400);
+        }
+      }
+    } catch {
+      // If settings parsing fails, allow the order (don't block on config errors)
+    }
+
     // Get or create customer session
     let sessionId: string | undefined;
     const existingToken = getCookie(c, 'session_token');

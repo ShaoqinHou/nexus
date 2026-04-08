@@ -503,8 +503,6 @@ function recalculateOrderTotal(db: DrizzleDB, orderId: string): number {
     .where(
       and(
         eq(orderItems.orderId, orderId),
-        // Only count active items (not cancelled)
-        // cancel_requested items still count until approved
         or(
           eq(orderItems.status, 'active'),
           eq(orderItems.status, 'cancel_requested')
@@ -513,7 +511,13 @@ function recalculateOrderTotal(db: DrizzleDB, orderId: string): number {
     )
     .all();
 
-  const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  // Preserve existing discount — read it from the order
+  const order = db.select().from(orders).where(eq(orders.id, orderId)).get();
+  const discount = order?.discountAmount ?? 0;
+  const total = Math.max(0, subtotal - discount);
+
   return Math.round(total * 100) / 100;
 }
 
