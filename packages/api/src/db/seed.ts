@@ -78,6 +78,15 @@ function seed() {
     surfaceStyle: 'flat',
     coverImageUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80',
     logoUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=128&q=80',
+    operatingHours: [
+      { day: 0, open: '10:00', close: '21:00' },
+      { day: 1, open: '09:00', close: '22:00' },
+      { day: 2, open: '09:00', close: '22:00' },
+      { day: 3, open: '09:00', close: '22:00' },
+      { day: 4, open: '09:00', close: '22:00' },
+      { day: 5, open: '09:00', close: '23:00' },
+      { day: 6, open: '10:00', close: '23:00' },
+    ],
   });
 
   db.insert(tenants)

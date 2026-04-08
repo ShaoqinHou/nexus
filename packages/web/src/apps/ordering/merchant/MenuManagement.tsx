@@ -15,6 +15,7 @@ import {
   Dialog,
   Input,
   Toggle,
+  ImageUpload,
 } from '@web/components/ui';
 import { ConfirmButton, EmptyState } from '@web/components/patterns';
 import { formatPrice, parseTags } from '@web/lib/format';
@@ -142,12 +143,14 @@ function ItemDialog({
   onSubmit,
   initial,
   loading,
+  tenantSlug,
 }: {
   open: boolean;
   onClose: () => void;
   onSubmit: (data: ItemFormData) => void;
   initial?: ItemFormData;
   loading: boolean;
+  tenantSlug: string;
 }) {
   const [name, setName] = useState(initial?.name ?? '');
   const [description, setDescription] = useState(initial?.description ?? '');
@@ -246,11 +249,12 @@ function ItemDialog({
           placeholder="0.00"
           required
         />
-        <Input
-          label="Image URL"
-          value={imageUrl}
-          onChange={(e) => setImageUrl(e.target.value)}
-          placeholder="https://..."
+        <ImageUpload
+          label="Image"
+          value={imageUrl || null}
+          onChange={(url) => setImageUrl(url ?? '')}
+          tenantSlug={tenantSlug}
+          aspectRatio="16:9"
         />
         <div>
           <label className="block text-sm font-medium text-text mb-1.5">
@@ -881,6 +885,7 @@ export function MenuManagement() {
         open={itemDialogOpen}
         onClose={() => setItemDialogOpen(false)}
         onSubmit={handleItemSubmit}
+        tenantSlug={tenantSlug}
         initial={
           editingItem
             ? {

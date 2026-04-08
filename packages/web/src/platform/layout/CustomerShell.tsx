@@ -1,7 +1,7 @@
 import { Outlet, useSearch } from '@tanstack/react-router';
 import { useTenant } from '@web/platform/tenant/TenantProvider';
 import type { TenantThemeSettings } from '@web/lib/theme';
-import { textColorOnBrand } from '@web/lib/theme';
+import { textColorOnBrand, isOpenNow } from '@web/lib/theme';
 
 function RestaurantHero({
   name,
@@ -67,10 +67,22 @@ function RestaurantHero({
           </div>
         )}
 
-        {/* Restaurant name */}
+        {/* Restaurant name + status */}
         <h1 className="mt-2 text-lg font-bold text-text">
           {name}
         </h1>
+        {(() => {
+          const status = isOpenNow(settings.operatingHours);
+          return (
+            <div className="flex items-center gap-1.5 mt-1">
+              <span className={`h-2 w-2 rounded-full ${status.open ? 'bg-success' : 'bg-danger'}`} />
+              <span className="text-xs text-text-secondary">
+                {status.open ? 'Open' : 'Closed'}
+                {status.nextChange && ` · ${status.nextChange}`}
+              </span>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );

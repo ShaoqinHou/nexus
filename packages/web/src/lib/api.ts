@@ -82,6 +82,69 @@ async function request<T>(
   return response.json() as Promise<T>;
 }
 
+async function uploadFile<T>(
+  path: string,
+  file: File,
+  onProgress?: (percent: number) => void,
+): Promise<T> {
+  const token = getAuthToken();
+  const url = `${API_BASE}${path}`;
+
+  // Use XMLHttpRequest for progress reporting
+  return new Promise<T>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+
+    xhr.upload.addEventListener('progress', (e) => {
+      if (e.lengthComputable && onProgress) {
+        onProgress(Math.round((e.loaded / e.total) * 100));
+      }
+    });
+
+    xhr.addEventListener('load', () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          resolve(JSON.parse(xhr.responseText) as T);
+        } catch {
+          reject(new ApiClientError('Invalid response from server', xhr.status));
+        }
+      } else {
+        let errorMessage = `Upload failed with status ${xhr.status}`;
+        let errorCode: string | undefined;
+        try {
+          const errorBody = JSON.parse(xhr.responseText) as ApiError;
+          if (errorBody.error) {
+            errorMessage = errorBody.error;
+          }
+          errorCode = errorBody.code;
+        } catch {
+          // Response body is not JSON
+        }
+        reject(new ApiClientError(errorMessage, xhr.status, errorCode));
+      }
+    });
+
+    xhr.addEventListener('error', () => {
+      reject(new ApiClientError('Network error during upload', 0));
+    });
+
+    xhr.addEventListener('abort', () => {
+      reject(new ApiClientError('Upload aborted', 0));
+    });
+
+    xhr.open('POST', url);
+    xhr.withCredentials = true;
+
+    if (token) {
+      xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    xhr.send(formData);
+  });
+}
+
 export const apiClient = {
   get<T>(path: string): Promise<T> {
     return request<T>('GET', path);
@@ -101,6 +164,10 @@ export const apiClient = {
 
   delete<T>(path: string): Promise<T> {
     return request<T>('DELETE', path);
+  },
+
+  upload<T>(path: string, file: File, onProgress?: (percent: number) => void): Promise<T> {
+    return uploadFile<T>(path, file, onProgress);
   },
 };
 

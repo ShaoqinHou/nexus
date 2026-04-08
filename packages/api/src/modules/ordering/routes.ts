@@ -2,10 +2,12 @@ import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { setCookie, getCookie } from 'hono/cookie';
+import { streamSSE } from 'hono/streaming';
 import { eq, and } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
-import { authMiddleware } from '../../middleware/auth.js';
-import { customerSessions, ORDER_STATUSES, PROMOTION_TYPES } from '../../db/schema.js';
+import jwt from 'jsonwebtoken';
+import { authMiddleware, JWT_SECRET } from '../../middleware/auth.js';
+import { customerSessions, staff, ORDER_STATUSES, PROMOTION_TYPES } from '../../db/schema.js';
 import type { DrizzleDB } from '../../db/client.js';
 import type { AuthEnv, TenantEnv } from '../../lib/types.js';
 import {
@@ -41,6 +43,7 @@ import {
   createOrder,
   getOrder,
   getOrders,
+  getKitchenOrders,
   updateOrderStatus,
 } from './service.js';
 
@@ -550,6 +553,80 @@ export function staffOrderingRoutes(db: DrizzleDB) {
       return c.json({ data: order });
     }
   );
+
+  // --- Kitchen Display SSE Stream ---
+  // EventSource does not support custom headers, so we accept the JWT
+  // as a query parameter on this endpoint only.
+  router.get('/kitchen/stream', (c) => {
+    const tenantId = c.var.tenantId;
+
+    // Authenticate via query param (EventSource can't set headers)
+    const token = c.req.query('token');
+    if (!token) {
+      return c.json({ error: 'Token query parameter required' }, 401);
+    }
+
+    let payload: unknown;
+    try {
+      payload = jwt.verify(token, JWT_SECRET);
+    } catch {
+      return c.json({ error: 'Invalid or expired token' }, 401);
+    }
+
+    if (
+      typeof payload !== 'object' ||
+      payload === null ||
+      !('staffId' in payload) ||
+      !('tenantId' in payload)
+    ) {
+      return c.json({ error: 'Invalid token payload' }, 401);
+    }
+
+    const jwtTenantId = (payload as { tenantId: string }).tenantId;
+    if (jwtTenantId !== tenantId) {
+      return c.json({ error: 'Token does not match tenant' }, 401);
+    }
+
+    // Verify staff member exists and is active
+    const staffMember = db
+      .select()
+      .from(staff)
+      .where(
+        and(
+          eq(staff.id, (payload as { staffId: string }).staffId),
+          eq(staff.tenantId, tenantId),
+          eq(staff.isActive, 1)
+        )
+      )
+      .get();
+
+    if (!staffMember) {
+      return c.json({ error: 'Staff member not found or inactive' }, 401);
+    }
+
+    return streamSSE(c, async (stream) => {
+      let id = 0;
+
+      // Send initial state
+      const initialOrders = getKitchenOrders(db, tenantId);
+      await stream.writeSSE({
+        data: JSON.stringify({ type: 'init', orders: initialOrders }),
+        event: 'orders',
+        id: String(id++),
+      });
+
+      // Poll for changes every 3 seconds
+      while (true) {
+        await stream.sleep(3000);
+        const updatedOrders = getKitchenOrders(db, tenantId);
+        await stream.writeSSE({
+          data: JSON.stringify({ type: 'update', orders: updatedOrders }),
+          event: 'orders',
+          id: String(id++),
+        });
+      }
+    });
+  });
 
   return router;
 }

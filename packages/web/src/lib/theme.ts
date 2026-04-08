@@ -120,6 +120,12 @@ export const THEME_PRESETS: ThemePreset[] = [
 
 // --- Theme Application ---
 
+export interface OperatingHoursEntry {
+  day: number; // 0=Sun, 1=Mon, ..., 6=Sat
+  open: string; // "09:00"
+  close: string; // "22:00"
+}
+
 export interface TenantThemeSettings {
   brandColor?: string;
   logoUrl?: string;
@@ -128,6 +134,25 @@ export interface TenantThemeSettings {
   fontFamily?: string;
   borderRadius?: 'sharp' | 'rounded' | 'pill';
   surfaceStyle?: 'flat' | 'subtle' | 'elevated';
+  operatingHours?: OperatingHoursEntry[];
+}
+
+/** Check if restaurant is currently open based on operating hours */
+export function isOpenNow(hours?: OperatingHoursEntry[]): { open: boolean; nextChange?: string } {
+  if (!hours || hours.length === 0) return { open: true }; // No hours set = always open
+
+  const now = new Date();
+  const day = now.getDay();
+  const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+  const todayHours = hours.find((h) => h.day === day);
+  if (!todayHours) return { open: false, nextChange: 'tomorrow' };
+
+  const isOpen = time >= todayHours.open && time < todayHours.close;
+  return {
+    open: isOpen,
+    nextChange: isOpen ? `Closes at ${todayHours.close}` : `Opens at ${todayHours.open}`,
+  };
 }
 
 const RADIUS_MAP: Record<string, Record<string, string>> = {

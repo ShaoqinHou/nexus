@@ -5,4 +5,5 @@ export { Dialog } from './Dialog';
 export { Input } from './Input';
 export { Toggle } from './Toggle';
 export { Select } from './Select';
+export { ImageUpload } from './ImageUpload';
 export { ToastContainer, type ToastData } from './Toast';

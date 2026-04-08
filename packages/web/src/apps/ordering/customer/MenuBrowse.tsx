@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Plus, Minus, UtensilsCrossed, Package } from 'lucide-react';
 import { apiClient } from '@web/lib/api';
@@ -367,6 +367,42 @@ export function MenuBrowse({ tenantSlug }: MenuBrowseProps) {
     [],
   );
 
+  // Scroll-spy: update active category as user scrolls
+  const isScrollingRef = useRef(false);
+  useEffect(() => {
+    const sections = sectionRefs.current;
+    if (sections.size === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (isScrollingRef.current) return;
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const id = Array.from(sections.entries()).find(
+              ([, el]) => el === entry.target,
+            )?.[0];
+            if (id) setActiveCategory(id);
+          }
+        }
+      },
+      { rootMargin: '-80px 0px -60% 0px', threshold: 0 },
+    );
+
+    sections.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  });
+
+  // Temporarily disable scroll-spy during programmatic scroll
+  const scrollToWithSpy = useCallback((categoryId: string) => {
+    isScrollingRef.current = true;
+    setActiveCategory(categoryId);
+    const el = sectionRefs.current.get(categoryId);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    setTimeout(() => { isScrollingRef.current = false; }, 800);
+  }, []);
+
   if (isLoading) {
     return <MenuSkeleton />;
   }
@@ -466,7 +502,7 @@ export function MenuBrowse({ tenantSlug }: MenuBrowseProps) {
             <button
               key={category.id}
               type="button"
-              onClick={() => scrollToCategory(category.id)}
+              onClick={() => scrollToWithSpy(category.id)}
               className={[
                 'shrink-0 px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
                 activeCatId === category.id

@@ -1,4 +1,4 @@
-import { eq, and, desc, inArray, sql } from 'drizzle-orm';
+import { eq, and, or, gte, not, desc, inArray, sql } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import {
   menuCategories,
@@ -1624,6 +1624,46 @@ export function getOrders(
     .select()
     .from(orders)
     .where(and(...conditions))
+    .orderBy(desc(orders.createdAt))
+    .all();
+
+  return orderList.map((order) => {
+    const items = db
+      .select()
+      .from(orderItems)
+      .where(eq(orderItems.orderId, order.id))
+      .all();
+
+    return { ...order, items };
+  });
+}
+
+/**
+ * Kitchen display orders: active orders (pending/confirmed/preparing/ready)
+ * plus recently delivered/cancelled (within the last 10 minutes) so kitchen
+ * staff can see what just went out.
+ */
+export function getKitchenOrders(db: DrizzleDB, tenantId: string) {
+  const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+
+  const activeStatuses: OrderStatus[] = ['pending', 'confirmed', 'preparing', 'ready'];
+  const terminalStatuses: OrderStatus[] = ['delivered', 'cancelled'];
+
+  const orderList = db
+    .select()
+    .from(orders)
+    .where(
+      and(
+        eq(orders.tenantId, tenantId),
+        or(
+          inArray(orders.status, activeStatuses),
+          and(
+            inArray(orders.status, terminalStatuses),
+            gte(orders.updatedAt, tenMinutesAgo)
+          )
+        )
+      )
+    )
     .orderBy(desc(orders.createdAt))
     .all();
 

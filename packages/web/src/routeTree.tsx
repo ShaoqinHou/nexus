@@ -16,6 +16,8 @@ import { OrderDashboard } from '@web/apps/ordering/merchant/OrderDashboard';
 import { PromotionManager } from '@web/apps/ordering/merchant/PromotionManager';
 import { QRCodes } from '@web/apps/ordering/merchant/QRCodes';
 import { ComboManager } from '@web/apps/ordering/merchant/ComboManager';
+import { ThemeSettings } from '@web/apps/ordering/merchant/ThemeSettings';
+import { KitchenDisplay } from '@web/apps/ordering/merchant/KitchenDisplay';
 import { CustomerApp } from '@web/apps/ordering/customer/CustomerApp';
 
 // Register mini-app modules (triggers side-effect registration)
@@ -107,11 +109,35 @@ const orderingQRRoute = createRoute({
   component: QRCodes,
 });
 
+const orderingSettingsRoute = createRoute({
+  getParentRoute: () => tenantRoute,
+  path: '/ordering/settings',
+  component: ThemeSettings,
+});
+
 // Staff tenant catch-all for unknown module routes
 const tenantCatchAllRoute = createRoute({
   getParentRoute: () => tenantRoute,
   path: '$',
   component: TenantNotFound,
+});
+
+// --- Kitchen Display route (full-screen, no PlatformShell) ---
+function KitchenLayout() {
+  const { tenantSlug } = kitchenRoute.useParams();
+  return (
+    <AuthGuard tenantSlug={tenantSlug}>
+      <TenantProvider tenantSlug={tenantSlug}>
+        <KitchenDisplay />
+      </TenantProvider>
+    </AuthGuard>
+  );
+}
+
+const kitchenRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/t/$tenantSlug/ordering/kitchen',
+  component: KitchenLayout,
 });
 
 // Wrapper component for customer order routes
@@ -168,6 +194,7 @@ function TenantNotFound() {
 const routeTree = rootRoute.addChildren([
   indexRoute,
   loginRoute,
+  kitchenRoute,
   tenantRoute.addChildren([
     tenantIndexRoute,
     orderingMenuRoute,
@@ -176,6 +203,7 @@ const routeTree = rootRoute.addChildren([
     orderingPromotionsRoute,
     orderingCombosRoute,
     orderingQRRoute,
+    orderingSettingsRoute,
     tenantCatchAllRoute,
   ]),
   customerRoute.addChildren([customerIndexRoute, customerCatchAllRoute]),

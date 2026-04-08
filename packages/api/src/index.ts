@@ -5,6 +5,8 @@ import { db } from './db/client.js';
 import { platformRoutes } from './routes/platform.js';
 import { tenantMiddleware } from './middleware/tenant.js';
 import { staffOrderingRoutes, customerOrderingRoutes } from './modules/ordering/routes.js';
+import { tenantSettingsRoutes } from './routes/tenant-settings.js';
+import { uploadRoutes, uploadServeRoutes } from './routes/upload.js';
 import type { TenantEnv } from './lib/types.js';
 
 const app = new Hono();
@@ -23,8 +25,13 @@ const tenantApp = new Hono<TenantEnv>();
 tenantApp.use('*', tenantMiddleware(db));
 
 tenantApp.route('/ordering', staffOrderingRoutes(db));
+tenantApp.route('/settings', tenantSettingsRoutes(db));
+tenantApp.route('/upload', uploadRoutes(db));
 
 app.route('/api/t/:tenantSlug', tenantApp);
+
+// --- Static File Serving (public, no auth) ---
+app.route('/api/uploads', uploadServeRoutes());
 
 // --- Customer-Facing Routes ---
 const customerApp = new Hono<TenantEnv>();
