@@ -10,6 +10,14 @@ import {
   orders,
   orderItems,
   customerSessions,
+  modifierGroups,
+  modifierOptions,
+  menuItemModifierGroups,
+  promotions,
+  promoCodes,
+  comboDeals,
+  comboSlots,
+  comboSlotOptions,
 } from './schema.js';
 
 function seed() {
@@ -32,6 +40,41 @@ function seed() {
 
   if (existing) {
     console.log('Existing demo tenant found — removing...');
+
+    // Delete combo slot options, slots, deals (children first)
+    const demoCombos = db
+      .select({ id: comboDeals.id })
+      .from(comboDeals)
+      .where(eq(comboDeals.tenantId, existing.id))
+      .all();
+    for (const combo of demoCombos) {
+      const slots = db
+        .select({ id: comboSlots.id })
+        .from(comboSlots)
+        .where(eq(comboSlots.comboDealId, combo.id))
+        .all();
+      for (const slot of slots) {
+        db.delete(comboSlotOptions).where(eq(comboSlotOptions.comboSlotId, slot.id)).run();
+      }
+      db.delete(comboSlots).where(eq(comboSlots.comboDealId, combo.id)).run();
+    }
+    db.delete(comboDeals).where(eq(comboDeals.tenantId, existing.id)).run();
+
+    // Delete promo codes, then promotions
+    db.delete(promoCodes).where(eq(promoCodes.tenantId, existing.id)).run();
+    db.delete(promotions).where(eq(promotions.tenantId, existing.id)).run();
+
+    // Delete modifier links, options, groups (children first)
+    const demoGroups = db
+      .select({ id: modifierGroups.id })
+      .from(modifierGroups)
+      .where(eq(modifierGroups.tenantId, existing.id))
+      .all();
+    for (const group of demoGroups) {
+      db.delete(menuItemModifierGroups).where(eq(menuItemModifierGroups.modifierGroupId, group.id)).run();
+      db.delete(modifierOptions).where(eq(modifierOptions.groupId, group.id)).run();
+    }
+    db.delete(modifierGroups).where(eq(modifierGroups.tenantId, existing.id)).run();
 
     // Delete order items for demo orders
     const demoOrders = db
@@ -208,6 +251,238 @@ function seed() {
   }
 
   console.log(`Created 4 categories with ${itemDefs.length} items`);
+
+  // --- Create modifier groups + options ---
+  const sizeGroup = db.insert(modifierGroups).values({
+    id: nanoid(),
+    tenantId,
+    name: 'Size',
+    minSelections: 1,
+    maxSelections: 1,
+    sortOrder: 0,
+    isActive: 1,
+    createdAt: now,
+    updatedAt: now,
+  }).returning().get();
+
+  db.insert(modifierOptions).values([
+    { id: nanoid(), groupId: sizeGroup.id, name: 'Regular', priceDelta: 0, isDefault: 1, sortOrder: 0, isActive: 1, createdAt: now, updatedAt: now },
+    { id: nanoid(), groupId: sizeGroup.id, name: 'Large', priceDelta: 2.5, isDefault: 0, sortOrder: 1, isActive: 1, createdAt: now, updatedAt: now },
+  ]).run();
+
+  const toppingsGroup = db.insert(modifierGroups).values({
+    id: nanoid(),
+    tenantId,
+    name: 'Extra Toppings',
+    minSelections: 0,
+    maxSelections: 3,
+    sortOrder: 1,
+    isActive: 1,
+    createdAt: now,
+    updatedAt: now,
+  }).returning().get();
+
+  db.insert(modifierOptions).values([
+    { id: nanoid(), groupId: toppingsGroup.id, name: 'Extra Cheese', priceDelta: 1.5, isDefault: 0, sortOrder: 0, isActive: 1, createdAt: now, updatedAt: now },
+    { id: nanoid(), groupId: toppingsGroup.id, name: 'Bacon', priceDelta: 2.0, isDefault: 0, sortOrder: 1, isActive: 1, createdAt: now, updatedAt: now },
+    { id: nanoid(), groupId: toppingsGroup.id, name: 'Avocado', priceDelta: 2.5, isDefault: 0, sortOrder: 2, isActive: 1, createdAt: now, updatedAt: now },
+    { id: nanoid(), groupId: toppingsGroup.id, name: 'Jalapeños', priceDelta: 1.0, isDefault: 0, sortOrder: 3, isActive: 1, createdAt: now, updatedAt: now },
+  ]).run();
+
+  const spiceGroup = db.insert(modifierGroups).values({
+    id: nanoid(),
+    tenantId,
+    name: 'Spice Level',
+    minSelections: 1,
+    maxSelections: 1,
+    sortOrder: 2,
+    isActive: 1,
+    createdAt: now,
+    updatedAt: now,
+  }).returning().get();
+
+  db.insert(modifierOptions).values([
+    { id: nanoid(), groupId: spiceGroup.id, name: 'Mild', priceDelta: 0, isDefault: 1, sortOrder: 0, isActive: 1, createdAt: now, updatedAt: now },
+    { id: nanoid(), groupId: spiceGroup.id, name: 'Medium', priceDelta: 0, isDefault: 0, sortOrder: 1, isActive: 1, createdAt: now, updatedAt: now },
+    { id: nanoid(), groupId: spiceGroup.id, name: 'Hot', priceDelta: 0, isDefault: 0, sortOrder: 2, isActive: 1, createdAt: now, updatedAt: now },
+  ]).run();
+
+  // Link modifier groups to menu items
+  db.insert(menuItemModifierGroups).values([
+    { menuItemId: itemIds['Margherita Pizza'], modifierGroupId: sizeGroup.id, sortOrder: 0 },
+    { menuItemId: itemIds['Margherita Pizza'], modifierGroupId: toppingsGroup.id, sortOrder: 1 },
+    { menuItemId: itemIds['Beef Burger'], modifierGroupId: sizeGroup.id, sortOrder: 0 },
+    { menuItemId: itemIds['Beef Burger'], modifierGroupId: toppingsGroup.id, sortOrder: 1 },
+    { menuItemId: itemIds['Fish & Chips'], modifierGroupId: sizeGroup.id, sortOrder: 0 },
+    { menuItemId: itemIds['Pad Thai'], modifierGroupId: spiceGroup.id, sortOrder: 0 },
+    { menuItemId: itemIds['Chicken Parmesan'], modifierGroupId: sizeGroup.id, sortOrder: 0 },
+  ]).run();
+
+  console.log(`Created 3 modifier groups with options`);
+
+  // --- Create promotions + promo codes ---
+  const promoId1 = nanoid();
+  db.insert(promotions).values({
+    id: promoId1,
+    tenantId,
+    name: 'Welcome Discount',
+    description: '15% off your first order',
+    type: 'percentage',
+    discountValue: 15,
+    minOrderAmount: null,
+    applicableCategories: null,
+    startsAt: new Date().toISOString(),
+    endsAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+    isActive: 1,
+    createdAt: now,
+    updatedAt: now,
+  }).run();
+
+  db.insert(promoCodes).values({
+    id: nanoid(),
+    tenantId,
+    promotionId: promoId1,
+    code: 'WELCOME15',
+    usageLimit: 100,
+    usageCount: 0,
+    isActive: 1,
+    createdAt: now,
+  }).run();
+
+  const promoId2 = nanoid();
+  db.insert(promotions).values({
+    id: promoId2,
+    tenantId,
+    name: '$5 Off Over $30',
+    description: '$5 off when you spend $30 or more',
+    type: 'fixed_amount',
+    discountValue: 5,
+    minOrderAmount: 30,
+    applicableCategories: null,
+    startsAt: new Date().toISOString(),
+    endsAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+    isActive: 1,
+    createdAt: now,
+    updatedAt: now,
+  }).run();
+
+  db.insert(promoCodes).values({
+    id: nanoid(),
+    tenantId,
+    promotionId: promoId2,
+    code: 'SAVE5',
+    usageLimit: 50,
+    usageCount: 0,
+    isActive: 1,
+    createdAt: now,
+  }).run();
+
+  console.log(`Created 2 promotions with promo codes`);
+
+  // --- Create combo deals ---
+
+  // Combo 1: Classic Meal Deal ($22.00)
+  const combo1 = db.insert(comboDeals).values({
+    id: nanoid(),
+    tenantId,
+    name: 'Classic Meal Deal',
+    description: 'Pick a main, a side, and a drink',
+    basePrice: 22.0,
+    sortOrder: 0,
+    isActive: 1,
+    createdAt: now,
+    updatedAt: now,
+  }).returning().get();
+
+  const combo1Slot1 = db.insert(comboSlots).values({
+    id: nanoid(),
+    comboDealId: combo1.id,
+    name: 'Choose your Main',
+    sortOrder: 0,
+    minSelections: 1,
+    maxSelections: 1,
+  }).returning().get();
+
+  db.insert(comboSlotOptions).values([
+    { id: nanoid(), comboSlotId: combo1Slot1.id, menuItemId: itemIds['Margherita Pizza'], priceModifier: 0, isDefault: 0, sortOrder: 0 },
+    { id: nanoid(), comboSlotId: combo1Slot1.id, menuItemId: itemIds['Beef Burger'], priceModifier: 0, isDefault: 0, sortOrder: 1 },
+    { id: nanoid(), comboSlotId: combo1Slot1.id, menuItemId: itemIds['Fish & Chips'], priceModifier: 2.0, isDefault: 0, sortOrder: 2 },
+    { id: nanoid(), comboSlotId: combo1Slot1.id, menuItemId: itemIds['Chicken Parmesan'], priceModifier: 3.0, isDefault: 0, sortOrder: 3 },
+  ]).run();
+
+  const combo1Slot2 = db.insert(comboSlots).values({
+    id: nanoid(),
+    comboDealId: combo1.id,
+    name: 'Choose your Side',
+    sortOrder: 1,
+    minSelections: 1,
+    maxSelections: 1,
+  }).returning().get();
+
+  db.insert(comboSlotOptions).values([
+    { id: nanoid(), comboSlotId: combo1Slot2.id, menuItemId: itemIds['Garlic Bread'], priceModifier: 0, isDefault: 0, sortOrder: 0 },
+    { id: nanoid(), comboSlotId: combo1Slot2.id, menuItemId: itemIds['Soup of the Day'], priceModifier: 0, isDefault: 0, sortOrder: 1 },
+  ]).run();
+
+  const combo1Slot3 = db.insert(comboSlots).values({
+    id: nanoid(),
+    comboDealId: combo1.id,
+    name: 'Choose your Drink',
+    sortOrder: 2,
+    minSelections: 1,
+    maxSelections: 1,
+  }).returning().get();
+
+  db.insert(comboSlotOptions).values([
+    { id: nanoid(), comboSlotId: combo1Slot3.id, menuItemId: itemIds['Cola'], priceModifier: 0, isDefault: 0, sortOrder: 0 },
+    { id: nanoid(), comboSlotId: combo1Slot3.id, menuItemId: itemIds['Fresh Lemonade'], priceModifier: 0.5, isDefault: 0, sortOrder: 1 },
+    { id: nanoid(), comboSlotId: combo1Slot3.id, menuItemId: itemIds['Craft Beer'], priceModifier: 3.5, isDefault: 0, sortOrder: 2 },
+  ]).run();
+
+  // Combo 2: Dessert Duo ($18.00)
+  const combo2 = db.insert(comboDeals).values({
+    id: nanoid(),
+    tenantId,
+    name: 'Dessert Duo',
+    description: 'Pick 2 desserts and optionally add a drink',
+    basePrice: 18.0,
+    sortOrder: 1,
+    isActive: 1,
+    createdAt: now,
+    updatedAt: now,
+  }).returning().get();
+
+  const combo2Slot1 = db.insert(comboSlots).values({
+    id: nanoid(),
+    comboDealId: combo2.id,
+    name: 'Pick 2 Desserts',
+    sortOrder: 0,
+    minSelections: 2,
+    maxSelections: 2,
+  }).returning().get();
+
+  db.insert(comboSlotOptions).values([
+    { id: nanoid(), comboSlotId: combo2Slot1.id, menuItemId: itemIds['Tiramisu'], priceModifier: 0, isDefault: 0, sortOrder: 0 },
+    { id: nanoid(), comboSlotId: combo2Slot1.id, menuItemId: itemIds['Cheesecake'], priceModifier: 0, isDefault: 0, sortOrder: 1 },
+    { id: nanoid(), comboSlotId: combo2Slot1.id, menuItemId: itemIds['Ice Cream Sundae'], priceModifier: 0, isDefault: 0, sortOrder: 2 },
+  ]).run();
+
+  const combo2Slot2 = db.insert(comboSlots).values({
+    id: nanoid(),
+    comboDealId: combo2.id,
+    name: 'Add a Drink',
+    sortOrder: 1,
+    minSelections: 0,
+    maxSelections: 1,
+  }).returning().get();
+
+  db.insert(comboSlotOptions).values([
+    { id: nanoid(), comboSlotId: combo2Slot2.id, menuItemId: itemIds['Cola'], priceModifier: 0, isDefault: 0, sortOrder: 0 },
+    { id: nanoid(), comboSlotId: combo2Slot2.id, menuItemId: itemIds['Fresh Lemonade'], priceModifier: 0.5, isDefault: 0, sortOrder: 1 },
+    { id: nanoid(), comboSlotId: combo2Slot2.id, menuItemId: itemIds['House Wine'], priceModifier: 4.0, isDefault: 0, sortOrder: 2 },
+  ]).run();
+
+  console.log(`Created 2 combo deals`);
 
   // --- Create sample orders ---
   interface OrderDef {
