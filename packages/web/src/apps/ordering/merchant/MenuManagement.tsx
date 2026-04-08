@@ -572,7 +572,7 @@ function MenuItemCard({
               label={item.isAvailable === 1 ? 'Available' : 'Unavailable'}
             />
 
-            <div className="flex items-center gap-1">
+            <div className="flex flex-wrap items-center gap-1">
               <Button
                 variant="ghost"
                 size="sm"

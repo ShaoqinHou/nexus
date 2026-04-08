@@ -52,7 +52,7 @@ export function Dialog({ open, onClose, title, children, footer }: DialogProps) 
     >
       <div className="w-full max-w-lg rounded-lg bg-bg-elevated shadow-lg border border-border">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-border">
           <h2 className="text-lg font-semibold text-text">{title}</h2>
           <button
             type="button"
@@ -64,11 +64,11 @@ export function Dialog({ open, onClose, title, children, footer }: DialogProps) 
         </div>
 
         {/* Body */}
-        <div className="px-6 py-4">{children}</div>
+        <div className="px-4 sm:px-6 py-4">{children}</div>
 
         {/* Footer */}
         {footer && (
-          <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border">
+          <div className="flex items-center justify-end gap-3 px-4 sm:px-6 py-4 border-t border-border">
             {footer}
           </div>
         )}

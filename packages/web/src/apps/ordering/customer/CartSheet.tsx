@@ -223,7 +223,7 @@ export function CartSheet({
           <button
             type="button"
             onClick={toggleSheet}
-            className="flex items-center justify-between px-4 py-4 w-full text-left shrink-0"
+            className="flex items-center justify-between px-4 py-4 w-full text-left shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >
             <div className="flex items-center gap-3">
               <div className="relative">
@@ -257,7 +257,7 @@ export function CartSheet({
                 <button
                   type="button"
                   onClick={closeSheet}
-                  className="p-2 rounded-full hover:bg-bg-muted transition-colors text-text-secondary"
+                  className="p-2 rounded-full hover:bg-bg-muted transition-colors text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                   aria-label="Close cart"
                 >
                   <X className="h-4 w-4" />
@@ -329,7 +329,7 @@ export function CartSheet({
                             onClick={() =>
                               updateQuantity(index, item.quantity - 1)
                             }
-                            className="h-9 w-9 flex items-center justify-center rounded-full border border-border text-text-secondary hover:bg-bg-muted transition-colors"
+                            className="h-9 w-9 flex items-center justify-center rounded-full border border-border text-text-secondary hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                             aria-label={`Decrease ${item.name} quantity`}
                           >
                             <Minus className="h-3.5 w-3.5" />
@@ -342,7 +342,7 @@ export function CartSheet({
                             onClick={() =>
                               updateQuantity(index, item.quantity + 1)
                             }
-                            className="h-9 w-9 flex items-center justify-center rounded-full bg-primary text-text-inverse hover:bg-primary-hover transition-colors"
+                            className="h-9 w-9 flex items-center justify-center rounded-full bg-primary text-text-inverse hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                             aria-label={`Increase ${item.name} quantity`}
                           >
                             <Plus className="h-3.5 w-3.5" />
@@ -359,7 +359,7 @@ export function CartSheet({
                               )
                             }
                             className={[
-                              'p-2.5 rounded transition-colors',
+                              'p-2.5 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
                               item.notes
                                 ? 'text-primary'
                                 : 'text-text-tertiary hover:text-text-secondary',
@@ -371,7 +371,7 @@ export function CartSheet({
                           <button
                             type="button"
                             onClick={() => removeItem(index)}
-                            className="p-2.5 rounded text-text-tertiary hover:text-danger transition-colors"
+                            className="p-2.5 rounded text-text-tertiary hover:text-danger transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                             aria-label={`Remove ${item.name} from cart`}
                           >
                             <Trash2 className="h-4 w-4" />
@@ -432,7 +432,7 @@ export function CartSheet({
                       <button
                         type="button"
                         onClick={handleRemovePromo}
-                        className="p-2 rounded text-text-tertiary hover:text-danger transition-colors"
+                        className="p-2 rounded text-text-tertiary hover:text-danger transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                         aria-label="Remove promo code"
                       >
                         <X className="h-3.5 w-3.5" />

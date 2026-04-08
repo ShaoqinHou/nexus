@@ -230,7 +230,7 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full p-2.5 text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors shrink-0"
+            className="rounded-full p-2.5 text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             aria-label="Close"
           >
             <X className="h-5 w-5" />
@@ -278,7 +278,7 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
                           onClick={() => toggleOption(group, option.id)}
                           disabled={isDisabled}
                           className={[
-                            'w-full flex items-center justify-between px-3 py-3 rounded-lg border text-left transition-colors',
+                            'w-full flex items-center justify-between px-3 py-3 rounded-lg border text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
                             isSelected
                               ? 'border-primary bg-primary/5'
                               : 'border-border hover:bg-bg-muted',
@@ -350,7 +350,7 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
             <button
               type="button"
               onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-              className="h-11 w-11 flex items-center justify-center rounded-full border border-border text-text-secondary hover:bg-bg-muted transition-colors"
+              className="h-11 w-11 flex items-center justify-center rounded-full border border-border text-text-secondary hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               aria-label="Decrease quantity"
             >
               <Minus className="h-4 w-4" />
@@ -361,7 +361,7 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
             <button
               type="button"
               onClick={() => setQuantity((q) => q + 1)}
-              className="h-11 w-11 flex items-center justify-center rounded-full bg-primary text-text-inverse hover:bg-primary-hover transition-colors"
+              className="h-11 w-11 flex items-center justify-center rounded-full bg-primary text-text-inverse hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               aria-label="Increase quantity"
             >
               <Plus className="h-4 w-4" />

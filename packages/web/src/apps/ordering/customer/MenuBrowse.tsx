@@ -181,7 +181,7 @@ function MenuItemCard({
             <button
               type="button"
               onClick={handleDecrement}
-              className="h-9 w-9 flex items-center justify-center rounded-full border border-border text-text-secondary hover:bg-bg-muted transition-colors"
+              className="h-9 w-9 flex items-center justify-center rounded-full border border-border text-text-secondary hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               aria-label={`Decrease ${item.name} quantity`}
             >
               <Minus className="h-3.5 w-3.5" />
@@ -192,7 +192,7 @@ function MenuItemCard({
             <button
               type="button"
               onClick={handleAdd}
-              className="h-9 w-9 flex items-center justify-center rounded-full bg-primary text-text-inverse hover:bg-primary-hover transition-colors"
+              className="h-9 w-9 flex items-center justify-center rounded-full bg-primary text-text-inverse hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               aria-label={`Increase ${item.name} quantity`}
             >
               <Plus className="h-3.5 w-3.5" />
@@ -249,7 +249,7 @@ function ComboCard({
     <button
       type="button"
       onClick={() => onSelect(combo)}
-      className="flex gap-3 p-3 rounded-lg border border-border bg-bg-elevated text-left transition-colors hover:bg-bg-muted w-full"
+      className="flex gap-3 p-3 rounded-lg border border-border bg-bg-elevated text-left transition-colors hover:bg-bg-muted w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
     >
       {/* Combo image */}
       {combo.imageUrl ? (
@@ -257,6 +257,9 @@ function ComboCard({
           src={combo.imageUrl}
           alt={combo.name}
           loading="lazy"
+          onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+            (e.target as HTMLImageElement).style.display = 'none';
+          }}
           className="w-16 h-16 rounded-lg object-cover shrink-0 bg-bg-muted"
         />
       ) : (
@@ -425,7 +428,7 @@ export function MenuBrowse({ tenantSlug }: MenuBrowseProps) {
               type="button"
               onClick={() => scrollToCategory(category.id)}
               className={[
-                'shrink-0 px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap',
+                'shrink-0 px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
                 activeCatId === category.id
                   ? 'bg-primary text-text-inverse'
                   : 'bg-bg-muted text-text-secondary hover:text-text',

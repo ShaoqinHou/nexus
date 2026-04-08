@@ -113,7 +113,7 @@ export function QRCodes() {
         </div>
 
         {/* QR code grid */}
-        <div className="qr-grid grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="qr-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {Array.from({ length: tableCount }, (_, i) => i + 1).map((tableNum) => {
             const dataUrl = qrCodes.get(tableNum);
             const url = `https://cv.rehou.games/nexus/order/${tenantSlug}?table=${tableNum}`;
@@ -129,10 +129,10 @@ export function QRCodes() {
                     <img
                       src={dataUrl}
                       alt={`QR code for table ${tableNum}`}
-                      className="w-[200px] h-[200px]"
+                      className="w-full max-w-[200px] aspect-square"
                     />
                   ) : (
-                    <div className="w-[200px] h-[200px] flex items-center justify-center bg-bg-muted rounded">
+                    <div className="w-full max-w-[200px] aspect-square flex items-center justify-center bg-bg-muted rounded">
                       <QrCode className="h-8 w-8 text-text-tertiary animate-pulse" />
                     </div>
                   )}
