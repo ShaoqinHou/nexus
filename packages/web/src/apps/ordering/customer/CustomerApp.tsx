@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useSearch } from '@tanstack/react-router';
 import { AlertCircle, QrCode, Clock } from 'lucide-react';
 import { Button } from '@web/components/ui';
@@ -26,6 +26,14 @@ function CustomerAppInner({ tenantSlug, tableNumber }: CustomerAppInnerProps) {
   const { tenant } = useTenant();
 
   const settings = (tenant?.settings ?? {}) as TenantThemeSettings;
+
+  // Live-refresh operating hours every 60 seconds
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const timer = setInterval(() => setTick((t) => t + 1), 60_000);
+    return () => clearInterval(timer);
+  }, []);
+
   const openStatus = isOpenNow(settings.operatingHours);
   const isClosed = !openStatus.open;
 

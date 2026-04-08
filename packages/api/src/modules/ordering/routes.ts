@@ -1,4 +1,4 @@
-import { Hono } from 'hono';
+import { Hono, type MiddlewareHandler } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { setCookie, getCookie } from 'hono/cookie';
@@ -629,7 +629,16 @@ export function staffOrderingRoutes(db: DrizzleDB) {
     }
   );
 
-  // --- Analytics ---
+  // --- Analytics (owner/manager only) ---
+
+  const analyticsGuard: MiddlewareHandler<AuthEnv> = async (c, next) => {
+    const user = c.var.user;
+    if (user.role !== 'owner' && user.role !== 'manager') {
+      return c.json({ error: 'Analytics requires owner or manager role' }, 403);
+    }
+    await next();
+  };
+  router.use('/analytics/*', analyticsGuard);
 
   router.get('/analytics/revenue', (c) => {
     const tenantId = c.var.tenantId;
