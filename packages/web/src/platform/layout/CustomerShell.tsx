@@ -120,7 +120,7 @@ export function CustomerShell() {
     <div className="min-h-screen bg-bg flex flex-col">
       {/* Restaurant hero header — scrolls away with content */}
       <header className="bg-bg">
-        <div className="max-w-lg mx-auto">
+        <div className="max-w-3xl mx-auto">
           <RestaurantHero
             name={tenant?.name ?? 'Menu'}
             settings={settings}
@@ -130,7 +130,7 @@ export function CustomerShell() {
       </header>
 
       {/* Content */}
-      <main className="flex-1 w-full max-w-lg mx-auto">
+      <main className="flex-1 w-full max-w-3xl mx-auto">
         <Outlet />
       </main>
     </div>

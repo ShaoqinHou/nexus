@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Plus, Minus, UtensilsCrossed, Package } from 'lucide-react';
+import { Plus, Minus, UtensilsCrossed, Package, Search, X } from 'lucide-react';
 import { apiClient } from '@web/lib/api';
 import { formatPrice, parseTags } from '@web/lib/format';
 import { Button } from '@web/components/ui';
@@ -219,7 +219,7 @@ function CategorySection({
           {category.description}
         </p>
       )}
-      <div className="flex flex-col gap-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         {items.map((item) => (
           <MenuItemCard
             key={item.id}
@@ -321,6 +321,8 @@ export function MenuBrowse({ tenantSlug }: MenuBrowseProps) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [detailItem, setDetailItem] = useState<PublicMenuItem | null>(null);
   const [selectedCombo, setSelectedCombo] = useState<ComboDeal | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
   const sectionRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const { addItem } = useCart();
 
@@ -495,38 +497,107 @@ export function MenuBrowse({ tenantSlug }: MenuBrowseProps) {
         </div>
       )}
 
-      {/* Category pills */}
+      {/* Category pills + search */}
       <div className="sticky top-0 z-10 bg-bg/95 backdrop-blur-sm border-b border-border">
-        <div className="flex gap-2 px-4 py-2.5 overflow-x-auto scrollbar-hide">
-          {visibleCategories.map(({ category }) => (
+        {searchOpen ? (
+          <div className="flex items-center gap-2 px-4 py-2">
+            <Search className="h-4 w-4 text-text-tertiary shrink-0" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search menu..."
+              autoFocus
+              className="flex-1 bg-transparent text-sm text-text placeholder:text-text-tertiary outline-none"
+            />
             <button
-              key={category.id}
               type="button"
-              onClick={() => scrollToWithSpy(category.id)}
-              className={[
-                'shrink-0 px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
-                activeCatId === category.id
-                  ? 'bg-primary text-text-inverse'
-                  : 'bg-bg-muted text-text-secondary hover:text-text',
-              ].join(' ')}
+              onClick={() => { setSearchOpen(false); setSearchQuery(''); }}
+              className="p-1.5 rounded-full hover:bg-bg-muted text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
-              {category.name}
+              <X className="h-4 w-4" />
             </button>
-          ))}
-        </div>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 px-4 py-2.5">
+            <div className="flex-1 flex gap-2 overflow-x-auto scrollbar-hide">
+              {visibleCategories.map(({ category }) => (
+                <button
+                  key={category.id}
+                  type="button"
+                  onClick={() => scrollToWithSpy(category.id)}
+                  className={[
+                    'shrink-0 px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+                    activeCatId === category.id
+                      ? 'bg-primary text-text-inverse'
+                      : 'bg-bg-muted text-text-secondary hover:text-text',
+                  ].join(' ')}
+                >
+                  {category.name}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => setSearchOpen(true)}
+              className="shrink-0 p-2 rounded-full hover:bg-bg-muted text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              aria-label="Search menu"
+            >
+              <Search className="h-4 w-4" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Menu sections */}
       <div className="flex flex-col gap-6 p-4">
-        {visibleCategories.map(({ category, items }) => (
-          <CategorySection
-            key={category.id}
-            category={category}
-            items={items}
-            sectionRef={setSectionRef(category.id)}
-            onOpenDetail={setDetailItem}
-          />
-        ))}
+        {searchQuery.trim() ? (
+          // Search results
+          (() => {
+            const q = searchQuery.toLowerCase();
+            const results = visibleCategories.flatMap(({ items }) =>
+              items.filter(
+                (item) =>
+                  item.name.toLowerCase().includes(q) ||
+                  (item.description ?? '').toLowerCase().includes(q) ||
+                  (item.tags ?? '').toLowerCase().includes(q)
+              )
+            );
+            if (results.length === 0) {
+              return (
+                <EmptyState
+                  icon={Search}
+                  title="No results"
+                  description={`Nothing matched "${searchQuery}"`}
+                  action={{ label: 'Clear search', onClick: () => { setSearchQuery(''); setSearchOpen(false); } }}
+                />
+              );
+            }
+            return (
+              <div>
+                <p className="text-xs text-text-secondary mb-3 px-1">
+                  {results.length} result{results.length !== 1 ? 's' : ''} for &ldquo;{searchQuery}&rdquo;
+                </p>
+                <div className="flex flex-col gap-2">
+                  {results.map((item) => (
+                    <MenuItemCard key={item.id} item={item} onOpenDetail={setDetailItem} />
+                  ))}
+                </div>
+              </div>
+            );
+          })()
+        ) : (
+          // Normal category layout
+          visibleCategories.map(({ category, items }) => (
+            <CategorySection
+              key={category.id}
+              category={category}
+              items={items}
+              sectionRef={setSectionRef(category.id)}
+              onOpenDetail={setDetailItem}
+            />
+          ))
+        )}
 
         {/* Combo Deals section */}
         {activeCombos.length > 0 && (
