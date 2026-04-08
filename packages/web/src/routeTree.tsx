@@ -182,7 +182,9 @@ const routeTree = rootRoute.addChildren([
 ]);
 
 // Router
-export const router = createRouter({ routeTree });
+// Vite sets BASE_URL from --base flag ("/nexus/" in prod, "/" in dev)
+const basepath = import.meta.env.BASE_URL.replace(/\/$/, '') || '/';
+export const router = createRouter({ routeTree, basepath });
 
 // Type registration
 declare module '@tanstack/react-router' {

@@ -1,4 +1,6 @@
-const API_BASE = '/api';
+// In dev: BASE_URL is "/", API_BASE is "/api"
+// In prod: BASE_URL is "/nexus/", API_BASE is "/nexus/api"
+const API_BASE = `${import.meta.env.BASE_URL}api`.replace(/\/\//g, '/');
 
 interface ApiError {
   error: string;
