@@ -11,7 +11,7 @@ const app = new Hono();
 
 // CORS
 app.use('*', cors({
-  origin: ['http://localhost:5173', 'https://cv.rehou.games'],
+  origin: ['http://localhost:5173', 'https://cv.rehou.games', 'https://rehou.games'],
   credentials: true,
 }));
 
