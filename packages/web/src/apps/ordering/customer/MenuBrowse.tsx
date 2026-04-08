@@ -421,7 +421,7 @@ export function MenuBrowse({ tenantSlug }: MenuBrowseProps) {
       {/* Featured items horizontal scroll */}
       {featuredItems.length > 0 && (
         <div className="px-4 pt-3 pb-1">
-          <h2 className="text-sm font-semibold text-text-secondary mb-2">Popular</h2>
+          <h2 className="text-sm font-bold text-text mb-2">Popular</h2>
           <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2">
             {featuredItems.map((item) => (
               <button

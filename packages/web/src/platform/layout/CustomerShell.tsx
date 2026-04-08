@@ -21,7 +21,7 @@ function RestaurantHero({
     <div className="relative">
       {/* Banner */}
       {hasCover ? (
-        <div className="relative h-32 sm:h-40 w-full overflow-hidden">
+        <div className="relative h-28 sm:h-36 w-full overflow-hidden">
           <img
             src={settings.coverImageUrl}
             alt={`${name} cover`}
