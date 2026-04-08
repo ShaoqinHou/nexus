@@ -65,6 +65,7 @@ export const menuItems = sqliteTable('menu_items', {
   imageUrl: text('image_url'),
   tags: text('tags'), // comma-separated: "vegetarian,gluten-free,spicy"
   isAvailable: integer('is_available').notNull().default(1),
+  isFeatured: integer('is_featured').notNull().default(0),
   sortOrder: integer('sort_order').notNull().default(0),
   isActive: integer('is_active').notNull().default(1),
   createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),

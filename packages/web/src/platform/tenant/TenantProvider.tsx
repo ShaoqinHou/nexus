@@ -6,9 +6,11 @@ import {
   type ReactNode,
 } from 'react';
 import { apiClient } from '@web/lib/api';
+import { applyTenantTheme, clearTenantTheme } from '@web/lib/theme';
+import type { TenantThemeSettings } from '@web/lib/theme';
+import { useTheme } from '@web/platform/theme/ThemeProvider';
 
-interface TenantSettings {
-  brandColor?: string;
+interface TenantSettings extends TenantThemeSettings {
   currency?: string;
   timezone?: string;
 }
@@ -38,6 +40,7 @@ export function TenantProvider({ tenantSlug, children }: TenantProviderProps) {
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { theme } = useTheme();
 
   useEffect(() => {
     let cancelled = false;
@@ -53,12 +56,9 @@ export function TenantProvider({ tenantSlug, children }: TenantProviderProps) {
         if (!cancelled) {
           setTenant(data);
 
-          // Apply brand color override if present
-          if (data.settings?.brandColor) {
-            document.documentElement.style.setProperty(
-              '--color-brand',
-              data.settings.brandColor,
-            );
+          // Apply full tenant theme (brand color, font, radius, shadows)
+          if (data.settings) {
+            applyTenantTheme(data.settings as TenantThemeSettings, theme === 'dark');
           }
         }
       } catch (err) {
@@ -78,10 +78,10 @@ export function TenantProvider({ tenantSlug, children }: TenantProviderProps) {
 
     return () => {
       cancelled = true;
-      // Reset brand color on unmount
-      document.documentElement.style.removeProperty('--color-brand');
+      // Reset all tenant theme overrides on unmount
+      clearTenantTheme();
     };
-  }, [tenantSlug]);
+  }, [tenantSlug, theme]);
 
   return (
     <TenantContext.Provider value={{ tenant, tenantSlug, loading, error }}>

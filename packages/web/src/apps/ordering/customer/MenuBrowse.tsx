@@ -23,6 +23,7 @@ interface PublicMenuCategory {
 interface PublicMenuResponse {
   categories: PublicMenuCategory[];
   combos: ComboDeal[];
+  featured: PublicMenuItem[];
 }
 
 interface MenuBrowseProps {
@@ -321,6 +322,7 @@ export function MenuBrowse({ tenantSlug }: MenuBrowseProps) {
   const [detailItem, setDetailItem] = useState<PublicMenuItem | null>(null);
   const [selectedCombo, setSelectedCombo] = useState<ComboDeal | null>(null);
   const sectionRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const { addItem } = useCart();
 
   const {
     data: menuData,
@@ -334,13 +336,14 @@ export function MenuBrowse({ tenantSlug }: MenuBrowseProps) {
       ),
     select: (res) => {
       const payload = res.data;
-      // Handle both old shape (array) and new shape (object with categories + combos)
+      // Handle both old shape (array) and new shape (object with categories + combos + featured)
       if (Array.isArray(payload)) {
-        return { categories: payload, combos: [] };
+        return { categories: payload, combos: [], featured: [] };
       }
       return {
         categories: payload.categories ?? [],
         combos: payload.combos ?? [],
+        featured: payload.featured ?? [],
       };
     },
   });
@@ -394,6 +397,9 @@ export function MenuBrowse({ tenantSlug }: MenuBrowseProps) {
     (combo) => combo.isActive === 1,
   );
 
+  // Featured items
+  const featuredItems = menuData?.featured ?? [];
+
   if (visibleCategories.length === 0 && activeCombos.length === 0) {
     return (
       <div className="p-4">
@@ -412,6 +418,47 @@ export function MenuBrowse({ tenantSlug }: MenuBrowseProps) {
 
   return (
     <div className="flex flex-col">
+      {/* Featured items horizontal scroll */}
+      {featuredItems.length > 0 && (
+        <div className="px-4 pt-3 pb-1">
+          <h2 className="text-sm font-semibold text-text-secondary mb-2">Popular</h2>
+          <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2">
+            {featuredItems.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => {
+                  if ((item.modifierGroups ?? []).length > 0) {
+                    setDetailItem(item);
+                  } else {
+                    addItem({ menuItemId: item.id, name: item.name, price: item.price });
+                  }
+                }}
+                className="shrink-0 w-36 rounded-xl border border-border bg-bg-elevated overflow-hidden text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary active:scale-[0.97] transition-all"
+              >
+                {item.imageUrl ? (
+                  <img
+                    src={item.imageUrl}
+                    alt={item.name}
+                    className="w-full h-20 object-cover"
+                    loading="lazy"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                ) : (
+                  <div className="w-full h-20 bg-bg-muted flex items-center justify-center">
+                    <UtensilsCrossed className="h-6 w-6 text-text-tertiary" />
+                  </div>
+                )}
+                <div className="p-2">
+                  <p className="text-xs font-semibold text-text truncate">{item.name}</p>
+                  <p className="text-xs font-semibold text-primary mt-0.5">{formatPrice(item.price)}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Category pills */}
       <div className="sticky top-[53px] z-10 bg-bg/95 backdrop-blur-sm border-b border-border">
         <div className="flex gap-2 px-4 py-2.5 overflow-x-auto scrollbar-hide">

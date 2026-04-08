@@ -70,12 +70,22 @@ function seed() {
   const tenantId = nanoid();
   const now = new Date().toISOString();
 
+  const settings = JSON.stringify({
+    brandColor: '#ea580c',
+    preset: 'vibrant-street',
+    fontFamily: 'Space Grotesk',
+    borderRadius: 'pill',
+    surfaceStyle: 'flat',
+    coverImageUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80',
+    logoUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=128&q=80',
+  });
+
   db.insert(tenants)
     .values({
       id: tenantId,
       name: 'Demo Restaurant',
       slug: 'demo',
-      settings: '{}',
+      settings,
       isActive: 1,
       createdAt: now,
       updatedAt: now,
@@ -136,21 +146,22 @@ function seed() {
     price: number;
     category: string;
     sortOrder: number;
+    isFeatured?: number;
   }
 
   const itemDefs: ItemDef[] = [
     // Starters
     { name: 'Garlic Bread', description: 'Crispy bread with garlic butter', price: 8.5, category: 'Starters', sortOrder: 0 },
-    { name: 'Spring Rolls', description: 'Vegetable spring rolls with sweet chili', price: 10.0, category: 'Starters', sortOrder: 1 },
+    { name: 'Spring Rolls', description: 'Vegetable spring rolls with sweet chili', price: 10.0, category: 'Starters', sortOrder: 1, isFeatured: 1 },
     { name: 'Soup of the Day', description: "Ask your server for today's selection", price: 9.5, category: 'Starters', sortOrder: 2 },
     // Mains
-    { name: 'Margherita Pizza', description: 'Classic tomato, mozzarella, fresh basil', price: 18.0, category: 'Mains', sortOrder: 0 },
+    { name: 'Margherita Pizza', description: 'Classic tomato, mozzarella, fresh basil', price: 18.0, category: 'Mains', sortOrder: 0, isFeatured: 1 },
     { name: 'Fish & Chips', description: 'Beer-battered fish with hand-cut chips', price: 22.5, category: 'Mains', sortOrder: 1 },
     { name: 'Chicken Parmesan', description: 'Crumbed chicken with napoli sauce', price: 24.0, category: 'Mains', sortOrder: 2 },
-    { name: 'Beef Burger', description: 'Angus beef patty with lettuce, tomato, cheese', price: 19.5, category: 'Mains', sortOrder: 3 },
+    { name: 'Beef Burger', description: 'Angus beef patty with lettuce, tomato, cheese', price: 19.5, category: 'Mains', sortOrder: 3, isFeatured: 1 },
     { name: 'Pad Thai', description: 'Stir-fried rice noodles with prawns', price: 17.0, category: 'Mains', sortOrder: 4 },
     // Desserts
-    { name: 'Tiramisu', description: 'Classic Italian coffee dessert', price: 12.0, category: 'Desserts', sortOrder: 0 },
+    { name: 'Tiramisu', description: 'Classic Italian coffee dessert', price: 12.0, category: 'Desserts', sortOrder: 0, isFeatured: 1 },
     { name: 'Cheesecake', description: 'New York style with berry coulis', price: 11.5, category: 'Desserts', sortOrder: 1 },
     { name: 'Ice Cream Sundae', description: 'Three scoops with chocolate sauce', price: 8.0, category: 'Desserts', sortOrder: 2 },
     // Drinks
@@ -174,6 +185,7 @@ function seed() {
         description: item.description,
         price: item.price,
         isAvailable: 1,
+        isFeatured: item.isFeatured ?? 0,
         sortOrder: item.sortOrder,
         isActive: 1,
         createdAt: now,

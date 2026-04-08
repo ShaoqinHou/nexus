@@ -615,7 +615,22 @@ export function getPublicMenu(db: DrizzleDB, tenantId: string) {
   // Include combo deals
   const combos = getPublicCombos(db, tenantId);
 
-  return { categories: menuByCategory, combos };
+  // Include featured items
+  const featured = db
+    .select()
+    .from(menuItems)
+    .where(
+      and(
+        eq(menuItems.tenantId, tenantId),
+        eq(menuItems.isActive, 1),
+        eq(menuItems.isAvailable, 1),
+        eq(menuItems.isFeatured, 1)
+      )
+    )
+    .orderBy(menuItems.sortOrder)
+    .all();
+
+  return { categories: menuByCategory, combos, featured };
 }
 
 // --- Promotion Service ---
