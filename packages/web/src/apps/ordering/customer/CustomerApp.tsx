@@ -4,6 +4,7 @@ import { AlertCircle, QrCode } from 'lucide-react';
 import { CartProvider } from '@web/apps/ordering/customer/CartProvider';
 import { MenuBrowse } from '@web/apps/ordering/customer/MenuBrowse';
 import { CartSheet } from '@web/apps/ordering/customer/CartSheet';
+import { CartSidebar } from '@web/apps/ordering/customer/CartSidebar';
 import { OrderConfirmation } from '@web/apps/ordering/customer/OrderConfirmation';
 import type { Order } from '@web/apps/ordering/types';
 
@@ -38,16 +39,32 @@ function CustomerAppInner({ tenantSlug, tableNumber }: CustomerAppInnerProps) {
   }
 
   return (
-    <>
-      <MenuBrowse tenantSlug={tenantSlug} />
-      <CartSheet
-        tenantSlug={tenantSlug}
-        tableNumber={tableNumber}
-        onOrderPlaced={handleOrderPlaced}
-      />
-      {/* Spacer for fixed cart bar */}
-      <div className="h-20" />
-    </>
+    <div className="lg:flex">
+      {/* Center: Menu content (includes its own desktop category rail on the left) */}
+      <div className="flex-1 min-w-0">
+        <MenuBrowse tenantSlug={tenantSlug} />
+
+        {/* Mobile/tablet: bottom sheet cart + spacer */}
+        <div className="lg:hidden">
+          <CartSheet
+            tenantSlug={tenantSlug}
+            tableNumber={tableNumber}
+            onOrderPlaced={handleOrderPlaced}
+          />
+          {/* Spacer for fixed cart bar */}
+          <div className="h-20" />
+        </div>
+      </div>
+
+      {/* Right: Desktop persistent cart sidebar */}
+      <aside className="hidden lg:block w-[340px] shrink-0 sticky top-0 h-screen overflow-y-auto border-l border-border bg-bg">
+        <CartSidebar
+          tenantSlug={tenantSlug}
+          tableNumber={tableNumber}
+          onOrderPlaced={handleOrderPlaced}
+        />
+      </aside>
+    </div>
   );
 }
 
