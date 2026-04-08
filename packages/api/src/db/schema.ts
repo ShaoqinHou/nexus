@@ -1,11 +1,11 @@
 import { sqliteTable, text, integer, real, uniqueIndex, index } from 'drizzle-orm/sqlite-core';
 import { nanoid } from 'nanoid';
-import { ORDER_STATUSES, STAFF_ROLES, PROMOTION_TYPES } from '@nexus/shared';
-import type { OrderStatus, StaffRole, PromotionType } from '@nexus/shared';
+import { ORDER_STATUSES, STAFF_ROLES, PROMOTION_TYPES, ORDER_ITEM_STATUSES } from '@nexus/shared';
+import type { OrderStatus, StaffRole, PromotionType, OrderItemStatus } from '@nexus/shared';
 
 // Re-export shared constants for backward compatibility
-export { ORDER_STATUSES, STAFF_ROLES, PROMOTION_TYPES };
-export type { OrderStatus, StaffRole, PromotionType };
+export { ORDER_STATUSES, STAFF_ROLES, PROMOTION_TYPES, ORDER_ITEM_STATUSES };
+export type { OrderStatus, StaffRole, PromotionType, OrderItemStatus };
 
 // --- Platform Tables ---
 
@@ -204,6 +204,7 @@ export const orderItems = sqliteTable('order_items', {
   modifiersJson: text('modifiers_json'),
   comboDealId: text('combo_deal_id').references(() => comboDeals.id),
   comboGroupId: text('combo_group_id'),
+  status: text('status').notNull().$type<OrderItemStatus>().default('active'),
   createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
 }, (table) => [
   index('idx_order_items_order').on(table.orderId),

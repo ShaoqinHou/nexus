@@ -50,3 +50,86 @@ export function useUpdateOrderStatus(tenantSlug: string) {
     },
   });
 }
+
+// --- Order Modification Hooks ---
+
+interface AddItemPayload {
+  menuItemId: string;
+  quantity: number;
+  notes?: string;
+  modifiers?: Array<{ optionId: string; name: string; price: number }>;
+}
+
+/** Customer adds items to an existing order (uses customer route) */
+export function useAddItemsToOrder(tenantSlug: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ orderId, items }: { orderId: string; items: AddItemPayload[] }) =>
+      apiClient.post<{ data: Order }>(
+        `/order/${tenantSlug}/ordering/orders/${orderId}/items`,
+        { items },
+      ),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: orderingKeys.order(variables.orderId) });
+      queryClient.invalidateQueries({ queryKey: orderingKeys.ordersAll() });
+    },
+  });
+}
+
+/** Customer requests cancellation of specific items */
+export function useRequestItemCancellation(tenantSlug: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ orderId, orderItemIds }: { orderId: string; orderItemIds: string[] }) =>
+      apiClient.post<{ data: Order }>(
+        `/order/${tenantSlug}/ordering/orders/${orderId}/cancel-items`,
+        { orderItemIds },
+      ),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: orderingKeys.order(variables.orderId) });
+      queryClient.invalidateQueries({ queryKey: orderingKeys.ordersAll() });
+    },
+  });
+}
+
+/** Staff handles cancellation request (approve/reject) */
+export function useHandleCancellationRequest(tenantSlug: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      orderId,
+      itemId,
+      action,
+    }: {
+      orderId: string;
+      itemId: string;
+      action: 'approve' | 'reject';
+    }) =>
+      apiClient.patch<{ data: Order }>(
+        `/t/${tenantSlug}/ordering/orders/${orderId}/items/${itemId}`,
+        { action },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: orderingKeys.ordersAll() });
+    },
+  });
+}
+
+/** Staff adds items to an existing order (uses staff route) */
+export function useStaffAddItemsToOrder(tenantSlug: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ orderId, items }: { orderId: string; items: AddItemPayload[] }) =>
+      apiClient.post<{ data: Order }>(
+        `/t/${tenantSlug}/ordering/orders/${orderId}/items`,
+        { items },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: orderingKeys.ordersAll() });
+    },
+  });
+}

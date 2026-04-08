@@ -1,5 +1,5 @@
-import type { OrderStatus } from '@nexus/shared';
-export type { OrderStatus };
+import type { OrderStatus, OrderItemStatus } from '@nexus/shared';
+export type { OrderStatus, OrderItemStatus };
 export { DIETARY_TAGS } from '@nexus/shared';
 export type { DietaryTag } from '@nexus/shared';
 
@@ -65,6 +65,7 @@ export interface OrderItem {
   quantity: number;
   notes: string | null;
   modifiersJson: string | null;
+  status: OrderItemStatus;
   createdAt: string;
 }
 

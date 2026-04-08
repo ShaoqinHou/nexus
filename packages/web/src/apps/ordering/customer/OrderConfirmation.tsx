@@ -7,20 +7,25 @@ import {
   Truck,
   ArrowLeft,
   Loader2,
+  Plus,
+  X,
 } from 'lucide-react';
-import { ORDER_STATUSES } from '@nexus/shared';
+import { ORDER_STATUSES, MODIFIABLE_ORDER_STATUSES } from '@nexus/shared';
 import type { OrderStatus } from '@nexus/shared';
 import { apiClient } from '@web/lib/api';
 import { formatPrice } from '@web/lib/format';
-import { Button } from '@web/components/ui';
+import { Button, Badge } from '@web/components/ui';
 import { StatusBadge } from '@web/components/patterns';
+import { useToast } from '@web/platform/ToastProvider';
 import { orderingKeys } from '@web/apps/ordering/hooks/keys';
+import { useRequestItemCancellation } from '@web/apps/ordering/hooks/useOrders';
 import type { Order, SnapshotModifier } from '@web/apps/ordering/types';
 
 interface OrderConfirmationProps {
   tenantSlug: string;
   orderId: string;
   onBackToMenu: () => void;
+  onAddItems?: (orderId: string) => void;
 }
 
 // Timeline display statuses — excludes 'cancelled' which is shown differently
@@ -170,7 +175,11 @@ export function OrderConfirmation({
   tenantSlug,
   orderId,
   onBackToMenu,
+  onAddItems,
 }: OrderConfirmationProps) {
+  const { toast } = useToast();
+  const cancelItems = useRequestItemCancellation(tenantSlug);
+
   const {
     data: order,
     isLoading,
@@ -189,6 +198,20 @@ export function OrderConfirmation({
       return 5000;
     },
   });
+
+  const handleCancelItem = (itemId: string, itemName: string) => {
+    cancelItems.mutate(
+      { orderId, orderItemIds: [itemId] },
+      {
+        onSuccess: () => {
+          toast('success', `Cancellation requested for "${itemName}"`);
+        },
+        onError: (err: Error) => {
+          toast('error', err.message || 'Failed to request cancellation');
+        },
+      },
+    );
+  };
 
   if (isLoading) {
     return (
@@ -214,6 +237,7 @@ export function OrderConfirmation({
 
   const isCancelled = order.status === 'cancelled';
   const isDelivered = order.status === 'delivered';
+  const isModifiable = (MODIFIABLE_ORDER_STATUSES as readonly string[]).includes(order.status);
 
   return (
     <div className="p-4 flex flex-col gap-5 pb-8">
@@ -270,47 +294,97 @@ export function OrderConfirmation({
         </div>
       )}
 
+      {/* Add items button — only when order is modifiable */}
+      {isModifiable && onAddItems && (
+        <Button
+          variant="secondary"
+          className="w-full"
+          onClick={() => onAddItems(orderId)}
+        >
+          <Plus className="h-4 w-4" />
+          Add Items to Order
+        </Button>
+      )}
+
       {/* Order items */}
       <div className="rounded-lg border border-border bg-bg-elevated overflow-hidden">
         <div className="px-4 py-3 border-b border-border">
           <h3 className="text-sm font-semibold text-text">Order Items</h3>
         </div>
         <div className="divide-y divide-border">
-          {order.items.map((item) => (
-            <div key={item.id} className="px-4 py-3 flex items-center justify-between">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-text-secondary bg-bg-muted rounded px-1.5 py-0.5">
-                    x{item.quantity}
-                  </span>
-                  <span className="text-sm text-text truncate">
-                    {item.name}
-                  </span>
+          {order.items.map((item) => {
+            const itemStatus = item.status ?? 'active';
+            const isCancelRequested = itemStatus === 'cancel_requested';
+            const isItemCancelled = itemStatus === 'cancelled';
+
+            return (
+              <div
+                key={item.id}
+                className={[
+                  'px-4 py-3 flex items-center justify-between',
+                  isItemCancelled ? 'opacity-50' : '',
+                ].join(' ')}
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-medium text-text-secondary bg-bg-muted rounded px-1.5 py-0.5">
+                      x{item.quantity}
+                    </span>
+                    <span className={[
+                      'text-sm truncate',
+                      isItemCancelled ? 'text-text-tertiary line-through' : 'text-text',
+                    ].join(' ')}>
+                      {item.name}
+                    </span>
+                    {isCancelRequested && (
+                      <Badge variant="warning">Cancellation Requested</Badge>
+                    )}
+                    {isItemCancelled && (
+                      <Badge variant="error">Cancelled</Badge>
+                    )}
+                  </div>
+                  {item.modifiersJson && (() => {
+                    try {
+                      const mods = JSON.parse(item.modifiersJson) as SnapshotModifier[];
+                      if (mods.length > 0) {
+                        return (
+                          <p className="text-xs text-text-tertiary mt-0.5 pl-8 line-clamp-2">
+                            {mods.map((m) => m.price > 0 ? `${m.name} (+${formatPrice(m.price)})` : m.name).join(', ')}
+                          </p>
+                        );
+                      }
+                    } catch { /* ignore parse errors */ }
+                    return null;
+                  })()}
+                  {item.notes && (
+                    <p className="text-xs text-text-tertiary mt-0.5 pl-8">
+                      {item.notes}
+                    </p>
+                  )}
                 </div>
-                {item.modifiersJson && (() => {
-                  try {
-                    const mods = JSON.parse(item.modifiersJson) as SnapshotModifier[];
-                    if (mods.length > 0) {
-                      return (
-                        <p className="text-xs text-text-tertiary mt-0.5 pl-8 line-clamp-2">
-                          {mods.map((m) => m.price > 0 ? `${m.name} (+${formatPrice(m.price)})` : m.name).join(', ')}
-                        </p>
-                      );
-                    }
-                  } catch { /* ignore parse errors */ }
-                  return null;
-                })()}
-                {item.notes && (
-                  <p className="text-xs text-text-tertiary mt-0.5 pl-8">
-                    {item.notes}
-                  </p>
-                )}
+                <div className="flex items-center gap-2 shrink-0 ml-2">
+                  <span className={[
+                    'text-sm font-medium whitespace-nowrap',
+                    isItemCancelled ? 'text-text-tertiary line-through' : 'text-text',
+                  ].join(' ')}>
+                    {formatPrice(item.price * item.quantity)}
+                  </span>
+                  {/* Cancel button for active items on modifiable orders */}
+                  {isModifiable && itemStatus === 'active' && (
+                    <button
+                      type="button"
+                      onClick={() => handleCancelItem(item.id, item.name)}
+                      disabled={cancelItems.isPending}
+                      className="text-xs text-danger hover:text-danger/80 font-medium transition-colors p-1"
+                      title="Request cancellation"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
               </div>
-              <span className="text-sm font-medium text-text whitespace-nowrap ml-2">
-                {formatPrice(item.price * item.quantity)}
-              </span>
-            </div>
-          ))}
+            );
+          })}
         </div>
         {/* Total */}
         <div className="px-4 py-3 border-t border-border bg-bg-muted flex items-center justify-between">

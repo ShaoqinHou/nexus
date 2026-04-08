@@ -1,5 +1,7 @@
 import { eq, and, or, gte, desc, inArray, sql } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
+import { MODIFIABLE_ORDER_STATUSES } from '@nexus/shared';
+import type { OrderItemStatus } from '@nexus/shared';
 import {
   menuItems,
   modifierOptions,
@@ -23,7 +25,7 @@ interface OrderItemModifier {
   price: number;
 }
 
-interface CreateOrderItem {
+export interface CreateOrderItem {
   menuItemId: string;
   quantity: number;
   notes?: string;
@@ -486,4 +488,353 @@ export function updateOrderStatus(
     .all();
 
   return { ...updated, items };
+}
+
+// --- Order Modification Service Functions ---
+
+/**
+ * Helper to recalculate order total from active (non-cancelled) items.
+ * Preserves any discount that was already applied.
+ */
+function recalculateOrderTotal(db: DrizzleDB, orderId: string): number {
+  const items = db
+    .select()
+    .from(orderItems)
+    .where(
+      and(
+        eq(orderItems.orderId, orderId),
+        // Only count active items (not cancelled)
+        // cancel_requested items still count until approved
+        or(
+          eq(orderItems.status, 'active'),
+          eq(orderItems.status, 'cancel_requested')
+        )
+      )
+    )
+    .all();
+
+  const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  return Math.round(total * 100) / 100;
+}
+
+/**
+ * Add items to an existing order (pending/confirmed/preparing).
+ * Validates items the same way createOrder does, snapshots prices,
+ * inserts new orderItems, and updates the order total.
+ */
+export function addItemsToOrder(
+  db: DrizzleDB,
+  tenantId: string,
+  orderId: string,
+  items: CreateOrderItem[],
+) {
+  if (items.length === 0) {
+    return { error: 'At least one item is required' as const };
+  }
+
+  // Validate order exists, belongs to tenant, and is modifiable
+  const order = db
+    .select()
+    .from(orders)
+    .where(
+      and(
+        eq(orders.id, orderId),
+        eq(orders.tenantId, tenantId)
+      )
+    )
+    .get();
+
+  if (!order) {
+    return { error: 'Order not found' as const };
+  }
+
+  if (!(MODIFIABLE_ORDER_STATUSES as readonly string[]).includes(order.status)) {
+    return { error: `Cannot modify order in '${order.status}' status` as const };
+  }
+
+  // Validate and snapshot all items (same logic as createOrder for regular items)
+  const resolvedItems: Array<{
+    menuItemId: string;
+    name: string;
+    price: number;
+    quantity: number;
+    notes: string | null;
+    modifiersJson: string | null;
+  }> = [];
+
+  for (const orderItem of items) {
+    const menuItem = db
+      .select()
+      .from(menuItems)
+      .where(
+        and(
+          eq(menuItems.id, orderItem.menuItemId),
+          eq(menuItems.tenantId, tenantId),
+          eq(menuItems.isActive, 1),
+          eq(menuItems.isAvailable, 1)
+        )
+      )
+      .get();
+
+    if (!menuItem) {
+      return { error: `Menu item not found or unavailable: ${orderItem.menuItemId}` as const };
+    }
+
+    // Validate and snapshot modifiers
+    let modifierPriceTotal = 0;
+    let modifiersSnapshot: Array<{ name: string; price: number }> | null = null;
+
+    if (orderItem.modifiers && orderItem.modifiers.length > 0) {
+      modifiersSnapshot = [];
+      for (const mod of orderItem.modifiers) {
+        const option = db
+          .select()
+          .from(modifierOptions)
+          .where(
+            and(
+              eq(modifierOptions.id, mod.optionId),
+              eq(modifierOptions.isActive, 1)
+            )
+          )
+          .get();
+
+        if (!option) {
+          return { error: `Modifier option not found: ${mod.optionId}` as const };
+        }
+
+        modifiersSnapshot.push({
+          name: option.name,
+          price: option.priceDelta,
+        });
+        modifierPriceTotal += option.priceDelta;
+      }
+    }
+
+    resolvedItems.push({
+      menuItemId: menuItem.id,
+      name: menuItem.name,
+      price: menuItem.price + modifierPriceTotal,
+      quantity: orderItem.quantity,
+      notes: orderItem.notes ?? null,
+      modifiersJson: modifiersSnapshot ? JSON.stringify(modifiersSnapshot) : null,
+    });
+  }
+
+  // Insert new order items
+  const createdItems = resolvedItems.map((item) =>
+    db
+      .insert(orderItems)
+      .values({
+        orderId: order.id,
+        menuItemId: item.menuItemId,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        notes: item.notes,
+        modifiersJson: item.modifiersJson,
+        status: 'active',
+      })
+      .returning()
+      .get()
+  );
+
+  // Recalculate and update order total
+  const newTotal = recalculateOrderTotal(db, order.id);
+  db.update(orders)
+    .set({
+      total: newTotal,
+      updatedAt: new Date().toISOString(),
+    })
+    .where(eq(orders.id, order.id))
+    .run();
+
+  // Return the full updated order
+  const allItems = db
+    .select()
+    .from(orderItems)
+    .where(eq(orderItems.orderId, order.id))
+    .all();
+
+  const updatedOrder = db
+    .select()
+    .from(orders)
+    .where(eq(orders.id, order.id))
+    .get()!;
+
+  return { data: { ...updatedOrder, items: allItems } };
+}
+
+/**
+ * Customer requests cancellation of specific order items.
+ * Marks the items as 'cancel_requested'. Staff must approve or reject.
+ */
+export function requestItemCancellation(
+  db: DrizzleDB,
+  tenantId: string,
+  orderId: string,
+  orderItemIds: string[],
+) {
+  if (orderItemIds.length === 0) {
+    return { error: 'At least one item ID is required' as const };
+  }
+
+  // Validate order exists and is modifiable
+  const order = db
+    .select()
+    .from(orders)
+    .where(
+      and(
+        eq(orders.id, orderId),
+        eq(orders.tenantId, tenantId)
+      )
+    )
+    .get();
+
+  if (!order) {
+    return { error: 'Order not found' as const };
+  }
+
+  if (!(MODIFIABLE_ORDER_STATUSES as readonly string[]).includes(order.status)) {
+    return { error: `Cannot modify order in '${order.status}' status` as const };
+  }
+
+  // Validate all items belong to this order and are currently active
+  for (const itemId of orderItemIds) {
+    const item = db
+      .select()
+      .from(orderItems)
+      .where(
+        and(
+          eq(orderItems.id, itemId),
+          eq(orderItems.orderId, orderId)
+        )
+      )
+      .get();
+
+    if (!item) {
+      return { error: `Order item not found: ${itemId}` as const };
+    }
+
+    if (item.status !== 'active') {
+      return { error: `Item '${item.name}' is already ${item.status}` as const };
+    }
+  }
+
+  // Mark items as cancel_requested
+  for (const itemId of orderItemIds) {
+    db.update(orderItems)
+      .set({ status: 'cancel_requested' as OrderItemStatus })
+      .where(eq(orderItems.id, itemId))
+      .run();
+  }
+
+  // Update order updatedAt
+  db.update(orders)
+    .set({ updatedAt: new Date().toISOString() })
+    .where(eq(orders.id, order.id))
+    .run();
+
+  // Return updated order
+  const updatedOrder = db
+    .select()
+    .from(orders)
+    .where(eq(orders.id, order.id))
+    .get()!;
+
+  const allItems = db
+    .select()
+    .from(orderItems)
+    .where(eq(orderItems.orderId, order.id))
+    .all();
+
+  return { data: { ...updatedOrder, items: allItems } };
+}
+
+/**
+ * Staff approves or rejects a cancellation request for a single order item.
+ * - approve: marks item as 'cancelled', recalculates order total
+ * - reject: marks item back to 'active'
+ */
+export function handleCancellationRequest(
+  db: DrizzleDB,
+  tenantId: string,
+  orderId: string,
+  orderItemId: string,
+  action: 'approve' | 'reject',
+) {
+  // Validate order exists and belongs to tenant
+  const order = db
+    .select()
+    .from(orders)
+    .where(
+      and(
+        eq(orders.id, orderId),
+        eq(orders.tenantId, tenantId)
+      )
+    )
+    .get();
+
+  if (!order) {
+    return { error: 'Order not found' as const };
+  }
+
+  // Validate item exists, belongs to order, and is cancel_requested
+  const item = db
+    .select()
+    .from(orderItems)
+    .where(
+      and(
+        eq(orderItems.id, orderItemId),
+        eq(orderItems.orderId, orderId)
+      )
+    )
+    .get();
+
+  if (!item) {
+    return { error: 'Order item not found' as const };
+  }
+
+  if (item.status !== 'cancel_requested') {
+    return { error: `Item is not pending cancellation (current status: ${item.status})` as const };
+  }
+
+  // Apply the action
+  const newStatus: OrderItemStatus = action === 'approve' ? 'cancelled' : 'active';
+
+  db.update(orderItems)
+    .set({ status: newStatus })
+    .where(eq(orderItems.id, orderItemId))
+    .run();
+
+  // Recalculate total if approved (cancelled items no longer count)
+  if (action === 'approve') {
+    const newTotal = recalculateOrderTotal(db, order.id);
+    db.update(orders)
+      .set({
+        total: newTotal,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(eq(orders.id, order.id))
+      .run();
+  } else {
+    db.update(orders)
+      .set({ updatedAt: new Date().toISOString() })
+      .where(eq(orders.id, order.id))
+      .run();
+  }
+
+  // Return updated order
+  const updatedOrder = db
+    .select()
+    .from(orders)
+    .where(eq(orders.id, order.id))
+    .get()!;
+
+  const allItems = db
+    .select()
+    .from(orderItems)
+    .where(eq(orderItems.orderId, order.id))
+    .all();
+
+  return { data: { ...updatedOrder, items: allItems } };
 }

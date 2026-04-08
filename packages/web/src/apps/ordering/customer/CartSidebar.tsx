@@ -19,12 +19,14 @@ interface CartSidebarProps {
   tenantSlug: string;
   tableNumber: string;
   onOrderPlaced: (order: Order) => void;
+  addToOrderId?: string;
 }
 
 export function CartSidebar({
   tenantSlug,
   tableNumber,
   onOrderPlaced,
+  addToOrderId,
 }: CartSidebarProps) {
   const {
     items,
@@ -53,7 +55,7 @@ export function CartSidebar({
     editingNotesFor,
     setEditingNotesFor,
     error,
-  } = useCartOrder({ tenantSlug, tableNumber, onOrderPlaced });
+  } = useCartOrder({ tenantSlug, tableNumber, onOrderPlaced, addToOrderId });
 
   if (totalItems === 0) {
     return (
@@ -333,7 +335,7 @@ export function CartSidebar({
           loading={placeOrderMutation.isPending}
           disabled={items.length === 0}
         >
-          Place Order
+          {addToOrderId ? 'Add to Order' : 'Place Order'}
         </Button>
       </div>
     </div>

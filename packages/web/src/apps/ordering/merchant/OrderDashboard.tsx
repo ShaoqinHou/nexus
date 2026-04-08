@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Clock, ShoppingBag, ChevronDown, ChevronUp } from 'lucide-react';
+import { Clock, ShoppingBag, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
 import {
   ORDER_STATUSES,
   ORDER_STATUS_LABELS,
@@ -9,6 +9,7 @@ import {
 import type { OrderStatus } from '@nexus/shared';
 import {
   Button,
+  Badge,
   Card,
   CardHeader,
   CardTitle,
@@ -20,7 +21,7 @@ import { StatusBadge, EmptyState, ConfirmButton } from '@web/components/patterns
 import { formatPrice, timeAgo } from '@web/lib/format';
 import { useTenant } from '@web/platform/tenant/TenantProvider';
 import { useToast } from '@web/platform/ToastProvider';
-import { useOrders, useUpdateOrderStatus } from '../hooks/useOrders';
+import { useOrders, useUpdateOrderStatus, useHandleCancellationRequest } from '../hooks/useOrders';
 import type { Order } from '../types';
 
 // ---------------------------------------------------------------------------
@@ -53,15 +54,23 @@ function OrderCard({
   order,
   onUpdateStatus,
   isUpdating,
+  onHandleCancellation,
+  isCancellationPending,
 }: {
   order: Order;
   onUpdateStatus: (id: string, status: OrderStatus) => void;
   isUpdating: boolean;
+  onHandleCancellation: (orderId: string, itemId: string, action: 'approve' | 'reject') => void;
+  isCancellationPending: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
 
   const nextStatus = ORDER_STATUS_FLOW[order.status];
   const nextLabel = ORDER_FLOW_LABELS[order.status];
+
+  const cancelRequestCount = order.items.filter(
+    (item) => (item.status ?? 'active') === 'cancel_requested',
+  ).length;
 
   return (
     <Card>
@@ -88,6 +97,12 @@ function OrderCard({
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
+            {cancelRequestCount > 0 && (
+              <Badge variant="warning">
+                <AlertTriangle className="h-3 w-3 mr-1" />
+                {cancelRequestCount} cancel req
+              </Badge>
+            )}
             <div className="text-right">
               <p className="text-sm font-semibold text-text">
                 {formatPrice(order.total)}
@@ -118,31 +133,84 @@ function OrderCard({
                   <th className="pb-2 font-medium">Item</th>
                   <th className="pb-2 font-medium text-center">Qty</th>
                   <th className="pb-2 font-medium text-right">Price</th>
+                  <th className="pb-2 font-medium text-right">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {order.items.map((item) => (
-                  <tr key={item.id}>
-                    <td className="py-2 text-text">
-                      {item.name}
-                      {item.notes && (
-                        <p className="text-xs text-text-tertiary mt-0.5">
-                          Note: {item.notes}
-                        </p>
-                      )}
-                    </td>
-                    <td className="py-2 text-center text-text-secondary">
-                      {item.quantity}
-                    </td>
-                    <td className="py-2 text-right text-text">
-                      {formatPrice(item.price * item.quantity)}
-                    </td>
-                  </tr>
-                ))}
+                {order.items.map((item) => {
+                  const itemStatus = item.status ?? 'active';
+                  const isCancelRequested = itemStatus === 'cancel_requested';
+                  const isItemCancelled = itemStatus === 'cancelled';
+
+                  return (
+                    <tr
+                      key={item.id}
+                      className={[
+                        isCancelRequested ? 'bg-warning-light/30' : '',
+                        isItemCancelled ? 'opacity-50' : '',
+                      ].join(' ')}
+                    >
+                      <td className="py-2 text-text">
+                        <span className={isItemCancelled ? 'line-through text-text-tertiary' : ''}>
+                          {item.name}
+                        </span>
+                        {item.notes && (
+                          <p className="text-xs text-text-tertiary mt-0.5">
+                            Note: {item.notes}
+                          </p>
+                        )}
+                        {/* Cancellation action buttons */}
+                        {isCancelRequested && (
+                          <div className="flex items-center gap-2 mt-1.5">
+                            <Button
+                              size="sm"
+                              variant="primary"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onHandleCancellation(order.id, item.id, 'approve');
+                              }}
+                              disabled={isCancellationPending}
+                            >
+                              Accept Cancel
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onHandleCancellation(order.id, item.id, 'reject');
+                              }}
+                              disabled={isCancellationPending}
+                            >
+                              Reject
+                            </Button>
+                          </div>
+                        )}
+                      </td>
+                      <td className="py-2 text-center text-text-secondary">
+                        {item.quantity}
+                      </td>
+                      <td className={[
+                        'py-2 text-right',
+                        isItemCancelled ? 'text-text-tertiary line-through' : 'text-text',
+                      ].join(' ')}>
+                        {formatPrice(item.price * item.quantity)}
+                      </td>
+                      <td className="py-2 text-right">
+                        {isCancelRequested && (
+                          <Badge variant="warning">Cancel Requested</Badge>
+                        )}
+                        {isItemCancelled && (
+                          <Badge variant="error">Cancelled</Badge>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
               <tfoot>
                 <tr className="border-t border-border">
-                  <td className="pt-2 font-semibold text-text" colSpan={2}>
+                  <td className="pt-2 font-semibold text-text" colSpan={3}>
                     Total
                   </td>
                   <td className="pt-2 text-right font-semibold text-text">
@@ -214,6 +282,7 @@ export function OrderDashboard() {
 
   const { toast } = useToast();
   const updateStatus = useUpdateOrderStatus(tenantSlug);
+  const handleCancellation = useHandleCancellationRequest(tenantSlug);
 
   const handleUpdateStatus = (id: string, status: OrderStatus) => {
     updateStatus.mutate(
@@ -224,6 +293,20 @@ export function OrderDashboard() {
         },
         onError: (err: Error) => {
           toast('error', err.message || 'Failed to update order status');
+        },
+      },
+    );
+  };
+
+  const handleCancellationRequest = (orderId: string, itemId: string, action: 'approve' | 'reject') => {
+    handleCancellation.mutate(
+      { orderId, itemId, action },
+      {
+        onSuccess: () => {
+          toast('success', action === 'approve' ? 'Item cancelled' : 'Cancellation rejected');
+        },
+        onError: (err: Error) => {
+          toast('error', err.message || 'Failed to handle cancellation');
         },
       },
     );
@@ -286,6 +369,8 @@ export function OrderDashboard() {
                 updateStatus.isPending &&
                 updateStatus.variables?.id === order.id
               }
+              onHandleCancellation={handleCancellationRequest}
+              isCancellationPending={handleCancellation.isPending}
             />
           ))}
         </div>

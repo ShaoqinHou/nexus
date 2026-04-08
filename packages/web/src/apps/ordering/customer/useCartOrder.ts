@@ -38,10 +38,12 @@ interface UseCartOrderOptions {
   tableNumber: string;
   onOrderPlaced: (order: Order) => void;
   onClose?: () => void;
+  /** When set, adds items to an existing order instead of creating a new one */
+  addToOrderId?: string;
 }
 
 export function useCartOrder(options: UseCartOrderOptions) {
-  const { tenantSlug, tableNumber, onOrderPlaced, onClose } = options;
+  const { tenantSlug, tableNumber, onOrderPlaced, onClose, addToOrderId } = options;
 
   const { items, notes, clearCart, totalPrice } = useCart();
   const { toast } = useToast();
@@ -107,6 +109,25 @@ export function useCartOrder(options: UseCartOrderOptions) {
       const regularItems = items.filter((item) => !item.comboDealId);
       const comboCartItems = items.filter((item) => !!item.comboDealId);
 
+      // If adding to an existing order, use the add-items endpoint
+      if (addToOrderId) {
+        const addPayload = {
+          items: regularItems.map((item) => ({
+            menuItemId: item.menuItemId,
+            quantity: item.quantity,
+            ...(item.notes ? { notes: item.notes } : {}),
+            ...(item.modifiers && item.modifiers.length > 0
+              ? { modifiers: item.modifiers }
+              : {}),
+          })),
+        };
+        const res = await apiClient.post<{ data: Order }>(
+          `/order/${tenantSlug}/ordering/orders/${addToOrderId}/items`,
+          addPayload,
+        );
+        return res.data;
+      }
+
       const payload: CreateOrderPayload = {
         tableNumber: String(tableNumber),
         items: regularItems.map((item) => ({
@@ -146,7 +167,7 @@ export function useCartOrder(options: UseCartOrderOptions) {
       setPromoInput('');
       setPromoError(null);
       onClose?.();
-      toast('success', 'Order placed successfully!');
+      toast('success', addToOrderId ? 'Items added to order!' : 'Order placed successfully!');
       onOrderPlaced(order);
     },
     onError: (err) => {

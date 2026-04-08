@@ -7,7 +7,7 @@ import { eq, and } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import jwt from 'jsonwebtoken';
 import { authMiddleware, JWT_SECRET } from '../../middleware/auth.js';
-import { customerSessions, staff, ORDER_STATUSES, PROMOTION_TYPES } from '../../db/schema.js';
+import { customerSessions, staff, ORDER_STATUSES, PROMOTION_TYPES, ORDER_ITEM_STATUSES } from '../../db/schema.js';
 import type { DrizzleDB } from '../../db/client.js';
 import type { AuthEnv, TenantEnv } from '../../lib/types.js';
 import {
@@ -45,6 +45,9 @@ import {
   getOrders,
   getKitchenOrders,
   updateOrderStatus,
+  addItemsToOrder,
+  requestItemCancellation,
+  handleCancellationRequest,
   getDailyRevenue,
   getTopItems,
   getPeakHours,
@@ -189,6 +192,37 @@ const createPromoCodeSchema = z.object({
 
 const validatePromoCodeSchema = z.object({
   code: z.string().min(1, 'Code is required'),
+});
+
+// --- Order Modification Schemas ---
+
+const addItemsSchema = z.object({
+  items: z
+    .array(
+      z.object({
+        menuItemId: z.string().min(1, 'Menu item ID is required'),
+        quantity: z.number().int().positive('Quantity must be positive'),
+        notes: z.string().optional(),
+        modifiers: z
+          .array(
+            z.object({
+              optionId: z.string().min(1, 'Option ID is required'),
+              name: z.string().min(1),
+              price: z.number(),
+            })
+          )
+          .optional(),
+      })
+    )
+    .min(1, 'At least one item is required'),
+});
+
+const cancelItemsSchema = z.object({
+  orderItemIds: z.array(z.string().min(1)).min(1, 'At least one item ID is required'),
+});
+
+const handleCancellationSchema = z.object({
+  action: z.enum(['approve', 'reject']),
 });
 
 // --- Order Schema ---
@@ -560,6 +594,41 @@ export function staffOrderingRoutes(db: DrizzleDB) {
     }
   );
 
+  // --- Order Modifications (Staff) ---
+
+  // Staff can add items to an order
+  router.post(
+    '/orders/:id/items',
+    zValidator('json', addItemsSchema),
+    (c) => {
+      const tenantId = c.var.tenantId;
+      const orderId = c.req.param('id');
+      const { items } = c.req.valid('json');
+      const result = addItemsToOrder(db, tenantId, orderId, items);
+      if ('error' in result) {
+        return c.json({ error: result.error }, 400);
+      }
+      return c.json({ data: result.data });
+    }
+  );
+
+  // Staff handles cancellation request (approve / reject)
+  router.patch(
+    '/orders/:id/items/:itemId',
+    zValidator('json', handleCancellationSchema),
+    (c) => {
+      const tenantId = c.var.tenantId;
+      const orderId = c.req.param('id');
+      const itemId = c.req.param('itemId');
+      const { action } = c.req.valid('json');
+      const result = handleCancellationRequest(db, tenantId, orderId, itemId, action);
+      if ('error' in result) {
+        return c.json({ error: result.error }, 400);
+      }
+      return c.json({ data: result.data });
+    }
+  );
+
   // --- Analytics ---
 
   router.get('/analytics/revenue', (c) => {
@@ -797,6 +866,40 @@ export function customerOrderingRoutes(db: DrizzleDB) {
     }
     return c.json({ data: order });
   });
+
+  // --- Order Modifications (Customer) ---
+
+  // Customer adds items to an existing order
+  router.post(
+    '/orders/:id/items',
+    zValidator('json', addItemsSchema),
+    (c) => {
+      const tenantId = c.var.tenantId;
+      const orderId = c.req.param('id');
+      const { items } = c.req.valid('json');
+      const result = addItemsToOrder(db, tenantId, orderId, items);
+      if ('error' in result) {
+        return c.json({ error: result.error }, 400);
+      }
+      return c.json({ data: result.data });
+    }
+  );
+
+  // Customer requests cancellation of specific items
+  router.post(
+    '/orders/:id/cancel-items',
+    zValidator('json', cancelItemsSchema),
+    (c) => {
+      const tenantId = c.var.tenantId;
+      const orderId = c.req.param('id');
+      const { orderItemIds } = c.req.valid('json');
+      const result = requestItemCancellation(db, tenantId, orderId, orderItemIds);
+      if ('error' in result) {
+        return c.json({ error: result.error }, 400);
+      }
+      return c.json({ data: result.data });
+    }
+  );
 
   return router;
 }

@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useSearch } from '@tanstack/react-router';
 import { AlertCircle, QrCode, Clock } from 'lucide-react';
+import { Button } from '@web/components/ui';
 import { CartProvider } from '@web/apps/ordering/customer/CartProvider';
 import { MenuBrowse } from '@web/apps/ordering/customer/MenuBrowse';
 import { CartSheet } from '@web/apps/ordering/customer/CartSheet';
@@ -12,7 +13,7 @@ import type { TenantThemeSettings } from '@web/lib/theme';
 import type { Order } from '@web/apps/ordering/types';
 
 type CustomerView =
-  | { type: 'menu' }
+  | { type: 'menu'; addToOrderId?: string }
   | { type: 'confirmation'; orderId: string };
 
 interface CustomerAppInnerProps {
@@ -36,15 +37,22 @@ function CustomerAppInner({ tenantSlug, tableNumber }: CustomerAppInnerProps) {
     setView({ type: 'menu' });
   }, []);
 
+  const handleAddItems = useCallback((orderId: string) => {
+    setView({ type: 'menu', addToOrderId: orderId });
+  }, []);
+
   if (view.type === 'confirmation') {
     return (
       <OrderConfirmation
         tenantSlug={tenantSlug}
         orderId={view.orderId}
         onBackToMenu={handleBackToMenu}
+        onAddItems={handleAddItems}
       />
     );
   }
+
+  const addToOrderId = view.type === 'menu' ? view.addToOrderId : undefined;
 
   return (
     <div className="lg:flex">
@@ -63,8 +71,26 @@ function CustomerAppInner({ tenantSlug, tableNumber }: CustomerAppInnerProps) {
         </div>
       )}
 
+      {/* Adding-to-order banner */}
+      {addToOrderId && (
+        <div className="fixed top-0 left-0 right-0 z-30 bg-primary-light border-b border-primary/20">
+          <div className="max-w-3xl lg:max-w-7xl mx-auto flex items-center justify-between px-4 py-2.5">
+            <p className="text-sm text-primary font-medium">
+              Adding items to order #{addToOrderId.slice(-6).toUpperCase()}
+            </p>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setView({ type: 'confirmation', orderId: addToOrderId })}
+            >
+              Back to Order
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Center: Menu content (includes its own desktop category rail on the left) */}
-      <div className={['flex-1 min-w-0', isClosed ? 'mt-10' : ''].join(' ')}>
+      <div className={['flex-1 min-w-0', isClosed || addToOrderId ? 'mt-10' : ''].join(' ')}>
         <MenuBrowse tenantSlug={tenantSlug} disabled={isClosed} />
 
         {/* Mobile/tablet: bottom sheet cart + spacer — hidden when closed */}
@@ -74,6 +100,7 @@ function CustomerAppInner({ tenantSlug, tableNumber }: CustomerAppInnerProps) {
               tenantSlug={tenantSlug}
               tableNumber={tableNumber}
               onOrderPlaced={handleOrderPlaced}
+              addToOrderId={addToOrderId}
             />
             {/* Spacer for fixed cart bar */}
             <div className="h-20" />
@@ -88,6 +115,7 @@ function CustomerAppInner({ tenantSlug, tableNumber }: CustomerAppInnerProps) {
             tenantSlug={tenantSlug}
             tableNumber={tableNumber}
             onOrderPlaced={handleOrderPlaced}
+            addToOrderId={addToOrderId}
           />
         </aside>
       )}

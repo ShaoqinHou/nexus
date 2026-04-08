@@ -10,6 +10,13 @@ export type StaffRole = typeof STAFF_ROLES[number];
 export const PROMOTION_TYPES = ['percentage', 'fixed_amount'] as const;
 export type PromotionType = typeof PROMOTION_TYPES[number];
 
+// Order item statuses
+export const ORDER_ITEM_STATUSES = ['active', 'cancel_requested', 'cancelled'] as const;
+export type OrderItemStatus = typeof ORDER_ITEM_STATUSES[number];
+
+// Statuses where order modifications are allowed
+export const MODIFIABLE_ORDER_STATUSES: readonly OrderStatus[] = ['pending', 'confirmed', 'preparing'] as const;
+
 // Dietary tags
 export const DIETARY_TAGS = [
   'vegetarian', 'vegan', 'gluten-free', 'dairy-free',

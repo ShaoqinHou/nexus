@@ -21,12 +21,14 @@ interface CartSheetProps {
   tenantSlug: string;
   tableNumber: string;
   onOrderPlaced: (order: Order) => void;
+  addToOrderId?: string;
 }
 
 export function CartSheet({
   tenantSlug,
   tableNumber,
   onOrderPlaced,
+  addToOrderId,
 }: CartSheetProps) {
   const {
     items,
@@ -62,6 +64,7 @@ export function CartSheet({
     tableNumber,
     onOrderPlaced,
     onClose: () => { setIsOpen(false); },
+    addToOrderId,
   });
 
   // Prevent body scroll when cart sheet is open, save/restore scroll position
@@ -412,7 +415,7 @@ export function CartSheet({
                   loading={placeOrderMutation.isPending}
                   disabled={items.length === 0}
                 >
-                  Place Order
+                  {addToOrderId ? 'Add to Order' : 'Place Order'}
                 </Button>
               </div>
             </>

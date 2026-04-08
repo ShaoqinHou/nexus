@@ -17,6 +17,9 @@ import {
   getOrder,
   getOrders,
   updateOrderStatus,
+  addItemsToOrder,
+  requestItemCancellation,
+  handleCancellationRequest,
   getModifierGroups,
   createModifierGroup,
   deleteModifierGroup,
@@ -190,6 +193,7 @@ function createTestDb() {
       modifiers_json TEXT,
       combo_deal_id TEXT REFERENCES combo_deals(id),
       combo_group_id TEXT,
+      status TEXT NOT NULL DEFAULT 'active',
       created_at TEXT NOT NULL
     );
 
@@ -1629,5 +1633,237 @@ describe('Combo Deals', () => {
     expect(order.total).toBe(18);
     // Each slot selection creates an order item
     expect(order.items).toHaveLength(3);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Order Modifications
+// ---------------------------------------------------------------------------
+
+describe('Order Modifications', () => {
+  let db: TestDB;
+  let tenantId: string;
+  let categoryId: string;
+
+  function createTestItem(name: string, price: number) {
+    const result = createMenuItem(db, tenantId, { categoryId, name, price });
+    return (result as { data: schema.MenuItem }).data;
+  }
+
+  function placeTestOrder(items: Array<{ menuItemId: string; quantity: number }>) {
+    const result = createOrder(db, tenantId, {
+      tableNumber: '1',
+      items,
+    });
+    return (result as { data: { id: string; total: number; status: string; items: schema.OrderItem[] } }).data;
+  }
+
+  beforeEach(() => {
+    db = createTestDb();
+    const tenant = createTestTenant(db, 'test-tenant');
+    tenantId = tenant.id;
+    const category = createCategory(db, tenantId, { name: 'Mains' });
+    categoryId = category.id;
+  });
+
+  describe('addItemsToOrder', () => {
+    it('adds items to an existing pending order and updates total', () => {
+      const burger = createTestItem('Burger', 15);
+      const fries = createTestItem('Fries', 5);
+
+      const order = placeTestOrder([{ menuItemId: burger.id, quantity: 1 }]);
+      expect(order.total).toBe(15);
+      expect(order.items).toHaveLength(1);
+
+      const result = addItemsToOrder(db, tenantId, order.id, [
+        { menuItemId: fries.id, quantity: 2 },
+      ]);
+
+      expect(result).toHaveProperty('data');
+      const updated = (result as { data: { total: number; items: schema.OrderItem[] } }).data;
+      expect(updated.items).toHaveLength(2);
+      expect(updated.total).toBe(25); // 15 + 5*2
+    });
+
+    it('rejects adding items to a delivered order', () => {
+      const burger = createTestItem('Burger', 15);
+      const fries = createTestItem('Fries', 5);
+
+      const order = placeTestOrder([{ menuItemId: burger.id, quantity: 1 }]);
+      updateOrderStatus(db, tenantId, order.id, 'delivered');
+
+      const result = addItemsToOrder(db, tenantId, order.id, [
+        { menuItemId: fries.id, quantity: 1 },
+      ]);
+
+      expect(result).toHaveProperty('error');
+    });
+
+    it('rejects adding items to a cancelled order', () => {
+      const burger = createTestItem('Burger', 15);
+      const fries = createTestItem('Fries', 5);
+
+      const order = placeTestOrder([{ menuItemId: burger.id, quantity: 1 }]);
+      updateOrderStatus(db, tenantId, order.id, 'cancelled');
+
+      const result = addItemsToOrder(db, tenantId, order.id, [
+        { menuItemId: fries.id, quantity: 1 },
+      ]);
+
+      expect(result).toHaveProperty('error');
+    });
+
+    it('allows adding items to a confirmed order', () => {
+      const burger = createTestItem('Burger', 15);
+      const fries = createTestItem('Fries', 5);
+
+      const order = placeTestOrder([{ menuItemId: burger.id, quantity: 1 }]);
+      updateOrderStatus(db, tenantId, order.id, 'confirmed');
+
+      const result = addItemsToOrder(db, tenantId, order.id, [
+        { menuItemId: fries.id, quantity: 1 },
+      ]);
+
+      expect(result).toHaveProperty('data');
+      const updated = (result as { data: { total: number } }).data;
+      expect(updated.total).toBe(20);
+    });
+
+    it('rejects adding unavailable items', () => {
+      const burger = createTestItem('Burger', 15);
+      const order = placeTestOrder([{ menuItemId: burger.id, quantity: 1 }]);
+
+      // Mark burger as unavailable
+      updateMenuItem(db, tenantId, burger.id, { isAvailable: 0 });
+
+      const result = addItemsToOrder(db, tenantId, order.id, [
+        { menuItemId: burger.id, quantity: 1 },
+      ]);
+
+      expect(result).toHaveProperty('error');
+    });
+
+    it('rejects when order does not belong to tenant', () => {
+      const otherTenant = createTestTenant(db, 'other-tenant');
+      const burger = createTestItem('Burger', 15);
+
+      const order = placeTestOrder([{ menuItemId: burger.id, quantity: 1 }]);
+
+      const result = addItemsToOrder(db, otherTenant.id, order.id, [
+        { menuItemId: burger.id, quantity: 1 },
+      ]);
+
+      expect(result).toHaveProperty('error', 'Order not found');
+    });
+  });
+
+  describe('requestItemCancellation', () => {
+    it('marks items as cancel_requested', () => {
+      const burger = createTestItem('Burger', 15);
+      const fries = createTestItem('Fries', 5);
+
+      const order = placeTestOrder([
+        { menuItemId: burger.id, quantity: 1 },
+        { menuItemId: fries.id, quantity: 1 },
+      ]);
+
+      const itemToCancel = order.items[0];
+      const result = requestItemCancellation(db, tenantId, order.id, [itemToCancel.id]);
+
+      expect(result).toHaveProperty('data');
+      const updated = (result as { data: { items: Array<{ id: string; status: string }> } }).data;
+      const cancelledItem = updated.items.find((i) => i.id === itemToCancel.id);
+      expect(cancelledItem?.status).toBe('cancel_requested');
+
+      // Other item should still be active
+      const otherItem = updated.items.find((i) => i.id !== itemToCancel.id);
+      expect(otherItem?.status).toBe('active');
+    });
+
+    it('rejects cancellation for non-active items', () => {
+      const burger = createTestItem('Burger', 15);
+      const order = placeTestOrder([{ menuItemId: burger.id, quantity: 1 }]);
+
+      // Request once
+      requestItemCancellation(db, tenantId, order.id, [order.items[0].id]);
+
+      // Request again should fail
+      const result = requestItemCancellation(db, tenantId, order.id, [order.items[0].id]);
+      expect(result).toHaveProperty('error');
+    });
+
+    it('rejects cancellation for delivered orders', () => {
+      const burger = createTestItem('Burger', 15);
+      const order = placeTestOrder([{ menuItemId: burger.id, quantity: 1 }]);
+
+      updateOrderStatus(db, tenantId, order.id, 'delivered');
+
+      const result = requestItemCancellation(db, tenantId, order.id, [order.items[0].id]);
+      expect(result).toHaveProperty('error');
+    });
+  });
+
+  describe('handleCancellationRequest', () => {
+    it('approves cancellation and recalculates total', () => {
+      const burger = createTestItem('Burger', 15);
+      const fries = createTestItem('Fries', 5);
+
+      const order = placeTestOrder([
+        { menuItemId: burger.id, quantity: 1 },
+        { menuItemId: fries.id, quantity: 2 },
+      ]);
+      expect(order.total).toBe(25); // 15 + 5*2
+
+      // Request cancellation of the burger
+      requestItemCancellation(db, tenantId, order.id, [order.items[0].id]);
+
+      // Staff approves
+      const result = handleCancellationRequest(db, tenantId, order.id, order.items[0].id, 'approve');
+
+      expect(result).toHaveProperty('data');
+      const updated = (result as { data: { total: number; items: Array<{ id: string; status: string }> } }).data;
+
+      const cancelledItem = updated.items.find((i) => i.id === order.items[0].id);
+      expect(cancelledItem?.status).toBe('cancelled');
+
+      // Total should now be just fries: 5*2 = 10
+      expect(updated.total).toBe(10);
+    });
+
+    it('rejects cancellation and keeps item active', () => {
+      const burger = createTestItem('Burger', 15);
+      const order = placeTestOrder([{ menuItemId: burger.id, quantity: 1 }]);
+
+      requestItemCancellation(db, tenantId, order.id, [order.items[0].id]);
+
+      const result = handleCancellationRequest(db, tenantId, order.id, order.items[0].id, 'reject');
+
+      expect(result).toHaveProperty('data');
+      const updated = (result as { data: { total: number; items: Array<{ id: string; status: string }> } }).data;
+
+      const item = updated.items.find((i) => i.id === order.items[0].id);
+      expect(item?.status).toBe('active');
+      expect(updated.total).toBe(15); // unchanged
+    });
+
+    it('rejects handling for items not in cancel_requested state', () => {
+      const burger = createTestItem('Burger', 15);
+      const order = placeTestOrder([{ menuItemId: burger.id, quantity: 1 }]);
+
+      // Try to handle without a cancellation request
+      const result = handleCancellationRequest(db, tenantId, order.id, order.items[0].id, 'approve');
+      expect(result).toHaveProperty('error');
+    });
+
+    it('prevents cross-tenant cancellation handling', () => {
+      const otherTenant = createTestTenant(db, 'other-tenant');
+      const burger = createTestItem('Burger', 15);
+      const order = placeTestOrder([{ menuItemId: burger.id, quantity: 1 }]);
+
+      requestItemCancellation(db, tenantId, order.id, [order.items[0].id]);
+
+      const result = handleCancellationRequest(db, otherTenant.id, order.id, order.items[0].id, 'approve');
+      expect(result).toHaveProperty('error', 'Order not found');
+    });
   });
 });
