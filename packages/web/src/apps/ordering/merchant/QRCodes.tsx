@@ -15,7 +15,7 @@ export function QRCodes() {
     async function generate() {
       const codes = new Map<number, string>();
       for (let i = 1; i <= tableCount; i++) {
-        const url = `https://rehou.games/nexus/order/${tenantSlug}?table=${i}`;
+        const url = `${window.location.origin}${import.meta.env.BASE_URL}order/${tenantSlug}?table=${i}`;
         const dataUrl = await QRCode.toDataURL(url, { width: 200, margin: 1 });
         codes.set(i, dataUrl);
       }
@@ -116,7 +116,7 @@ export function QRCodes() {
         <div className="qr-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {Array.from({ length: tableCount }, (_, i) => i + 1).map((tableNum) => {
             const dataUrl = qrCodes.get(tableNum);
-            const url = `https://rehou.games/nexus/order/${tenantSlug}?table=${tableNum}`;
+            const url = `${window.location.origin}${import.meta.env.BASE_URL}order/${tenantSlug}?table=${tableNum}`;
 
             return (
               <Card key={tableNum} className="qr-card">

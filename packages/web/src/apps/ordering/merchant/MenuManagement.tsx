@@ -333,7 +333,7 @@ function CategoryList({
                     }
                   }}
                   className={[
-                    'w-full flex items-center justify-between px-4 sm:px-6 py-4 sm:py-3 text-left transition-colors',
+                    'w-full flex items-center justify-between px-4 sm:px-6 py-4 sm:py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
                     selectedId === cat.id
                       ? 'bg-primary/10 border-l-2 border-primary'
                       : 'hover:bg-bg-muted',
@@ -558,7 +558,7 @@ function MenuItemCard({
               {parseTags(item.tags).map((tag) => (
                 <span
                   key={tag}
-                  className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-bg-muted text-text-secondary"
+                  className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-bg-muted text-text-secondary"
                 >
                   {tag}
                 </span>
