@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, real, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, real, uniqueIndex, index } from 'drizzle-orm/sqlite-core';
 import { nanoid } from 'nanoid';
 import { ORDER_STATUSES, STAFF_ROLES, PROMOTION_TYPES } from '@nexus/shared';
 import type { OrderStatus, StaffRole, PromotionType } from '@nexus/shared';
@@ -40,7 +40,9 @@ export const customerSessions = sqliteTable('customer_sessions', {
   sessionToken: text('session_token').notNull().unique(),
   expiresAt: text('expires_at').notNull(),
   createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
-});
+}, (table) => [
+  index('idx_sessions_tenant_expires').on(table.tenantId, table.expiresAt),
+]);
 
 // --- Ordering Module Tables ---
 
@@ -70,7 +72,10 @@ export const menuItems = sqliteTable('menu_items', {
   isActive: integer('is_active').notNull().default(1),
   createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
   updatedAt: text('updated_at').notNull().$defaultFn(() => new Date().toISOString()),
-});
+}, (table) => [
+  index('idx_menu_items_tenant_active').on(table.tenantId, table.isActive),
+  index('idx_menu_items_category').on(table.tenantId, table.categoryId),
+]);
 
 // --- Modifier Groups & Options ---
 
@@ -182,7 +187,11 @@ export const orders = sqliteTable('orders', {
   promoCodeId: text('promo_code_id').references(() => promoCodes.id),
   createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
   updatedAt: text('updated_at').notNull().$defaultFn(() => new Date().toISOString()),
-});
+}, (table) => [
+  index('idx_orders_tenant_status').on(table.tenantId, table.status),
+  index('idx_orders_tenant_created').on(table.tenantId, table.createdAt),
+  index('idx_orders_table').on(table.tenantId, table.tableNumber),
+]);
 
 export const orderItems = sqliteTable('order_items', {
   id: text('id').primaryKey().$defaultFn(() => nanoid()),
@@ -192,11 +201,13 @@ export const orderItems = sqliteTable('order_items', {
   price: real('price').notNull(),
   quantity: integer('quantity').notNull(),
   notes: text('notes'),
-  modifiersJson: text('modifiers_json'),  // JSON snapshot: [{"name":"Large","price":2.50}]
-  comboDealId: text('combo_deal_id').references(() => comboDeals.id),  // which combo this item belongs to
-  comboGroupId: text('combo_group_id'),  // groups items from the same combo instance
+  modifiersJson: text('modifiers_json'),
+  comboDealId: text('combo_deal_id').references(() => comboDeals.id),
+  comboGroupId: text('combo_group_id'),
   createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
-});
+}, (table) => [
+  index('idx_order_items_order').on(table.orderId),
+]);
 
 // --- Inferred Types ---
 
