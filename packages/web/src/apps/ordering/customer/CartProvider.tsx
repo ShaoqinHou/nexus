@@ -14,6 +14,14 @@ export interface CartItemModifier {
   price: number;
 }
 
+export interface ComboSelection {
+  slotId: string;
+  slotName: string;
+  menuItemId: string;
+  itemName: string;
+  priceModifier: number;
+}
+
 export interface CartItem {
   menuItemId: string;
   name: string;
@@ -21,6 +29,8 @@ export interface CartItem {
   quantity: number;
   notes?: string;
   modifiers?: CartItemModifier[];
+  comboDealId?: string;
+  comboSelections?: ComboSelection[];
 }
 
 interface CartState {
@@ -28,18 +38,19 @@ interface CartState {
   notes: string;
 }
 
+type AddItemPayload = {
+  menuItemId: string;
+  name: string;
+  price: number;
+  quantity?: number;
+  notes?: string;
+  modifiers?: CartItemModifier[];
+  comboDealId?: string;
+  comboSelections?: ComboSelection[];
+};
+
 type CartAction =
-  | {
-      type: 'ADD_ITEM';
-      payload: {
-        menuItemId: string;
-        name: string;
-        price: number;
-        quantity?: number;
-        notes?: string;
-        modifiers?: CartItemModifier[];
-      };
-    }
+  | { type: 'ADD_ITEM'; payload: AddItemPayload }
   | { type: 'REMOVE_ITEM'; payload: { cartIndex: number } }
   | { type: 'UPDATE_QUANTITY'; payload: { cartIndex: number; quantity: number } }
   | { type: 'UPDATE_ITEM_NOTES'; payload: { cartIndex: number; notes: string } }
@@ -49,14 +60,7 @@ type CartAction =
 interface CartContextValue {
   items: CartItem[];
   notes: string;
-  addItem: (item: {
-    menuItemId: string;
-    name: string;
-    price: number;
-    quantity?: number;
-    notes?: string;
-    modifiers?: CartItemModifier[];
-  }) => void;
+  addItem: (item: AddItemPayload) => void;
   removeItem: (cartIndex: number) => void;
   updateQuantity: (cartIndex: number, quantity: number) => void;
   updateItemNotes: (cartIndex: number, notes: string) => void;
@@ -88,9 +92,32 @@ function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case 'ADD_ITEM': {
       const addQty = action.payload.quantity ?? 1;
+      const isCombo = !!action.payload.comboDealId;
+
+      // Combo items are always unique entries (different selections = different entry)
+      if (isCombo) {
+        return {
+          ...state,
+          items: [
+            ...state.items,
+            {
+              menuItemId: action.payload.menuItemId,
+              name: action.payload.name,
+              price: action.payload.price,
+              quantity: addQty,
+              notes: action.payload.notes,
+              modifiers: action.payload.modifiers,
+              comboDealId: action.payload.comboDealId,
+              comboSelections: action.payload.comboSelections,
+            },
+          ],
+        };
+      }
+
       // Find existing item with same menuItemId AND same modifiers
       const existingIndex = state.items.findIndex(
         (item) =>
+          !item.comboDealId &&
           item.menuItemId === action.payload.menuItemId &&
           sameModifiers(item.modifiers, action.payload.modifiers),
       );
@@ -199,14 +226,7 @@ export function CartProvider({ tenantSlug, children }: CartProviderProps) {
   }, [tenantSlug, state]);
 
   const addItem = useCallback(
-    (item: {
-      menuItemId: string;
-      name: string;
-      price: number;
-      quantity?: number;
-      notes?: string;
-      modifiers?: CartItemModifier[];
-    }) => {
+    (item: AddItemPayload) => {
       dispatch({ type: 'ADD_ITEM', payload: item });
     },
     [],
@@ -240,6 +260,10 @@ export function CartProvider({ tenantSlug, children }: CartProviderProps) {
   const totalPrice = useMemo(
     () =>
       state.items.reduce((sum, item) => {
+        // Combo items store their full unit price (base + modifiers) in item.price
+        if (item.comboDealId) {
+          return sum + item.price * item.quantity;
+        }
         const modifierTotal = (item.modifiers ?? []).reduce(
           (ms, m) => ms + m.price,
           0,

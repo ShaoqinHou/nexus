@@ -90,3 +90,71 @@ export interface Order {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface Promotion {
+  id: string;
+  tenantId: string;
+  name: string;
+  description: string | null;
+  type: 'percentage' | 'fixed_amount';
+  discountValue: number;
+  minOrderAmount: number | null;
+  applicableCategories: string | null;
+  startsAt: string;
+  endsAt: string | null;
+  maxUses: number | null;
+  currentUses: number;
+  isActive: number;
+  createdAt: string;
+  updatedAt: string;
+  promoCodes?: PromoCode[];
+}
+
+export interface PromoCode {
+  id: string;
+  tenantId: string;
+  promotionId: string;
+  code: string;
+  usageLimit: number | null;
+  usageCount: number;
+  isActive: number;
+  createdAt: string;
+}
+
+// --- Combo Deals ---
+
+export interface ComboDeal {
+  id: string;
+  tenantId: string;
+  name: string;
+  description: string | null;
+  imageUrl: string | null;
+  basePrice: number;
+  categoryId: string | null;
+  sortOrder: number;
+  isActive: number;
+  createdAt: string;
+  updatedAt: string;
+  slots: ComboSlot[];
+}
+
+export interface ComboSlot {
+  id: string;
+  comboDealId: string;
+  name: string;
+  sortOrder: number;
+  minSelections: number;
+  maxSelections: number;
+  options: ComboSlotOption[];
+}
+
+export interface ComboSlotOption {
+  id: string;
+  comboSlotId: string;
+  menuItemId: string;
+  priceModifier: number;
+  isDefault: number;
+  sortOrder: number;
+  menuItemName?: string;
+  menuItemPrice?: number;
+}

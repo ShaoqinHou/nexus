@@ -1,0 +1,741 @@
+import { useState, useEffect } from 'react';
+import {
+  Plus,
+  Pencil,
+  Tag,
+  Percent,
+  DollarSign,
+  ChevronDown,
+  ChevronUp,
+  Copy,
+  Ticket,
+} from 'lucide-react';
+import {
+  Button,
+  Badge,
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  Dialog,
+  Input,
+  Select,
+  Toggle,
+} from '@web/components/ui';
+import { ConfirmButton, EmptyState } from '@web/components/patterns';
+import { useTenant } from '@web/platform/tenant/TenantProvider';
+import { useToast } from '@web/platform/ToastProvider';
+import {
+  usePromotions,
+  useCreatePromotion,
+  useUpdatePromotion,
+  useDeletePromotion,
+  useCreatePromoCode,
+  useDeletePromoCode,
+} from '../hooks/usePromotions';
+import type { Promotion, PromoCode } from '../types';
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
+function formatDiscount(type: Promotion['type'], value: number): string {
+  if (type === 'percentage') {
+    return `${value}% OFF`;
+  }
+  return `$${value.toFixed(2)} OFF`;
+}
+
+function isExpired(promo: Promotion): boolean {
+  if (!promo.endsAt) return false;
+  return new Date(promo.endsAt) < new Date();
+}
+
+function isActive(promo: Promotion): boolean {
+  if (promo.isActive !== 1) return false;
+  if (isExpired(promo)) return false;
+  const now = new Date();
+  if (new Date(promo.startsAt) > now) return false;
+  return true;
+}
+
+// ---------------------------------------------------------------------------
+// Promotion form dialog
+// ---------------------------------------------------------------------------
+
+interface PromotionFormData {
+  name: string;
+  description: string;
+  type: 'percentage' | 'fixed_amount';
+  discountValue: string;
+  minOrderAmount: string;
+  applicableCategories: string;
+  startsAt: string;
+  endsAt: string;
+}
+
+function PromotionDialog({
+  open,
+  onClose,
+  onSubmit,
+  initial,
+  loading,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onSubmit: (data: PromotionFormData) => void;
+  initial?: PromotionFormData;
+  loading: boolean;
+}) {
+  const [name, setName] = useState(initial?.name ?? '');
+  const [description, setDescription] = useState(initial?.description ?? '');
+  const [type, setType] = useState<'percentage' | 'fixed_amount'>(
+    initial?.type ?? 'percentage',
+  );
+  const [discountValue, setDiscountValue] = useState(initial?.discountValue ?? '');
+  const [minOrderAmount, setMinOrderAmount] = useState(initial?.minOrderAmount ?? '');
+  const [applicableCategories, setApplicableCategories] = useState(
+    initial?.applicableCategories ?? '',
+  );
+  const [startsAt, setStartsAt] = useState(initial?.startsAt ?? '');
+  const [endsAt, setEndsAt] = useState(initial?.endsAt ?? '');
+
+  useEffect(() => {
+    setName(initial?.name ?? '');
+    setDescription(initial?.description ?? '');
+    setType(initial?.type ?? 'percentage');
+    setDiscountValue(initial?.discountValue ?? '');
+    setMinOrderAmount(initial?.minOrderAmount ?? '');
+    setApplicableCategories(initial?.applicableCategories ?? '');
+    setStartsAt(initial?.startsAt ?? '');
+    setEndsAt(initial?.endsAt ?? '');
+  }, [initial]);
+
+  const isEdit = !!initial;
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!name.trim() || !discountValue || !startsAt) return;
+    onSubmit({
+      name: name.trim(),
+      description: description.trim(),
+      type,
+      discountValue,
+      minOrderAmount,
+      applicableCategories: applicableCategories.trim(),
+      startsAt,
+      endsAt,
+    });
+  };
+
+  const handleClose = () => {
+    setName('');
+    setDescription('');
+    setType('percentage');
+    setDiscountValue('');
+    setMinOrderAmount('');
+    setApplicableCategories('');
+    setStartsAt('');
+    setEndsAt('');
+    onClose();
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      title={isEdit ? 'Edit Promotion' : 'Add Promotion'}
+      footer={
+        <>
+          <Button variant="secondary" onClick={handleClose} disabled={loading}>
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            form="promotion-form"
+            loading={loading}
+            disabled={!name.trim() || !discountValue || !startsAt}
+          >
+            {isEdit ? 'Save' : 'Create'}
+          </Button>
+        </>
+      }
+    >
+      <form id="promotion-form" onSubmit={handleSubmit} className="space-y-4">
+        <Input
+          label="Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="e.g. Summer Sale 20%"
+          required
+          autoFocus
+        />
+        <Input
+          label="Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Optional description"
+        />
+        <Select
+          label="Discount Type"
+          options={[
+            { value: 'percentage', label: 'Percentage (%)' },
+            { value: 'fixed_amount', label: 'Fixed Amount ($)' },
+          ]}
+          value={type}
+          onChange={(val) => setType(val as 'percentage' | 'fixed_amount')}
+        />
+        <Input
+          label={type === 'percentage' ? 'Discount (%)' : 'Discount ($)'}
+          type="number"
+          step={type === 'percentage' ? '1' : '0.01'}
+          min="0"
+          max={type === 'percentage' ? '100' : undefined}
+          value={discountValue}
+          onChange={(e) => setDiscountValue(e.target.value)}
+          placeholder={type === 'percentage' ? 'e.g. 20' : 'e.g. 5.00'}
+          required
+        />
+        <Input
+          label="Minimum Order Amount ($)"
+          type="number"
+          step="0.01"
+          min="0"
+          value={minOrderAmount}
+          onChange={(e) => setMinOrderAmount(e.target.value)}
+          placeholder="Optional"
+          helperText="Leave empty for no minimum"
+        />
+        <Input
+          label="Applicable Categories"
+          value={applicableCategories}
+          onChange={(e) => setApplicableCategories(e.target.value)}
+          placeholder="e.g. mains,drinks"
+          helperText="Comma-separated category IDs, or leave empty for all"
+        />
+        <Input
+          label="Start Date"
+          type="date"
+          value={startsAt}
+          onChange={(e) => setStartsAt(e.target.value)}
+          required
+        />
+        <Input
+          label="End Date"
+          type="date"
+          value={endsAt}
+          onChange={(e) => setEndsAt(e.target.value)}
+          helperText="Leave empty for no end date"
+        />
+      </form>
+    </Dialog>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Promo code dialog
+// ---------------------------------------------------------------------------
+
+function PromoCodeDialog({
+  open,
+  onClose,
+  onSubmit,
+  loading,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onSubmit: (data: { code: string; usageLimit: string }) => void;
+  loading: boolean;
+}) {
+  const [code, setCode] = useState('');
+  const [usageLimit, setUsageLimit] = useState('');
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!code.trim()) return;
+    onSubmit({ code: code.trim().toUpperCase(), usageLimit });
+  };
+
+  const handleClose = () => {
+    setCode('');
+    setUsageLimit('');
+    onClose();
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      title="Add Promo Code"
+      footer={
+        <>
+          <Button variant="secondary" onClick={handleClose} disabled={loading}>
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            form="promo-code-form"
+            loading={loading}
+            disabled={!code.trim()}
+          >
+            Add Code
+          </Button>
+        </>
+      }
+    >
+      <form id="promo-code-form" onSubmit={handleSubmit} className="space-y-4">
+        <Input
+          label="Promo Code"
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          placeholder="e.g. SUMMER20"
+          required
+          autoFocus
+          helperText="Will be stored in uppercase"
+        />
+        <Input
+          label="Usage Limit"
+          type="number"
+          min="1"
+          value={usageLimit}
+          onChange={(e) => setUsageLimit(e.target.value)}
+          placeholder="Optional"
+          helperText="Leave empty for unlimited uses"
+        />
+      </form>
+    </Dialog>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Promo code list within a promotion card
+// ---------------------------------------------------------------------------
+
+function PromoCodeList({
+  codes,
+  onDelete,
+  deletingId,
+}: {
+  codes: PromoCode[];
+  onDelete: (codeId: string) => void;
+  deletingId: string | null;
+}) {
+  if (codes.length === 0) {
+    return (
+      <p className="text-xs text-text-tertiary py-2">
+        No promo codes yet. Add one to let customers use this promotion.
+      </p>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      {codes.map((pc) => (
+        <div
+          key={pc.id}
+          className="flex items-center justify-between p-2 rounded border border-border bg-bg"
+        >
+          <div className="flex items-center gap-2 min-w-0">
+            <Copy className="h-3.5 w-3.5 text-text-tertiary shrink-0" />
+            <span className="text-sm font-mono font-medium text-text">
+              {pc.code}
+            </span>
+            <span className="text-xs text-text-tertiary">
+              {pc.usageCount}/{pc.usageLimit ?? '\u221E'} uses
+            </span>
+          </div>
+          <ConfirmButton
+            variant="ghost"
+            size="sm"
+            onConfirm={() => onDelete(pc.id)}
+            confirmText="Delete?"
+            disabled={deletingId === pc.id}
+          >
+            <span className="text-xs">Del</span>
+          </ConfirmButton>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Single promotion card
+// ---------------------------------------------------------------------------
+
+function PromotionCard({
+  promo,
+  onEdit,
+  onDelete,
+  onToggleActive,
+  onAddCode,
+  onDeleteCode,
+  deletingCodeId,
+}: {
+  promo: Promotion;
+  onEdit: (promo: Promotion) => void;
+  onDelete: (id: string) => void;
+  onToggleActive: (promo: Promotion) => void;
+  onAddCode: (promoId: string) => void;
+  onDeleteCode: (codeId: string) => void;
+  deletingCodeId: string | null;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const active = isActive(promo);
+  const expired = isExpired(promo);
+  const codes = promo.promoCodes ?? [];
+
+  return (
+    <Card>
+      <CardContent>
+        {/* Header row */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-sm font-semibold text-text">{promo.name}</h3>
+              <Badge variant={promo.type === 'percentage' ? 'info' : 'success'}>
+                {promo.type === 'percentage' ? (
+                  <Percent className="h-3 w-3 mr-0.5 inline" />
+                ) : (
+                  <DollarSign className="h-3 w-3 mr-0.5 inline" />
+                )}
+                {promo.type === 'percentage' ? 'Percentage' : 'Fixed'}
+              </Badge>
+              {active ? (
+                <Badge variant="success">Active</Badge>
+              ) : expired ? (
+                <Badge variant="error">Expired</Badge>
+              ) : (
+                <Badge variant="default">Inactive</Badge>
+              )}
+            </div>
+            {promo.description && (
+              <p className="text-xs text-text-secondary mt-1">
+                {promo.description}
+              </p>
+            )}
+          </div>
+          <span className="text-base font-bold text-primary shrink-0">
+            {formatDiscount(promo.type, promo.discountValue)}
+          </span>
+        </div>
+
+        {/* Details row */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 text-xs text-text-secondary">
+          <span>
+            {formatDate(promo.startsAt)}
+            {promo.endsAt ? ` - ${formatDate(promo.endsAt)}` : ' - No end'}
+          </span>
+          {promo.minOrderAmount != null && promo.minOrderAmount > 0 && (
+            <span>Min: ${promo.minOrderAmount.toFixed(2)}</span>
+          )}
+          <span>
+            {promo.currentUses}
+            {promo.maxUses != null ? `/${promo.maxUses}` : ''} uses
+          </span>
+          <span>{codes.length} code{codes.length !== 1 ? 's' : ''}</span>
+        </div>
+
+        {/* Action row */}
+        <div className="flex items-center justify-between mt-3">
+          <Toggle
+            checked={promo.isActive === 1}
+            onChange={() => onToggleActive(promo)}
+            label={promo.isActive === 1 ? 'Active' : 'Inactive'}
+          />
+
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setExpanded(!expanded)}
+            >
+              <Ticket className="h-3.5 w-3.5" />
+              Codes
+              {expanded ? (
+                <ChevronUp className="h-3 w-3" />
+              ) : (
+                <ChevronDown className="h-3 w-3" />
+              )}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onEdit(promo)}
+              aria-label={`Edit ${promo.name}`}
+            >
+              <Pencil className="h-3.5 w-3.5" />
+              Edit
+            </Button>
+            <ConfirmButton
+              variant="ghost"
+              size="sm"
+              onConfirm={() => onDelete(promo.id)}
+              confirmText="Delete?"
+            >
+              Delete
+            </ConfirmButton>
+          </div>
+        </div>
+
+        {/* Expandable codes section */}
+        {expanded && (
+          <div className="mt-3 pt-3 border-t border-border">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-xs font-semibold text-text-secondary uppercase tracking-wide">
+                Promo Codes
+              </h4>
+              <Button size="sm" onClick={() => onAddCode(promo.id)}>
+                <Plus className="h-3.5 w-3.5" />
+                Add Code
+              </Button>
+            </div>
+            <PromoCodeList
+              codes={codes}
+              onDelete={onDeleteCode}
+              deletingId={deletingCodeId}
+            />
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Main page
+// ---------------------------------------------------------------------------
+
+export function PromotionManager() {
+  const { tenantSlug } = useTenant();
+  const { toast } = useToast();
+
+  // Data
+  const promotionsQuery = usePromotions(tenantSlug);
+  const promotions = promotionsQuery.data ?? [];
+
+  // Mutations
+  const createPromotion = useCreatePromotion(tenantSlug);
+  const updatePromotion = useUpdatePromotion(tenantSlug);
+  const deletePromotion = useDeletePromotion(tenantSlug);
+  const createPromoCode = useCreatePromoCode(tenantSlug);
+  const deletePromoCode = useDeletePromoCode(tenantSlug);
+
+  // Dialog state
+  const [promoDialogOpen, setPromoDialogOpen] = useState(false);
+  const [editingPromo, setEditingPromo] = useState<Promotion | null>(null);
+  const [codeDialogOpen, setCodeDialogOpen] = useState(false);
+  const [codeDialogPromoId, setCodeDialogPromoId] = useState<string | null>(null);
+  const [deletingCodeId, setDeletingCodeId] = useState<string | null>(null);
+
+  // --- Promotion handlers ---
+
+  const handleAddPromotion = () => {
+    setEditingPromo(null);
+    setPromoDialogOpen(true);
+  };
+
+  const handleEditPromotion = (promo: Promotion) => {
+    setEditingPromo(promo);
+    setPromoDialogOpen(true);
+  };
+
+  const handlePromotionSubmit = (data: PromotionFormData) => {
+    const payload = {
+      name: data.name,
+      description: data.description || undefined,
+      type: data.type,
+      discountValue: parseFloat(data.discountValue),
+      minOrderAmount: data.minOrderAmount
+        ? parseFloat(data.minOrderAmount)
+        : undefined,
+      applicableCategories: data.applicableCategories || undefined,
+      startsAt: data.startsAt,
+      endsAt: data.endsAt || undefined,
+    };
+
+    if (editingPromo) {
+      updatePromotion.mutate(
+        { id: editingPromo.id, ...payload },
+        {
+          onSuccess: () => {
+            setPromoDialogOpen(false);
+            toast('success', 'Promotion updated');
+          },
+          onError: (err: Error) => {
+            toast('error', err.message || 'Failed to update promotion');
+          },
+        },
+      );
+    } else {
+      createPromotion.mutate(payload, {
+        onSuccess: () => {
+          setPromoDialogOpen(false);
+          toast('success', 'Promotion created');
+        },
+        onError: (err: Error) => {
+          toast('error', err.message || 'Failed to create promotion');
+        },
+      });
+    }
+  };
+
+  const handleDeletePromotion = (id: string) => {
+    deletePromotion.mutate(id, {
+      onSuccess: () => {
+        toast('success', 'Promotion deleted');
+      },
+      onError: (err: Error) => {
+        toast('error', err.message || 'Failed to delete promotion');
+      },
+    });
+  };
+
+  const handleToggleActive = (promo: Promotion) => {
+    updatePromotion.mutate(
+      { id: promo.id, isActive: promo.isActive === 1 ? 0 : 1 },
+      {
+        onSuccess: () => {
+          toast(
+            'success',
+            promo.isActive === 1
+              ? 'Promotion deactivated'
+              : 'Promotion activated',
+          );
+        },
+        onError: (err: Error) => {
+          toast('error', err.message || 'Failed to update promotion');
+        },
+      },
+    );
+  };
+
+  // --- Promo code handlers ---
+
+  const handleAddCode = (promoId: string) => {
+    setCodeDialogPromoId(promoId);
+    setCodeDialogOpen(true);
+  };
+
+  const handleCodeSubmit = (data: { code: string; usageLimit: string }) => {
+    if (!codeDialogPromoId) return;
+
+    createPromoCode.mutate(
+      {
+        promotionId: codeDialogPromoId,
+        code: data.code,
+        usageLimit: data.usageLimit ? parseInt(data.usageLimit, 10) : undefined,
+      },
+      {
+        onSuccess: () => {
+          setCodeDialogOpen(false);
+          setCodeDialogPromoId(null);
+          toast('success', 'Promo code created');
+        },
+        onError: (err: Error) => {
+          toast('error', err.message || 'Failed to create promo code');
+        },
+      },
+    );
+  };
+
+  const handleDeleteCode = (codeId: string) => {
+    setDeletingCodeId(codeId);
+    deletePromoCode.mutate(codeId, {
+      onSuccess: () => {
+        setDeletingCodeId(null);
+        toast('success', 'Promo code deleted');
+      },
+      onError: (err: Error) => {
+        setDeletingCodeId(null);
+        toast('error', err.message || 'Failed to delete promo code');
+      },
+    });
+  };
+
+  // Build initial form data for editing
+  const editInitial: PromotionFormData | undefined = editingPromo
+    ? {
+        name: editingPromo.name,
+        description: editingPromo.description ?? '',
+        type: editingPromo.type,
+        discountValue: editingPromo.discountValue.toString(),
+        minOrderAmount: editingPromo.minOrderAmount?.toString() ?? '',
+        applicableCategories: editingPromo.applicableCategories ?? '',
+        startsAt: editingPromo.startsAt.split('T')[0],
+        endsAt: editingPromo.endsAt ? editingPromo.endsAt.split('T')[0] : '',
+      }
+    : undefined;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-text">Promotions</h1>
+        <Button onClick={handleAddPromotion}>
+          <Plus className="h-4 w-4" />
+          Add Promotion
+        </Button>
+      </div>
+
+      {/* Promotion list */}
+      {promotionsQuery.isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <p className="text-sm text-text-secondary">Loading promotions...</p>
+        </div>
+      ) : promotions.length === 0 ? (
+        <EmptyState
+          icon={Tag}
+          title="No promotions"
+          description="Create your first promotion to offer discounts to customers."
+          action={{ label: 'Add Promotion', onClick: handleAddPromotion }}
+        />
+      ) : (
+        <div className="space-y-3">
+          {promotions.map((promo) => (
+            <PromotionCard
+              key={promo.id}
+              promo={promo}
+              onEdit={handleEditPromotion}
+              onDelete={handleDeletePromotion}
+              onToggleActive={handleToggleActive}
+              onAddCode={handleAddCode}
+              onDeleteCode={handleDeleteCode}
+              deletingCodeId={deletingCodeId}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Promotion dialog */}
+      <PromotionDialog
+        key={editingPromo?.id ?? 'new-promotion'}
+        open={promoDialogOpen}
+        onClose={() => setPromoDialogOpen(false)}
+        onSubmit={handlePromotionSubmit}
+        initial={editInitial}
+        loading={createPromotion.isPending || updatePromotion.isPending}
+      />
+
+      {/* Promo code dialog */}
+      <PromoCodeDialog
+        key={codeDialogPromoId ?? 'new-code'}
+        open={codeDialogOpen}
+        onClose={() => {
+          setCodeDialogOpen(false);
+          setCodeDialogPromoId(null);
+        }}
+        onSubmit={handleCodeSubmit}
+        loading={createPromoCode.isPending}
+      />
+    </div>
+  );
+}

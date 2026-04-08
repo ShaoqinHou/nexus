@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import Database from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
+import { eq } from 'drizzle-orm';
 import * as schema from '../../../db/schema';
 import {
   getCategories,
@@ -16,6 +17,24 @@ import {
   getOrder,
   getOrders,
   updateOrderStatus,
+  getModifierGroups,
+  createModifierGroup,
+  deleteModifierGroup,
+  getModifierOptions,
+  createModifierOption,
+  getItemModifierGroups,
+  setItemModifierGroups,
+  getPromotions,
+  createPromotion,
+  deletePromotion,
+  getPromoCodes,
+  createPromoCode,
+  validatePromoCode,
+  applyPromotion,
+  getComboDeals,
+  createComboDeal,
+  deleteComboDeal,
+  getPublicCombos,
 } from '../service';
 
 type TestDB = ReturnType<typeof createTestDb>;
@@ -872,5 +891,742 @@ describe('Tenant Isolation', () => {
     expect(menuB[0].category.name).toBe('B Mains');
     expect(menuB[0].items).toHaveLength(1);
     expect(menuB[0].items[0].name).toBe('B Burger');
+  });
+
+  it('modifier groups for tenant A not visible to tenant B', () => {
+    createModifierGroup(db, tenantAId, { name: 'A Sizes' });
+    createModifierGroup(db, tenantBId, { name: 'B Sizes' });
+
+    const aGroups = getModifierGroups(db, tenantAId);
+    expect(aGroups).toHaveLength(1);
+    expect(aGroups[0].name).toBe('A Sizes');
+
+    const bGroups = getModifierGroups(db, tenantBId);
+    expect(bGroups).toHaveLength(1);
+    expect(bGroups[0].name).toBe('B Sizes');
+  });
+
+  it('promotions for tenant A not visible to tenant B', () => {
+    createPromotion(db, tenantAId, {
+      name: 'A Promo',
+      type: 'percentage',
+      discountValue: 10,
+      startsAt: '2020-01-01T00:00:00Z',
+    });
+    createPromotion(db, tenantBId, {
+      name: 'B Promo',
+      type: 'percentage',
+      discountValue: 20,
+      startsAt: '2020-01-01T00:00:00Z',
+    });
+
+    const aPromos = getPromotions(db, tenantAId);
+    expect(aPromos).toHaveLength(1);
+    expect(aPromos[0].name).toBe('A Promo');
+
+    const bPromos = getPromotions(db, tenantBId);
+    expect(bPromos).toHaveLength(1);
+    expect(bPromos[0].name).toBe('B Promo');
+  });
+
+  it('combo deals for tenant A not visible to tenant B', () => {
+    const catA = createCategory(db, tenantAId, { name: 'A Mains' });
+    const catB = createCategory(db, tenantBId, { name: 'B Mains' });
+    const itemAResult = createMenuItem(db, tenantAId, {
+      categoryId: catA.id,
+      name: 'A Burger',
+      price: 10,
+    });
+    const itemBResult = createMenuItem(db, tenantBId, {
+      categoryId: catB.id,
+      name: 'B Burger',
+      price: 12,
+    });
+    const itemAData = (itemAResult as { data: schema.MenuItem }).data;
+    const itemBData = (itemBResult as { data: schema.MenuItem }).data;
+
+    createComboDeal(db, tenantAId, {
+      name: 'A Combo',
+      basePrice: 15,
+      slots: [
+        {
+          name: 'Main',
+          options: [{ menuItemId: itemAData.id }],
+        },
+      ],
+    });
+    createComboDeal(db, tenantBId, {
+      name: 'B Combo',
+      basePrice: 18,
+      slots: [
+        {
+          name: 'Main',
+          options: [{ menuItemId: itemBData.id }],
+        },
+      ],
+    });
+
+    const aCombos = getComboDeals(db, tenantAId);
+    expect(aCombos).toHaveLength(1);
+    expect(aCombos[0].name).toBe('A Combo');
+
+    const bCombos = getComboDeals(db, tenantBId);
+    expect(bCombos).toHaveLength(1);
+    expect(bCombos[0].name).toBe('B Combo');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Modifier Groups
+// ---------------------------------------------------------------------------
+
+describe('Modifier Groups', () => {
+  let db: TestDB;
+  let tenantId: string;
+  let categoryId: string;
+
+  beforeEach(() => {
+    db = createTestDb();
+    const tenant = createTestTenant(db, 'test-tenant');
+    tenantId = tenant.id;
+    const category = createCategory(db, tenantId, { name: 'Mains' });
+    categoryId = category.id;
+  });
+
+  it('creates a modifier group and returns it', () => {
+    const group = createModifierGroup(db, tenantId, {
+      name: 'Size',
+      minSelections: 1,
+      maxSelections: 1,
+    });
+
+    expect(group).toBeDefined();
+    expect(group.id).toEqual(expect.any(String));
+    expect(group.name).toBe('Size');
+    expect(group.tenantId).toBe(tenantId);
+    expect(group.minSelections).toBe(1);
+    expect(group.maxSelections).toBe(1);
+    expect(group.isActive).toBe(1);
+    expect(group.createdAt).toEqual(expect.any(String));
+  });
+
+  it('lists only active groups for the tenant', () => {
+    createModifierGroup(db, tenantId, { name: 'Size' });
+    createModifierGroup(db, tenantId, { name: 'Extras' });
+    const toDelete = createModifierGroup(db, tenantId, { name: 'Old' });
+    deleteModifierGroup(db, tenantId, toDelete.id);
+
+    const groups = getModifierGroups(db, tenantId);
+    expect(groups).toHaveLength(2);
+    expect(groups.map((g) => g.name)).toEqual(
+      expect.arrayContaining(['Size', 'Extras'])
+    );
+  });
+
+  it('creates modifier options with price deltas', () => {
+    const group = createModifierGroup(db, tenantId, { name: 'Size' });
+
+    const smallResult = createModifierOption(db, tenantId, {
+      groupId: group.id,
+      name: 'Small',
+      priceDelta: 0,
+    });
+    const largeResult = createModifierOption(db, tenantId, {
+      groupId: group.id,
+      name: 'Large',
+      priceDelta: 2.5,
+    });
+
+    expect(smallResult).toHaveProperty('data');
+    expect(largeResult).toHaveProperty('data');
+
+    const small = (smallResult as { data: schema.ModifierOption }).data;
+    const large = (largeResult as { data: schema.ModifierOption }).data;
+
+    expect(small.name).toBe('Small');
+    expect(small.priceDelta).toBe(0);
+    expect(large.name).toBe('Large');
+    expect(large.priceDelta).toBe(2.5);
+
+    const options = getModifierOptions(db, group.id);
+    expect(options).toHaveLength(2);
+  });
+
+  it('soft deletes a modifier group', () => {
+    const group = createModifierGroup(db, tenantId, { name: 'ToDelete' });
+    const deleted = deleteModifierGroup(db, tenantId, group.id);
+
+    expect(deleted).toBeDefined();
+    expect(deleted!.isActive).toBe(0);
+
+    const groups = getModifierGroups(db, tenantId);
+    expect(groups.find((g) => g.id === group.id)).toBeUndefined();
+  });
+
+  it('links modifier groups to menu items via setItemModifierGroups', () => {
+    const itemResult = createMenuItem(db, tenantId, {
+      categoryId,
+      name: 'Burger',
+      price: 15,
+    });
+    const item = (itemResult as { data: schema.MenuItem }).data;
+
+    const sizeGroup = createModifierGroup(db, tenantId, { name: 'Size' });
+    const extrasGroup = createModifierGroup(db, tenantId, { name: 'Extras' });
+
+    const result = setItemModifierGroups(db, tenantId, item.id, [
+      sizeGroup.id,
+      extrasGroup.id,
+    ]);
+
+    expect(result).toHaveProperty('data');
+    const linked = (result as { data: unknown[] }).data;
+    expect(linked).toHaveLength(2);
+  });
+
+  it('getItemModifierGroups returns correct groups for an item', () => {
+    const itemResult = createMenuItem(db, tenantId, {
+      categoryId,
+      name: 'Burger',
+      price: 15,
+    });
+    const item = (itemResult as { data: schema.MenuItem }).data;
+
+    const sizeGroup = createModifierGroup(db, tenantId, { name: 'Size' });
+    createModifierOption(db, tenantId, {
+      groupId: sizeGroup.id,
+      name: 'Small',
+      priceDelta: 0,
+    });
+    createModifierOption(db, tenantId, {
+      groupId: sizeGroup.id,
+      name: 'Large',
+      priceDelta: 3,
+    });
+
+    setItemModifierGroups(db, tenantId, item.id, [sizeGroup.id]);
+
+    const groups = getItemModifierGroups(db, tenantId, item.id);
+    expect(groups).toHaveLength(1);
+    expect(groups[0].name).toBe('Size');
+    expect(groups[0].options).toHaveLength(2);
+    expect(groups[0].options.map((o) => o.name)).toEqual(
+      expect.arrayContaining(['Small', 'Large'])
+    );
+  });
+
+  it('getPublicMenu includes modifier groups on items', () => {
+    const itemResult = createMenuItem(db, tenantId, {
+      categoryId,
+      name: 'Burger',
+      price: 15,
+    });
+    const item = (itemResult as { data: schema.MenuItem }).data;
+
+    const sizeGroup = createModifierGroup(db, tenantId, { name: 'Size' });
+    createModifierOption(db, tenantId, {
+      groupId: sizeGroup.id,
+      name: 'Regular',
+      priceDelta: 0,
+    });
+    createModifierOption(db, tenantId, {
+      groupId: sizeGroup.id,
+      name: 'Large',
+      priceDelta: 2,
+    });
+    setItemModifierGroups(db, tenantId, item.id, [sizeGroup.id]);
+
+    const { categories: menu } = getPublicMenu(db, tenantId);
+    expect(menu).toHaveLength(1);
+    expect(menu[0].items).toHaveLength(1);
+
+    const publicItem = menu[0].items[0];
+    expect(publicItem.modifierGroups).toHaveLength(1);
+    expect(publicItem.modifierGroups[0].name).toBe('Size');
+    expect(publicItem.modifierGroups[0].options).toHaveLength(2);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Promotions
+// ---------------------------------------------------------------------------
+
+describe('Promotions', () => {
+  let db: TestDB;
+  let tenantId: string;
+  let categoryId: string;
+  let itemA: schema.MenuItem;
+  let itemB: schema.MenuItem;
+
+  beforeEach(() => {
+    db = createTestDb();
+    const tenant = createTestTenant(db, 'test-tenant');
+    tenantId = tenant.id;
+    const cat = createCategory(db, tenantId, { name: 'Mains' });
+    categoryId = cat.id;
+    const resultA = createMenuItem(db, tenantId, {
+      categoryId,
+      name: 'Burger',
+      price: 12.5,
+    });
+    const resultB = createMenuItem(db, tenantId, {
+      categoryId,
+      name: 'Fries',
+      price: 8.0,
+    });
+    itemA = (resultA as { data: schema.MenuItem }).data;
+    itemB = (resultB as { data: schema.MenuItem }).data;
+  });
+
+  it('creates a promotion (percentage type)', () => {
+    const promo = createPromotion(db, tenantId, {
+      name: '20% Off',
+      type: 'percentage',
+      discountValue: 20,
+      startsAt: '2020-01-01T00:00:00Z',
+    });
+
+    expect(promo).toBeDefined();
+    expect(promo.id).toEqual(expect.any(String));
+    expect(promo.name).toBe('20% Off');
+    expect(promo.type).toBe('percentage');
+    expect(promo.discountValue).toBe(20);
+    expect(promo.tenantId).toBe(tenantId);
+    expect(promo.isActive).toBe(1);
+    expect(promo.currentUses).toBe(0);
+  });
+
+  it('creates a promotion (fixed_amount type)', () => {
+    const promo = createPromotion(db, tenantId, {
+      name: '$5 Off',
+      type: 'fixed_amount',
+      discountValue: 5,
+      startsAt: '2020-01-01T00:00:00Z',
+    });
+
+    expect(promo.type).toBe('fixed_amount');
+    expect(promo.discountValue).toBe(5);
+  });
+
+  it('lists active promotions for a tenant', () => {
+    createPromotion(db, tenantId, {
+      name: 'Promo A',
+      type: 'percentage',
+      discountValue: 10,
+      startsAt: '2020-01-01T00:00:00Z',
+    });
+    createPromotion(db, tenantId, {
+      name: 'Promo B',
+      type: 'fixed_amount',
+      discountValue: 5,
+      startsAt: '2020-01-01T00:00:00Z',
+    });
+
+    const promos = getPromotions(db, tenantId);
+    expect(promos).toHaveLength(2);
+    expect(promos.map((p) => p.name)).toEqual(
+      expect.arrayContaining(['Promo A', 'Promo B'])
+    );
+  });
+
+  it('soft deletes a promotion', () => {
+    const promo = createPromotion(db, tenantId, {
+      name: 'ToDelete',
+      type: 'percentage',
+      discountValue: 10,
+      startsAt: '2020-01-01T00:00:00Z',
+    });
+    const deleted = deletePromotion(db, tenantId, promo.id);
+
+    expect(deleted).toBeDefined();
+    expect(deleted!.isActive).toBe(0);
+
+    const promos = getPromotions(db, tenantId);
+    expect(promos.find((p) => p.id === promo.id)).toBeUndefined();
+  });
+
+  it('creates a promo code for a promotion', () => {
+    const promo = createPromotion(db, tenantId, {
+      name: 'Summer Sale',
+      type: 'percentage',
+      discountValue: 15,
+      startsAt: '2020-01-01T00:00:00Z',
+    });
+
+    const result = createPromoCode(db, tenantId, {
+      promotionId: promo.id,
+      code: 'SUMMER15',
+      usageLimit: 100,
+    });
+
+    expect(result).toHaveProperty('data');
+    const code = (result as { data: schema.PromoCode }).data;
+    expect(code.code).toBe('SUMMER15');
+    expect(code.promotionId).toBe(promo.id);
+    expect(code.usageLimit).toBe(100);
+    expect(code.usageCount).toBe(0);
+    expect(code.tenantId).toBe(tenantId);
+
+    const codes = getPromoCodes(db, tenantId, promo.id);
+    expect(codes).toHaveLength(1);
+  });
+
+  it('validates a valid promo code', () => {
+    const promo = createPromotion(db, tenantId, {
+      name: 'Active Promo',
+      type: 'percentage',
+      discountValue: 10,
+      startsAt: '2020-01-01T00:00:00Z',
+      endsAt: '2099-12-31T23:59:59Z',
+    });
+    createPromoCode(db, tenantId, {
+      promotionId: promo.id,
+      code: 'VALID10',
+    });
+
+    const result = validatePromoCode(db, tenantId, 'valid10'); // case insensitive
+    expect(result).toHaveProperty('data');
+    const data = (result as { data: { promotion: schema.Promotion; promoCode: { id: string; code: string } } }).data;
+    expect(data.promotion.id).toBe(promo.id);
+    expect(data.promoCode.code).toBe('VALID10');
+  });
+
+  it('rejects expired promo code (promotion past end date)', () => {
+    const promo = createPromotion(db, tenantId, {
+      name: 'Expired Promo',
+      type: 'percentage',
+      discountValue: 10,
+      startsAt: '2020-01-01T00:00:00Z',
+      endsAt: '2020-06-01T00:00:00Z', // already expired
+    });
+    createPromoCode(db, tenantId, {
+      promotionId: promo.id,
+      code: 'EXPIRED',
+    });
+
+    const result = validatePromoCode(db, tenantId, 'EXPIRED');
+    expect(result).toHaveProperty('error');
+    expect((result as { error: string }).error).toContain('expired');
+  });
+
+  it('rejects promo code at usage limit', () => {
+    const promo = createPromotion(db, tenantId, {
+      name: 'Limited Promo',
+      type: 'percentage',
+      discountValue: 10,
+      startsAt: '2020-01-01T00:00:00Z',
+    });
+    const codeResult = createPromoCode(db, tenantId, {
+      promotionId: promo.id,
+      code: 'LIMIT1',
+      usageLimit: 1,
+    });
+    const code = (codeResult as { data: schema.PromoCode }).data;
+
+    // Manually set usage count to limit
+    db.update(schema.promoCodes)
+      .set({ usageCount: 1 })
+      .where(eq(schema.promoCodes.id, code.id))
+      .run();
+
+    const result = validatePromoCode(db, tenantId, 'LIMIT1');
+    expect(result).toHaveProperty('error');
+    expect((result as { error: string }).error).toContain('usage limit');
+  });
+
+  it('applies percentage discount correctly', () => {
+    const promo = createPromotion(db, tenantId, {
+      name: '20% Off',
+      type: 'percentage',
+      discountValue: 20,
+      startsAt: '2020-01-01T00:00:00Z',
+    });
+
+    const discount = applyPromotion(promo, 50.0);
+    expect(discount).toBe(10.0); // 20% of 50
+  });
+
+  it('applies fixed discount correctly (capped at order total)', () => {
+    const promo = createPromotion(db, tenantId, {
+      name: '$100 Off',
+      type: 'fixed_amount',
+      discountValue: 100,
+      startsAt: '2020-01-01T00:00:00Z',
+    });
+
+    // Discount exceeds order total, should be capped
+    const discount = applyPromotion(promo, 33.0);
+    expect(discount).toBe(33.0); // capped at order total
+  });
+
+  it('createOrder with valid promo code applies discount', () => {
+    const promo = createPromotion(db, tenantId, {
+      name: '10% Off',
+      type: 'percentage',
+      discountValue: 10,
+      startsAt: '2020-01-01T00:00:00Z',
+      endsAt: '2099-12-31T23:59:59Z',
+    });
+    createPromoCode(db, tenantId, {
+      promotionId: promo.id,
+      code: 'SAVE10',
+    });
+
+    const result = createOrder(db, tenantId, {
+      tableNumber: '5',
+      items: [
+        { menuItemId: itemA.id, quantity: 2 }, // 12.50 * 2 = 25.00
+        { menuItemId: itemB.id, quantity: 1 }, //  8.00 * 1 =  8.00
+      ],
+      promoCode: 'SAVE10',
+    });
+
+    expect(result).toHaveProperty('data');
+    const order = (result as { data: { total: number; discountAmount: number | null } }).data;
+    // Total before discount: 33.00, 10% = 3.30, final = 29.70
+    expect(order.discountAmount).toBe(3.3);
+    expect(order.total).toBe(29.7);
+  });
+
+  it('promo code usage count increments after order', () => {
+    const promo = createPromotion(db, tenantId, {
+      name: 'Track Usage',
+      type: 'percentage',
+      discountValue: 10,
+      startsAt: '2020-01-01T00:00:00Z',
+      endsAt: '2099-12-31T23:59:59Z',
+    });
+    const codeResult = createPromoCode(db, tenantId, {
+      promotionId: promo.id,
+      code: 'TRACK',
+    });
+    const promoCode = (codeResult as { data: schema.PromoCode }).data;
+
+    // Place an order with the promo code
+    createOrder(db, tenantId, {
+      tableNumber: '1',
+      items: [{ menuItemId: itemA.id, quantity: 1 }],
+      promoCode: 'TRACK',
+    });
+
+    // Check that usage count incremented
+    const codes = getPromoCodes(db, tenantId, promo.id);
+    const updatedCode = codes.find((c) => c.id === promoCode.id);
+    expect(updatedCode).toBeDefined();
+    expect(updatedCode!.usageCount).toBe(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Combo Deals
+// ---------------------------------------------------------------------------
+
+describe('Combo Deals', () => {
+  let db: TestDB;
+  let tenantId: string;
+  let categoryId: string;
+  let burgerItem: schema.MenuItem;
+  let friesItem: schema.MenuItem;
+  let colaItem: schema.MenuItem;
+
+  beforeEach(() => {
+    db = createTestDb();
+    const tenant = createTestTenant(db, 'test-tenant');
+    tenantId = tenant.id;
+    const cat = createCategory(db, tenantId, { name: 'Mains' });
+    categoryId = cat.id;
+    const drinksCat = createCategory(db, tenantId, { name: 'Drinks' });
+
+    const burgerResult = createMenuItem(db, tenantId, {
+      categoryId: cat.id,
+      name: 'Burger',
+      price: 15,
+    });
+    const friesResult = createMenuItem(db, tenantId, {
+      categoryId: cat.id,
+      name: 'Fries',
+      price: 6,
+    });
+    const colaResult = createMenuItem(db, tenantId, {
+      categoryId: drinksCat.id,
+      name: 'Cola',
+      price: 4,
+    });
+
+    burgerItem = (burgerResult as { data: schema.MenuItem }).data;
+    friesItem = (friesResult as { data: schema.MenuItem }).data;
+    colaItem = (colaResult as { data: schema.MenuItem }).data;
+  });
+
+  it('creates a combo deal with slots and options', () => {
+    const result = createComboDeal(db, tenantId, {
+      name: 'Lunch Combo',
+      description: 'Burger + Side + Drink',
+      basePrice: 18,
+      categoryId,
+      slots: [
+        {
+          name: 'Choose your Main',
+          options: [{ menuItemId: burgerItem.id }],
+        },
+        {
+          name: 'Choose your Side',
+          options: [{ menuItemId: friesItem.id }],
+        },
+        {
+          name: 'Choose your Drink',
+          options: [{ menuItemId: colaItem.id }],
+        },
+      ],
+    });
+
+    expect(result).toHaveProperty('data');
+    const deal = (result as { data: { name: string; basePrice: number; slots: unknown[] } }).data;
+    expect(deal.name).toBe('Lunch Combo');
+    expect(deal.basePrice).toBe(18);
+    expect(deal.slots).toHaveLength(3);
+  });
+
+  it('lists active combos with nested slots and options', () => {
+    createComboDeal(db, tenantId, {
+      name: 'Combo A',
+      basePrice: 15,
+      slots: [
+        {
+          name: 'Main',
+          options: [{ menuItemId: burgerItem.id }],
+        },
+      ],
+    });
+    createComboDeal(db, tenantId, {
+      name: 'Combo B',
+      basePrice: 20,
+      slots: [
+        {
+          name: 'Main',
+          options: [{ menuItemId: burgerItem.id }],
+        },
+        {
+          name: 'Side',
+          options: [{ menuItemId: friesItem.id }],
+        },
+      ],
+    });
+
+    const combos = getComboDeals(db, tenantId);
+    expect(combos).toHaveLength(2);
+
+    const comboB = combos.find((c) => c.name === 'Combo B');
+    expect(comboB).toBeDefined();
+    expect(comboB!.slots).toHaveLength(2);
+    expect(comboB!.slots[0].options).toHaveLength(1);
+  });
+
+  it('soft deletes a combo', () => {
+    const result = createComboDeal(db, tenantId, {
+      name: 'ToDelete',
+      basePrice: 10,
+      slots: [
+        {
+          name: 'Main',
+          options: [{ menuItemId: burgerItem.id }],
+        },
+      ],
+    });
+    const deal = (result as { data: { id: string } }).data;
+
+    const deleted = deleteComboDeal(db, tenantId, deal.id);
+    expect(deleted).toBeDefined();
+    expect(deleted!.isActive).toBe(0);
+
+    const combos = getComboDeals(db, tenantId);
+    expect(combos.find((c) => c.id === deal.id)).toBeUndefined();
+  });
+
+  it('getPublicCombos returns combos with item details', () => {
+    createComboDeal(db, tenantId, {
+      name: 'Public Combo',
+      basePrice: 18,
+      slots: [
+        {
+          name: 'Main',
+          options: [
+            { menuItemId: burgerItem.id, priceModifier: 0 },
+          ],
+        },
+        {
+          name: 'Side',
+          options: [
+            { menuItemId: friesItem.id, priceModifier: 0 },
+          ],
+        },
+      ],
+    });
+
+    const publicCombos = getPublicCombos(db, tenantId);
+    expect(publicCombos).toHaveLength(1);
+    expect(publicCombos[0].name).toBe('Public Combo');
+    expect(publicCombos[0].slots).toHaveLength(2);
+
+    const mainSlot = publicCombos[0].slots.find((s) => s.name === 'Main');
+    expect(mainSlot).toBeDefined();
+    expect(mainSlot!.options).toHaveLength(1);
+    expect(mainSlot!.options[0].menuItemName).toBe('Burger');
+    expect(mainSlot!.options[0].menuItemPrice).toBe(15);
+  });
+
+  it('createOrder with combo items calculates correct total (basePrice + priceModifiers)', () => {
+    const comboResult = createComboDeal(db, tenantId, {
+      name: 'Lunch Special',
+      basePrice: 18,
+      slots: [
+        {
+          name: 'Main',
+          options: [
+            { menuItemId: burgerItem.id, priceModifier: 0 },
+          ],
+        },
+        {
+          name: 'Side',
+          options: [
+            { menuItemId: friesItem.id, priceModifier: 0 },
+          ],
+        },
+        {
+          name: 'Drink',
+          options: [
+            { menuItemId: colaItem.id, priceModifier: 0 },
+          ],
+        },
+      ],
+    });
+    const combo = (comboResult as { data: { id: string; slots: Array<{ id: string; name: string; options: Array<{ menuItemId: string }> }> } }).data;
+
+    const mainSlot = combo.slots.find((s) => s.name === 'Main')!;
+    const sideSlot = combo.slots.find((s) => s.name === 'Side')!;
+    const drinkSlot = combo.slots.find((s) => s.name === 'Drink')!;
+
+    const orderResult = createOrder(db, tenantId, {
+      tableNumber: '3',
+      items: [],
+      comboItems: [
+        {
+          comboDealId: combo.id,
+          quantity: 1,
+          selections: [
+            { slotId: mainSlot.id, menuItemId: burgerItem.id },
+            { slotId: sideSlot.id, menuItemId: friesItem.id },
+            { slotId: drinkSlot.id, menuItemId: colaItem.id },
+          ],
+        },
+      ],
+    });
+
+    expect(orderResult).toHaveProperty('data');
+    const order = (orderResult as { data: { total: number; items: schema.OrderItem[] } }).data;
+    // basePrice (18) + no price modifiers = 18
+    expect(order.total).toBe(18);
+    // Each slot selection creates an order item
+    expect(order.items).toHaveLength(3);
   });
 });

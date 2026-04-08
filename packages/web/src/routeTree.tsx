@@ -13,7 +13,9 @@ import { AuthGuard } from '@web/platform/auth/AuthGuard';
 import { MenuManagement } from '@web/apps/ordering/merchant/MenuManagement';
 import { ModifierManager } from '@web/apps/ordering/merchant/ModifierManager';
 import { OrderDashboard } from '@web/apps/ordering/merchant/OrderDashboard';
+import { PromotionManager } from '@web/apps/ordering/merchant/PromotionManager';
 import { QRCodes } from '@web/apps/ordering/merchant/QRCodes';
+import { ComboManager } from '@web/apps/ordering/merchant/ComboManager';
 import { CustomerApp } from '@web/apps/ordering/customer/CustomerApp';
 
 // Register mini-app modules (triggers side-effect registration)
@@ -85,6 +87,18 @@ const orderingModifiersRoute = createRoute({
   getParentRoute: () => tenantRoute,
   path: '/ordering/modifiers',
   component: ModifierManager,
+});
+
+const orderingPromotionsRoute = createRoute({
+  getParentRoute: () => tenantRoute,
+  path: '/ordering/promotions',
+  component: PromotionManager,
+});
+
+const orderingCombosRoute = createRoute({
+  getParentRoute: () => tenantRoute,
+  path: '/ordering/combos',
+  component: ComboManager,
 });
 
 const orderingQRRoute = createRoute({
@@ -159,6 +173,8 @@ const routeTree = rootRoute.addChildren([
     orderingMenuRoute,
     orderingModifiersRoute,
     orderingOrdersRoute,
+    orderingPromotionsRoute,
+    orderingCombosRoute,
     orderingQRRoute,
     tenantCatchAllRoute,
   ]),

@@ -9,11 +9,14 @@ import {
   ChevronUp,
   MessageSquare,
   AlertCircle,
+  Tag,
+  Check,
 } from 'lucide-react';
 import { apiClient } from '@web/lib/api';
-import { Button } from '@web/components/ui';
+import { Button, Badge } from '@web/components/ui';
 import { useToast } from '@web/platform/ToastProvider';
 import { useCart } from '@web/apps/ordering/customer/CartProvider';
+import { useValidatePromoCode } from '@web/apps/ordering/hooks/usePromotions';
 import type { Order } from '@web/apps/ordering/types';
 
 interface CartSheetProps {
@@ -29,12 +32,27 @@ function formatPrice(price: number): string {
 interface CreateOrderPayload {
   tableNumber: string;
   notes?: string;
+  promoCode?: string;
   items: Array<{
     menuItemId: string;
     quantity: number;
     notes?: string;
     modifiers?: Array<{ optionId: string; name: string; price: number }>;
   }>;
+  comboItems?: Array<{
+    comboDealId: string;
+    selections: Array<{ slotId: string; menuItemId: string }>;
+    quantity: number;
+    notes?: string;
+  }>;
+}
+
+interface AppliedPromo {
+  code: string;
+  type: 'percentage' | 'fixed_amount';
+  discountValue: number;
+  minOrderAmount: number | null;
+  applicableCategories: string | null;
 }
 
 export function CartSheet({
@@ -59,11 +77,69 @@ export function CartSheet({
   const [editingNotesFor, setEditingNotesFor] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Promo code state
+  const [promoInput, setPromoInput] = useState('');
+  const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null);
+  const [promoError, setPromoError] = useState<string | null>(null);
+  const validatePromo = useValidatePromoCode(tenantSlug);
+
+  // Compute discount amount
+  const discountAmount = appliedPromo
+    ? appliedPromo.type === 'percentage'
+      ? totalPrice * (appliedPromo.discountValue / 100)
+      : Math.min(appliedPromo.discountValue, totalPrice)
+    : 0;
+  const finalTotal = Math.max(0, totalPrice - discountAmount);
+
+  const handleApplyPromo = useCallback(() => {
+    const code = promoInput.trim().toUpperCase();
+    if (!code) return;
+    setPromoError(null);
+    validatePromo.mutate(code, {
+      onSuccess: (result) => {
+        if (result.valid && result.promotion) {
+          if (
+            result.promotion.minOrderAmount != null &&
+            totalPrice < result.promotion.minOrderAmount
+          ) {
+            setPromoError(
+              `Minimum order of $${result.promotion.minOrderAmount.toFixed(2)} required`,
+            );
+            return;
+          }
+          setAppliedPromo({
+            code,
+            type: result.promotion.type,
+            discountValue: result.promotion.discountValue,
+            minOrderAmount: result.promotion.minOrderAmount,
+            applicableCategories: result.promotion.applicableCategories,
+          });
+          setPromoError(null);
+          toast('success', 'Promo code applied!');
+        } else {
+          setPromoError(result.error ?? 'Invalid promo code');
+        }
+      },
+      onError: (err: Error) => {
+        setPromoError(err.message || 'Failed to validate promo code');
+      },
+    });
+  }, [promoInput, validatePromo, totalPrice, toast]);
+
+  const handleRemovePromo = useCallback(() => {
+    setAppliedPromo(null);
+    setPromoInput('');
+    setPromoError(null);
+  }, []);
+
   const placeOrderMutation = useMutation<Order, Error>({
     mutationFn: async () => {
+      const regularItems = items.filter((item) => !item.comboDealId);
+      const comboCartItems = items.filter((item) => !!item.comboDealId);
+
       const payload: CreateOrderPayload = {
         tableNumber: String(tableNumber),
-        items: items.map((item) => ({
+        items: regularItems.map((item) => ({
           menuItemId: item.menuItemId,
           quantity: item.quantity,
           ...(item.notes ? { notes: item.notes } : {}),
@@ -71,7 +147,21 @@ export function CartSheet({
             ? { modifiers: item.modifiers }
             : {}),
         })),
+        ...(comboCartItems.length > 0
+          ? {
+              comboItems: comboCartItems.map((item) => ({
+                comboDealId: item.comboDealId as string,
+                selections: (item.comboSelections ?? []).map((s) => ({
+                  slotId: s.slotId,
+                  menuItemId: s.menuItemId,
+                })),
+                quantity: item.quantity,
+                ...(item.notes ? { notes: item.notes } : {}),
+              })),
+            }
+          : {}),
         ...(notes ? { notes } : {}),
+        ...(appliedPromo ? { promoCode: appliedPromo.code } : {}),
       };
       const res = await apiClient.post<{ data: Order }>(
         `/order/${tenantSlug}/ordering/orders`,
@@ -83,6 +173,9 @@ export function CartSheet({
       clearCart();
       setIsOpen(false);
       setError(null);
+      setAppliedPromo(null);
+      setPromoInput('');
+      setPromoError(null);
       toast('success', 'Order placed successfully!');
       onOrderPlaced(order);
     },
@@ -149,7 +242,7 @@ export function CartSheet({
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm font-bold text-text">
-                {formatPrice(totalPrice)}
+                {formatPrice(finalTotal)}
               </span>
               <ChevronUp
                 className={[
@@ -178,12 +271,16 @@ export function CartSheet({
               {/* Cart items */}
               <div className="flex-1 overflow-y-auto px-4 space-y-3 min-h-0">
                 {items.map((item, index) => {
-                  const modifierTotal = (item.modifiers ?? []).reduce(
-                    (sum, m) => sum + m.price,
-                    0,
-                  );
-                  const itemTotal =
-                    (item.price + modifierTotal) * item.quantity;
+                  const isCombo = !!item.comboDealId;
+                  const modifierTotal = isCombo
+                    ? 0
+                    : (item.modifiers ?? []).reduce(
+                        (sum, m) => sum + m.price,
+                        0,
+                      );
+                  const itemTotal = isCombo
+                    ? item.price * item.quantity
+                    : (item.price + modifierTotal) * item.quantity;
                   const cartKey = `${item.menuItemId}-${index}`;
 
                   return (
@@ -199,8 +296,19 @@ export function CartSheet({
                           <p className="text-xs text-text-secondary">
                             {formatPrice(item.price)} each
                           </p>
+                          {/* Combo slot selections */}
+                          {isCombo && item.comboSelections && item.comboSelections.length > 0 && (
+                            <div className="mt-1 space-y-0.5">
+                              {item.comboSelections.map((sel) => (
+                                <p key={sel.slotId} className="text-xs text-text-tertiary">
+                                  {sel.slotName}: {sel.itemName}
+                                  {sel.priceModifier > 0 ? ` (+${formatPrice(sel.priceModifier)})` : ''}
+                                </p>
+                              ))}
+                            </div>
+                          )}
                           {/* Modifier details */}
-                          {item.modifiers && item.modifiers.length > 0 && (
+                          {!isCombo && item.modifiers && item.modifiers.length > 0 && (
                             <p className="text-xs text-text-tertiary mt-0.5">
                               +{' '}
                               {item.modifiers
@@ -310,6 +418,67 @@ export function CartSheet({
 
               {/* Footer */}
               <div className="border-t border-border px-4 py-4 space-y-3 shrink-0">
+                {/* Promo code section */}
+                <div className="space-y-2">
+                  {appliedPromo ? (
+                    <div className="flex items-center justify-between p-2 rounded-lg border border-border bg-bg">
+                      <div className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-success" />
+                        <Badge variant="success">
+                          {appliedPromo.type === 'percentage'
+                            ? `${appliedPromo.discountValue}% OFF`
+                            : `-${formatPrice(appliedPromo.discountValue)}`}
+                        </Badge>
+                        <span className="text-xs font-mono text-text-secondary">
+                          {appliedPromo.code}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleRemovePromo}
+                        className="p-1 rounded text-text-tertiary hover:text-danger transition-colors"
+                        aria-label="Remove promo code"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <Tag className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-text-tertiary" />
+                        <input
+                          type="text"
+                          value={promoInput}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                            setPromoInput(e.target.value);
+                            setPromoError(null);
+                          }}
+                          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleApplyPromo();
+                            }
+                          }}
+                          placeholder="Promo code"
+                          className="w-full text-sm pl-8 pr-3 py-2 rounded-lg border border-border bg-bg text-text placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-primary"
+                        />
+                      </div>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={handleApplyPromo}
+                        loading={validatePromo.isPending}
+                        disabled={!promoInput.trim()}
+                      >
+                        Apply
+                      </Button>
+                    </div>
+                  )}
+                  {promoError && (
+                    <p className="text-xs text-danger">{promoError}</p>
+                  )}
+                </div>
+
                 {/* Error message */}
                 {error && (
                   <div className="flex items-center gap-2 text-xs text-danger bg-danger-light rounded-lg px-3 py-2">
@@ -318,12 +487,30 @@ export function CartSheet({
                   </div>
                 )}
 
-                {/* Total */}
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-text-secondary">Total</span>
-                  <span className="text-lg font-bold text-text">
-                    {formatPrice(totalPrice)}
-                  </span>
+                {/* Price breakdown */}
+                <div className="space-y-1">
+                  {appliedPromo && (
+                    <>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-text-secondary">Subtotal</span>
+                        <span className="text-sm text-text">
+                          {formatPrice(totalPrice)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-success">Discount</span>
+                        <span className="text-sm font-medium text-success">
+                          -{formatPrice(discountAmount)}
+                        </span>
+                      </div>
+                    </>
+                  )}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-text-secondary">Total</span>
+                    <span className="text-lg font-bold text-text">
+                      {formatPrice(finalTotal)}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Place order button */}

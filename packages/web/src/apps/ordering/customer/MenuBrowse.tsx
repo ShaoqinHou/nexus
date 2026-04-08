@@ -1,12 +1,13 @@
 import { useState, useRef, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Plus, Minus, UtensilsCrossed } from 'lucide-react';
+import { Plus, Minus, UtensilsCrossed, Package } from 'lucide-react';
 import { apiClient } from '@web/lib/api';
 import { Button } from '@web/components/ui';
 import { EmptyState } from '@web/components/patterns';
 import { useCart } from '@web/apps/ordering/customer/CartProvider';
 import { ItemDetailSheet } from '@web/apps/ordering/customer/ItemDetailSheet';
-import type { MenuCategory, MenuItem, ModifierGroup } from '@web/apps/ordering/types';
+import { ComboSheet } from '@web/apps/ordering/customer/ComboSheet';
+import type { MenuCategory, MenuItem, ModifierGroup, ComboDeal } from '@web/apps/ordering/types';
 import type { DietaryTag } from '@web/apps/ordering/types';
 
 interface PublicMenuItem extends MenuItem {
@@ -16,6 +17,11 @@ interface PublicMenuItem extends MenuItem {
 interface PublicMenuCategory {
   category: MenuCategory;
   items: PublicMenuItem[];
+}
+
+interface PublicMenuResponse {
+  categories: PublicMenuCategory[];
+  combos: ComboDeal[];
 }
 
 interface MenuBrowseProps {
@@ -232,6 +238,62 @@ function CategorySection({
   );
 }
 
+function ComboCard({
+  combo,
+  onSelect,
+}: {
+  combo: ComboDeal;
+  onSelect: (combo: ComboDeal) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(combo)}
+      className="flex gap-3 p-3 rounded-lg border border-border bg-bg-elevated text-left transition-colors hover:bg-bg-muted w-full"
+    >
+      {/* Combo image */}
+      {combo.imageUrl ? (
+        <img
+          src={combo.imageUrl}
+          alt={combo.name}
+          loading="lazy"
+          className="w-16 h-16 rounded-lg object-cover shrink-0 bg-bg-muted"
+        />
+      ) : (
+        <div className="w-16 h-16 rounded-lg bg-bg-muted flex items-center justify-center shrink-0">
+          <Package className="h-6 w-6 text-text-tertiary" />
+        </div>
+      )}
+
+      <div className="flex-1 min-w-0">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="text-sm font-semibold text-text truncate">
+            {combo.name}
+          </h3>
+          <span className="text-sm font-semibold text-primary whitespace-nowrap">
+            from {formatPrice(combo.basePrice)}
+          </span>
+        </div>
+        {combo.description && (
+          <p className="mt-0.5 text-xs text-text-secondary line-clamp-2">
+            {combo.description}
+          </p>
+        )}
+        <div className="flex flex-wrap gap-1 mt-1">
+          {combo.slots.map((slot) => (
+            <span
+              key={slot.id}
+              className="inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium bg-primary-light text-primary"
+            >
+              {slot.name}
+            </span>
+          ))}
+        </div>
+      </div>
+    </button>
+  );
+}
+
 function MenuSkeleton() {
   return (
     <div className="p-4 space-y-4 animate-pulse">
@@ -261,6 +323,7 @@ function MenuSkeleton() {
 export function MenuBrowse({ tenantSlug }: MenuBrowseProps) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [detailItem, setDetailItem] = useState<PublicMenuItem | null>(null);
+  const [selectedCombo, setSelectedCombo] = useState<ComboDeal | null>(null);
   const sectionRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   const {
@@ -270,10 +333,20 @@ export function MenuBrowse({ tenantSlug }: MenuBrowseProps) {
   } = useQuery({
     queryKey: ['ordering', 'public-menu', tenantSlug],
     queryFn: () =>
-      apiClient.get<{ data: PublicMenuCategory[] }>(
+      apiClient.get<{ data: PublicMenuResponse | PublicMenuCategory[] }>(
         `/order/${tenantSlug}/ordering/menu`,
       ),
-    select: (res) => res.data,
+    select: (res) => {
+      const payload = res.data;
+      // Handle both old shape (array) and new shape (object with categories + combos)
+      if (Array.isArray(payload)) {
+        return { categories: payload, combos: [] };
+      }
+      return {
+        categories: payload.categories ?? [],
+        combos: payload.combos ?? [],
+      };
+    },
   });
 
   const scrollToCategory = useCallback((categoryId: string) => {
@@ -316,11 +389,16 @@ export function MenuBrowse({ tenantSlug }: MenuBrowseProps) {
   }
 
   // Filter to only active categories with available items
-  const visibleCategories = (menuData ?? []).filter(
+  const visibleCategories = (menuData?.categories ?? []).filter(
     (entry) => entry.category.isActive && entry.items.length > 0,
   );
 
-  if (visibleCategories.length === 0) {
+  // Active combo deals
+  const activeCombos = (menuData?.combos ?? []).filter(
+    (combo) => combo.isActive === 1,
+  );
+
+  if (visibleCategories.length === 0 && activeCombos.length === 0) {
     return (
       <div className="p-4">
         <EmptyState
@@ -370,6 +448,27 @@ export function MenuBrowse({ tenantSlug }: MenuBrowseProps) {
             onOpenDetail={setDetailItem}
           />
         ))}
+
+        {/* Combo Deals section */}
+        {activeCombos.length > 0 && (
+          <div className="scroll-mt-24">
+            <h2 className="text-base font-bold text-text mb-2 px-1">
+              Combo Deals
+            </h2>
+            <p className="text-xs text-text-secondary mb-3 px-1">
+              Save with our meal bundles
+            </p>
+            <div className="flex flex-col gap-2">
+              {activeCombos.map((combo) => (
+                <ComboCard
+                  key={combo.id}
+                  combo={combo}
+                  onSelect={setSelectedCombo}
+                />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Item detail sheet for modifier selection */}
@@ -378,6 +477,15 @@ export function MenuBrowse({ tenantSlug }: MenuBrowseProps) {
           key={detailItem.id}
           item={detailItem}
           onClose={() => setDetailItem(null)}
+        />
+      )}
+
+      {/* Combo customization sheet */}
+      {selectedCombo && (
+        <ComboSheet
+          key={selectedCombo.id}
+          combo={selectedCombo}
+          onClose={() => setSelectedCombo(null)}
         />
       )}
     </div>
