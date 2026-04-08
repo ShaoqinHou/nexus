@@ -22,3 +22,4 @@ Thumbs.db
 .claude/workflow/verify-marker.txt
 .claude/workflow/.issues.lockdir/
 .claude/worktrees/
+packages/api/data/
