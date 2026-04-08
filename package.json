@@ -10,6 +10,7 @@
     "test": "npm run test --workspace=packages/api && npm run test --workspace=packages/web",
     "db:push": "npm run db:push --workspace=packages/api",
     "db:generate": "npm run db:generate --workspace=packages/api",
+    "db:seed": "npm run db:seed --workspace=packages/api",
     "db:studio": "npm run db:studio --workspace=packages/api"
   }
 }

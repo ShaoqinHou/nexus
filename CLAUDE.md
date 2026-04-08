@@ -33,6 +33,7 @@ npm run build            # Build web package (tsc + vite build)
 # Database
 npm run db:push          # Push schema changes (drizzle-kit)
 npm run db:generate      # Generate migration
+npm run db:seed          # Seed demo data (Demo Restaurant)
 npm run db:studio        # Open Drizzle Studio
 ```
 
@@ -86,15 +87,16 @@ Each mini-app registers routes, nav items, and permissions via a `MiniAppDefinit
 
 ```
 packages/web/src/
-  platform/         — Shell: AuthProvider, TenantProvider, ThemeProvider, layout
+  platform/         — Shell: AuthProvider, TenantProvider, ThemeProvider, ToastProvider, layout
   apps/             — Mini-app modules (ordering/, future: loyalty/, erp/)
     ordering/
       index.ts      — Module registration
-      merchant/     — Staff-facing views (menu CRUD, order dashboard)
-      customer/     — Customer-facing views (QR flow: menu → cart → order)
-      hooks/        — Query key factory, useMenu, useOrders
+      merchant/     — Staff views (menu CRUD, order dashboard, modifier manager, QR codes)
+      customer/     — Customer views (QR flow: menu → item detail → cart → order → confirmation)
+      hooks/        — Query key factory, useMenu, useOrders, useModifiers
+      types.ts      — Module-specific types
   components/
-    ui/             — Shared primitives (Button, Badge, Card, Dialog, Input, Toggle, Select)
+    ui/             — Shared primitives (Button, Badge, Card, Dialog, Input, Toggle, Select, Toast)
     patterns/       — Reusable patterns (DataTable, FormField, StatusBadge, EmptyState, ConfirmButton)
   lib/              — Utilities, API client
 ```
@@ -115,7 +117,8 @@ Scan QR → /order/{tenantSlug}?table=5
 - **AuthProvider** — staff JWT auth state
 - **TenantProvider** — active tenant context
 - **ThemeProvider** — design tokens, dark/light mode
-- **CartProvider** (customer only) — `useReducer` + `sessionStorage`, cleared after order
+- **ToastProvider** — toast notifications (success/error/info) for mutation feedback
+- **CartProvider** (customer only) — `useReducer` + `sessionStorage`, supports modifiers, cleared after order
 
 Query key factory pattern per module in `apps/{name}/hooks/keys.ts`.
 
@@ -131,14 +134,14 @@ Shared components in `components/ui/` (primitives) and `components/patterns/` (r
 
 ### Database Schema (packages/api/src/db/)
 
-SQLite with Drizzle ORM. Platform tables: `tenants`, `staff`, `customer_sessions`. Ordering module: `menu_categories`, `menu_items`, `orders`, `order_items`.
+SQLite with Drizzle ORM. Platform tables: `tenants`, `staff`, `customer_sessions`. Ordering module: `menu_categories`, `menu_items`, `modifier_groups`, `modifier_options`, `menu_item_modifier_groups`, `orders`, `order_items`.
 
 Conventions:
 - All business tables have `tenant_id` with FK to tenants
 - Soft deletes via `is_active` boolean
 - Timestamps as ISO 8601 text strings
 - Status enums as `const` arrays with derived TypeScript types
-- Order items snapshot name/price at order time (price changes don't affect existing orders)
+- Order items snapshot name/price/modifiers at order time (price changes don't affect existing orders)
 
 ### Import Boundaries (STRICT)
 
