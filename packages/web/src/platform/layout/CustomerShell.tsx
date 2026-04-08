@@ -106,8 +106,8 @@ export function CustomerShell() {
 
   return (
     <div className="min-h-screen bg-bg flex flex-col">
-      {/* Restaurant hero header */}
-      <header className="sticky top-0 z-10 bg-bg border-b border-border">
+      {/* Restaurant hero header — scrolls away with content */}
+      <header className="bg-bg">
         <div className="max-w-lg mx-auto">
           <RestaurantHero
             name={tenant?.name ?? 'Menu'}

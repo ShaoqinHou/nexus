@@ -460,7 +460,7 @@ export function MenuBrowse({ tenantSlug }: MenuBrowseProps) {
       )}
 
       {/* Category pills */}
-      <div className="sticky top-[53px] z-10 bg-bg/95 backdrop-blur-sm border-b border-border">
+      <div className="sticky top-0 z-10 bg-bg/95 backdrop-blur-sm border-b border-border">
         <div className="flex gap-2 px-4 py-2.5 overflow-x-auto scrollbar-hide">
           {visibleCategories.map(({ category }) => (
             <button
