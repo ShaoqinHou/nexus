@@ -118,24 +118,24 @@ export function useDeletePromoCode(tenantSlug: string) {
 
 // --- Customer hook ---
 
-interface ValidatePromoResponse {
-  valid: boolean;
-  promotion?: {
-    type: 'percentage' | 'fixed_amount';
-    discountValue: number;
-    minOrderAmount: number | null;
-    applicableCategories: string | null;
-  };
-  message?: string;
-  error?: string;
+interface ValidatePromoData {
+  code: string;
+  promotionName: string;
+  description: string | null;
+  type: 'percentage' | 'fixed_amount';
+  discountValue: number;
+  minOrderAmount: number | null;
+  applicableCategories: string[] | null;
 }
 
 export function useValidatePromoCode(tenantSlug: string) {
   return useMutation({
-    mutationFn: (code: string) =>
-      apiClient.post<ValidatePromoResponse>(
+    mutationFn: async (code: string) => {
+      const res = await apiClient.post<{ data: ValidatePromoData }>(
         `/order/${tenantSlug}/ordering/validate-promo`,
         { code },
-      ),
+      );
+      return res.data;
+    },
   });
 }

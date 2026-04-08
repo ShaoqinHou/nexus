@@ -96,32 +96,28 @@ export function CartSheet({
     if (!code) return;
     setPromoError(null);
     validatePromo.mutate(code, {
-      onSuccess: (result) => {
-        if (result.valid && result.promotion) {
-          if (
-            result.promotion.minOrderAmount != null &&
-            totalPrice < result.promotion.minOrderAmount
-          ) {
-            setPromoError(
-              `Minimum order of $${result.promotion.minOrderAmount.toFixed(2)} required`,
-            );
-            return;
-          }
-          setAppliedPromo({
-            code,
-            type: result.promotion.type,
-            discountValue: result.promotion.discountValue,
-            minOrderAmount: result.promotion.minOrderAmount,
-            applicableCategories: result.promotion.applicableCategories,
-          });
-          setPromoError(null);
-          toast('success', 'Promo code applied!');
-        } else {
-          setPromoError(result.error ?? 'Invalid promo code');
+      onSuccess: (promo) => {
+        if (
+          promo.minOrderAmount != null &&
+          totalPrice < promo.minOrderAmount
+        ) {
+          setPromoError(
+            `Minimum order of $${promo.minOrderAmount.toFixed(2)} required`,
+          );
+          return;
         }
+        setAppliedPromo({
+          code: promo.code,
+          type: promo.type,
+          discountValue: promo.discountValue,
+          minOrderAmount: promo.minOrderAmount,
+          applicableCategories: null,
+        });
+        setPromoError(null);
+        toast('success', 'Promo code applied!');
       },
       onError: (err: Error) => {
-        setPromoError(err.message || 'Failed to validate promo code');
+        setPromoError(err.message || 'Invalid promo code');
       },
     });
   }, [promoInput, validatePromo, totalPrice, toast]);
