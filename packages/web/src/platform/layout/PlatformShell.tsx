@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Outlet, Link, useParams } from '@tanstack/react-router';
+import { Outlet, Link, useParams, useLocation } from '@tanstack/react-router';
 import {
   Menu,
   X,
@@ -24,6 +24,7 @@ export function PlatformShell() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const apps = getApps();
+  const location = useLocation();
 
   const closeMobileSidebar = useCallback(() => {
     setSidebarOpen(false);
@@ -49,8 +50,9 @@ export function PlatformShell() {
 
       {/* Sidebar */}
       <aside
+        data-platform-shell
         className={[
-          'fixed inset-y-0 left-0 z-40 flex flex-col bg-bg-elevated border-r border-border transition-all duration-200',
+          'fixed inset-y-0 left-0 z-40 flex flex-col bg-bg-elevated border-r border-border transition-all duration-200 print:hidden',
           'lg:static lg:translate-x-0',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full',
           sidebarCollapsed ? 'w-16' : 'w-64',
@@ -89,7 +91,12 @@ export function PlatformShell() {
           <Link
             to="/t/$tenantSlug"
             params={{ tenantSlug }}
-            className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-text-secondary hover:text-text hover:bg-bg-muted transition-colors mb-1"
+            className={[
+              'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors mb-1',
+              location.pathname === `/t/${tenantSlug}`
+                ? 'bg-primary/10 text-primary font-medium'
+                : 'text-text-secondary hover:text-text hover:bg-bg-muted',
+            ].join(' ')}
             onClick={closeMobileSidebar}
           >
             <LayoutDashboard className="h-5 w-5 shrink-0" />
@@ -98,11 +105,17 @@ export function PlatformShell() {
 
           {navItems.map((item) => {
             const Icon = item.icon;
+            const isActiveNav = location.pathname.startsWith(item.path);
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-text-secondary hover:text-text hover:bg-bg-muted transition-colors mb-1"
+                className={[
+                  'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors mb-1',
+                  isActiveNav
+                    ? 'bg-primary/10 text-primary font-medium'
+                    : 'text-text-secondary hover:text-text hover:bg-bg-muted',
+                ].join(' ')}
                 onClick={closeMobileSidebar}
               >
                 <Icon className="h-5 w-5 shrink-0" />
@@ -128,7 +141,7 @@ export function PlatformShell() {
       {/* Main area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar */}
-        <header className="flex items-center justify-between h-16 px-4 border-b border-border bg-bg-elevated">
+        <header className="flex items-center justify-between h-16 px-4 border-b border-border bg-bg-elevated print:hidden">
           <div className="flex items-center gap-3">
             <button
               type="button"

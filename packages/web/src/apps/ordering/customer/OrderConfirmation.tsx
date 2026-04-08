@@ -54,58 +54,115 @@ function StatusTimeline({ currentStatus }: { currentStatus: OrderStatus }) {
   const isCancelled = currentStatus === 'cancelled';
 
   return (
-    <div className="flex items-center justify-between w-full px-2">
-      {TIMELINE_STATUSES.map((status, index) => {
-        const Icon = STATUS_ICONS[status];
-        const isCompleted = !isCancelled && index <= currentIndex;
-        const isCurrent = !isCancelled && index === currentIndex;
+    <>
+      {/* Mobile: vertical timeline */}
+      <div className="flex flex-col gap-0 px-2 sm:hidden">
+        {TIMELINE_STATUSES.map((status, index) => {
+          const Icon = STATUS_ICONS[status];
+          const isCompleted = !isCancelled && index <= currentIndex;
+          const isCurrent = !isCancelled && index === currentIndex;
+          const isLast = index === TIMELINE_STATUSES.length - 1;
 
-        return (
-          <div key={status} className="flex flex-col items-center gap-1.5 relative flex-1">
-            {/* Connector line */}
-            {index > 0 && (
+          return (
+            <div key={status} className="flex items-start gap-3">
+              {/* Left column: icon + connector */}
+              <div className="flex flex-col items-center">
+                <div
+                  className={[
+                    'h-7 w-7 rounded-full flex items-center justify-center shrink-0 transition-colors',
+                    isCurrent
+                      ? 'bg-primary text-text-inverse ring-4 ring-primary/20'
+                      : isCompleted
+                        ? 'bg-primary text-text-inverse'
+                        : 'bg-bg-muted text-text-tertiary',
+                  ].join(' ')}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                </div>
+                {!isLast && (
+                  <div
+                    className={[
+                      'w-0.5 h-5',
+                      !isCancelled && index < currentIndex
+                        ? 'bg-primary'
+                        : 'bg-border',
+                    ].join(' ')}
+                  />
+                )}
+              </div>
+
+              {/* Right column: label */}
+              <span
+                className={[
+                  'text-sm font-medium pt-1',
+                  isCurrent
+                    ? 'text-primary'
+                    : isCompleted
+                      ? 'text-text'
+                      : 'text-text-tertiary',
+                ].join(' ')}
+              >
+                {TIMELINE_LABELS[status]}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* sm+: horizontal timeline */}
+      <div className="hidden sm:flex items-center justify-between w-full px-2">
+        {TIMELINE_STATUSES.map((status, index) => {
+          const Icon = STATUS_ICONS[status];
+          const isCompleted = !isCancelled && index <= currentIndex;
+          const isCurrent = !isCancelled && index === currentIndex;
+
+          return (
+            <div key={status} className="flex flex-col items-center gap-1.5 relative flex-1">
+              {/* Connector line */}
+              {index > 0 && (
+                <div
+                  className={[
+                    'absolute top-3.5 right-1/2 w-full h-0.5 -translate-y-1/2',
+                    !isCancelled && index <= currentIndex
+                      ? 'bg-primary'
+                      : 'bg-border',
+                  ].join(' ')}
+                  style={{ left: '-50%' }}
+                />
+              )}
+
+              {/* Icon circle */}
               <div
                 className={[
-                  'absolute top-3.5 right-1/2 w-full h-0.5 -translate-y-1/2',
-                  !isCancelled && index <= currentIndex
-                    ? 'bg-primary'
-                    : 'bg-border',
+                  'relative z-10 h-7 w-7 rounded-full flex items-center justify-center transition-colors',
+                  isCurrent
+                    ? 'bg-primary text-text-inverse ring-4 ring-primary/20'
+                    : isCompleted
+                      ? 'bg-primary text-text-inverse'
+                      : 'bg-bg-muted text-text-tertiary',
                 ].join(' ')}
-                style={{ left: '-50%' }}
-              />
-            )}
+              >
+                <Icon className="h-3.5 w-3.5" />
+              </div>
 
-            {/* Icon circle */}
-            <div
-              className={[
-                'relative z-10 h-7 w-7 rounded-full flex items-center justify-center transition-colors',
-                isCurrent
-                  ? 'bg-primary text-text-inverse ring-4 ring-primary/20'
-                  : isCompleted
-                    ? 'bg-primary text-text-inverse'
-                    : 'bg-bg-muted text-text-tertiary',
-              ].join(' ')}
-            >
-              <Icon className="h-3.5 w-3.5" />
+              {/* Label */}
+              <span
+                className={[
+                  'text-xs font-medium text-center leading-tight',
+                  isCurrent
+                    ? 'text-primary'
+                    : isCompleted
+                      ? 'text-text'
+                      : 'text-text-tertiary',
+                ].join(' ')}
+              >
+                {TIMELINE_LABELS[status]}
+              </span>
             </div>
-
-            {/* Label */}
-            <span
-              className={[
-                'text-xs font-medium text-center leading-tight',
-                isCurrent
-                  ? 'text-primary'
-                  : isCompleted
-                    ? 'text-text'
-                    : 'text-text-tertiary',
-              ].join(' ')}
-            >
-              {TIMELINE_LABELS[status]}
-            </span>
-          </div>
-        );
-      })}
-    </div>
+          );
+        })}
+      </div>
+    </>
   );
 }
 

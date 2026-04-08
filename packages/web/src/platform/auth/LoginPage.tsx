@@ -70,11 +70,11 @@ export function LoginPage() {
           )}
 
           <Input
-            label="Tenant Slug"
-            placeholder="my-restaurant"
+            label="Restaurant ID"
+            placeholder="demo"
             value={tenantSlug}
             onChange={(e) => setTenantSlug(e.target.value)}
-            helperText="URL identifier for your tenant"
+            helperText="The ID your restaurant was registered with"
             required
           />
 

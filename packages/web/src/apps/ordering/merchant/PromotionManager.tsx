@@ -34,6 +34,7 @@ import {
   useCreatePromoCode,
   useDeletePromoCode,
 } from '../hooks/usePromotions';
+import { useCategories } from '../hooks/useMenu';
 import type { Promotion, PromoCode } from '../types';
 
 // ---------------------------------------------------------------------------
@@ -81,12 +82,14 @@ function PromotionDialog({
   onSubmit,
   initial,
   loading,
+  tenantSlug,
 }: {
   open: boolean;
   onClose: () => void;
   onSubmit: (data: PromotionFormData) => void;
   initial?: PromotionFormData;
   loading: boolean;
+  tenantSlug: string;
 }) {
   const [name, setName] = useState(initial?.name ?? '');
   const [description, setDescription] = useState(initial?.description ?? '');
@@ -111,6 +114,23 @@ function PromotionDialog({
     setStartsAt(initial?.startsAt ?? '');
     setEndsAt(initial?.endsAt ?? '');
   }, [initial]);
+
+  const categoriesQuery = useCategories(tenantSlug);
+  const allCategories = categoriesQuery.data ?? [];
+
+  const selectedCategoryIds = new Set(
+    applicableCategories ? applicableCategories.split(',').map((s) => s.trim()).filter(Boolean) : [],
+  );
+
+  const toggleCategory = (categoryId: string) => {
+    const next = new Set(selectedCategoryIds);
+    if (next.has(categoryId)) {
+      next.delete(categoryId);
+    } else {
+      next.add(categoryId);
+    }
+    setApplicableCategories(Array.from(next).join(','));
+  };
 
   const isEdit = !!initial;
 
@@ -207,13 +227,34 @@ function PromotionDialog({
           placeholder="Optional"
           helperText="Leave empty for no minimum"
         />
-        <Input
-          label="Applicable Categories"
-          value={applicableCategories}
-          onChange={(e) => setApplicableCategories(e.target.value)}
-          placeholder="e.g. mains,drinks"
-          helperText="Comma-separated category IDs, or leave empty for all"
-        />
+        <div>
+          <label className="block text-sm font-medium text-text mb-1.5">
+            Applicable Categories
+          </label>
+          {allCategories.length > 0 ? (
+            <div className="space-y-1.5 max-h-40 overflow-y-auto rounded-md border border-border p-2">
+              {allCategories.map((cat) => (
+                <label
+                  key={cat.id}
+                  className="flex items-center gap-2 cursor-pointer text-sm text-text hover:bg-bg-muted rounded px-1 py-0.5"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedCategoryIds.has(cat.id)}
+                    onChange={() => toggleCategory(cat.id)}
+                    className="rounded border-border text-primary focus:ring-primary"
+                  />
+                  {cat.name}
+                </label>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-text-tertiary">No categories found.</p>
+          )}
+          <p className="text-xs text-text-tertiary mt-1">
+            Leave empty to apply to all items
+          </p>
+        </div>
         <Input
           label="Start Date"
           type="date"
@@ -715,6 +756,7 @@ export function PromotionManager() {
         onSubmit={handlePromotionSubmit}
         initial={editInitial}
         loading={createPromotion.isPending || updatePromotion.isPending}
+        tenantSlug={tenantSlug}
       />
 
       {/* Promo code dialog */}

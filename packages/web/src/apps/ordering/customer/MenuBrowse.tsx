@@ -434,7 +434,7 @@ export function MenuBrowse({ tenantSlug }: MenuBrowseProps) {
                     addItem({ menuItemId: item.id, name: item.name, price: item.price });
                   }
                 }}
-                className="shrink-0 w-36 rounded-xl border border-border bg-bg-elevated overflow-hidden text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary active:scale-[0.97] transition-all"
+                className="shrink-0 w-40 rounded-xl border border-border bg-bg-elevated overflow-hidden text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary active:scale-[0.97] transition-all"
               >
                 {item.imageUrl ? (
                   <img
