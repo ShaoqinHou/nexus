@@ -28,6 +28,7 @@ interface PublicMenuResponse {
 
 interface MenuBrowseProps {
   tenantSlug: string;
+  disabled?: boolean;
 }
 
 function getTagColor(tag: string): string {
@@ -74,9 +75,11 @@ function DietaryTagBadges({ tags }: { tags: string | null }) {
 function MenuItemCard({
   item,
   onOpenDetail,
+  disabled = false,
 }: {
   item: PublicMenuItem;
   onOpenDetail: (item: PublicMenuItem) => void;
+  disabled?: boolean;
 }) {
   const { items, addItem, updateQuantity } = useCart();
 
@@ -110,7 +113,7 @@ function MenuItemCard({
     }
   }, [updateQuantity, items, item.id, totalQuantity]);
 
-  const isUnavailable = !item.isAvailable;
+  const isUnavailable = !item.isAvailable || disabled;
 
   const [imgError, setImgError] = useState(false);
 
@@ -212,11 +215,13 @@ function CategorySection({
   items,
   sectionRef,
   onOpenDetail,
+  disabled = false,
 }: {
   category: MenuCategory;
   items: PublicMenuItem[];
   sectionRef: (el: HTMLDivElement | null) => void;
   onOpenDetail: (item: PublicMenuItem) => void;
+  disabled?: boolean;
 }) {
   return (
     <div ref={sectionRef} className="scroll-mt-24">
@@ -234,6 +239,7 @@ function CategorySection({
             key={item.id}
             item={item}
             onOpenDetail={onOpenDetail}
+            disabled={disabled}
           />
         ))}
       </div>
@@ -326,7 +332,7 @@ function MenuSkeleton() {
   );
 }
 
-export function MenuBrowse({ tenantSlug }: MenuBrowseProps) {
+export function MenuBrowse({ tenantSlug, disabled = false }: MenuBrowseProps) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [detailItem, setDetailItem] = useState<PublicMenuItem | null>(null);
   const [selectedCombo, setSelectedCombo] = useState<ComboDeal | null>(null);
@@ -519,14 +525,19 @@ export function MenuBrowse({ tenantSlug }: MenuBrowseProps) {
                 <button
                   key={item.id}
                   type="button"
+                  disabled={disabled}
                   onClick={() => {
+                    if (disabled) return;
                     if ((item.modifierGroups ?? []).length > 0) {
                       setDetailItem(item);
                     } else {
                       addItem({ menuItemId: item.id, name: item.name, price: item.price });
                     }
                   }}
-                  className="shrink-0 w-40 lg:w-auto rounded-xl border border-border bg-bg-elevated overflow-hidden text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary active:scale-[0.97] transition-all"
+                  className={[
+                    'shrink-0 w-40 lg:w-auto rounded-xl border border-border bg-bg-elevated overflow-hidden text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary active:scale-[0.97] transition-all',
+                    disabled ? 'opacity-50 cursor-not-allowed' : '',
+                  ].join(' ')}
                 >
                   {item.imageUrl ? (
                     <img
@@ -634,7 +645,7 @@ export function MenuBrowse({ tenantSlug }: MenuBrowseProps) {
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                     {results.map((item) => (
-                      <MenuItemCard key={item.id} item={item} onOpenDetail={setDetailItem} />
+                      <MenuItemCard key={item.id} item={item} onOpenDetail={setDetailItem} disabled={disabled} />
                     ))}
                   </div>
                 </div>
@@ -649,6 +660,7 @@ export function MenuBrowse({ tenantSlug }: MenuBrowseProps) {
                 items={items}
                 sectionRef={setSectionRef(category.id)}
                 onOpenDetail={setDetailItem}
+                disabled={disabled}
               />
             ))
           )}

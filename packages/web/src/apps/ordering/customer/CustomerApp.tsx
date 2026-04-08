@@ -1,11 +1,14 @@
 import { useState, useCallback } from 'react';
 import { useSearch } from '@tanstack/react-router';
-import { AlertCircle, QrCode } from 'lucide-react';
+import { AlertCircle, QrCode, Clock } from 'lucide-react';
 import { CartProvider } from '@web/apps/ordering/customer/CartProvider';
 import { MenuBrowse } from '@web/apps/ordering/customer/MenuBrowse';
 import { CartSheet } from '@web/apps/ordering/customer/CartSheet';
 import { CartSidebar } from '@web/apps/ordering/customer/CartSidebar';
 import { OrderConfirmation } from '@web/apps/ordering/customer/OrderConfirmation';
+import { useTenant } from '@web/platform/tenant/TenantProvider';
+import { isOpenNow } from '@web/lib/theme';
+import type { TenantThemeSettings } from '@web/lib/theme';
 import type { Order } from '@web/apps/ordering/types';
 
 type CustomerView =
@@ -19,6 +22,11 @@ interface CustomerAppInnerProps {
 
 function CustomerAppInner({ tenantSlug, tableNumber }: CustomerAppInnerProps) {
   const [view, setView] = useState<CustomerView>({ type: 'menu' });
+  const { tenant } = useTenant();
+
+  const settings = (tenant?.settings ?? {}) as TenantThemeSettings;
+  const openStatus = isOpenNow(settings.operatingHours);
+  const isClosed = !openStatus.open;
 
   const handleOrderPlaced = useCallback((order: Order) => {
     setView({ type: 'confirmation', orderId: order.id });
@@ -40,30 +48,49 @@ function CustomerAppInner({ tenantSlug, tableNumber }: CustomerAppInnerProps) {
 
   return (
     <div className="lg:flex">
-      {/* Center: Menu content (includes its own desktop category rail on the left) */}
-      <div className="flex-1 min-w-0">
-        <MenuBrowse tenantSlug={tenantSlug} />
+      {/* Closed banner */}
+      {isClosed && (
+        <div className="fixed top-0 left-0 right-0 z-30 bg-warning-light border-b border-warning/20">
+          <div className="max-w-3xl lg:max-w-7xl mx-auto flex items-center gap-2 px-4 py-2.5">
+            <Clock className="h-4 w-4 text-warning shrink-0" />
+            <p className="text-sm text-warning font-medium">
+              This restaurant is currently closed. Orders will be available during opening hours.
+              {openStatus.nextChange && (
+                <span className="text-text-secondary font-normal"> ({openStatus.nextChange})</span>
+              )}
+            </p>
+          </div>
+        </div>
+      )}
 
-        {/* Mobile/tablet: bottom sheet cart + spacer */}
-        <div className="lg:hidden">
-          <CartSheet
+      {/* Center: Menu content (includes its own desktop category rail on the left) */}
+      <div className={['flex-1 min-w-0', isClosed ? 'mt-10' : ''].join(' ')}>
+        <MenuBrowse tenantSlug={tenantSlug} disabled={isClosed} />
+
+        {/* Mobile/tablet: bottom sheet cart + spacer — hidden when closed */}
+        {!isClosed && (
+          <div className="lg:hidden">
+            <CartSheet
+              tenantSlug={tenantSlug}
+              tableNumber={tableNumber}
+              onOrderPlaced={handleOrderPlaced}
+            />
+            {/* Spacer for fixed cart bar */}
+            <div className="h-20" />
+          </div>
+        )}
+      </div>
+
+      {/* Right: Desktop persistent cart sidebar — hidden when closed */}
+      {!isClosed && (
+        <aside className="hidden lg:block w-[340px] shrink-0 sticky top-0 h-screen overflow-y-auto border-l border-border bg-bg">
+          <CartSidebar
             tenantSlug={tenantSlug}
             tableNumber={tableNumber}
             onOrderPlaced={handleOrderPlaced}
           />
-          {/* Spacer for fixed cart bar */}
-          <div className="h-20" />
-        </div>
-      </div>
-
-      {/* Right: Desktop persistent cart sidebar */}
-      <aside className="hidden lg:block w-[340px] shrink-0 sticky top-0 h-screen overflow-y-auto border-l border-border bg-bg">
-        <CartSidebar
-          tenantSlug={tenantSlug}
-          tableNumber={tableNumber}
-          onOrderPlaced={handleOrderPlaced}
-        />
-      </aside>
+        </aside>
+      )}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Palette, Check, RotateCcw, Save, Eye } from 'lucide-react';
+import { Palette, Check, RotateCcw, Save, Eye, Clock } from 'lucide-react';
 import {
   Button,
   Card,
@@ -9,6 +9,7 @@ import {
   CardFooter,
   Input,
   Select,
+  Toggle,
   ImageUpload,
 } from '@web/components/ui';
 import { useTenant } from '@web/platform/tenant/TenantProvider';
@@ -21,6 +22,7 @@ import {
   textColorOnBrand,
   type TenantThemeSettings,
   type ThemePreset,
+  type OperatingHoursEntry,
 } from '@web/lib/theme';
 import {
   useTenantSettings,
@@ -45,6 +47,40 @@ const FONT_OPTIONS = [
 type BorderRadius = 'sharp' | 'rounded' | 'pill';
 type SurfaceStyle = 'flat' | 'subtle' | 'elevated';
 
+// --- Operating Hours Defaults ---
+
+const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+interface DayHoursState {
+  isOpen: boolean;
+  open: string;
+  close: string;
+}
+
+function defaultDayHours(): DayHoursState[] {
+  return DAY_NAMES.map(() => ({ isOpen: true, open: '09:00', close: '22:00' }));
+}
+
+function hoursEntriesToState(entries?: OperatingHoursEntry[]): DayHoursState[] {
+  const base = defaultDayHours();
+  if (!entries || entries.length === 0) return base;
+  // Mark all days as closed by default, then open the ones in the entries
+  const result = base.map((d) => ({ ...d, isOpen: false }));
+  for (const entry of entries) {
+    if (entry.day >= 0 && entry.day <= 6) {
+      result[entry.day] = { isOpen: true, open: entry.open, close: entry.close };
+    }
+  }
+  return result;
+}
+
+function stateToHoursEntries(state: DayHoursState[]): OperatingHoursEntry[] {
+  return state
+    .map((d, i) => ({ day: i, open: d.open, close: d.close, isOpen: d.isOpen }))
+    .filter((d) => d.isOpen)
+    .map(({ day, open, close }) => ({ day, open, close }));
+}
+
 interface FormState {
   preset: string;
   brandColor: string;
@@ -53,6 +89,7 @@ interface FormState {
   surfaceStyle: SurfaceStyle;
   logoUrl: string;
   coverImageUrl: string;
+  operatingHours: DayHoursState[];
 }
 
 function settingsToFormState(settings: TenantThemeSettings | undefined): FormState {
@@ -64,6 +101,7 @@ function settingsToFormState(settings: TenantThemeSettings | undefined): FormSta
     surfaceStyle: settings?.surfaceStyle ?? 'subtle',
     logoUrl: settings?.logoUrl ?? '',
     coverImageUrl: settings?.coverImageUrl ?? '',
+    operatingHours: hoursEntriesToState(settings?.operatingHours),
   };
 }
 
@@ -76,6 +114,7 @@ function formStateToSettings(form: FormState): Partial<TenantThemeSettings> {
     surfaceStyle: form.surfaceStyle,
     logoUrl: form.logoUrl || undefined,
     coverImageUrl: form.coverImageUrl || undefined,
+    operatingHours: stateToHoursEntries(form.operatingHours),
   };
 }
 
@@ -721,6 +760,90 @@ export function ThemeSettings() {
                 tenantSlug={tenantSlug}
                 aspectRatio="3:1"
               />
+            </CardContent>
+            <CardFooter className="justify-end gap-2">
+              {isDirty && (
+                <Button variant="ghost" size="sm" onClick={handleReset}>
+                  <RotateCcw className="h-4 w-4" />
+                  Discard
+                </Button>
+              )}
+              <Button
+                variant="primary"
+                size="md"
+                onClick={handleSave}
+                loading={updateMutation.isPending}
+                disabled={!isDirty}
+              >
+                <Save className="h-4 w-4" />
+                Save Changes
+              </Button>
+            </CardFooter>
+          </Card>
+
+          {/* Operating Hours */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-primary" />
+                <CardTitle>Operating Hours</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-text-secondary">
+                Set your opening hours. Days marked as closed will show a "closed" indicator to customers.
+              </p>
+              <div className="space-y-2">
+                {form.operatingHours.map((day, dayIndex) => (
+                  <div
+                    key={dayIndex}
+                    className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 p-3 rounded-lg border border-border bg-bg-surface"
+                  >
+                    {/* Day name */}
+                    <span className="text-sm font-medium text-text w-24 shrink-0">
+                      {DAY_NAMES[dayIndex]}
+                    </span>
+
+                    {/* Open toggle */}
+                    <Toggle
+                      checked={day.isOpen}
+                      label={day.isOpen ? 'Open' : 'Closed'}
+                      onChange={(checked) => {
+                        const updated = [...form.operatingHours];
+                        updated[dayIndex] = { ...updated[dayIndex], isOpen: checked };
+                        updateField('operatingHours', updated);
+                      }}
+                    />
+
+                    {/* Time inputs */}
+                    {day.isOpen && (
+                      <div className="flex items-center gap-2 flex-1">
+                        <input
+                          type="time"
+                          value={day.open}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                            const updated = [...form.operatingHours];
+                            updated[dayIndex] = { ...updated[dayIndex], open: e.target.value };
+                            updateField('operatingHours', updated);
+                          }}
+                          className="rounded-md border border-border px-2 py-1.5 text-sm text-text bg-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                        />
+                        <span className="text-xs text-text-tertiary">to</span>
+                        <input
+                          type="time"
+                          value={day.close}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                            const updated = [...form.operatingHours];
+                            updated[dayIndex] = { ...updated[dayIndex], close: e.target.value };
+                            updateField('operatingHours', updated);
+                          }}
+                          className="rounded-md border border-border px-2 py-1.5 text-sm text-text bg-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                        />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </CardContent>
             <CardFooter className="justify-end gap-2">
               {isDirty && (

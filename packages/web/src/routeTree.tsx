@@ -18,6 +18,8 @@ import { QRCodes } from '@web/apps/ordering/merchant/QRCodes';
 import { ComboManager } from '@web/apps/ordering/merchant/ComboManager';
 import { ThemeSettings } from '@web/apps/ordering/merchant/ThemeSettings';
 import { KitchenDisplay } from '@web/apps/ordering/merchant/KitchenDisplay';
+import { Analytics } from '@web/apps/ordering/merchant/Analytics';
+import { StaffManagement } from '@web/apps/ordering/merchant/StaffManagement';
 import { CustomerApp } from '@web/apps/ordering/customer/CustomerApp';
 
 // Register mini-app modules (triggers side-effect registration)
@@ -115,6 +117,18 @@ const orderingSettingsRoute = createRoute({
   component: ThemeSettings,
 });
 
+const orderingAnalyticsRoute = createRoute({
+  getParentRoute: () => tenantRoute,
+  path: '/ordering/analytics',
+  component: Analytics,
+});
+
+const orderingStaffRoute = createRoute({
+  getParentRoute: () => tenantRoute,
+  path: '/ordering/staff',
+  component: StaffManagement,
+});
+
 // Staff tenant catch-all for unknown module routes
 const tenantCatchAllRoute = createRoute({
   getParentRoute: () => tenantRoute,
@@ -204,6 +218,8 @@ const routeTree = rootRoute.addChildren([
     orderingCombosRoute,
     orderingQRRoute,
     orderingSettingsRoute,
+    orderingAnalyticsRoute,
+    orderingStaffRoute,
     tenantCatchAllRoute,
   ]),
   customerRoute.addChildren([customerIndexRoute, customerCatchAllRoute]),

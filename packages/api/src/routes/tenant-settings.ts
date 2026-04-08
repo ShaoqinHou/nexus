@@ -7,6 +7,12 @@ import { tenants } from '../db/schema.js';
 import type { DrizzleDB } from '../db/client.js';
 import type { AuthEnv } from '../lib/types.js';
 
+const operatingHoursEntrySchema = z.object({
+  day: z.number().int().min(0).max(6),
+  open: z.string().regex(/^\d{2}:\d{2}$/, 'Must be HH:MM format'),
+  close: z.string().regex(/^\d{2}:\d{2}$/, 'Must be HH:MM format'),
+});
+
 const updateSettingsSchema = z.object({
   brandColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Must be a valid hex color').optional(),
   logoUrl: z.string().url().optional().or(z.literal('')),
@@ -17,6 +23,7 @@ const updateSettingsSchema = z.object({
   surfaceStyle: z.enum(['flat', 'subtle', 'elevated']).optional(),
   currency: z.string().optional(),
   timezone: z.string().optional(),
+  operatingHours: z.array(operatingHoursEntrySchema).optional(),
 });
 
 export function tenantSettingsRoutes(db: DrizzleDB) {

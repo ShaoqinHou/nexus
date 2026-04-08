@@ -7,3 +7,4 @@ export * from './services/modifiers.js';
 export * from './services/promotions.js';
 export * from './services/combos.js';
 export * from './services/orders.js';
+export * from './services/analytics.js';

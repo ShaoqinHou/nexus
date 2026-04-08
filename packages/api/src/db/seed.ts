@@ -580,6 +580,108 @@ function seed() {
   }
 
   console.log(`Created ${orderDefs.length} sample orders`);
+
+  // --- Create additional orders for analytics (spread over last 7 days) ---
+
+  interface AnalyticsOrderDef {
+    tableNumber: string;
+    status: 'pending' | 'confirmed' | 'preparing' | 'delivered' | 'cancelled';
+    hoursAgo: number;
+    items: Array<{ name: string; quantity: number }>;
+    promoCodeId?: string;
+    discountAmount?: number;
+  }
+
+  // Collect promo code IDs for some orders
+  const welcomeCode = db
+    .select()
+    .from(promoCodes)
+    .where(eq(promoCodes.tenantId, tenantId))
+    .all();
+  const welcomeCodeId = welcomeCode.length > 0 ? welcomeCode[0].id : undefined;
+  const saveCodeId = welcomeCode.length > 1 ? welcomeCode[1].id : undefined;
+
+  const analyticsOrders: AnalyticsOrderDef[] = [
+    // Day 1 (yesterday) — busy lunch
+    { tableNumber: '2', status: 'delivered', hoursAgo: 26, items: [{ name: 'Margherita Pizza', quantity: 1 }, { name: 'Cola', quantity: 1 }] },
+    { tableNumber: '4', status: 'delivered', hoursAgo: 25, items: [{ name: 'Fish & Chips', quantity: 2 }, { name: 'Craft Beer', quantity: 2 }] },
+    { tableNumber: '6', status: 'delivered', hoursAgo: 24, items: [{ name: 'Beef Burger', quantity: 1 }, { name: 'Garlic Bread', quantity: 1 }, { name: 'Fresh Lemonade', quantity: 1 }] },
+    // Day 1 dinner
+    { tableNumber: '1', status: 'delivered', hoursAgo: 20, items: [{ name: 'Chicken Parmesan', quantity: 2 }, { name: 'House Wine', quantity: 2 }, { name: 'Tiramisu', quantity: 2 }] },
+    { tableNumber: '3', status: 'delivered', hoursAgo: 19, items: [{ name: 'Pad Thai', quantity: 1 }, { name: 'Spring Rolls', quantity: 1 }], promoCodeId: welcomeCodeId, discountAmount: 4.05 },
+
+    // Day 2
+    { tableNumber: '5', status: 'delivered', hoursAgo: 50, items: [{ name: 'Soup of the Day', quantity: 2 }, { name: 'Margherita Pizza', quantity: 1 }] },
+    { tableNumber: '2', status: 'delivered', hoursAgo: 48, items: [{ name: 'Beef Burger', quantity: 2 }, { name: 'Ice Cream Sundae', quantity: 2 }, { name: 'Cola', quantity: 2 }] },
+    { tableNumber: '7', status: 'cancelled', hoursAgo: 47, items: [{ name: 'Fish & Chips', quantity: 1 }] },
+
+    // Day 3
+    { tableNumber: '1', status: 'delivered', hoursAgo: 74, items: [{ name: 'Cheesecake', quantity: 3 }, { name: 'Fresh Lemonade', quantity: 3 }] },
+    { tableNumber: '4', status: 'delivered', hoursAgo: 72, items: [{ name: 'Chicken Parmesan', quantity: 1 }, { name: 'Garlic Bread', quantity: 1 }, { name: 'Craft Beer', quantity: 1 }] },
+
+    // Day 4
+    { tableNumber: '3', status: 'delivered', hoursAgo: 98, items: [{ name: 'Margherita Pizza', quantity: 2 }, { name: 'Cola', quantity: 2 }] },
+    { tableNumber: '6', status: 'delivered', hoursAgo: 96, items: [{ name: 'Pad Thai', quantity: 2 }, { name: 'Spring Rolls', quantity: 2 }], promoCodeId: saveCodeId, discountAmount: 5.0 },
+    { tableNumber: '2', status: 'delivered', hoursAgo: 93, items: [{ name: 'Fish & Chips', quantity: 1 }, { name: 'Tiramisu', quantity: 1 }, { name: 'House Wine', quantity: 1 }] },
+
+    // Day 5
+    { tableNumber: '1', status: 'delivered', hoursAgo: 122, items: [{ name: 'Beef Burger', quantity: 3 }, { name: 'Craft Beer', quantity: 3 }] },
+    { tableNumber: '5', status: 'delivered', hoursAgo: 120, items: [{ name: 'Chicken Parmesan', quantity: 1 }, { name: 'Cheesecake', quantity: 1 }] },
+
+    // Day 6
+    { tableNumber: '4', status: 'delivered', hoursAgo: 146, items: [{ name: 'Garlic Bread', quantity: 2 }, { name: 'Margherita Pizza', quantity: 2 }, { name: 'House Wine', quantity: 2 }] },
+    { tableNumber: '7', status: 'delivered', hoursAgo: 144, items: [{ name: 'Soup of the Day', quantity: 1 }, { name: 'Pad Thai', quantity: 1 }, { name: 'Ice Cream Sundae', quantity: 1 }] },
+
+    // Day 7
+    { tableNumber: '2', status: 'delivered', hoursAgo: 170, items: [{ name: 'Fish & Chips', quantity: 2 }, { name: 'Fresh Lemonade', quantity: 2 }] },
+    { tableNumber: '3', status: 'delivered', hoursAgo: 168, items: [{ name: 'Beef Burger', quantity: 1 }, { name: 'Spring Rolls', quantity: 1 }, { name: 'Cola', quantity: 1 }], promoCodeId: welcomeCodeId, discountAmount: 5.1 },
+    { tableNumber: '6', status: 'delivered', hoursAgo: 166, items: [{ name: 'Chicken Parmesan', quantity: 2 }, { name: 'Tiramisu', quantity: 2 }, { name: 'House Wine', quantity: 2 }] },
+  ];
+
+  for (const orderDef of analyticsOrders) {
+    const total = orderDef.items.reduce(
+      (sum, item) => sum + priceLookup[item.name] * item.quantity,
+      0,
+    );
+
+    const discount = orderDef.discountAmount ?? 0;
+    const finalTotal = Math.round((total - discount) * 100) / 100;
+
+    const createdAt = new Date(
+      Date.now() - orderDef.hoursAgo * 60 * 60 * 1000,
+    ).toISOString();
+
+    const orderId = nanoid();
+    db.insert(orders)
+      .values({
+        id: orderId,
+        tenantId,
+        tableNumber: orderDef.tableNumber,
+        status: orderDef.status,
+        total: finalTotal,
+        discountAmount: discount,
+        promoCodeId: orderDef.promoCodeId ?? null,
+        createdAt,
+        updatedAt: createdAt,
+      })
+      .run();
+
+    for (const item of orderDef.items) {
+      db.insert(orderItems)
+        .values({
+          id: nanoid(),
+          orderId,
+          menuItemId: itemIds[item.name],
+          name: item.name,
+          price: priceLookup[item.name],
+          quantity: item.quantity,
+          createdAt,
+        })
+        .run();
+    }
+  }
+
+  console.log(`Created ${analyticsOrders.length} additional analytics orders`);
   console.log('Done! Login with: demo@example.com / password123 / demo');
 }
 

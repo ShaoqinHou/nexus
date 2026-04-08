@@ -45,6 +45,12 @@ import {
   getOrders,
   getKitchenOrders,
   updateOrderStatus,
+  getDailyRevenue,
+  getTopItems,
+  getPeakHours,
+  getOrderStats,
+  getPromoStats,
+  getStatusBreakdown,
 } from './service.js';
 
 // --- Validation Schemas ---
@@ -553,6 +559,47 @@ export function staffOrderingRoutes(db: DrizzleDB) {
       return c.json({ data: order });
     }
   );
+
+  // --- Analytics ---
+
+  router.get('/analytics/revenue', (c) => {
+    const tenantId = c.var.tenantId;
+    const days = Number(c.req.query('days') || '30');
+    const data = getDailyRevenue(db, tenantId, days);
+    return c.json({ data });
+  });
+
+  router.get('/analytics/top-items', (c) => {
+    const tenantId = c.var.tenantId;
+    const limit = Number(c.req.query('limit') || '10');
+    const data = getTopItems(db, tenantId, limit);
+    return c.json({ data });
+  });
+
+  router.get('/analytics/peak-hours', (c) => {
+    const tenantId = c.var.tenantId;
+    const days = Number(c.req.query('days') || '7');
+    const data = getPeakHours(db, tenantId, days);
+    return c.json({ data });
+  });
+
+  router.get('/analytics/stats', (c) => {
+    const tenantId = c.var.tenantId;
+    const data = getOrderStats(db, tenantId);
+    return c.json({ data });
+  });
+
+  router.get('/analytics/promos', (c) => {
+    const tenantId = c.var.tenantId;
+    const data = getPromoStats(db, tenantId);
+    return c.json({ data });
+  });
+
+  router.get('/analytics/status-breakdown', (c) => {
+    const tenantId = c.var.tenantId;
+    const data = getStatusBreakdown(db, tenantId);
+    return c.json({ data });
+  });
 
   // --- Kitchen Display SSE Stream ---
   // EventSource does not support custom headers, so we accept the JWT
