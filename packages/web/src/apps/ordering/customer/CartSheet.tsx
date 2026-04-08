@@ -111,7 +111,9 @@ export function CartSheet({
           type: promo.type,
           discountValue: promo.discountValue,
           minOrderAmount: promo.minOrderAmount,
-          applicableCategories: null,
+          applicableCategories: promo.applicableCategories
+            ? promo.applicableCategories.join(',')
+            : null,
         });
         setPromoError(null);
         toast('success', 'Promo code applied!');

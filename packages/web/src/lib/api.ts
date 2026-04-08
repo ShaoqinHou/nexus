@@ -62,6 +62,13 @@ async function request<T>(
       // Response body is not JSON, use default message
     }
 
+    // Auto-logout on 401 (expired/invalid JWT)
+    if (response.status === 401 && getAuthToken()) {
+      localStorage.removeItem('nexus_token');
+      localStorage.removeItem('nexus_user');
+      window.location.href = '/login';
+    }
+
     throw new ApiClientError(errorMessage, response.status, errorCode);
   }
 

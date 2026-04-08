@@ -6,6 +6,7 @@ import {
   useCallback,
   type ReactNode,
 } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@web/lib/api';
 
 interface StaffUser {
@@ -117,12 +118,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
     [],
   );
 
+  const queryClient = useQueryClient();
+
   const logout = useCallback(() => {
     setToken(null);
     setUser(null);
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
-  }, []);
+    queryClient.clear();
+  }, [queryClient]);
 
   const isAuthenticated = token !== null && user !== null;
 
