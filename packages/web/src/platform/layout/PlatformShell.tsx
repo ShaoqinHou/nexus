@@ -155,8 +155,12 @@ export function PlatformShell() {
                   const isActiveNav = location.pathname.startsWith(item.path);
                   // Map nav labels to data-tour attributes for the onboarding tour
                   const tourAttrMap: Record<string, string> = {
+                    Menu: 'menu-link',
                     Modifiers: 'modifiers-link',
                     Kitchen: 'kitchen-link',
+                    Orders: 'orders-link',
+                    'QR Codes': 'qr-link',
+                    Theme: 'theme-link',
                     Analytics: 'analytics-link',
                   };
                   const tourAttr = tourAttrMap[item.label];

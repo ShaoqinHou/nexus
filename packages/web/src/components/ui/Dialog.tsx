@@ -8,9 +8,10 @@ interface DialogProps {
   title: string;
   children: ReactNode;
   footer?: ReactNode;
+  'data-tour'?: string;
 }
 
-export function Dialog({ open, onClose, title, children, footer }: DialogProps) {
+export function Dialog({ open, onClose, title, children, footer, 'data-tour': dataTour }: DialogProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
 
   const handleKeyDown = useCallback(
@@ -50,7 +51,7 @@ export function Dialog({ open, onClose, title, children, footer }: DialogProps) 
       onClick={handleBackdropClick}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
     >
-      <div className="w-full max-w-lg rounded-lg bg-bg-elevated shadow-lg border border-border">
+      <div {...(dataTour ? { 'data-tour': dataTour } : {})} className="w-full max-w-lg rounded-lg bg-bg-elevated shadow-lg border border-border">
         {/* Header */}
         <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-border">
           <h2 className="text-lg font-semibold text-text">{title}</h2>

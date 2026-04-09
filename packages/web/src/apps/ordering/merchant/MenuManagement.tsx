@@ -91,12 +91,14 @@ function CategoryDialog({
       open={open}
       onClose={handleClose}
       title={isEdit ? 'Edit Category' : 'Add Category'}
+      data-tour="category-dialog"
       footer={
         <>
           <Button variant="secondary" onClick={handleClose} disabled={loading}>
             Cancel
           </Button>
           <Button
+            data-tour="category-save"
             type="submit"
             form="category-form"
             loading={loading}
@@ -109,6 +111,7 @@ function CategoryDialog({
     >
       <form id="category-form" onSubmit={handleSubmit} className="space-y-4">
         <Input
+          data-tour="category-name-input"
           label="Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -229,12 +232,14 @@ function ItemDialog({
       open={open}
       onClose={handleClose}
       title={isEdit ? 'Edit Item' : 'Add Item'}
+      data-tour="item-dialog"
       footer={
         <>
           <Button variant="secondary" onClick={handleClose} disabled={loading}>
             Cancel
           </Button>
           <Button
+            data-tour="item-save"
             type="submit"
             form="item-form"
             loading={loading}
@@ -247,6 +252,7 @@ function ItemDialog({
     >
       <form id="item-form" onSubmit={handleSubmit} className="space-y-4">
         <Input
+          data-tour="item-name-input"
           label="Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -1111,7 +1117,7 @@ export function MenuManagement() {
                   : 'Menu Items'}
               </CardTitle>
               {activeCategoryId && (
-                <Button size="sm" onClick={handleAddItem}>
+                <Button data-tour="add-item" size="sm" onClick={handleAddItem}>
                   <Plus className="h-4 w-4" />
                   Add Item
                 </Button>

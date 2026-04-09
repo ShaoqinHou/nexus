@@ -1,6 +1,8 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 
+export type TourStepType = 'info' | 'action' | 'input';
+
 interface TourOverlayProps {
   targetRect: DOMRect | null;
   title: string;
@@ -11,12 +13,12 @@ interface TourOverlayProps {
   onNext: () => void;
   onSkip: () => void;
   actionLabel?: string;
+  stepType: TourStepType;
 }
 
 const PADDING = 8;
 const TOOLTIP_GAP = 12;
 const TOOLTIP_MAX_WIDTH = 340;
-const BORDER_RADIUS = 8;
 
 function getTooltipStyle(
   targetRect: DOMRect | null,
@@ -55,7 +57,6 @@ function getTooltipStyle(
       style.top = Math.max(16, Math.min(centerY - 60, window.innerHeight - 200));
       style.left = targetRect.right + PADDING + TOOLTIP_GAP;
       if (style.left as number > window.innerWidth - TOOLTIP_MAX_WIDTH - 16) {
-        // Fall back to bottom placement
         style.left = Math.max(16, Math.min(centerX - TOOLTIP_MAX_WIDTH / 2, window.innerWidth - TOOLTIP_MAX_WIDTH - 16));
         style.top = targetRect.bottom + PADDING + TOOLTIP_GAP;
       }
@@ -64,7 +65,6 @@ function getTooltipStyle(
       style.top = Math.max(16, Math.min(centerY - 60, window.innerHeight - 200));
       style.right = window.innerWidth - targetRect.left + PADDING + TOOLTIP_GAP;
       if ((style.right as number) > window.innerWidth - TOOLTIP_MAX_WIDTH - 16) {
-        // Fall back to bottom placement
         style.left = Math.max(16, Math.min(centerX - TOOLTIP_MAX_WIDTH / 2, window.innerWidth - TOOLTIP_MAX_WIDTH - 16));
         style.top = targetRect.bottom + PADDING + TOOLTIP_GAP;
         delete style.right;
@@ -85,6 +85,7 @@ export function TourOverlay({
   onNext,
   onSkip,
   actionLabel,
+  stepType,
 }: TourOverlayProps) {
   const [visible, setVisible] = useState(false);
 
@@ -95,53 +96,129 @@ export function TourOverlay({
 
   const isCenter = !targetRect || placement === 'center';
   const isLast = step === total - 1;
+
+  // For action/input steps, don't show Next — user must interact with the target
+  const showNextButton = stepType === 'info';
   const buttonLabel = actionLabel ?? (isLast ? 'Got it' : 'Next');
 
   const tooltipStyle = getTooltipStyle(targetRect, placement);
 
+  // Compute the cutout area for the target
+  const cutout = targetRect && !isCenter
+    ? {
+        top: targetRect.top - PADDING,
+        left: targetRect.left - PADDING,
+        width: targetRect.width + PADDING * 2,
+        height: targetRect.height + PADDING * 2,
+        bottom: targetRect.bottom + PADDING,
+        right: targetRect.right + PADDING,
+      }
+    : null;
+
   const overlay: ReactNode = (
-    <div
-      className={[
-        'fixed inset-0 z-[90] transition-opacity duration-300',
-        visible ? 'opacity-100' : 'opacity-0',
-      ].join(' ')}
-      aria-modal="true"
-      role="dialog"
-    >
-      {/* SVG spotlight mask */}
-      <svg
-        className="absolute inset-0 w-full h-full"
+    <>
+      {/* Visual spotlight overlay — pointer-events: none so it doesn't block anything */}
+      <div
+        className={[
+          'fixed inset-0 z-[89] transition-opacity duration-300',
+          visible ? 'opacity-100' : 'opacity-0',
+        ].join(' ')}
         style={{ pointerEvents: 'none' }}
       >
-        <defs>
-          <mask id="tour-spotlight-mask">
-            <rect x="0" y="0" width="100%" height="100%" fill="white" />
-            {targetRect && !isCenter && (
-              <rect
-                x={targetRect.left - PADDING}
-                y={targetRect.top - PADDING}
-                width={targetRect.width + PADDING * 2}
-                height={targetRect.height + PADDING * 2}
-                rx={BORDER_RADIUS}
-                ry={BORDER_RADIUS}
-                fill="black"
-              />
-            )}
-          </mask>
-        </defs>
-        <rect
-          x="0"
-          y="0"
-          width="100%"
-          height="100%"
-          fill="rgba(0, 0, 0, 0.6)"
-          mask="url(#tour-spotlight-mask)"
-          style={{ pointerEvents: 'auto' }}
-          onClick={onSkip}
-        />
-      </svg>
+        <svg className="absolute inset-0 w-full h-full">
+          <defs>
+            <mask id="tour-spotlight-mask">
+              <rect x="0" y="0" width="100%" height="100%" fill="white" />
+              {cutout && (
+                <rect
+                  x={cutout.left}
+                  y={cutout.top}
+                  width={cutout.width}
+                  height={cutout.height}
+                  rx={8}
+                  ry={8}
+                  fill="black"
+                />
+              )}
+            </mask>
+          </defs>
+          <rect
+            x="0"
+            y="0"
+            width="100%"
+            height="100%"
+            fill="rgba(0, 0, 0, 0.6)"
+            mask="url(#tour-spotlight-mask)"
+          />
+        </svg>
+      </div>
 
-      {/* Tooltip */}
+      {/* Click blockers — 4 divs around the target, blocking clicks on non-highlighted areas */}
+      {/* The gap where the target is lets clicks pass through naturally */}
+      {cutout ? (
+        <div className="fixed inset-0 z-[88]" style={{ pointerEvents: 'none' }}>
+          {/* Top region */}
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: Math.max(0, cutout.top),
+              pointerEvents: 'auto',
+              cursor: 'default',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          />
+          {/* Bottom region */}
+          <div
+            style={{
+              position: 'absolute',
+              top: cutout.bottom,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              pointerEvents: 'auto',
+              cursor: 'default',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          />
+          {/* Left region (between top and bottom) */}
+          <div
+            style={{
+              position: 'absolute',
+              top: cutout.top,
+              left: 0,
+              width: Math.max(0, cutout.left),
+              height: cutout.height,
+              pointerEvents: 'auto',
+              cursor: 'default',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          />
+          {/* Right region (between top and bottom) */}
+          <div
+            style={{
+              position: 'absolute',
+              top: cutout.top,
+              left: cutout.right,
+              right: 0,
+              height: cutout.height,
+              pointerEvents: 'auto',
+              cursor: 'default',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      ) : (
+        /* Center steps: block all clicks except on the tooltip */
+        <div
+          className="fixed inset-0 z-[88]"
+          onClick={(e) => e.stopPropagation()}
+        />
+      )}
+
+      {/* Tooltip — above everything */}
       <div
         style={tooltipStyle}
         className={[
@@ -154,7 +231,6 @@ export function TourOverlay({
           <span className="text-xs font-medium text-text-tertiary">
             Step {step + 1} of {total}
           </span>
-          {/* Progress dots */}
           <div className="flex gap-1">
             {Array.from({ length: total }, (_, i) => (
               <div
@@ -172,6 +248,20 @@ export function TourOverlay({
         <h3 className="text-base font-bold text-text mb-1.5">{title}</h3>
         <p className="text-sm text-text-secondary leading-relaxed">{description}</p>
 
+        {/* Step type hint for action/input steps */}
+        {stepType === 'action' && !isCenter && (
+          <p className="text-xs font-medium text-primary mt-2 flex items-center gap-1">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+            Click the highlighted element to continue
+          </p>
+        )}
+        {stepType === 'input' && (
+          <p className="text-xs font-medium text-primary mt-2 flex items-center gap-1">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+            Type in the highlighted field, then press Next
+          </p>
+        )}
+
         {/* Actions */}
         <div className="flex items-center justify-between mt-4">
           <button
@@ -181,16 +271,18 @@ export function TourOverlay({
           >
             Skip tour
           </button>
-          <button
-            type="button"
-            onClick={onNext}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg bg-primary text-text-inverse hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-          >
-            {buttonLabel}
-          </button>
+          {(showNextButton || stepType === 'input') && (
+            <button
+              type="button"
+              onClick={onNext}
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg bg-primary text-text-inverse hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            >
+              {buttonLabel}
+            </button>
+          )}
         </div>
       </div>
-    </div>
+    </>
   );
 
   return createPortal(overlay, document.body);

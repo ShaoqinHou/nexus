@@ -6,39 +6,42 @@ export const customerOnboardingSteps: TourStep[] = [
   {
     id: 'welcome',
     target: 'center',
+    type: 'info',
     title: 'Welcome!',
-    description:
-      "Here's how to order from your table. It takes about 30 seconds.",
+    description: 'Ordering is easy. Let us show you how!',
     placement: 'center',
-    actionLabel: 'Show me!',
+    actionLabel: 'Show me',
   },
   {
     id: 'categories',
     target: '[data-tour="category-pills"]',
+    type: 'info',
     title: 'Browse the Menu',
     description:
-      'Tap a category to jump to that section, or use the search icon to find specific items.',
+      'Tap a category to jump to that section. Use the search icon to find specific items.',
     placement: 'bottom',
   },
   {
     id: 'add-item',
     target: '[data-tour="first-add-button"]',
-    title: 'Add to Your Order',
-    description:
-      'Tap the + button to add an item. For customizable items, you can choose size, toppings, and more.',
+    type: 'action',
+    title: 'Add an Item',
+    description: 'Tap the + button to add this item to your cart.',
     placement: 'left',
   },
   {
     id: 'cart',
     target: '[data-tour="cart-bar"]',
+    type: 'info',
     title: 'Your Cart',
     description:
-      'Your items appear here with the running total. Tap to review, apply a promo code, and place your order.',
+      'Your items and total appear here. Tap to review and place your order.',
     placement: 'top',
   },
   {
     id: 'done',
     target: 'center',
+    type: 'info',
     title: "That's it!",
     description: 'Start browsing the menu and enjoy your meal!',
     placement: 'center',

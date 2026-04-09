@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { useNavigate, useLocation } from '@tanstack/react-router';
 import { TourOverlay } from '@web/components/ui/TourOverlay';
+import type { TourStepType } from '@web/components/ui/TourOverlay';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -20,9 +21,11 @@ export interface TourStep {
   title: string;
   description: string;
   placement: 'top' | 'bottom' | 'left' | 'right' | 'center';
+  type?: TourStepType; // 'info' (default), 'action', or 'input'
   route?: string; // navigate to this route before showing step
   actionLabel?: string;
-  waitForSelector?: string; // wait for this element before showing
+  waitForSelector?: string; // wait for this element before showing next step
+  inputValue?: string; // for 'input' type: pre-fill suggestion
 }
 
 interface TourContextValue {
@@ -90,12 +93,14 @@ export function TourProvider({ children, tenantSlug }: TourProviderProps) {
   const location = useLocation();
   const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rafRef = useRef<number | null>(null);
+  const actionCleanupRef = useRef<(() => void) | null>(null);
 
   // Clean up polling on unmount
   useEffect(() => {
     return () => {
       if (pollRef.current) clearTimeout(pollRef.current);
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      if (actionCleanupRef.current) actionCleanupRef.current();
     };
   }, []);
 
@@ -180,6 +185,12 @@ export function TourProvider({ children, tenantSlug }: TourProviderProps) {
       const step = stepsArr[idx];
       if (!step) return;
 
+      // Clean up previous action listener
+      if (actionCleanupRef.current) {
+        actionCleanupRef.current();
+        actionCleanupRef.current = null;
+      }
+
       setCurrentIdx(idx);
 
       // Build the full route path if the step has a route
@@ -207,6 +218,122 @@ export function TourProvider({ children, tenantSlug }: TourProviderProps) {
     [tenantSlug, location.pathname, navigate, pollForTarget],
   );
 
+  const endTour = useCallback(() => {
+    // Clean up action listener
+    if (actionCleanupRef.current) {
+      actionCleanupRef.current();
+      actionCleanupRef.current = null;
+    }
+    setIsActive(false);
+    setSteps([]);
+    setCurrentIdx(0);
+    setTargetRect(null);
+    if (tourIdRef.current) {
+      markTourCompleted(tourIdRef.current);
+    }
+    if (pollRef.current) clearTimeout(pollRef.current);
+  }, []);
+
+  const nextStep = useCallback(() => {
+    // Clean up action listener before moving
+    if (actionCleanupRef.current) {
+      actionCleanupRef.current();
+      actionCleanupRef.current = null;
+    }
+
+    const nextIdx = currentIdx + 1;
+    if (nextIdx >= steps.length) {
+      endTour();
+      return;
+    }
+
+    const next = steps[nextIdx];
+    // If the next step has a waitForSelector, poll for it before showing
+    if (next.waitForSelector) {
+      setCurrentIdx(nextIdx);
+      let attempts = 0;
+      const poll = () => {
+        const el = document.querySelector(next.waitForSelector!);
+        if (el) {
+          showStep(nextIdx, steps);
+          return;
+        }
+        attempts += 1;
+        if (attempts < MAX_POLL_ATTEMPTS) {
+          pollRef.current = setTimeout(poll, POLL_INTERVAL);
+        }
+      };
+      // Small delay to let the UI respond to the user's click
+      setTimeout(poll, 200);
+    } else {
+      showStep(nextIdx, steps);
+    }
+  }, [currentIdx, steps, showStep, endTour]);
+
+  // Set up action listeners for 'action' type steps
+  useEffect(() => {
+    if (!isActive || !steps[currentIdx]) return;
+    const step = steps[currentIdx];
+    const stepType = step.type ?? 'info';
+
+    if (stepType !== 'action') return;
+    if (step.target === 'center') return;
+
+    // Poll for the target element and attach a click listener
+    let attempts = 0;
+    let attached = false;
+    let handler: (() => void) | null = null;
+    let targetEl: Element | null = null;
+
+    const attachListener = () => {
+      targetEl = document.querySelector(step.target);
+      if (targetEl && !attached) {
+        attached = true;
+        handler = () => {
+          // Wait for any resulting dialog/animation, then check waitForSelector
+          if (step.waitForSelector) {
+            let waitAttempts = 0;
+            const waitPoll = () => {
+              const el = document.querySelector(step.waitForSelector!);
+              if (el) {
+                nextStep();
+                return;
+              }
+              waitAttempts += 1;
+              if (waitAttempts < MAX_POLL_ATTEMPTS) {
+                pollRef.current = setTimeout(waitPoll, POLL_INTERVAL);
+              }
+            };
+            setTimeout(waitPoll, 200);
+          } else {
+            setTimeout(() => nextStep(), 300);
+          }
+        };
+        targetEl.addEventListener('click', handler, { once: true });
+        return;
+      }
+      attempts += 1;
+      if (attempts < MAX_POLL_ATTEMPTS && !attached) {
+        pollRef.current = setTimeout(attachListener, POLL_INTERVAL);
+      }
+    };
+
+    attachListener();
+
+    // Store cleanup
+    actionCleanupRef.current = () => {
+      if (targetEl && handler) {
+        targetEl.removeEventListener('click', handler);
+      }
+    };
+
+    return () => {
+      if (targetEl && handler) {
+        targetEl.removeEventListener('click', handler);
+      }
+    };
+  }, [isActive, currentIdx, steps, nextStep]);
+
   const startTour = useCallback(
     (tourSteps: TourStep[], tourId?: string) => {
       if (tourSteps.length === 0) return;
@@ -222,26 +349,6 @@ export function TourProvider({ children, tenantSlug }: TourProviderProps) {
     },
     [showStep],
   );
-
-  const endTour = useCallback(() => {
-    setIsActive(false);
-    setSteps([]);
-    setCurrentIdx(0);
-    setTargetRect(null);
-    if (tourIdRef.current) {
-      markTourCompleted(tourIdRef.current);
-    }
-    if (pollRef.current) clearTimeout(pollRef.current);
-  }, []);
-
-  const nextStep = useCallback(() => {
-    const nextIdx = currentIdx + 1;
-    if (nextIdx >= steps.length) {
-      endTour();
-      return;
-    }
-    showStep(nextIdx, steps);
-  }, [currentIdx, steps, showStep, endTour]);
 
   const currentStepData = isActive ? steps[currentIdx] : null;
 
@@ -269,6 +376,7 @@ export function TourProvider({ children, tenantSlug }: TourProviderProps) {
           onNext={nextStep}
           onSkip={endTour}
           actionLabel={currentStepData.actionLabel}
+          stepType={currentStepData.type ?? 'info'}
         />
       )}
     </TourContext.Provider>
