@@ -679,10 +679,16 @@ export function staffOrderingRoutes(db: DrizzleDB) {
     return c.json({ data });
   });
 
-  // --- Kitchen Display SSE Stream ---
-  // EventSource does not support custom headers, so we accept the JWT
-  // as a query parameter on this endpoint only.
-  router.get('/kitchen/stream', (c) => {
+  // Kitchen stream moved to kitchenStreamRoutes() — mounted without authMiddleware
+
+  return router;
+}
+
+// --- Kitchen SSE Stream (separate, no authMiddleware — handles its own JWT) ---
+export function kitchenStreamRoutes(db: DrizzleDB) {
+  const router = new Hono<TenantEnv>();
+
+  router.get('/stream', (c) => {
     const tenantId = c.var.tenantId;
 
     // Authenticate via query param (EventSource can't set headers)

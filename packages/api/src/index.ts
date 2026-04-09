@@ -4,7 +4,7 @@ import { serve } from '@hono/node-server';
 import { db } from './db/client.js';
 import { platformRoutes } from './routes/platform.js';
 import { tenantMiddleware } from './middleware/tenant.js';
-import { staffOrderingRoutes, customerOrderingRoutes } from './modules/ordering/routes.js';
+import { staffOrderingRoutes, customerOrderingRoutes, kitchenStreamRoutes } from './modules/ordering/routes.js';
 import { tenantSettingsRoutes } from './routes/tenant-settings.js';
 import { staffRoutes } from './routes/staff.js';
 import { uploadRoutes, uploadServeRoutes } from './routes/upload.js';
@@ -26,6 +26,7 @@ const tenantApp = new Hono<TenantEnv>();
 tenantApp.use('*', tenantMiddleware(db));
 
 tenantApp.route('/ordering', staffOrderingRoutes(db));
+tenantApp.route('/ordering/kitchen', kitchenStreamRoutes(db));
 tenantApp.route('/settings', tenantSettingsRoutes(db));
 tenantApp.route('/staff', staffRoutes(db));
 tenantApp.route('/upload', uploadRoutes(db));
