@@ -1,13 +1,35 @@
-/** Format price as $X.XX */
+let currencySymbol = '$';
+
+/** Set the currency symbol used by formatPrice/formatPriceDelta. */
+export function setCurrencySymbol(symbol: string): void {
+  currencySymbol = symbol;
+}
+
+/** Map a currency code (e.g. "NZD", "EUR") to a display symbol. */
+export function currencyCodeToSymbol(code: string | undefined): string {
+  switch (code) {
+    case 'NZD': return 'NZ$';
+    case 'AUD': return 'A$';
+    case 'EUR': return '\u20ac';
+    case 'GBP': return '\u00a3';
+    case 'JPY': return '\u00a5';
+    case 'CNY': return '\u00a5';
+    case 'USD':
+    default:
+      return '$';
+  }
+}
+
+/** Format price as $X.XX (symbol set via setCurrencySymbol) */
 export function formatPrice(price: number): string {
-  return `$${price.toFixed(2)}`;
+  return `${currencySymbol}${price.toFixed(2)}`;
 }
 
 /** Format price modifier as +$X.XX or -$X.XX */
 export function formatPriceDelta(delta: number): string {
   if (delta === 0) return '';
   const sign = delta > 0 ? '+' : '';
-  return `${sign}$${delta.toFixed(2)}`;
+  return `${sign}${currencySymbol}${delta.toFixed(2)}`;
 }
 
 /** Parse comma-separated tags into array */

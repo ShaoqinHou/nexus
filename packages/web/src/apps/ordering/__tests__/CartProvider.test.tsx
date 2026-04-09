@@ -15,7 +15,7 @@ vi.stubGlobal('sessionStorage', {
 });
 
 function wrapper({ children }: { children: ReactNode }) {
-  return <CartProvider tenantSlug="test">{children}</CartProvider>;
+  return <CartProvider tenantSlug="test" tableNumber="1">{children}</CartProvider>;
 }
 
 function addSampleItem(
@@ -210,13 +210,13 @@ describe('CartProvider', () => {
 
     addSampleItem(result.current.addItem);
 
-    const stored = JSON.parse(mockStorage['nexus_cart_test'] ?? '{}');
+    const stored = JSON.parse(mockStorage['nexus_cart_test_1'] ?? '{}');
     expect(stored.items).toHaveLength(1);
     expect(stored.items[0].menuItemId).toBe('item-1');
   });
 
   it('loads cart from sessionStorage on mount', () => {
-    mockStorage['nexus_cart_test'] = JSON.stringify({
+    mockStorage['nexus_cart_test_1'] = JSON.stringify({
       items: [
         {
           menuItemId: 'saved-1',

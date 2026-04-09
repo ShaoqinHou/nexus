@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Plus,
   Pencil,
@@ -297,6 +297,7 @@ function CategoryList({
   onAdd,
   onEdit,
   onDelete,
+  itemCountByCategory,
 }: {
   categories: MenuCategory[];
   selectedId: string | null;
@@ -304,6 +305,7 @@ function CategoryList({
   onAdd: () => void;
   onEdit: (cat: MenuCategory) => void;
   onDelete: (id: string) => void;
+  itemCountByCategory: Record<string, number>;
 }) {
   return (
     <Card className="h-full flex flex-col">
@@ -370,7 +372,11 @@ function CategoryList({
                       variant="ghost"
                       size="sm"
                       onConfirm={() => onDelete(cat.id)}
-                      confirmText="Delete?"
+                      confirmText={
+                        (itemCountByCategory[cat.id] ?? 0) > 0
+                          ? `Delete ${cat.name}? (${itemCountByCategory[cat.id]} item${itemCountByCategory[cat.id] === 1 ? '' : 's'} will be hidden)`
+                          : 'Delete?'
+                      }
                       className="!p-1 text-text-tertiary hover:text-danger"
                     >
                       <span className="text-xs">Del</span>
@@ -766,6 +772,17 @@ export function MenuManagement() {
   );
   const items = itemsQuery.data ?? [];
 
+  // Fetch all items (no category filter) to compute per-category counts
+  const allItemsQuery = useMenuItems(tenantSlug);
+  const allItems = allItemsQuery.data ?? [];
+  const itemCountByCategory = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const item of allItems) {
+      counts[item.categoryId] = (counts[item.categoryId] ?? 0) + 1;
+    }
+    return counts;
+  }, [allItems]);
+
   // Mutations
   const createCategory = useCreateCategory(tenantSlug);
   const updateCategory = useUpdateCategory(tenantSlug);
@@ -936,6 +953,7 @@ export function MenuManagement() {
             onAdd={handleAddCategory}
             onEdit={handleEditCategory}
             onDelete={handleDeleteCategory}
+            itemCountByCategory={itemCountByCategory}
           />
         </div>
 

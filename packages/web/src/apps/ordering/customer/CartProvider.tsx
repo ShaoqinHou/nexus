@@ -186,13 +186,13 @@ function cartReducer(state: CartState, action: CartAction): CartState {
   }
 }
 
-function getStorageKey(tenantSlug: string): string {
-  return `nexus_cart_${tenantSlug}`;
+function getStorageKey(tenantSlug: string, tableNumber: string): string {
+  return `nexus_cart_${tenantSlug}_${tableNumber}`;
 }
 
-function loadCart(tenantSlug: string): CartState {
+function loadCart(key: { tenantSlug: string; tableNumber: string }): CartState {
   try {
-    const stored = sessionStorage.getItem(getStorageKey(tenantSlug));
+    const stored = sessionStorage.getItem(getStorageKey(key.tenantSlug, key.tableNumber));
     if (stored) {
       const parsed = JSON.parse(stored) as CartState;
       if (Array.isArray(parsed.items)) {
@@ -205,9 +205,9 @@ function loadCart(tenantSlug: string): CartState {
   return { items: [], notes: '' };
 }
 
-function saveCart(tenantSlug: string, state: CartState): void {
+function saveCart(tenantSlug: string, tableNumber: string, state: CartState): void {
   try {
-    sessionStorage.setItem(getStorageKey(tenantSlug), JSON.stringify(state));
+    sessionStorage.setItem(getStorageKey(tenantSlug, tableNumber), JSON.stringify(state));
   } catch {
     // Storage full or unavailable — silently fail
   }
@@ -215,16 +215,17 @@ function saveCart(tenantSlug: string, state: CartState): void {
 
 interface CartProviderProps {
   tenantSlug: string;
+  tableNumber: string;
   children: ReactNode;
 }
 
-export function CartProvider({ tenantSlug, children }: CartProviderProps) {
-  const [state, dispatch] = useReducer(cartReducer, tenantSlug, loadCart);
+export function CartProvider({ tenantSlug, tableNumber, children }: CartProviderProps) {
+  const [state, dispatch] = useReducer(cartReducer, { tenantSlug, tableNumber }, loadCart);
 
   // Persist to sessionStorage on every change
   useEffect(() => {
-    saveCart(tenantSlug, state);
-  }, [tenantSlug, state]);
+    saveCart(tenantSlug, tableNumber, state);
+  }, [tenantSlug, tableNumber, state]);
 
   const addItem = useCallback(
     (item: AddItemPayload) => {

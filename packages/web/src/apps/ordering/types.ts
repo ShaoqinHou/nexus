@@ -82,6 +82,7 @@ export interface Order {
   status: OrderStatus;
   notes: string | null;
   total: number;
+  discountAmount: number | null;
   items: OrderItem[];
   createdAt: string;
   updatedAt: string;

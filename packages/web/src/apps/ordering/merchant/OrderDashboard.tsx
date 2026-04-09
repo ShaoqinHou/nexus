@@ -154,6 +154,20 @@ function OrderCard({
                         <span className={isItemCancelled ? 'line-through text-text-tertiary' : ''}>
                           {item.name}
                         </span>
+                        {item.modifiersJson && (() => {
+                          try {
+                            const raw = JSON.parse(item.modifiersJson) as unknown;
+                            let modNames: string[] = [];
+                            if (Array.isArray(raw)) {
+                              modNames = raw.map((m: { name: string }) => m.name);
+                            } else if (raw && typeof raw === 'object' && 'itemModifiers' in raw) {
+                              const obj = raw as { itemModifiers: { name: string }[] };
+                              modNames = obj.itemModifiers.map((m) => m.name);
+                            }
+                            if (modNames.length === 0) return null;
+                            return <span className="text-xs text-text-secondary ml-1">({modNames.join(', ')})</span>;
+                          } catch { return null; }
+                        })()}
                         {item.notes && (
                           <p className="text-xs text-text-tertiary mt-0.5">
                             Note: {item.notes}

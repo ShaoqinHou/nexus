@@ -6,6 +6,7 @@ import {
   type ReactNode,
 } from 'react';
 import { apiClient } from '@web/lib/api';
+import { setCurrencySymbol, currencyCodeToSymbol } from '@web/lib/format';
 import { applyTenantTheme, clearTenantTheme } from '@web/lib/theme';
 import type { TenantThemeSettings } from '@web/lib/theme';
 import { useTheme } from '@web/platform/theme/ThemeProvider';
@@ -59,6 +60,7 @@ export function TenantProvider({ tenantSlug, children }: TenantProviderProps) {
           // Apply full tenant theme (brand color, font, radius, shadows)
           if (data.settings) {
             applyTenantTheme(data.settings as TenantThemeSettings, theme === 'dark');
+            setCurrencySymbol(currencyCodeToSymbol(data.settings.currency));
           }
         }
       } catch (err) {

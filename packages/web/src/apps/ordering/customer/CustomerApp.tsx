@@ -159,7 +159,7 @@ export function CustomerApp({ tenantSlug }: CustomerAppProps) {
   }
 
   return (
-    <CartProvider tenantSlug={tenantSlug}>
+    <CartProvider tenantSlug={tenantSlug} tableNumber={tableNumber}>
       <CustomerAppInner tenantSlug={tenantSlug} tableNumber={tableNumber} />
     </CartProvider>
   );

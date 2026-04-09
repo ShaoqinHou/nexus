@@ -387,11 +387,29 @@ export function OrderConfirmation({
           })}
         </div>
         {/* Total */}
-        <div className="px-4 py-3 border-t border-border bg-bg-muted flex items-center justify-between">
-          <span className="text-sm font-semibold text-text">Total</span>
-          <span className="text-base font-bold text-text">
-            {formatPrice(order.total)}
-          </span>
+        <div className="px-4 py-3 border-t border-border bg-bg-muted space-y-1">
+          {order.discountAmount != null && order.discountAmount > 0 && (
+            <>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-text-secondary">Subtotal</span>
+                <span className="text-sm text-text">
+                  {formatPrice(order.total + order.discountAmount)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-success">Discount</span>
+                <span className="text-sm text-success">
+                  -{formatPrice(order.discountAmount)}
+                </span>
+              </div>
+            </>
+          )}
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-semibold text-text">Total</span>
+            <span className="text-base font-bold text-text">
+              {formatPrice(order.total)}
+            </span>
+          </div>
         </div>
       </div>
 
