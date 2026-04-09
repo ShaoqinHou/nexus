@@ -135,6 +135,9 @@ export interface TenantThemeSettings {
   borderRadius?: 'sharp' | 'rounded' | 'pill';
   surfaceStyle?: 'flat' | 'subtle' | 'elevated';
   operatingHours?: OperatingHoursEntry[];
+  taxRate?: number;       // e.g. 15 for 15% GST
+  taxInclusive?: boolean; // true = prices already include tax
+  taxLabel?: string;      // e.g. "GST", "VAT", "Tax"
 }
 
 /** Check if restaurant is currently open based on operating hours */

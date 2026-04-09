@@ -24,6 +24,9 @@ const updateSettingsSchema = z.object({
   currency: z.string().optional(),
   timezone: z.string().optional(),
   operatingHours: z.array(operatingHoursEntrySchema).optional(),
+  taxRate: z.number().min(0).max(100).optional(),
+  taxInclusive: z.boolean().optional(),
+  taxLabel: z.string().max(20).optional(),
 });
 
 export function tenantSettingsRoutes(db: DrizzleDB) {

@@ -90,6 +90,9 @@ function CustomerAppInner({ tenantSlug, tableNumber }: CustomerAppInnerProps) {
         orderId={view.orderId}
         onBackToMenu={handleBackToMenu}
         onAddItems={handleAddItems}
+        taxLabel={settings.taxLabel}
+        taxRate={settings.taxRate}
+        taxInclusive={settings.taxInclusive}
       />
     );
   }
@@ -161,6 +164,9 @@ function CustomerAppInner({ tenantSlug, tableNumber }: CustomerAppInnerProps) {
               tableNumber={tableNumber}
               onOrderPlaced={handleOrderPlaced}
               addToOrderId={addToOrderId}
+              taxRate={settings.taxRate}
+              taxInclusive={settings.taxInclusive}
+              taxLabel={settings.taxLabel}
             />
             {/* Spacer for fixed cart bar */}
             <div className="h-20" />
@@ -176,6 +182,9 @@ function CustomerAppInner({ tenantSlug, tableNumber }: CustomerAppInnerProps) {
             tableNumber={tableNumber}
             onOrderPlaced={handleOrderPlaced}
             addToOrderId={addToOrderId}
+            taxRate={settings.taxRate}
+            taxInclusive={settings.taxInclusive}
+            taxLabel={settings.taxLabel}
           />
         </aside>
       )}

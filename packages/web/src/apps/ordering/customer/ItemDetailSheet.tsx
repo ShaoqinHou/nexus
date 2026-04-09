@@ -222,6 +222,19 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
                 ))}
               </div>
             )}
+            {item.allergens && parseTags(item.allergens).length > 0 && (
+              <div className="flex flex-wrap items-center gap-1 mt-1.5">
+                <span className="text-xs font-semibold text-danger">Allergens:</span>
+                {parseTags(item.allergens).map((allergen) => (
+                  <span
+                    key={allergen}
+                    className="inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-medium bg-danger-light text-danger"
+                  >
+                    {allergen}
+                  </span>
+                ))}
+              </div>
+            )}
             <p className="text-base font-semibold text-primary mt-1">
               {formatPrice(item.price)}
             </p>

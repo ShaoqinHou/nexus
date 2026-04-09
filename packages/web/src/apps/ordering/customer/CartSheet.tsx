@@ -22,6 +22,9 @@ interface CartSheetProps {
   tableNumber: string;
   onOrderPlaced: (order: Order) => void;
   addToOrderId?: string;
+  taxRate?: number;
+  taxInclusive?: boolean;
+  taxLabel?: string;
 }
 
 export function CartSheet({
@@ -29,6 +32,9 @@ export function CartSheet({
   tableNumber,
   onOrderPlaced,
   addToOrderId,
+  taxRate,
+  taxInclusive,
+  taxLabel,
 }: CartSheetProps) {
   const {
     items,
@@ -406,28 +412,73 @@ export function CartSheet({
 
                 {/* Price breakdown */}
                 <div className="space-y-1">
-                  {appliedPromo && (
-                    <>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-text-secondary">Subtotal</span>
-                        <span className="text-sm text-text">
-                          {formatPrice(totalPrice)}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-success">Discount</span>
-                        <span className="text-sm font-medium text-success">
-                          -{formatPrice(discountAmount)}
-                        </span>
-                      </div>
-                    </>
-                  )}
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-text-secondary">Total</span>
-                    <span className="text-lg font-bold text-text">
-                      {formatPrice(finalTotal)}
-                    </span>
-                  </div>
+                  {(() => {
+                    const effectiveRate = taxRate ?? 0;
+                    const effectiveLabel = taxLabel || 'Tax';
+                    const hasTax = effectiveRate > 0;
+                    const showSubtotal = !!appliedPromo || (hasTax && !taxInclusive);
+
+                    // Estimate tax on finalTotal (pre-tax for exclusive, included for inclusive)
+                    let estimatedTax = 0;
+                    let displayTotal = finalTotal;
+                    if (hasTax) {
+                      if (taxInclusive) {
+                        estimatedTax = finalTotal - (finalTotal / (1 + effectiveRate / 100));
+                      } else {
+                        estimatedTax = finalTotal * (effectiveRate / 100);
+                        displayTotal = finalTotal + estimatedTax;
+                      }
+                      estimatedTax = Math.round(estimatedTax * 100) / 100;
+                      displayTotal = Math.round(displayTotal * 100) / 100;
+                    }
+
+                    return (
+                      <>
+                        {showSubtotal && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-text-secondary">Subtotal</span>
+                            <span className="text-sm text-text">
+                              {formatPrice(totalPrice)}
+                            </span>
+                          </div>
+                        )}
+                        {appliedPromo && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-success">Discount</span>
+                            <span className="text-sm font-medium text-success">
+                              -{formatPrice(discountAmount)}
+                            </span>
+                          </div>
+                        )}
+                        {hasTax && !taxInclusive && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-text-secondary">
+                              Est. {effectiveLabel} ({effectiveRate}%)
+                            </span>
+                            <span className="text-sm text-text">
+                              {formatPrice(estimatedTax)}
+                            </span>
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-text-secondary">Total</span>
+                          <span className="text-lg font-bold text-text">
+                            {formatPrice(displayTotal)}
+                          </span>
+                        </div>
+                        {hasTax && taxInclusive && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-text-tertiary">
+                              Incl. {effectiveLabel} ({effectiveRate}%)
+                            </span>
+                            <span className="text-xs text-text-tertiary">
+                              {formatPrice(estimatedTax)}
+                            </span>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
                 </div>
 
                 {/* Place order button */}

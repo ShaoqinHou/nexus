@@ -32,6 +32,8 @@ export function createMenuItem(
     description?: string;
     price: number;
     imageUrl?: string;
+    tags?: string;
+    allergens?: string;
   }
 ) {
   // Verify category exists and belongs to tenant
@@ -60,6 +62,8 @@ export function createMenuItem(
       description: data.description ?? null,
       price: data.price,
       imageUrl: data.imageUrl ?? null,
+      tags: data.tags ?? null,
+      allergens: data.allergens ?? null,
     })
     .returning()
     .get();
@@ -76,6 +80,8 @@ export function updateMenuItem(
     description?: string;
     price?: number;
     imageUrl?: string;
+    tags?: string;
+    allergens?: string;
     isAvailable?: number;
     sortOrder?: number;
     categoryId?: string;
@@ -107,6 +113,8 @@ export function updateMenuItem(
   if (data.description !== undefined) updateData.description = data.description;
   if (data.price !== undefined) updateData.price = data.price;
   if (data.imageUrl !== undefined) updateData.imageUrl = data.imageUrl;
+  if (data.tags !== undefined) updateData.tags = data.tags;
+  if (data.allergens !== undefined) updateData.allergens = data.allergens;
   if (data.isAvailable !== undefined) updateData.isAvailable = data.isAvailable;
   if (data.sortOrder !== undefined) updateData.sortOrder = data.sortOrder;
   if (data.categoryId !== undefined) updateData.categoryId = data.categoryId;

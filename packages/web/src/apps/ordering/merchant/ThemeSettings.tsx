@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Palette, Check, RotateCcw, Save, Eye, Clock, Monitor, Smartphone } from 'lucide-react';
+import { Palette, Check, RotateCcw, Save, Eye, Clock, Monitor, Smartphone, Receipt } from 'lucide-react';
 import {
   Button,
   Card,
@@ -90,6 +90,9 @@ interface FormState {
   logoUrl: string;
   coverImageUrl: string;
   operatingHours: DayHoursState[];
+  taxRate: string;
+  taxInclusive: boolean;
+  taxLabel: string;
 }
 
 function settingsToFormState(settings: TenantThemeSettings | undefined): FormState {
@@ -102,10 +105,14 @@ function settingsToFormState(settings: TenantThemeSettings | undefined): FormSta
     logoUrl: settings?.logoUrl ?? '',
     coverImageUrl: settings?.coverImageUrl ?? '',
     operatingHours: hoursEntriesToState(settings?.operatingHours),
+    taxRate: settings?.taxRate?.toString() ?? '',
+    taxInclusive: settings?.taxInclusive ?? true,
+    taxLabel: settings?.taxLabel ?? '',
   };
 }
 
 function formStateToSettings(form: FormState): Partial<TenantThemeSettings> {
+  const taxRate = parseFloat(form.taxRate);
   return {
     preset: form.preset || undefined,
     brandColor: form.brandColor,
@@ -115,6 +122,9 @@ function formStateToSettings(form: FormState): Partial<TenantThemeSettings> {
     logoUrl: form.logoUrl || undefined,
     coverImageUrl: form.coverImageUrl || undefined,
     operatingHours: stateToHoursEntries(form.operatingHours),
+    taxRate: !isNaN(taxRate) && taxRate > 0 ? taxRate : undefined,
+    taxInclusive: form.taxInclusive,
+    taxLabel: form.taxLabel || undefined,
   };
 }
 
@@ -806,6 +816,62 @@ export function ThemeSettings() {
                 onChange={(url) => updateField('coverImageUrl', url ?? '')}
                 tenantSlug={tenantSlug}
                 aspectRatio="3:1"
+              />
+            </CardContent>
+            <CardFooter className="justify-end gap-2">
+              {isDirty && (
+                <Button variant="ghost" size="sm" onClick={handleReset}>
+                  <RotateCcw className="h-4 w-4" />
+                  Discard
+                </Button>
+              )}
+              <Button
+                variant="primary"
+                size="md"
+                onClick={handleSave}
+                loading={updateMutation.isPending}
+                disabled={!isDirty}
+              >
+                <Save className="h-4 w-4" />
+                Save Changes
+              </Button>
+            </CardFooter>
+          </Card>
+
+          {/* Tax Settings */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Receipt className="h-5 w-5 text-primary" />
+                <CardTitle>Tax</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-text-secondary">
+                Configure tax calculation for orders. Leave rate empty or 0 for no tax.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Input
+                  label="Tax Rate (%)"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="100"
+                  value={form.taxRate}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField('taxRate', e.target.value)}
+                  placeholder="e.g. 15"
+                />
+                <Input
+                  label="Tax Label"
+                  value={form.taxLabel}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField('taxLabel', e.target.value)}
+                  placeholder="e.g. GST, VAT, Tax"
+                />
+              </div>
+              <Toggle
+                checked={form.taxInclusive}
+                label={form.taxInclusive ? 'Tax inclusive (prices already include tax)' : 'Tax exclusive (tax added on top of prices)'}
+                onChange={(checked) => updateField('taxInclusive', checked)}
               />
             </CardContent>
             <CardFooter className="justify-end gap-2">

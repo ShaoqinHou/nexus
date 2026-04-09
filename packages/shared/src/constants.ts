@@ -17,12 +17,30 @@ export type OrderItemStatus = typeof ORDER_ITEM_STATUSES[number];
 // Statuses where order modifications are allowed
 export const MODIFIABLE_ORDER_STATUSES: readonly OrderStatus[] = ['pending', 'confirmed', 'preparing'] as const;
 
+// Payment statuses
+export const PAYMENT_STATUSES = ['unpaid', 'paid', 'refunded'] as const;
+export type PaymentStatus = typeof PAYMENT_STATUSES[number];
+
+export const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
+  unpaid: 'Unpaid',
+  paid: 'Paid',
+  refunded: 'Refunded',
+};
+
 // Dietary tags
 export const DIETARY_TAGS = [
   'vegetarian', 'vegan', 'gluten-free', 'dairy-free',
   'nut-free', 'halal', 'spicy', 'new', 'popular'
 ] as const;
 export type DietaryTag = typeof DIETARY_TAGS[number];
+
+// Allergens
+export const ALLERGENS = [
+  'gluten', 'dairy', 'eggs', 'nuts', 'peanuts', 'soy',
+  'fish', 'shellfish', 'sesame', 'celery', 'mustard',
+  'lupin', 'molluscs', 'sulphites'
+] as const;
+export type Allergen = typeof ALLERGENS[number];
 
 // Order status display helpers
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {

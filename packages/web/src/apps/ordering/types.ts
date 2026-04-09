@@ -1,7 +1,7 @@
-import type { OrderStatus, OrderItemStatus } from '@nexus/shared';
-export type { OrderStatus, OrderItemStatus };
-export { DIETARY_TAGS } from '@nexus/shared';
-export type { DietaryTag } from '@nexus/shared';
+import type { OrderStatus, OrderItemStatus, PaymentStatus } from '@nexus/shared';
+export type { OrderStatus, OrderItemStatus, PaymentStatus };
+export { DIETARY_TAGS, ALLERGENS } from '@nexus/shared';
+export type { DietaryTag, Allergen } from '@nexus/shared';
 
 // --- API Response Interfaces ---
 // These represent the API response shape (with transformations like nested items).
@@ -27,6 +27,7 @@ export interface MenuItem {
   price: number;
   imageUrl: string | null;
   tags: string | null;
+  allergens: string | null;
   isAvailable: number;
   sortOrder: number;
   isActive: number;
@@ -80,9 +81,11 @@ export interface Order {
   sessionId: string | null;
   tableNumber: string;
   status: OrderStatus;
+  paymentStatus: PaymentStatus;
   notes: string | null;
   total: number;
   discountAmount: number | null;
+  taxAmount: number | null;
   items: OrderItem[];
   createdAt: string;
   updatedAt: string;

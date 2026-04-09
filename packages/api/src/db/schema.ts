@@ -1,11 +1,11 @@
 import { sqliteTable, text, integer, real, uniqueIndex, index } from 'drizzle-orm/sqlite-core';
 import { nanoid } from 'nanoid';
-import { ORDER_STATUSES, STAFF_ROLES, PROMOTION_TYPES, ORDER_ITEM_STATUSES } from '@nexus/shared';
-import type { OrderStatus, StaffRole, PromotionType, OrderItemStatus } from '@nexus/shared';
+import { ORDER_STATUSES, STAFF_ROLES, PROMOTION_TYPES, ORDER_ITEM_STATUSES, PAYMENT_STATUSES } from '@nexus/shared';
+import type { OrderStatus, StaffRole, PromotionType, OrderItemStatus, PaymentStatus } from '@nexus/shared';
 
 // Re-export shared constants for backward compatibility
-export { ORDER_STATUSES, STAFF_ROLES, PROMOTION_TYPES, ORDER_ITEM_STATUSES };
-export type { OrderStatus, StaffRole, PromotionType, OrderItemStatus };
+export { ORDER_STATUSES, STAFF_ROLES, PROMOTION_TYPES, ORDER_ITEM_STATUSES, PAYMENT_STATUSES };
+export type { OrderStatus, StaffRole, PromotionType, OrderItemStatus, PaymentStatus };
 
 // --- Platform Tables ---
 
@@ -66,6 +66,7 @@ export const menuItems = sqliteTable('menu_items', {
   price: real('price').notNull(),
   imageUrl: text('image_url'),
   tags: text('tags'), // comma-separated: "vegetarian,gluten-free,spicy"
+  allergens: text('allergens'), // comma-separated: "gluten,dairy,nuts"
   isAvailable: integer('is_available').notNull().default(1),
   isFeatured: integer('is_featured').notNull().default(0),
   sortOrder: integer('sort_order').notNull().default(0),
@@ -182,9 +183,11 @@ export const orders = sqliteTable('orders', {
   sessionId: text('session_id').references(() => customerSessions.id),
   tableNumber: text('table_number').notNull(),
   status: text('status').notNull().$type<OrderStatus>().default('pending'),
+  paymentStatus: text('payment_status').notNull().$type<PaymentStatus>().default('unpaid'),
   notes: text('notes'),
   total: real('total').notNull(),
   discountAmount: real('discount_amount').default(0),
+  taxAmount: real('tax_amount').default(0),
   promoCodeId: text('promo_code_id').references(() => promoCodes.id),
   createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
   updatedAt: text('updated_at').notNull().$defaultFn(() => new Date().toISOString()),

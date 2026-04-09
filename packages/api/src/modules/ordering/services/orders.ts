@@ -1,8 +1,9 @@
 import { eq, and, or, gte, desc, inArray, sql } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { MODIFIABLE_ORDER_STATUSES } from '@nexus/shared';
-import type { OrderItemStatus } from '@nexus/shared';
+import type { OrderItemStatus, PaymentStatus } from '@nexus/shared';
 import {
+  tenants,
   menuItems,
   modifierOptions,
   comboDeals,
@@ -357,7 +358,34 @@ export function createOrder(
     }
   }
 
-  const finalTotal = Math.round((roundedTotal - discountAmount) * 100) / 100;
+  const subtotalAfterDiscount = Math.round((roundedTotal - discountAmount) * 100) / 100;
+
+  // Calculate tax from tenant settings
+  let taxAmount = 0;
+  let finalTotal = subtotalAfterDiscount;
+
+  const tenant = db.select().from(tenants).where(eq(tenants.id, tenantId)).get();
+  if (tenant?.settings) {
+    try {
+      const settings = JSON.parse(tenant.settings) as { taxRate?: number; taxInclusive?: boolean };
+      const taxRate = settings.taxRate ?? 0;
+      if (taxRate > 0) {
+        if (settings.taxInclusive) {
+          // Prices already include tax — extract tax component for display
+          taxAmount = subtotalAfterDiscount - (subtotalAfterDiscount / (1 + taxRate / 100));
+          finalTotal = subtotalAfterDiscount; // total stays the same
+        } else {
+          // Tax added on top
+          taxAmount = subtotalAfterDiscount * (taxRate / 100);
+          finalTotal = subtotalAfterDiscount + taxAmount;
+        }
+        taxAmount = Math.round(taxAmount * 100) / 100;
+        finalTotal = Math.round(finalTotal * 100) / 100;
+      }
+    } catch {
+      // If settings parsing fails, proceed without tax
+    }
+  }
 
   // Create order
   const orderId = nanoid();
@@ -371,6 +399,7 @@ export function createOrder(
       notes: data.notes ?? null,
       total: finalTotal,
       discountAmount,
+      taxAmount,
       promoCodeId,
     })
     .returning()
@@ -880,4 +909,56 @@ export function handleCancellationRequest(
     .all();
 
   return { data: { ...updatedOrder, items: allItems } };
+}
+
+/**
+ * Update payment status of an order (owner/manager only).
+ */
+export function updatePaymentStatus(
+  db: DrizzleDB,
+  tenantId: string,
+  orderId: string,
+  paymentStatus: PaymentStatus,
+) {
+  const order = db
+    .select()
+    .from(orders)
+    .where(
+      and(
+        eq(orders.id, orderId),
+        eq(orders.tenantId, tenantId)
+      )
+    )
+    .get();
+
+  if (!order) {
+    return { error: 'Order not found' as const };
+  }
+
+  const updated = db
+    .update(orders)
+    .set({
+      paymentStatus,
+      updatedAt: new Date().toISOString(),
+    })
+    .where(
+      and(
+        eq(orders.id, orderId),
+        eq(orders.tenantId, tenantId)
+      )
+    )
+    .returning()
+    .get();
+
+  if (!updated) {
+    return { error: 'Failed to update payment status' as const };
+  }
+
+  const items = db
+    .select()
+    .from(orderItems)
+    .where(eq(orderItems.orderId, updated.id))
+    .all();
+
+  return { data: { ...updated, items } };
 }

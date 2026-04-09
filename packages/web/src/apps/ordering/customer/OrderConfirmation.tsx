@@ -26,6 +26,9 @@ interface OrderConfirmationProps {
   orderId: string;
   onBackToMenu: () => void;
   onAddItems?: (orderId: string) => void;
+  taxLabel?: string;
+  taxRate?: number;
+  taxInclusive?: boolean;
 }
 
 // Timeline display statuses — excludes 'cancelled' which is shown differently
@@ -176,6 +179,9 @@ export function OrderConfirmation({
   orderId,
   onBackToMenu,
   onAddItems,
+  taxLabel,
+  taxRate,
+  taxInclusive,
 }: OrderConfirmationProps) {
   const { toast } = useToast();
   const cancelItems = useRequestItemCancellation(tenantSlug);
@@ -388,28 +394,64 @@ export function OrderConfirmation({
         </div>
         {/* Total */}
         <div className="px-4 py-3 border-t border-border bg-bg-muted space-y-1">
-          {order.discountAmount != null && order.discountAmount > 0 && (
-            <>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-text-secondary">Subtotal</span>
-                <span className="text-sm text-text">
-                  {formatPrice(order.total + order.discountAmount)}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-success">Discount</span>
-                <span className="text-sm text-success">
-                  -{formatPrice(order.discountAmount)}
-                </span>
-              </div>
-            </>
-          )}
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-text">Total</span>
-            <span className="text-base font-bold text-text">
-              {formatPrice(order.total)}
-            </span>
-          </div>
+          {(() => {
+            const hasDiscount = order.discountAmount != null && order.discountAmount > 0;
+            const hasTax = order.taxAmount != null && order.taxAmount > 0;
+            const effectiveTaxLabel = taxLabel || 'Tax';
+            const showSubtotal = hasDiscount || (hasTax && !taxInclusive);
+
+            // Compute subtotal before discount (and before exclusive tax)
+            const subtotalBeforeDiscount = order.total
+              + (order.discountAmount ?? 0)
+              + (hasTax && !taxInclusive ? -(order.taxAmount ?? 0) : 0);
+
+            return (
+              <>
+                {showSubtotal && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-text-secondary">Subtotal</span>
+                    <span className="text-sm text-text">
+                      {formatPrice(subtotalBeforeDiscount)}
+                    </span>
+                  </div>
+                )}
+                {hasDiscount && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-success">Discount</span>
+                    <span className="text-sm text-success">
+                      -{formatPrice(order.discountAmount!)}
+                    </span>
+                  </div>
+                )}
+                {hasTax && !taxInclusive && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-text-secondary">
+                      {effectiveTaxLabel}{taxRate ? ` (${taxRate}%)` : ''}
+                    </span>
+                    <span className="text-sm text-text">
+                      {formatPrice(order.taxAmount!)}
+                    </span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-text">Total</span>
+                  <span className="text-base font-bold text-text">
+                    {formatPrice(order.total)}
+                  </span>
+                </div>
+                {hasTax && taxInclusive && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-text-tertiary">
+                      Includes {effectiveTaxLabel}{taxRate ? ` (${taxRate}%)` : ''}
+                    </span>
+                    <span className="text-xs text-text-tertiary">
+                      {formatPrice(order.taxAmount!)}
+                    </span>
+                  </div>
+                )}
+              </>
+            );
+          })()}
         </div>
       </div>
 

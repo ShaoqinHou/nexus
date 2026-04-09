@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Plus, Minus, UtensilsCrossed, Package, Search, X } from 'lucide-react';
+import { Plus, Minus, UtensilsCrossed, Package, Search, X, AlertTriangle } from 'lucide-react';
 import { apiClient } from '@web/lib/api';
 import { formatPrice, parseTags } from '@web/lib/format';
 import { Button } from '@web/components/ui';
@@ -10,6 +10,7 @@ import { ItemDetailSheet } from '@web/apps/ordering/customer/ItemDetailSheet';
 import { ComboSheet } from '@web/apps/ordering/customer/ComboSheet';
 import type { MenuCategory, MenuItem, ModifierGroup, ComboDeal } from '@web/apps/ordering/types';
 import type { DietaryTag } from '@web/apps/ordering/types';
+import { ALLERGENS } from '@web/apps/ordering/types';
 
 interface PublicMenuItem extends MenuItem {
   modifierGroups?: ModifierGroup[];
@@ -67,6 +68,23 @@ function DietaryTagBadges({ tags }: { tags: string | null }) {
           ].join(' ')}
         >
           {tag}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function AllergenBadges({ allergens }: { allergens: string | null }) {
+  const parsed = parseTags(allergens);
+  if (parsed.length === 0) return null;
+  return (
+    <div className="flex flex-wrap gap-1 mt-1">
+      {parsed.map((allergen) => (
+        <span
+          key={allergen}
+          className="inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-medium bg-danger-light text-danger"
+        >
+          {allergen}
         </span>
       ))}
     </div>
@@ -161,6 +179,7 @@ function MenuItemCard({
           </p>
         )}
         <DietaryTagBadges tags={item.tags} />
+        <AllergenBadges allergens={item.allergens} />
         {hasModifiers && (
           <p className="mt-0.5 text-xs text-text-tertiary">
             <span className="lg:hidden">Customizable</span>
@@ -339,8 +358,30 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
   const [selectedCombo, setSelectedCombo] = useState<ComboDeal | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
+  const [hiddenAllergens, setHiddenAllergens] = useState<Set<string>>(new Set());
+  const [allergenFilterOpen, setAllergenFilterOpen] = useState(false);
   const sectionRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const { addItem } = useCart();
+
+  const toggleAllergenFilter = useCallback((allergen: string) => {
+    setHiddenAllergens((prev) => {
+      const next = new Set(prev);
+      if (next.has(allergen)) {
+        next.delete(allergen);
+      } else {
+        next.add(allergen);
+      }
+      return next;
+    });
+  }, []);
+
+  const filterByAllergens = useCallback((items: PublicMenuItem[]) => {
+    if (hiddenAllergens.size === 0) return items;
+    return items.filter((item) => {
+      const itemAllergens = parseTags(item.allergens);
+      return !itemAllergens.some((a) => hiddenAllergens.has(a));
+    });
+  }, [hiddenAllergens]);
 
   const {
     data: menuData,
@@ -502,6 +543,48 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
           )}
         </div>
 
+        {/* Allergen filter */}
+        <div className="mb-4">
+          <button
+            type="button"
+            onClick={() => setAllergenFilterOpen((p) => !p)}
+            className={[
+              'flex items-center gap-1.5 text-xs font-medium px-2 py-1.5 rounded-lg transition-colors w-full text-left',
+              hiddenAllergens.size > 0
+                ? 'text-danger bg-danger-light'
+                : 'text-text-secondary hover:bg-bg-muted',
+            ].join(' ')}
+          >
+            <AlertTriangle className="h-3.5 w-3.5" />
+            Allergen Filter
+            {hiddenAllergens.size > 0 && (
+              <span className="ml-auto text-xs font-bold">{hiddenAllergens.size}</span>
+            )}
+          </button>
+          {allergenFilterOpen && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {ALLERGENS.map((allergen) => {
+                const isHidden = hiddenAllergens.has(allergen);
+                return (
+                  <button
+                    key={allergen}
+                    type="button"
+                    onClick={() => toggleAllergenFilter(allergen)}
+                    className={[
+                      'px-2 py-0.5 rounded-full text-xs font-medium border transition-colors',
+                      isHidden
+                        ? 'bg-danger text-text-inverse border-danger'
+                        : 'bg-bg-muted text-text-secondary border-border hover:border-border-strong',
+                    ].join(' ')}
+                  >
+                    {allergen}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
         {/* Category links */}
         <div className="flex flex-col gap-0.5">
           {visibleCategories.map(({ category }) => (
@@ -630,11 +713,53 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
               >
                 <Search className="h-4 w-4" />
               </button>
+              {/* Allergen filter toggle */}
+              <button
+                type="button"
+                onClick={() => setAllergenFilterOpen((p) => !p)}
+                className={[
+                  'shrink-0 p-2 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                  hiddenAllergens.size > 0
+                    ? 'text-danger bg-danger-light'
+                    : 'text-text-secondary hover:bg-bg-muted',
+                ].join(' ')}
+                aria-label="Allergen filter"
+              >
+                <AlertTriangle className="h-4 w-4" />
+              </button>
               {tableNumber && (
                 <span className="shrink-0 px-2 py-1 rounded-full bg-bg-muted text-xs font-semibold text-text-secondary">
                   Table {tableNumber}
                 </span>
               )}
+            </div>
+          )}
+          {/* Mobile allergen filter panel */}
+          {allergenFilterOpen && (
+            <div className="px-4 py-2 border-t border-border bg-bg-surface lg:hidden">
+              <p className="text-xs font-medium text-text-secondary mb-1.5">
+                Hide items containing:
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {ALLERGENS.map((allergen) => {
+                  const isHidden = hiddenAllergens.has(allergen);
+                  return (
+                    <button
+                      key={allergen}
+                      type="button"
+                      onClick={() => toggleAllergenFilter(allergen)}
+                      className={[
+                        'px-2 py-0.5 rounded-full text-xs font-medium border transition-colors',
+                        isHidden
+                          ? 'bg-danger text-text-inverse border-danger'
+                          : 'bg-bg-muted text-text-secondary border-border hover:border-border-strong',
+                      ].join(' ')}
+                    >
+                      {allergen}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
@@ -645,14 +770,14 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
             // Search results
             (() => {
               const q = searchQuery.toLowerCase();
-              const results = visibleCategories.flatMap(({ items }) =>
+              const results = filterByAllergens(visibleCategories.flatMap(({ items }) =>
                 items.filter(
                   (item) =>
                     item.name.toLowerCase().includes(q) ||
                     (item.description ?? '').toLowerCase().includes(q) ||
                     (item.tags ?? '').toLowerCase().includes(q)
                 )
-              );
+              ));
               if (results.length === 0) {
                 return (
                   <EmptyState
@@ -678,16 +803,20 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
             })()
           ) : (
             // Normal category layout
-            visibleCategories.map(({ category, items }) => (
-              <CategorySection
-                key={category.id}
-                category={category}
-                items={items}
-                sectionRef={setSectionRef(category.id)}
-                onOpenDetail={setDetailItem}
-                disabled={disabled}
-              />
-            ))
+            visibleCategories.map(({ category, items }) => {
+              const filtered = filterByAllergens(items);
+              if (filtered.length === 0) return null;
+              return (
+                <CategorySection
+                  key={category.id}
+                  category={category}
+                  items={filtered}
+                  sectionRef={setSectionRef(category.id)}
+                  onOpenDetail={setDetailItem}
+                  disabled={disabled}
+                />
+              );
+            })
           )}
 
           {/* Combo Deals section */}

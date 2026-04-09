@@ -230,3 +230,124 @@ export function getStatusBreakdown(
   }
   return result;
 }
+
+// --- Daily Summary (EOD Report) ---
+
+interface DailySummaryTopItem {
+  name: string;
+  quantity: number;
+  revenue: number;
+}
+
+interface DailySummary {
+  date: string;
+  totalOrders: number;
+  totalRevenue: number;
+  totalTax: number;
+  totalDiscounts: number;
+  cancelledOrders: number;
+  cancelledAmount: number;
+  avgOrderValue: number;
+  topItems: DailySummaryTopItem[];
+  paymentBreakdown: {
+    paid: { count: number; amount: number };
+    unpaid: { count: number; amount: number };
+    refunded: { count: number; amount: number };
+  };
+}
+
+export function getDailySummary(
+  db: DrizzleDB,
+  tenantId: string,
+  date: string,
+): DailySummary {
+  // Get all orders for the given date
+  const dayStart = `${date}T00:00:00.000Z`;
+  const dayEnd = `${date}T23:59:59.999Z`;
+
+  const dayOrders = db
+    .select()
+    .from(orders)
+    .where(
+      and(
+        eq(orders.tenantId, tenantId),
+        gte(orders.createdAt, dayStart),
+        sql`${orders.createdAt} <= ${dayEnd}`,
+      ),
+    )
+    .all();
+
+  const totalOrders = dayOrders.length;
+  const cancelledOrders = dayOrders.filter((o) => o.status === 'cancelled');
+  const nonCancelledOrders = dayOrders.filter((o) => o.status !== 'cancelled');
+
+  const totalRevenue = nonCancelledOrders.reduce((sum, o) => sum + o.total, 0);
+  const totalDiscounts = nonCancelledOrders.reduce((sum, o) => sum + (o.discountAmount ?? 0), 0);
+  const cancelledAmount = cancelledOrders.reduce((sum, o) => sum + o.total, 0);
+
+  // GST 15% calculation (tax = total * 3/23 for GST-inclusive pricing)
+  const totalTax = Math.round((totalRevenue * 3 / 23) * 100) / 100;
+
+  const avgOrderValue = nonCancelledOrders.length > 0
+    ? Math.round((totalRevenue / nonCancelledOrders.length) * 100) / 100
+    : 0;
+
+  // Payment breakdown
+  const paymentBreakdown = {
+    paid: { count: 0, amount: 0 },
+    unpaid: { count: 0, amount: 0 },
+    refunded: { count: 0, amount: 0 },
+  };
+
+  for (const order of nonCancelledOrders) {
+    const ps = (order.paymentStatus ?? 'unpaid') as 'paid' | 'unpaid' | 'refunded';
+    paymentBreakdown[ps].count += 1;
+    paymentBreakdown[ps].amount += order.total;
+  }
+
+  // Round amounts
+  paymentBreakdown.paid.amount = Math.round(paymentBreakdown.paid.amount * 100) / 100;
+  paymentBreakdown.unpaid.amount = Math.round(paymentBreakdown.unpaid.amount * 100) / 100;
+  paymentBreakdown.refunded.amount = Math.round(paymentBreakdown.refunded.amount * 100) / 100;
+
+  // Top 5 items for the day
+  const topItemRows = db
+    .select({
+      name: orderItems.name,
+      quantity: sql<number>`SUM(${orderItems.quantity})`.as('total_qty'),
+      revenue: sql<number>`SUM(${orderItems.price} * ${orderItems.quantity})`.as('total_revenue'),
+    })
+    .from(orderItems)
+    .innerJoin(orders, eq(orderItems.orderId, orders.id))
+    .where(
+      and(
+        eq(orders.tenantId, tenantId),
+        gte(orders.createdAt, dayStart),
+        sql`${orders.createdAt} <= ${dayEnd}`,
+        sql`${orders.status} != 'cancelled'`,
+      ),
+    )
+    .groupBy(orderItems.name)
+    .orderBy(desc(sql`total_revenue`))
+    .limit(5)
+    .all();
+
+  const topItems: DailySummaryTopItem[] = topItemRows.map((row) => ({
+    name: row.name,
+    quantity: row.quantity,
+    revenue: Math.round(row.revenue * 100) / 100,
+  }));
+
+  return {
+    date,
+    totalOrders,
+    totalRevenue: Math.round(totalRevenue * 100) / 100,
+    totalTax,
+    totalDiscounts: Math.round(totalDiscounts * 100) / 100,
+    cancelledOrders: cancelledOrders.length,
+    cancelledAmount: Math.round(cancelledAmount * 100) / 100,
+    avgOrderValue,
+    topItems,
+    paymentBreakdown,
+  };
+}

@@ -1,13 +1,14 @@
 import { useState, useMemo } from 'react';
-import { Clock, ShoppingBag, ChevronDown, ChevronUp, AlertTriangle, ArrowRight } from 'lucide-react';
+import { Clock, ShoppingBag, ChevronDown, ChevronUp, AlertTriangle, ArrowRight, Printer, CreditCard } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 import {
   ORDER_STATUSES,
   ORDER_STATUS_LABELS,
   ORDER_STATUS_FLOW,
   ORDER_FLOW_LABELS,
+  PAYMENT_STATUS_LABELS,
 } from '@nexus/shared';
-import type { OrderStatus } from '@nexus/shared';
+import type { OrderStatus, PaymentStatus } from '@nexus/shared';
 import {
   Button,
   Badge,
@@ -22,8 +23,9 @@ import { StatusBadge, EmptyState, ConfirmButton } from '@web/components/patterns
 import { formatPrice, timeAgo } from '@web/lib/format';
 import { useTenant } from '@web/platform/tenant/TenantProvider';
 import { useToast } from '@web/platform/ToastProvider';
-import { useOrders, useUpdateOrderStatus, useHandleCancellationRequest } from '../hooks/useOrders';
+import { useOrders, useUpdateOrderStatus, useHandleCancellationRequest, useUpdatePaymentStatus } from '../hooks/useOrders';
 import type { Order } from '../types';
+import { OrderReceipt } from './OrderReceipt';
 
 // ---------------------------------------------------------------------------
 // Order status flow — derived from shared constants
@@ -47,6 +49,27 @@ const ORDER_STATUS_MAP = {
   cancelled: 'error' as const,
 };
 
+const PAYMENT_STATUS_MAP = {
+  unpaid: 'warning' as const,
+  paid: 'success' as const,
+  refunded: 'error' as const,
+};
+
+// ---------------------------------------------------------------------------
+// Print receipt helper
+// ---------------------------------------------------------------------------
+
+function printReceipt(order: Order, tenantName: string) {
+  const printWindow = window.open('', '_blank', 'width=350,height=600');
+  if (!printWindow) return;
+
+  const receiptHtml = OrderReceipt.toHtml(order, tenantName);
+  printWindow.document.write(receiptHtml);
+  printWindow.document.close();
+  printWindow.focus();
+  printWindow.print();
+}
+
 // ---------------------------------------------------------------------------
 // Single order card
 // ---------------------------------------------------------------------------
@@ -57,12 +80,18 @@ function OrderCard({
   isUpdating,
   onHandleCancellation,
   isCancellationPending,
+  onUpdatePaymentStatus,
+  isPaymentUpdating,
+  tenantName,
 }: {
   order: Order;
   onUpdateStatus: (id: string, status: OrderStatus) => void;
   isUpdating: boolean;
   onHandleCancellation: (orderId: string, itemId: string, action: 'approve' | 'reject') => void;
   isCancellationPending: boolean;
+  onUpdatePaymentStatus: (id: string, paymentStatus: PaymentStatus) => void;
+  isPaymentUpdating: boolean;
+  tenantName: string;
 }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -114,6 +143,10 @@ function OrderCard({
               </div>
             </div>
             <StatusBadge status={order.status} statusMap={ORDER_STATUS_MAP} />
+            <StatusBadge
+              status={order.paymentStatus ?? 'unpaid'}
+              statusMap={PAYMENT_STATUS_MAP}
+            />
             {expanded ? (
               <ChevronUp className="h-4 w-4 text-text-tertiary" />
             ) : (
@@ -256,6 +289,49 @@ function OrderCard({
                   {nextLabel}
                 </Button>
               )}
+
+              {/* Payment status toggle */}
+              {(order.paymentStatus ?? 'unpaid') !== 'paid' && order.status !== 'cancelled' && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onUpdatePaymentStatus(order.id, 'paid');
+                  }}
+                  loading={isPaymentUpdating}
+                >
+                  <CreditCard className="h-3.5 w-3.5 mr-1" />
+                  Mark Paid
+                </Button>
+              )}
+              {(order.paymentStatus ?? 'unpaid') === 'paid' && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onUpdatePaymentStatus(order.id, 'refunded');
+                  }}
+                  loading={isPaymentUpdating}
+                >
+                  Refund
+                </Button>
+              )}
+
+              {/* Print receipt */}
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  printReceipt(order, tenantName);
+                }}
+              >
+                <Printer className="h-3.5 w-3.5 mr-1" />
+                Print
+              </Button>
+
               {order.status !== 'cancelled' && order.status !== 'delivered' && (
                 <ConfirmButton
                   variant="destructive"
@@ -312,7 +388,7 @@ function OnboardingStep({ number, title, description, link }: OnboardingStepProp
 // ---------------------------------------------------------------------------
 
 export function OrderDashboard() {
-  const { tenantSlug } = useTenant();
+  const { tenantSlug, tenant } = useTenant();
 
   const [statusFilter, setStatusFilter] = useState('');
   const [tableFilter, setTableFilter] = useState('');
@@ -330,6 +406,7 @@ export function OrderDashboard() {
   const { toast } = useToast();
   const updateStatus = useUpdateOrderStatus(tenantSlug);
   const handleCancellation = useHandleCancellationRequest(tenantSlug);
+  const updatePayment = useUpdatePaymentStatus(tenantSlug);
 
   const handleUpdateStatus = (id: string, status: OrderStatus) => {
     updateStatus.mutate(
@@ -340,6 +417,20 @@ export function OrderDashboard() {
         },
         onError: (err: Error) => {
           toast('error', err.message || 'Failed to update order status');
+        },
+      },
+    );
+  };
+
+  const handleUpdatePaymentStatus = (id: string, paymentStatus: PaymentStatus) => {
+    updatePayment.mutate(
+      { id, paymentStatus },
+      {
+        onSuccess: () => {
+          toast('success', `Payment marked as ${PAYMENT_STATUS_LABELS[paymentStatus]}`);
+        },
+        onError: (err: Error) => {
+          toast('error', err.message || 'Failed to update payment status');
         },
       },
     );
@@ -455,6 +546,12 @@ export function OrderDashboard() {
               }
               onHandleCancellation={handleCancellationRequest}
               isCancellationPending={handleCancellation.isPending}
+              onUpdatePaymentStatus={handleUpdatePaymentStatus}
+              isPaymentUpdating={
+                updatePayment.isPending &&
+                updatePayment.variables?.id === order.id
+              }
+              tenantName={tenant?.name ?? 'Restaurant'}
             />
           ))}
         </div>

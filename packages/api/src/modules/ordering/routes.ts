@@ -7,7 +7,7 @@ import { eq, and } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import jwt from 'jsonwebtoken';
 import { authMiddleware, JWT_SECRET } from '../../middleware/auth.js';
-import { customerSessions, staff, ORDER_STATUSES, PROMOTION_TYPES, ORDER_ITEM_STATUSES } from '../../db/schema.js';
+import { customerSessions, staff, ORDER_STATUSES, PROMOTION_TYPES, ORDER_ITEM_STATUSES, PAYMENT_STATUSES } from '../../db/schema.js';
 import type { DrizzleDB } from '../../db/client.js';
 import type { AuthEnv, TenantEnv } from '../../lib/types.js';
 import {
@@ -48,12 +48,14 @@ import {
   addItemsToOrder,
   requestItemCancellation,
   handleCancellationRequest,
+  updatePaymentStatus,
   getDailyRevenue,
   getTopItems,
   getPeakHours,
   getOrderStats,
   getPromoStats,
   getStatusBreakdown,
+  getDailySummary,
 } from './service.js';
 
 // --- Validation Schemas ---
@@ -77,6 +79,7 @@ const createMenuItemSchema = z.object({
   price: z.number().positive('Price must be positive'),
   imageUrl: z.string().url().optional(),
   tags: z.string().optional(),
+  allergens: z.string().optional(),
 });
 
 const updateMenuItemSchema = z.object({
@@ -85,6 +88,7 @@ const updateMenuItemSchema = z.object({
   price: z.number().positive().optional(),
   imageUrl: z.string().url().optional(),
   tags: z.string().optional(),
+  allergens: z.string().optional(),
   isAvailable: z.number().int().min(0).max(1).optional(),
   sortOrder: z.number().int().optional(),
   categoryId: z.string().min(1).optional(),
@@ -92,6 +96,10 @@ const updateMenuItemSchema = z.object({
 
 const updateOrderStatusSchema = z.object({
   status: z.enum(ORDER_STATUSES),
+});
+
+const updatePaymentStatusSchema = z.object({
+  paymentStatus: z.enum(PAYMENT_STATUSES),
 });
 
 const createModifierGroupSchema = z.object({
@@ -609,6 +617,27 @@ export function staffOrderingRoutes(db: DrizzleDB) {
     }
   );
 
+  // --- Payment Status (owner/manager only) ---
+
+  router.patch(
+    '/orders/:id/payment',
+    zValidator('json', updatePaymentStatusSchema),
+    (c) => {
+      const tenantId = c.var.tenantId;
+      const user = c.var.user;
+      if (user.role !== 'owner' && user.role !== 'manager') {
+        return c.json({ error: 'Only owner or manager can update payment status' }, 403);
+      }
+      const orderId = c.req.param('id');
+      const { paymentStatus } = c.req.valid('json');
+      const result = updatePaymentStatus(db, tenantId, orderId, paymentStatus);
+      if ('error' in result) {
+        return c.json({ error: result.error }, 404);
+      }
+      return c.json({ data: result.data });
+    }
+  );
+
   // --- Order Modifications (Staff) ---
 
   // Staff can add items to an order
@@ -691,6 +720,13 @@ export function staffOrderingRoutes(db: DrizzleDB) {
   router.get('/analytics/status-breakdown', (c) => {
     const tenantId = c.var.tenantId;
     const data = getStatusBreakdown(db, tenantId);
+    return c.json({ data });
+  });
+
+  router.get('/analytics/daily-summary', (c) => {
+    const tenantId = c.var.tenantId;
+    const date = c.req.query('date') || new Date().toISOString().split('T')[0];
+    const data = getDailySummary(db, tenantId, date);
     return c.json({ data });
   });
 

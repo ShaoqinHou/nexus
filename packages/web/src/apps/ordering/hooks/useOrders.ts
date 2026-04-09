@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@web/lib/api';
 import { orderingKeys } from './keys';
-import type { Order, OrderStatus } from '../types';
+import type { Order, OrderStatus, PaymentStatus } from '../types';
 
 export function useOrders(
   tenantSlug: string,
@@ -127,6 +127,22 @@ export function useStaffAddItemsToOrder(tenantSlug: string) {
       apiClient.post<{ data: Order }>(
         `/t/${tenantSlug}/ordering/orders/${orderId}/items`,
         { items },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: orderingKeys.ordersAll() });
+    },
+  });
+}
+
+/** Staff updates payment status (owner/manager only) */
+export function useUpdatePaymentStatus(tenantSlug: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, paymentStatus }: { id: string; paymentStatus: PaymentStatus }) =>
+      apiClient.patch<{ data: Order }>(
+        `/t/${tenantSlug}/ordering/orders/${id}/payment`,
+        { paymentStatus },
       ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: orderingKeys.ordersAll() });

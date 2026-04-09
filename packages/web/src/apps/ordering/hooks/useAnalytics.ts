@@ -41,7 +41,30 @@ interface PromoStat {
   totalDiscount: number;
 }
 
-export type { DailyRevenue, TopItem, PeakHour, PeriodStats, OrderStats, PromoStat };
+interface DailySummaryTopItem {
+  name: string;
+  quantity: number;
+  revenue: number;
+}
+
+interface DailySummary {
+  date: string;
+  totalOrders: number;
+  totalRevenue: number;
+  totalTax: number;
+  totalDiscounts: number;
+  cancelledOrders: number;
+  cancelledAmount: number;
+  avgOrderValue: number;
+  topItems: DailySummaryTopItem[];
+  paymentBreakdown: {
+    paid: { count: number; amount: number };
+    unpaid: { count: number; amount: number };
+    refunded: { count: number; amount: number };
+  };
+}
+
+export type { DailyRevenue, TopItem, PeakHour, PeriodStats, OrderStats, PromoStat, DailySummary };
 
 // --- Hooks ---
 
@@ -116,5 +139,18 @@ export function useStatusBreakdown(tenantSlug: string) {
       ),
     select: (res) => res.data,
     staleTime: ANALYTICS_STALE_TIME,
+  });
+}
+
+export function useDailySummary(tenantSlug: string, date: string) {
+  return useQuery({
+    queryKey: [...orderingKeys.all, 'analytics', 'daily-summary', date] as const,
+    queryFn: () =>
+      apiClient.get<{ data: DailySummary }>(
+        `/t/${tenantSlug}/ordering/analytics/daily-summary?date=${date}`,
+      ),
+    select: (res) => res.data,
+    staleTime: ANALYTICS_STALE_TIME,
+    enabled: !!date,
   });
 }

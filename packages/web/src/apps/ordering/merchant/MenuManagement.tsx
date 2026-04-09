@@ -39,7 +39,7 @@ import {
   useSetItemModifierGroups,
 } from '../hooks/useModifiers';
 import type { MenuCategory, MenuItem } from '../types';
-import { DIETARY_TAGS } from '../types';
+import { DIETARY_TAGS, ALLERGENS } from '../types';
 
 // ---------------------------------------------------------------------------
 // Category form dialog
@@ -137,6 +137,7 @@ interface ItemFormData {
   price: string;
   imageUrl: string;
   tags: string;
+  allergens: string;
 }
 
 function ItemDialog({
@@ -161,6 +162,9 @@ function ItemDialog({
   const [selectedTags, setSelectedTags] = useState<Set<string>>(
     () => new Set(initial?.tags?.split(',').filter(Boolean) ?? []),
   );
+  const [selectedAllergens, setSelectedAllergens] = useState<Set<string>>(
+    () => new Set(initial?.allergens?.split(',').filter(Boolean) ?? []),
+  );
 
   useEffect(() => {
     setName(initial?.name ?? '');
@@ -168,6 +172,7 @@ function ItemDialog({
     setPrice(initial?.price?.toString() ?? '');
     setImageUrl(initial?.imageUrl ?? '');
     setSelectedTags(new Set(initial?.tags?.split(',').filter(Boolean) ?? []));
+    setSelectedAllergens(new Set(initial?.allergens?.split(',').filter(Boolean) ?? []));
   }, [initial]);
 
   const isEdit = !!initial;
@@ -184,6 +189,18 @@ function ItemDialog({
     });
   };
 
+  const toggleAllergen = (allergen: string) => {
+    setSelectedAllergens((prev) => {
+      const next = new Set(prev);
+      if (next.has(allergen)) {
+        next.delete(allergen);
+      } else {
+        next.add(allergen);
+      }
+      return next;
+    });
+  };
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!name.trim() || !price) return;
@@ -193,6 +210,7 @@ function ItemDialog({
       price,
       imageUrl: imageUrl.trim(),
       tags: Array.from(selectedTags).join(','),
+      allergens: Array.from(selectedAllergens).join(','),
     });
   };
 
@@ -202,6 +220,7 @@ function ItemDialog({
     setPrice('');
     setImageUrl('');
     setSelectedTags(new Set());
+    setSelectedAllergens(new Set());
     onClose();
   };
 
@@ -278,6 +297,31 @@ function ItemDialog({
                   ].join(' ')}
                 >
                   {tag}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-text mb-1.5">
+            Allergens
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {ALLERGENS.map((allergen) => {
+              const isSelected = selectedAllergens.has(allergen);
+              return (
+                <button
+                  key={allergen}
+                  type="button"
+                  onClick={() => toggleAllergen(allergen)}
+                  className={[
+                    'px-2.5 py-1 rounded-full text-xs font-medium border transition-colors',
+                    isSelected
+                      ? 'bg-warning text-text-inverse border-warning'
+                      : 'bg-bg-muted text-text-secondary border-border hover:border-border-strong',
+                  ].join(' ')}
+                >
+                  {allergen}
                 </button>
               );
             })}
@@ -929,6 +973,7 @@ export function MenuManagement() {
           price: parseFloat(data.price),
           imageUrl: data.imageUrl || null,
           tags: data.tags || null,
+          allergens: data.allergens || null,
         },
         {
           onSuccess: () => {
@@ -949,6 +994,7 @@ export function MenuManagement() {
           price: parseFloat(data.price),
           imageUrl: data.imageUrl || undefined,
           tags: data.tags || undefined,
+          allergens: data.allergens || undefined,
         },
         {
           onSuccess: () => {
@@ -1140,6 +1186,7 @@ export function MenuManagement() {
                 price: editingItem.price.toString(),
                 imageUrl: editingItem.imageUrl ?? '',
                 tags: editingItem.tags ?? '',
+                allergens: editingItem.allergens ?? '',
               }
             : undefined
         }
