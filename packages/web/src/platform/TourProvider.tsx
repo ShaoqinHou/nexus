@@ -206,14 +206,14 @@ export function TourProvider({ children, tenantSlug }: TourProviderProps) {
           void navigate({ to: fullRoute });
           // After navigation, give React time to render, then poll for the target
           setTimeout(() => {
-            pollForTarget(step.target, step.waitForSelector);
+            pollForTarget(step.target);
           }, 300);
           return;
         }
       }
 
       // No navigation needed, poll for target
-      pollForTarget(step.target, step.waitForSelector);
+      pollForTarget(step.target);
     },
     [tenantSlug, location.pathname, navigate, pollForTarget],
   );
@@ -247,27 +247,7 @@ export function TourProvider({ children, tenantSlug }: TourProviderProps) {
       return;
     }
 
-    const next = steps[nextIdx];
-    // If the next step has a waitForSelector, poll for it before showing
-    if (next.waitForSelector) {
-      setCurrentIdx(nextIdx);
-      let attempts = 0;
-      const poll = () => {
-        const el = document.querySelector(next.waitForSelector!);
-        if (el) {
-          showStep(nextIdx, steps);
-          return;
-        }
-        attempts += 1;
-        if (attempts < MAX_POLL_ATTEMPTS) {
-          pollRef.current = setTimeout(poll, POLL_INTERVAL);
-        }
-      };
-      // Small delay to let the UI respond to the user's click
-      setTimeout(poll, 200);
-    } else {
-      showStep(nextIdx, steps);
-    }
+    showStep(nextIdx, steps);
   }, [currentIdx, steps, showStep, endTour]);
 
   // Set up action listeners for 'action' type steps
