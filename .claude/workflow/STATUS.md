@@ -1,49 +1,44 @@
 # Project Status
 
 ## Current State
-- **Phase:** Production v1 — complete ordering platform
-- **Last verified:** 2026-04-09 (post-implementation review in progress)
+- **Phase:** Production v1 — multi-restaurant platform
+- **Last verified:** 2026-04-09
 - **Live at:** https://rehou.games/nexus/
-- **Commits:** 27 | **Lines:** ~40,000 | **Tests:** 94 (72 API + 22 web)
+- **Commits:** 38 | **Lines:** ~50,000 | **Tests:** 131 (109 API + 22 web)
 
-## Completed Features
+## Features
 
 ### Platform
-- [x] Multi-tenant auth (JWT), tenant resolution, session management
+- [x] Multi-restaurant support (one email, multiple tenants, restaurant picker)
+- [x] JWT auth with role hierarchy (owner > manager > staff)
+- [x] Staff management (CRUD, password reset, role editing)
 - [x] 3-package monorepo (api + web + shared)
 - [x] 15-table SQLite schema with performance indexes
-- [x] 6 preset themes with palette generation engine
-- [x] Theme settings UI with live preview
-- [x] Operating hours with customer-side enforcement
-- [x] Staff management (CRUD, role hierarchy, permissions)
+- [x] Theming engine (6 presets, palette generation, Google Fonts)
+- [x] Operating hours with enforcement + timezone display
 - [x] Image upload (multipart, drag-drop, progress)
-- [x] Toast notifications on all mutations
-- [x] Responsive 3-zone desktop layout (category rail + grid + cart sidebar)
+- [x] Toast notifications, responsive 3-zone desktop layout
 
 ### Ordering Module
-- [x] Menu CRUD (categories, items, dietary tags, images)
-- [x] Modifier groups (size, toppings, spice level)
-- [x] Combo deals (fixed-price bundles with slots)
+- [x] Menu CRUD with categories, items, dietary tags, images, sort order
+- [x] Modifier groups with per-item price overrides
+- [x] Combo deals with customizable slots + modifier support
 - [x] Promotions + promo codes (percentage/fixed, validation)
-- [x] QR code generator (dynamic URLs, print styles)
-- [x] Customer QR flow (hero → popular → search → modifiers → cart → promo → order → confirmation)
-- [x] Order modifications (add items, cancel items with staff approval)
-- [x] Kitchen display (SSE real-time, Kanban, sound alerts, fullscreen)
-- [x] Analytics dashboard (revenue, top items, peak hours, promo ROI)
-- [x] Category scroll-spy (IntersectionObserver)
+- [x] Order modifications (add items, cancel with staff approval)
+- [x] Order lifecycle (pending → confirmed → preparing → ready → delivered)
+- [x] Kitchen display (SSE real-time, Kanban, item checkboxes, sound alerts)
+- [x] Analytics dashboard (revenue, top items, peak hours, date range filter)
+- [x] QR code generator, category scroll-spy, menu search
+- [x] Customer order history (localStorage)
 
-### Code Quality
-- [x] 94 tests with tenant isolation coverage
-- [x] Service layer split into 6 domain modules
+### Quality
+- [x] 131 tests (72 service + 37 route integration + 22 web)
+- [x] 6 domain service modules (categories, items, modifiers, promotions, combos, orders)
 - [x] Shared types + constants (@nexus/shared)
-- [x] Extracted utility functions (formatPrice, parseTags, timeAgo)
-- [x] Deduplicated cart logic (useCartOrder hook)
-- [x] 6+ review cycles completed
+- [x] Extracted utilities + deduplicated cart logic
+- [x] Multiple review cycles completed
 
-## Deferred (see memory/deferred_features.md)
-- Payment integration (Stripe)
-- Multi-location support
-- Loyalty module
-- Email/SMS notifications
-- Dynamic route builder
-- Inventory tracking
+## Demo
+- Demo Restaurant: demo@example.com / password123
+- Sakura Sushi: same email (multi-restaurant demo)
+- Customer: /order/demo?table=1 or /order/sakura?table=1
