@@ -523,6 +523,16 @@ export function ThemeSettings() {
   }, [isDark]);
 
   const handleSave = useCallback(() => {
+    // Validate operating hours: open must be before close for all enabled days
+    const invalidDays = form.operatingHours
+      .map((day, i) => ({ ...day, name: DAY_NAMES[i] }))
+      .filter((day) => day.isOpen && day.open >= day.close);
+    if (invalidDays.length > 0) {
+      const names = invalidDays.map((d) => d.name).join(', ');
+      toast('error', `Invalid hours for: ${names}. Close time must be after open time.`);
+      return;
+    }
+
     const settings = formStateToSettings(form);
     updateMutation.mutate(settings, {
       onSuccess: () => {
@@ -817,28 +827,33 @@ export function ThemeSettings() {
 
                     {/* Time inputs */}
                     {day.isOpen && (
-                      <div className="flex items-center gap-2 flex-1">
-                        <input
-                          type="time"
-                          value={day.open}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                            const updated = [...form.operatingHours];
-                            updated[dayIndex] = { ...updated[dayIndex], open: e.target.value };
-                            updateField('operatingHours', updated);
-                          }}
-                          className="rounded-md border border-border px-2 py-1.5 text-sm text-text bg-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                        />
-                        <span className="text-xs text-text-tertiary">to</span>
-                        <input
-                          type="time"
-                          value={day.close}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                            const updated = [...form.operatingHours];
-                            updated[dayIndex] = { ...updated[dayIndex], close: e.target.value };
-                            updateField('operatingHours', updated);
-                          }}
-                          className="rounded-md border border-border px-2 py-1.5 text-sm text-text bg-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                        />
+                      <div className="flex flex-col gap-1 flex-1">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="time"
+                            value={day.open}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                              const updated = [...form.operatingHours];
+                              updated[dayIndex] = { ...updated[dayIndex], open: e.target.value };
+                              updateField('operatingHours', updated);
+                            }}
+                            className="rounded-md border border-border px-2 py-1.5 text-sm text-text bg-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                          />
+                          <span className="text-xs text-text-tertiary">to</span>
+                          <input
+                            type="time"
+                            value={day.close}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                              const updated = [...form.operatingHours];
+                              updated[dayIndex] = { ...updated[dayIndex], close: e.target.value };
+                              updateField('operatingHours', updated);
+                            }}
+                            className="rounded-md border border-border px-2 py-1.5 text-sm text-text bg-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                          />
+                        </div>
+                        {day.open >= day.close && (
+                          <p className="text-xs text-danger mt-1">Close time must be after open time</p>
+                        )}
                       </div>
                     )}
                   </div>

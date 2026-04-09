@@ -99,7 +99,7 @@ function CustomerAppInner({ tenantSlug, tableNumber }: CustomerAppInnerProps) {
 
       {/* Center: Menu content (includes its own desktop category rail on the left) */}
       <div className={['flex-1 min-w-0', isClosed || addToOrderId ? 'mt-10' : ''].join(' ')}>
-        <MenuBrowse tenantSlug={tenantSlug} disabled={isClosed} />
+        <MenuBrowse tenantSlug={tenantSlug} tableNumber={tableNumber} disabled={isClosed} />
 
         {/* Mobile/tablet: bottom sheet cart + spacer — hidden when closed */}
         {!isClosed && (

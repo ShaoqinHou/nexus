@@ -28,6 +28,7 @@ interface PublicMenuResponse {
 
 interface MenuBrowseProps {
   tenantSlug: string;
+  tableNumber?: string;
   disabled?: boolean;
 }
 
@@ -332,7 +333,7 @@ function MenuSkeleton() {
   );
 }
 
-export function MenuBrowse({ tenantSlug, disabled = false }: MenuBrowseProps) {
+export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBrowseProps) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [detailItem, setDetailItem] = useState<PublicMenuItem | null>(null);
   const [selectedCombo, setSelectedCombo] = useState<ComboDeal | null>(null);
@@ -473,6 +474,13 @@ export function MenuBrowse({ tenantSlug, disabled = false }: MenuBrowseProps) {
     <div className="flex flex-col lg:flex-row">
       {/* Desktop category rail — sticky sidebar on lg+ */}
       <nav className="hidden lg:block w-52 shrink-0 sticky top-0 self-start h-screen overflow-y-auto border-r border-border pt-4 px-3">
+        {/* Table number chip */}
+        {tableNumber && (
+          <span className="shrink-0 px-2 py-1 rounded-full bg-bg-muted text-xs font-semibold text-text-secondary inline-block mb-3">
+            Table {tableNumber}
+          </span>
+        )}
+
         {/* Always-visible search on desktop */}
         <div className="relative mb-4">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-text-tertiary" />
@@ -567,20 +575,32 @@ export function MenuBrowse({ tenantSlug, disabled = false }: MenuBrowseProps) {
           {searchOpen ? (
             <div className="flex items-center gap-2 px-4 py-2">
               <Search className="h-4 w-4 text-text-tertiary shrink-0" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search menu..."
-                autoFocus
-                className="flex-1 bg-transparent text-sm text-text placeholder:text-text-tertiary outline-none"
-              />
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search menu..."
+                  autoFocus
+                  className="w-full bg-transparent text-sm text-text placeholder:text-text-tertiary outline-none pr-7"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-bg-muted text-text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    aria-label="Clear search"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
               <button
                 type="button"
-                onClick={() => { setSearchOpen(false); setSearchQuery(''); }}
-                className="p-1.5 rounded-full hover:bg-bg-muted text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                onClick={() => setSearchOpen(false)}
+                className="shrink-0 text-sm font-medium text-primary hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-1"
               >
-                <X className="h-4 w-4" />
+                Done
               </button>
             </div>
           ) : (
@@ -610,6 +630,11 @@ export function MenuBrowse({ tenantSlug, disabled = false }: MenuBrowseProps) {
               >
                 <Search className="h-4 w-4" />
               </button>
+              {tableNumber && (
+                <span className="shrink-0 px-2 py-1 rounded-full bg-bg-muted text-xs font-semibold text-text-secondary">
+                  Table {tableNumber}
+                </span>
+              )}
             </div>
           )}
         </div>

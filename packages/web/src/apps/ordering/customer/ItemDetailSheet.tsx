@@ -330,15 +330,21 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
             <label className="text-sm font-semibold text-text block mb-1.5">
               Special Requests
             </label>
-            <textarea
-              value={notes}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                setNotes(e.target.value)
-              }
-              placeholder="Any special requests..."
-              rows={2}
-              className="w-full text-sm px-3 py-2 rounded-lg border border-border bg-bg text-text placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-primary resize-none"
-            />
+            <div className="relative">
+              <textarea
+                value={notes}
+                maxLength={500}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                  setNotes(e.target.value)
+                }
+                placeholder="Any special requests..."
+                rows={2}
+                className="w-full text-sm px-3 py-2 rounded-lg border border-border bg-bg text-text placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+              />
+              {notes.length > 400 && (
+                <span className="absolute bottom-1 right-2 text-xs text-text-tertiary">{500 - notes.length}</span>
+              )}
+            </div>
           </div>
         </div>
 

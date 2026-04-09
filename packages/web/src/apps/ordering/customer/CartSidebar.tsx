@@ -210,15 +210,21 @@ export function CartSidebar({
 
               {/* Item notes input */}
               {editingNotesFor === cartKey && (
-                <input
-                  type="text"
-                  value={item.notes ?? ''}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    updateItemNotes(index, e.target.value)
-                  }
-                  placeholder="Special requests..."
-                  className="w-full text-sm px-2.5 py-1.5 rounded border border-border bg-bg text-text placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-primary"
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={item.notes ?? ''}
+                    maxLength={500}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      updateItemNotes(index, e.target.value)
+                    }
+                    placeholder="Special requests..."
+                    className="w-full text-sm px-2.5 py-1.5 rounded border border-border bg-bg text-text placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                  {(item.notes ?? '').length > 400 && (
+                    <span className="absolute bottom-1 right-2 text-xs text-text-tertiary">{500 - (item.notes ?? '').length}</span>
+                  )}
+                </div>
               )}
             </div>
           );
@@ -229,15 +235,21 @@ export function CartSidebar({
           <label className="text-xs font-medium text-text-secondary block mb-1">
             Order Notes
           </label>
-          <textarea
-            value={notes}
-            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-              setNotes(e.target.value)
-            }
-            placeholder="Any special requests for your order..."
-            rows={2}
-            className="w-full text-sm px-3 py-2 rounded-lg border border-border bg-bg text-text placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-primary resize-none"
-          />
+          <div className="relative">
+            <textarea
+              value={notes}
+              maxLength={500}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                setNotes(e.target.value)
+              }
+              placeholder="Any special requests for your order..."
+              rows={2}
+              className="w-full text-sm px-3 py-2 rounded-lg border border-border bg-bg text-text placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+            />
+            {notes.length > 400 && (
+              <span className="absolute bottom-1 right-2 text-xs text-text-tertiary">{500 - notes.length}</span>
+            )}
+          </div>
         </div>
       </div>
 
