@@ -5,6 +5,8 @@ import {
   FolderOpen,
   UtensilsCrossed,
   Settings2,
+  ChevronUp,
+  ChevronDown,
 } from 'lucide-react';
 import {
   Button,
@@ -297,6 +299,7 @@ function CategoryList({
   onAdd,
   onEdit,
   onDelete,
+  onMove,
   itemCountByCategory,
 }: {
   categories: MenuCategory[];
@@ -305,6 +308,7 @@ function CategoryList({
   onAdd: () => void;
   onEdit: (cat: MenuCategory) => void;
   onDelete: (id: string) => void;
+  onMove: (catId: string, direction: 'up' | 'down') => void;
   itemCountByCategory: Record<string, number>;
 }) {
   return (
@@ -326,7 +330,7 @@ function CategoryList({
           />
         ) : (
           <ul className="divide-y divide-border">
-            {categories.map((cat) => (
+            {categories.map((cat, idx) => (
               <li key={cat.id}>
                 <div
                   role="button"
@@ -357,6 +361,30 @@ function CategoryList({
                   </div>
 
                   <div className="flex items-center gap-1 shrink-0 ml-2">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onMove(cat.id, 'up');
+                      }}
+                      disabled={idx === 0}
+                      className="p-2 sm:p-1 rounded text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                      aria-label={`Move ${cat.name} up`}
+                    >
+                      <ChevronUp className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onMove(cat.id, 'down');
+                      }}
+                      disabled={idx === categories.length - 1}
+                      className="p-2 sm:p-1 rounded text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                      aria-label={`Move ${cat.name} down`}
+                    >
+                      <ChevronDown className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
+                    </button>
                     <button
                       type="button"
                       onClick={(e) => {
@@ -650,6 +678,9 @@ function MenuItemCard({
   onDelete,
   onToggleAvailability,
   onManageModifiers,
+  onMove,
+  isFirst,
+  isLast,
 }: {
   item: MenuItem;
   tenantSlug: string;
@@ -657,6 +688,9 @@ function MenuItemCard({
   onDelete: (id: string) => void;
   onToggleAvailability: (item: MenuItem) => void;
   onManageModifiers: (item: MenuItem) => void;
+  onMove: (itemId: string, direction: 'up' | 'down') => void;
+  isFirst: boolean;
+  isLast: boolean;
 }) {
   return (
     <Card>
@@ -711,6 +745,24 @@ function MenuItemCard({
             />
 
             <div className="flex flex-wrap items-center gap-1">
+              <button
+                type="button"
+                onClick={() => onMove(item.id, 'up')}
+                disabled={isFirst}
+                className="p-1.5 rounded text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                aria-label={`Move ${item.name} up`}
+              >
+                <ChevronUp className="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => onMove(item.id, 'down')}
+                disabled={isLast}
+                className="p-1.5 rounded text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                aria-label={`Move ${item.name} down`}
+              >
+                <ChevronDown className="h-3.5 w-3.5" />
+              </button>
               <Button
                 variant="ghost"
                 size="sm"
@@ -936,6 +988,51 @@ export function MenuManagement() {
     );
   };
 
+  // --- Reorder handlers ---
+
+  const handleMoveCategory = (catId: string, direction: 'up' | 'down') => {
+    const sorted = [...categories].sort((a, b) => a.sortOrder - b.sortOrder);
+    const idx = sorted.findIndex((c) => c.id === catId);
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (swapIdx < 0 || swapIdx >= sorted.length) return;
+
+    const currentOrder = sorted[idx].sortOrder;
+    const adjacentOrder = sorted[swapIdx].sortOrder;
+    // If both have the same sortOrder, nudge them apart
+    const newCurrent = adjacentOrder;
+    const newAdjacent = currentOrder === adjacentOrder ? currentOrder + 1 : currentOrder;
+
+    updateCategory.mutate(
+      { id: sorted[idx].id, sortOrder: newCurrent },
+      { onError: (err: Error) => toast('error', err.message || 'Failed to reorder') },
+    );
+    updateCategory.mutate(
+      { id: sorted[swapIdx].id, sortOrder: newAdjacent },
+      { onError: (err: Error) => toast('error', err.message || 'Failed to reorder') },
+    );
+  };
+
+  const handleMoveItem = (itemId: string, direction: 'up' | 'down') => {
+    const sorted = [...items].sort((a, b) => a.sortOrder - b.sortOrder);
+    const idx = sorted.findIndex((i) => i.id === itemId);
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (swapIdx < 0 || swapIdx >= sorted.length) return;
+
+    const currentOrder = sorted[idx].sortOrder;
+    const adjacentOrder = sorted[swapIdx].sortOrder;
+    const newCurrent = adjacentOrder;
+    const newAdjacent = currentOrder === adjacentOrder ? currentOrder + 1 : currentOrder;
+
+    updateItem.mutate(
+      { id: sorted[idx].id, sortOrder: newCurrent },
+      { onError: (err: Error) => toast('error', err.message || 'Failed to reorder') },
+    );
+    updateItem.mutate(
+      { id: sorted[swapIdx].id, sortOrder: newAdjacent },
+      { onError: (err: Error) => toast('error', err.message || 'Failed to reorder') },
+    );
+  };
+
   // Selected category object for item panel header
   const selectedCategory = categories.find((c) => c.id === activeCategoryId);
 
@@ -953,6 +1050,7 @@ export function MenuManagement() {
             onAdd={handleAddCategory}
             onEdit={handleEditCategory}
             onDelete={handleDeleteCategory}
+            onMove={handleMoveCategory}
             itemCountByCategory={itemCountByCategory}
           />
         </div>
@@ -989,7 +1087,7 @@ export function MenuManagement() {
                 />
               ) : (
                 <div className="space-y-3">
-                  {items.map((item) => (
+                  {items.map((item, idx) => (
                     <MenuItemCard
                       key={item.id}
                       item={item}
@@ -998,6 +1096,9 @@ export function MenuManagement() {
                       onDelete={handleDeleteItem}
                       onToggleAvailability={handleToggleAvailability}
                       onManageModifiers={setModifierLinkItem}
+                      onMove={handleMoveItem}
+                      isFirst={idx === 0}
+                      isLast={idx === items.length - 1}
                     />
                   ))}
                 </div>

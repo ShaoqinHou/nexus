@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Users, Plus, Shield, UserCog, User } from 'lucide-react';
+import { Users, Plus, Shield, UserCog, User, KeyRound } from 'lucide-react';
 import {
   Button,
   Card,
@@ -21,6 +21,7 @@ import {
   useCreateStaff,
   useUpdateStaff,
   useDeleteStaff,
+  useResetStaffPassword,
 } from '../hooks/useStaff';
 import type { StaffMember, CreateStaffInput } from '../hooks/useStaff';
 import type { BadgeVariant } from '@web/components/ui';
@@ -68,9 +69,10 @@ interface StaffCardProps {
   member: StaffMember;
   currentUser: { id: string; role: string };
   tenantSlug: string;
+  onResetPassword: (member: StaffMember) => void;
 }
 
-function StaffCard({ member, currentUser, tenantSlug }: StaffCardProps) {
+function StaffCard({ member, currentUser, tenantSlug, onResetPassword }: StaffCardProps) {
   const { toast } = useToast();
   const updateMutation = useUpdateStaff(tenantSlug);
   const deleteMutation = useDeleteStaff(tenantSlug);
@@ -83,6 +85,10 @@ function StaffCard({ member, currentUser, tenantSlug }: StaffCardProps) {
     (currentUser.role === 'manager' && member.role === 'staff')
   );
   const canDeactivate = canToggleActive && member.isActive === 1;
+  const canResetPassword = !isSelf && !isOwner && (
+    currentUser.role === 'owner' ||
+    (currentUser.role === 'manager' && member.role === 'staff')
+  );
 
   const handleRoleChange = useCallback((newRole: string) => {
     updateMutation.mutate(
@@ -157,6 +163,18 @@ function StaffCard({ member, currentUser, tenantSlug }: StaffCardProps) {
             onChange={handleToggleActive}
             disabled={updateMutation.isPending}
           />
+        )}
+
+        {canResetPassword && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onResetPassword(member)}
+            aria-label={`Reset password for ${member.name}`}
+          >
+            <KeyRound className="h-3.5 w-3.5" />
+            Reset PW
+          </Button>
         )}
 
         {canDeactivate && (
@@ -295,12 +313,98 @@ function AddStaffDialog({ open, onClose, tenantSlug, currentUserRole }: AddStaff
   );
 }
 
+// --- Reset Password Dialog ---
+
+interface ResetPasswordDialogProps {
+  open: boolean;
+  onClose: () => void;
+  tenantSlug: string;
+  member: StaffMember | null;
+}
+
+function ResetPasswordDialog({ open, onClose, tenantSlug, member }: ResetPasswordDialogProps) {
+  const { toast } = useToast();
+  const resetMutation = useResetStaffPassword(tenantSlug);
+
+  const [newPassword, setNewPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const handleSubmit = useCallback(() => {
+    if (newPassword.length < 8) {
+      setError('Password must be at least 8 characters');
+      return;
+    }
+    if (!member) return;
+
+    resetMutation.mutate(
+      { id: member.id, newPassword },
+      {
+        onSuccess: () => {
+          toast('success', `Password reset for ${member.name}`);
+          setNewPassword('');
+          setError('');
+          onClose();
+        },
+        onError: (err) => {
+          toast('error', err instanceof Error ? err.message : 'Failed to reset password');
+        },
+      },
+    );
+  }, [newPassword, member, resetMutation, toast, onClose]);
+
+  const handleClose = useCallback(() => {
+    setNewPassword('');
+    setError('');
+    onClose();
+  }, [onClose]);
+
+  return (
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      title={member ? `Reset Password: ${member.name}` : 'Reset Password'}
+      footer={
+        <>
+          <Button variant="ghost" size="md" onClick={handleClose}>
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            size="md"
+            onClick={handleSubmit}
+            loading={resetMutation.isPending}
+            disabled={!newPassword.trim()}
+          >
+            Reset Password
+          </Button>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        <p className="text-sm text-text-secondary">
+          Enter a new password for {member?.name ?? 'this staff member'}. They will need to use this password on their next login.
+        </p>
+        <Input
+          label="New Password"
+          type="password"
+          value={newPassword}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewPassword(e.target.value)}
+          error={error}
+          placeholder="Minimum 8 characters"
+          autoFocus
+        />
+      </div>
+    </Dialog>
+  );
+}
+
 // --- Main Component ---
 
 export function StaffManagement() {
   const { tenantSlug } = useTenant();
   const { user } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [resetPasswordTarget, setResetPasswordTarget] = useState<StaffMember | null>(null);
 
   const { data: staffList, isLoading, error } = useStaff(tenantSlug);
 
@@ -385,6 +489,7 @@ export function StaffManagement() {
                   member={member}
                   currentUser={{ id: user?.id ?? '', role: currentUserRole }}
                   tenantSlug={tenantSlug}
+                  onResetPassword={setResetPasswordTarget}
                 />
               ))}
             </div>
@@ -398,6 +503,14 @@ export function StaffManagement() {
         onClose={() => setDialogOpen(false)}
         tenantSlug={tenantSlug}
         currentUserRole={currentUserRole}
+      />
+
+      {/* Reset Password Dialog */}
+      <ResetPasswordDialog
+        open={!!resetPasswordTarget}
+        onClose={() => setResetPasswordTarget(null)}
+        tenantSlug={tenantSlug}
+        member={resetPasswordTarget}
       />
     </div>
   );

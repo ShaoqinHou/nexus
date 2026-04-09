@@ -84,3 +84,13 @@ export function useDeleteStaff(tenantSlug: string) {
     },
   });
 }
+
+export function useResetStaffPassword(tenantSlug: string) {
+  return useMutation({
+    mutationFn: ({ id, newPassword }: { id: string; newPassword: string }) =>
+      apiClient.put<{ success: boolean; message: string }>(
+        `/t/${tenantSlug}/staff/${id}/reset-password`,
+        { newPassword },
+      ),
+  });
+}

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useSearch } from '@tanstack/react-router';
 import { AlertCircle, QrCode, Clock } from 'lucide-react';
 import { Button } from '@web/components/ui';
@@ -15,6 +15,27 @@ import type { Order } from '@web/apps/ordering/types';
 type CustomerView =
   | { type: 'menu'; addToOrderId?: string }
   | { type: 'confirmation'; orderId: string };
+
+interface OrderHistoryEntry {
+  id: string;
+  timestamp: number;
+}
+
+function getHistoryKey(tenantSlug: string, tableNumber: string): string {
+  return `nexus_orders_${tenantSlug}_${tableNumber}`;
+}
+
+function loadRecentOrders(tenantSlug: string, tableNumber: string): OrderHistoryEntry[] {
+  try {
+    const raw = localStorage.getItem(getHistoryKey(tenantSlug, tableNumber));
+    if (!raw) return [];
+    const entries = JSON.parse(raw) as OrderHistoryEntry[];
+    const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+    return entries.filter((e) => e.timestamp > cutoff);
+  } catch {
+    return [];
+  }
+}
 
 interface CustomerAppInnerProps {
   tenantSlug: string;
@@ -37,9 +58,22 @@ function CustomerAppInner({ tenantSlug, tableNumber }: CustomerAppInnerProps) {
   const openStatus = isOpenNow(settings.operatingHours);
   const isClosed = !openStatus.open;
 
+  const recentOrders = useMemo(
+    () => loadRecentOrders(tenantSlug, tableNumber),
+    [tenantSlug, tableNumber],
+  );
+
   const handleOrderPlaced = useCallback((order: Order) => {
     setView({ type: 'confirmation', orderId: order.id });
-  }, []);
+    // Save to localStorage history
+    try {
+      const key = getHistoryKey(tenantSlug, tableNumber);
+      const existing: OrderHistoryEntry[] = JSON.parse(localStorage.getItem(key) || '[]');
+      existing.unshift({ id: order.id, timestamp: Date.now() });
+      // Keep last 5 orders
+      localStorage.setItem(key, JSON.stringify(existing.slice(0, 5)));
+    } catch { /* localStorage may be unavailable */ }
+  }, [tenantSlug, tableNumber]);
 
   const handleBackToMenu = useCallback(() => {
     setView({ type: 'menu' });
@@ -99,6 +133,24 @@ function CustomerAppInner({ tenantSlug, tableNumber }: CustomerAppInnerProps) {
 
       {/* Center: Menu content (includes its own desktop category rail on the left) */}
       <div className={['flex-1 min-w-0', isClosed || addToOrderId ? 'mt-10' : ''].join(' ')}>
+        {/* Recent orders from localStorage */}
+        {recentOrders.length > 0 && !addToOrderId && (
+          <div className="px-4 py-2 border-b border-border bg-bg-surface">
+            <p className="text-xs text-text-secondary mb-1">Your recent orders</p>
+            <div className="flex gap-2">
+              {recentOrders.map((o) => (
+                <button
+                  key={o.id}
+                  onClick={() => setView({ type: 'confirmation', orderId: o.id })}
+                  className="text-xs px-3 py-1 rounded-full bg-primary/10 text-primary font-medium"
+                >
+                  #{o.id.slice(-6).toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <MenuBrowse tenantSlug={tenantSlug} tableNumber={tableNumber} disabled={isClosed} />
 
         {/* Mobile/tablet: bottom sheet cart + spacer — hidden when closed */}

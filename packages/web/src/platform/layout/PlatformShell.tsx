@@ -103,26 +103,51 @@ export function PlatformShell() {
             {!sidebarCollapsed && <span>Dashboard</span>}
           </Link>
 
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActiveNav = location.pathname.startsWith(item.path);
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={[
-                  'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors mb-1',
-                  isActiveNav
-                    ? 'bg-primary/10 text-primary font-medium'
-                    : 'text-text-secondary hover:text-text hover:bg-bg-muted',
-                ].join(' ')}
-                onClick={closeMobileSidebar}
-              >
-                <Icon className="h-5 w-5 shrink-0" />
-                {!sidebarCollapsed && <span>{item.label}</span>}
-              </Link>
-            );
-          })}
+          {(() => {
+            const navGroups = [
+              { label: 'Operations', items: navItems.filter((i) => ['/orders', '/kitchen'].some((p) => i.path.includes(p))) },
+              { label: 'Menu', items: navItems.filter((i) => ['/menu', '/combos', '/modifiers'].some((p) => i.path.includes(p))) },
+              { label: 'Marketing', items: navItems.filter((i) => ['/promotions', '/qr'].some((p) => i.path.includes(p))) },
+              { label: 'Management', items: navItems.filter((i) => ['/analytics', '/staff', '/settings'].some((p) => i.path.includes(p))) },
+            ];
+            // Collect any items not matched by the groups above
+            const grouped = new Set(navGroups.flatMap((g) => g.items.map((i) => i.path)));
+            const ungrouped = navItems.filter((i) => !grouped.has(i.path));
+            const allGroups = [
+              ...navGroups,
+              ...(ungrouped.length > 0 ? [{ label: 'Other', items: ungrouped }] : []),
+            ];
+
+            return allGroups.filter((g) => g.items.length > 0).map((group) => (
+              <div key={group.label} className="mb-3">
+                {!sidebarCollapsed && (
+                  <p className="text-[10px] font-semibold text-text-tertiary uppercase tracking-wider px-3 mb-1">
+                    {group.label}
+                  </p>
+                )}
+                {group.items.map((item) => {
+                  const Icon = item.icon;
+                  const isActiveNav = location.pathname.startsWith(item.path);
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      className={[
+                        'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors mb-1',
+                        isActiveNav
+                          ? 'bg-primary/10 text-primary font-medium'
+                          : 'text-text-secondary hover:text-text hover:bg-bg-muted',
+                      ].join(' ')}
+                      onClick={closeMobileSidebar}
+                    >
+                      <Icon className="h-5 w-5 shrink-0" />
+                      {!sidebarCollapsed && <span>{item.label}</span>}
+                    </Link>
+                  );
+                })}
+              </div>
+            ));
+          })()}
         </nav>
 
         {/* Sidebar footer */}

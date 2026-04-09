@@ -38,7 +38,7 @@ export function useUpdateCategory(tenantSlug: string) {
     mutationFn: ({
       id,
       ...body
-    }: { id: string; name?: string; description?: string | null }) =>
+    }: { id: string; name?: string; description?: string | null; sortOrder?: number }) =>
       apiClient.put<{ data: MenuCategory }>(
         `/t/${tenantSlug}/ordering/categories/${id}`,
         body,
@@ -110,6 +110,7 @@ export function useUpdateMenuItem(tenantSlug: string) {
       imageUrl?: string | null;
       tags?: string | null;
       isAvailable?: number;
+      sortOrder?: number;
     }) => apiClient.put<{ data: MenuItem }>(`/t/${tenantSlug}/ordering/items/${id}`, body),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: orderingKeys.itemsAll() });

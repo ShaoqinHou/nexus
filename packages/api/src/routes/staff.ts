@@ -26,6 +26,10 @@ const updateStaffSchema = z.object({
   isActive: z.number().int().min(0).max(1).optional(),
 });
 
+const resetPasswordSchema = z.object({
+  newPassword: z.string().min(8, 'Password must be at least 8 characters'),
+});
+
 // Role hierarchy for permission checks
 const ROLE_LEVEL: Record<StaffRole, number> = {
   owner: 3,
@@ -189,6 +193,44 @@ export function staffRoutes(db: DrizzleDB) {
       .get();
 
     return c.json({ data: updated });
+  });
+
+  // PUT /:id/reset-password — reset a staff member's password
+  router.put('/:id/reset-password', zValidator('json', resetPasswordSchema), async (c) => {
+    const user = c.var.user;
+    const tenantId = c.var.tenantId;
+    const staffId = c.req.param('id');
+
+    // Only owners and managers can reset passwords
+    if (user.role !== 'owner' && user.role !== 'manager') {
+      return c.json({ error: 'Insufficient permissions' }, 403);
+    }
+
+    // Find the target staff member
+    const target = db
+      .select()
+      .from(staff)
+      .where(and(eq(staff.id, staffId), eq(staff.tenantId, tenantId)))
+      .get();
+
+    if (!target) {
+      return c.json({ error: 'Staff member not found' }, 404);
+    }
+
+    // Cannot reset password of someone with a higher or equal role (unless you're owner)
+    if (user.role !== 'owner' && ROLE_LEVEL[target.role] >= ROLE_LEVEL[user.role]) {
+      return c.json({ error: 'Cannot reset password for a staff member with equal or higher role' }, 403);
+    }
+
+    const { newPassword } = c.req.valid('json');
+    const passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+
+    db.update(staff)
+      .set({ passwordHash, updatedAt: new Date().toISOString() })
+      .where(and(eq(staff.id, staffId), eq(staff.tenantId, tenantId)))
+      .run();
+
+    return c.json({ success: true, message: 'Password reset successfully' });
   });
 
   // DELETE /:id — soft-delete (deactivate) a staff member
