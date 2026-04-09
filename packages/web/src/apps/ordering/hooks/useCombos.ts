@@ -55,6 +55,16 @@ interface UpdateComboPayload {
   imageUrl?: string | null;
   categoryId?: string | null;
   isActive?: number;
+  slots?: Array<{
+    name: string;
+    minSelections: number;
+    maxSelections: number;
+    options: Array<{
+      menuItemId: string;
+      priceModifier: number;
+      isDefault: number;
+    }>;
+  }>;
 }
 
 export function useUpdateComboDeal(tenantSlug: string) {

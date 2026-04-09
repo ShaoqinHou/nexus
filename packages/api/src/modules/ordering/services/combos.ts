@@ -189,6 +189,7 @@ export function updateComboDeal(
     categoryId?: string | null;
     sortOrder?: number;
     isActive?: number;
+    slots?: CreateComboSlot[];
   }
 ) {
   // Validate categoryId if provided
@@ -207,6 +208,34 @@ export function updateComboDeal(
 
     if (!category) {
       return { error: 'Category not found' as const };
+    }
+  }
+
+  // If slots are provided, validate all menuItemIds belong to this tenant
+  if (data.slots) {
+    const allMenuItemIds = data.slots.flatMap((slot) =>
+      slot.options.map((opt) => opt.menuItemId)
+    );
+
+    if (allMenuItemIds.length > 0) {
+      const validItems = db
+        .select({ id: menuItems.id })
+        .from(menuItems)
+        .where(
+          and(
+            inArray(menuItems.id, allMenuItemIds),
+            eq(menuItems.tenantId, tenantId),
+            eq(menuItems.isActive, 1)
+          )
+        )
+        .all();
+
+      const validIds = new Set(validItems.map((i) => i.id));
+      const invalidIds = allMenuItemIds.filter((id) => !validIds.has(id));
+
+      if (invalidIds.length > 0) {
+        return { error: `Menu items not found: ${invalidIds.join(', ')}` as const };
+      }
     }
   }
 
@@ -235,6 +264,63 @@ export function updateComboDeal(
 
   if (!updated) {
     return { error: 'Combo deal not found' as const };
+  }
+
+  // If slots are provided, replace all existing slots and options
+  if (data.slots) {
+    // Get existing slots for this combo
+    const existingSlots = db
+      .select({ id: comboSlots.id })
+      .from(comboSlots)
+      .where(eq(comboSlots.comboDealId, comboId))
+      .all();
+
+    const existingSlotIds = existingSlots.map((s) => s.id);
+
+    // Delete all existing slot options for these slots
+    if (existingSlotIds.length > 0) {
+      db.delete(comboSlotOptions)
+        .where(inArray(comboSlotOptions.comboSlotId, existingSlotIds))
+        .run();
+    }
+
+    // Delete all existing slots for this combo
+    db.delete(comboSlots)
+      .where(eq(comboSlots.comboDealId, comboId))
+      .run();
+
+    // Re-create slots and their options
+    const createdSlots = data.slots.map((slotData, slotIndex) => {
+      const slot = db
+        .insert(comboSlots)
+        .values({
+          comboDealId: comboId,
+          name: slotData.name,
+          sortOrder: slotIndex,
+          minSelections: slotData.minSelections ?? 1,
+          maxSelections: slotData.maxSelections ?? 1,
+        })
+        .returning()
+        .get();
+
+      const createdOptions = slotData.options.map((optData, optIndex) =>
+        db
+          .insert(comboSlotOptions)
+          .values({
+            comboSlotId: slot.id,
+            menuItemId: optData.menuItemId,
+            priceModifier: optData.priceModifier ?? 0,
+            isDefault: optData.isDefault ?? 0,
+            sortOrder: optIndex,
+          })
+          .returning()
+          .get()
+      );
+
+      return { ...slot, options: createdOptions };
+    });
+
+    return { data: { ...updated, slots: createdSlots } };
   }
 
   return { data: updated };

@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { Clock, ShoppingBag, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
+import { Clock, ShoppingBag, ChevronDown, ChevronUp, AlertTriangle, ArrowRight } from 'lucide-react';
+import { Link } from '@tanstack/react-router';
 import {
   ORDER_STATUSES,
   ORDER_STATUS_LABELS,
@@ -275,6 +276,38 @@ function OrderCard({
 }
 
 // ---------------------------------------------------------------------------
+// Onboarding step card for new restaurants
+// ---------------------------------------------------------------------------
+
+interface OnboardingStepProps {
+  number: number;
+  title: string;
+  description: string;
+  link: string;
+}
+
+function OnboardingStep({ number, title, description, link }: OnboardingStepProps) {
+  return (
+    <Card>
+      <CardContent className="flex items-center gap-4 py-4">
+        <div className="shrink-0 h-10 w-10 rounded-full bg-primary flex items-center justify-center">
+          <span className="text-sm font-bold text-text-inverse">{number}</span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-text">{title}</p>
+          <p className="text-xs text-text-secondary">{description}</p>
+        </div>
+        <Link to={link}>
+          <Button variant="secondary" size="sm">
+            Go <ArrowRight className="h-3.5 w-3.5" />
+          </Button>
+        </Link>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main dashboard
 // ---------------------------------------------------------------------------
 
@@ -363,15 +396,52 @@ export function OrderDashboard() {
           <p className="text-sm text-text-secondary">Loading orders...</p>
         </div>
       ) : orders.length === 0 ? (
-        <EmptyState
-          icon={ShoppingBag}
-          title="No orders"
-          description={
-            statusFilter || tableFilter
-              ? 'No orders match your filters. Try adjusting them.'
-              : 'No orders yet. Orders will appear here when customers place them.'
-          }
-        />
+        <>
+          <EmptyState
+            icon={ShoppingBag}
+            title="No orders"
+            description={
+              statusFilter || tableFilter
+                ? 'No orders match your filters. Try adjusting them.'
+                : 'No orders yet. Orders will appear here when customers place them.'
+            }
+          />
+          {/* Onboarding checklist for new restaurants (no orders, no filters) */}
+          {!statusFilter && !tableFilter && (
+            <div className="space-y-4 mt-6">
+              <div>
+                <h2 className="text-lg font-bold text-text">Welcome to your restaurant!</h2>
+                <p className="text-sm text-text-secondary mt-1">Let&apos;s get you set up. Follow these steps:</p>
+              </div>
+              <div className="space-y-3">
+                <OnboardingStep
+                  number={1}
+                  title="Set up your menu"
+                  description="Add categories and items for customers to browse"
+                  link={`/t/${tenantSlug}/ordering/menu`}
+                />
+                <OnboardingStep
+                  number={2}
+                  title="Configure modifiers"
+                  description="Add sizes, toppings, and other customizations"
+                  link={`/t/${tenantSlug}/ordering/modifiers`}
+                />
+                <OnboardingStep
+                  number={3}
+                  title="Customize your theme"
+                  description="Set your brand colors, logo, and operating hours"
+                  link={`/t/${tenantSlug}/ordering/settings`}
+                />
+                <OnboardingStep
+                  number={4}
+                  title="Generate QR codes"
+                  description="Print codes for your tables so customers can order"
+                  link={`/t/${tenantSlug}/ordering/qr`}
+                />
+              </div>
+            </div>
+          )}
+        </>
       ) : (
         <div className="space-y-3">
           {orders.map((order) => (

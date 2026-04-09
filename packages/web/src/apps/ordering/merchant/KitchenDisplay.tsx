@@ -150,11 +150,15 @@ function KitchenOrderCard({
   onAdvance,
   onCancel,
   isUpdating,
+  completedItems,
+  onToggleItem,
 }: {
   order: Order;
   onAdvance: (id: string, status: OrderStatus) => void;
   onCancel: (id: string) => void;
   isUpdating: boolean;
+  completedItems: Set<string>;
+  onToggleItem: (itemId: string) => void;
 }) {
   const nextStatus = ORDER_STATUS_FLOW[order.status];
   const nextLabel = ORDER_FLOW_LABELS[order.status];
@@ -204,55 +208,91 @@ function KitchenOrderCard({
 
       {/* Items */}
       <div className="px-4 py-3 space-y-2.5">
-        {order.items.filter((item) => item.status !== 'cancelled').map((item) => (
-          <div key={item.id} className={[
-            'flex items-start gap-3 rounded-lg px-3 py-2',
-            item.status === 'cancel_requested' ? 'bg-warning-light/20 border border-warning/30' : 'bg-bg-muted/50',
-          ].join(' ')}>
-            <span className="text-xl font-black text-primary leading-tight shrink-0 min-w-[2rem] text-center">
-              {item.quantity}x
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="text-base font-bold text-text leading-tight">
-                {item.name}
-              </p>
-              {item.modifiersJson && (() => {
-                try {
-                  const raw = JSON.parse(item.modifiersJson);
-                  // Handle both array format and combo object format
-                  let modNames: string[] = [];
-                  if (Array.isArray(raw)) {
-                    modNames = raw.map((m: { name: string }) => m.name);
-                  } else if (raw && typeof raw === 'object') {
-                    // Combo format: { comboName, slotName, priceModifier, itemModifiers? }
-                    if (raw.slotName) modNames.push(raw.slotName);
-                    if (raw.itemModifiers) {
-                      modNames.push(...(raw.itemModifiers as Array<{ name: string }>).map((m) => m.name));
+        {order.items.filter((item) => item.status !== 'cancelled').map((item) => {
+          const isDone = completedItems.has(item.id);
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => onToggleItem(item.id)}
+              className={[
+                'w-full flex items-start gap-3 rounded-lg px-3 py-2 text-left transition-all cursor-pointer',
+                item.status === 'cancel_requested'
+                  ? 'bg-warning-light/20 border border-warning/30'
+                  : 'bg-bg-muted/50',
+                isDone ? 'opacity-50' : '',
+              ].join(' ')}
+            >
+              {/* Completion checkbox */}
+              <span className={[
+                'mt-0.5 shrink-0 h-5 w-5 rounded-full border-2 flex items-center justify-center transition-colors',
+                isDone
+                  ? 'bg-success border-success text-white'
+                  : 'border-border-strong bg-bg',
+              ].join(' ')}>
+                {isDone && (
+                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </span>
+              <span className={[
+                'text-xl font-black leading-tight shrink-0 min-w-[2rem] text-center',
+                isDone ? 'text-text-tertiary' : 'text-primary',
+              ].join(' ')}>
+                {item.quantity}x
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className={[
+                  'text-base font-bold leading-tight',
+                  isDone ? 'line-through text-text-tertiary' : 'text-text',
+                ].join(' ')}>
+                  {item.name}
+                </p>
+                {item.modifiersJson && (() => {
+                  try {
+                    const raw = JSON.parse(item.modifiersJson);
+                    // Handle both array format and combo object format
+                    let modNames: string[] = [];
+                    if (Array.isArray(raw)) {
+                      modNames = raw.map((m: { name: string }) => m.name);
+                    } else if (raw && typeof raw === 'object') {
+                      // Combo format: { comboName, slotName, priceModifier, itemModifiers? }
+                      if (raw.slotName) modNames.push(raw.slotName);
+                      if (raw.itemModifiers) {
+                        modNames.push(...(raw.itemModifiers as Array<{ name: string }>).map((m) => m.name));
+                      }
                     }
+                    if (modNames.length === 0) return null;
+                    return (
+                      <p className={[
+                        'text-sm font-semibold mt-1',
+                        isDone ? 'text-text-tertiary line-through' : 'text-primary',
+                      ].join(' ')}>
+                        {modNames.join(' · ')}
+                      </p>
+                    );
+                  } catch {
+                    return null;
                   }
-                  if (modNames.length === 0) return null;
-                  return (
-                    <p className="text-sm font-semibold text-primary mt-1">
-                      {modNames.join(' · ')}
-                    </p>
-                  );
-                } catch {
-                  return null;
-                }
-              })()}
-              {item.notes && (
-                <p className="text-sm font-semibold text-warning mt-1">
-                  ⚠ {item.notes}
-                </p>
-              )}
-              {item.status === 'cancel_requested' && (
-                <p className="text-sm font-bold text-danger mt-1">
-                  ⛔ CANCEL REQUESTED
-                </p>
-              )}
-            </div>
-          </div>
-        ))}
+                })()}
+                {item.notes && (
+                  <p className={[
+                    'text-sm font-semibold mt-1',
+                    isDone ? 'text-text-tertiary line-through' : 'text-warning',
+                  ].join(' ')}>
+                    {isDone ? item.notes : `⚠ ${item.notes}`}
+                  </p>
+                )}
+                {item.status === 'cancel_requested' && (
+                  <p className="text-sm font-bold text-danger mt-1">
+                    CANCEL REQUESTED
+                  </p>
+                )}
+              </div>
+            </button>
+          );
+        })}
       </div>
 
       {/* Order notes */}
@@ -268,6 +308,20 @@ function KitchenOrderCard({
           {order.items.length} item{order.items.length !== 1 ? 's' : ''} &middot; {formatPrice(order.total)}
         </p>
       </div>
+
+      {/* All items ready prompt */}
+      {(() => {
+        const activeItems = order.items.filter((item) => item.status !== 'cancelled');
+        const allDone = activeItems.length > 0 && activeItems.every((item) => completedItems.has(item.id));
+        if (!allDone || !nextStatus || !nextLabel) return null;
+        return (
+          <div className="mx-4 mb-2 rounded-md bg-success-light px-3 py-2 text-center">
+            <p className="text-sm font-bold text-success">
+              All items ready — advance order?
+            </p>
+          </div>
+        );
+      })()}
 
       {/* Action */}
       <div className="px-4 pb-4 flex gap-2">
@@ -311,6 +365,16 @@ export function KitchenDisplay() {
 
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(false);
+  const [completedItems, setCompletedItems] = useState<Set<string>>(new Set());
+
+  const toggleItemDone = useCallback((itemId: string) => {
+    setCompletedItems((prev) => {
+      const next = new Set(prev);
+      if (next.has(itemId)) next.delete(itemId);
+      else next.add(itemId);
+      return next;
+    });
+  }, []);
 
   // Track previous order count for new-order sound
   const prevOrderCountRef = useRef(orders.length);
@@ -522,6 +586,8 @@ export function KitchenDisplay() {
                           updateStatus.isPending &&
                           updateStatus.variables?.id === order.id
                         }
+                        completedItems={completedItems}
+                        onToggleItem={toggleItemDone}
                       />
                     ))
                   )}

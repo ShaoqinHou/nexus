@@ -584,7 +584,6 @@ export function ComboManager() {
 
   const handleSubmit = (data: ComboFormData) => {
     if (editingCombo) {
-      // Update only metadata — slots are not editable via PUT in the current API
       updateCombo.mutate(
         {
           id: editingCombo.id,
@@ -592,6 +591,16 @@ export function ComboManager() {
           description: data.description || null,
           basePrice: parseFloat(data.basePrice),
           imageUrl: data.imageUrl || null,
+          slots: data.slots.map((slot) => ({
+            name: slot.name,
+            minSelections: parseInt(slot.minSelections, 10) || 1,
+            maxSelections: parseInt(slot.maxSelections, 10) || 1,
+            options: slot.options.map((opt) => ({
+              menuItemId: opt.menuItemId,
+              priceModifier: parseFloat(opt.priceModifier) || 0,
+              isDefault: opt.isDefault ? 1 : 0,
+            })),
+          })),
         },
         {
           onSuccess: () => {

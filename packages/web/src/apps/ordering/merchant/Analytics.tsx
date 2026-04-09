@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { TrendingUp, ShoppingBag, DollarSign, BarChart3, PackageOpen, Tag } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@web/components/ui';
 import { EmptyState } from '@web/components/patterns';
@@ -143,12 +143,20 @@ function PeakHoursChart({ data }: { data: PeakHour[] }) {
 // Analytics Page
 // ---------------------------------------------------------------------------
 
+const DATE_RANGE_PRESETS = [7, 30, 90, 365] as const;
+
+function DateRangeLabel(days: number): string {
+  if (days === 365) return 'All';
+  return `${days}d`;
+}
+
 export function Analytics() {
   const { tenantSlug } = useTenant();
+  const [days, setDays] = useState(30);
 
   const { data: stats, isLoading: statsLoading } = useOrderStats(tenantSlug);
-  const { data: revenue, isLoading: revenueLoading } = useDailyRevenue(tenantSlug, 30);
-  const { data: peakHours, isLoading: peakLoading } = usePeakHours(tenantSlug, 7);
+  const { data: revenue, isLoading: revenueLoading } = useDailyRevenue(tenantSlug, days);
+  const { data: peakHours, isLoading: peakLoading } = usePeakHours(tenantSlug, days);
   const { data: topItems, isLoading: topLoading } = useTopItems(tenantSlug, 10);
   const { data: promoStats, isLoading: promoLoading } = usePromoStats(tenantSlug);
 
@@ -169,7 +177,26 @@ export function Analytics() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-text">Analytics</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <h1 className="text-2xl font-bold text-text">Analytics</h1>
+        <div className="flex gap-2">
+          {DATE_RANGE_PRESETS.map((d) => (
+            <button
+              key={d}
+              type="button"
+              onClick={() => setDays(d)}
+              className={[
+                'px-3 py-1.5 text-sm font-medium rounded-md transition-colors',
+                days === d
+                  ? 'bg-primary text-text-inverse'
+                  : 'bg-bg-muted text-text-secondary hover:bg-bg-surface',
+              ].join(' ')}
+            >
+              {DateRangeLabel(d)}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -203,7 +230,7 @@ export function Analytics() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Daily Revenue (Last 30 Days)</CardTitle>
+            <CardTitle>Daily Revenue ({days === 365 ? 'All Time' : `Last ${days} Days`})</CardTitle>
           </CardHeader>
           <CardContent>
             <RevenueChart data={revenue ?? []} />
@@ -212,7 +239,7 @@ export function Analytics() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Peak Hours (Last 7 Days)</CardTitle>
+            <CardTitle>Peak Hours ({days === 365 ? 'All Time' : `Last ${days} Days`})</CardTitle>
           </CardHeader>
           <CardContent>
             <PeakHoursChart data={peakHours ?? []} />

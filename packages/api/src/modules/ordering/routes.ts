@@ -163,6 +163,7 @@ const updateComboDealSchema = z.object({
   categoryId: z.string().min(1).nullable().optional(),
   sortOrder: z.number().int().optional(),
   isActive: z.number().int().min(0).max(1).optional(),
+  slots: z.array(comboSlotSchema).min(1, 'At least one slot is required').optional(),
 });
 
 // --- Promotion Schemas ---

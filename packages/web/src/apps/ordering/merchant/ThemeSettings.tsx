@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Palette, Check, RotateCcw, Save, Eye, Clock } from 'lucide-react';
+import { Palette, Check, RotateCcw, Save, Eye, Clock, Monitor, Smartphone } from 'lucide-react';
 import {
   Button,
   Card,
@@ -218,12 +218,16 @@ function RadioGroup<T extends string>({ label, options, value, onChange }: Radio
 
 // --- Live Preview ---
 
+type PreviewMode = 'desktop' | 'mobile';
+
 interface LivePreviewProps {
   settings: FormState;
   isDark: boolean;
+  previewMode: PreviewMode;
+  onPreviewModeChange: (mode: PreviewMode) => void;
 }
 
-function LivePreview({ settings, isDark }: LivePreviewProps) {
+function LivePreview({ settings, isDark, previewMode, onPreviewModeChange }: LivePreviewProps) {
   const palette = generatePalette(settings.brandColor, isDark);
   const fontStack = settings.fontFamily === 'system-ui'
     ? 'system-ui, -apple-system, sans-serif'
@@ -252,12 +256,43 @@ function LivePreview({ settings, isDark }: LivePreviewProps) {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-2 mb-1">
-        <Eye className="h-4 w-4 text-text-secondary" />
-        <span className="text-sm font-medium text-text">Live Preview</span>
+      <div className="flex items-center justify-between mb-1">
+        <div className="flex items-center gap-2">
+          <Eye className="h-4 w-4 text-text-secondary" />
+          <span className="text-sm font-medium text-text">Live Preview</span>
+        </div>
+        <div className="flex gap-1">
+          <button
+            type="button"
+            onClick={() => onPreviewModeChange('desktop')}
+            className={[
+              'inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors',
+              previewMode === 'desktop'
+                ? 'bg-primary text-text-inverse'
+                : 'bg-bg-muted text-text-secondary hover:bg-bg-surface',
+            ].join(' ')}
+          >
+            <Monitor className="h-3.5 w-3.5" />
+            Desktop
+          </button>
+          <button
+            type="button"
+            onClick={() => onPreviewModeChange('mobile')}
+            className={[
+              'inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors',
+              previewMode === 'mobile'
+                ? 'bg-primary text-text-inverse'
+                : 'bg-bg-muted text-text-secondary hover:bg-bg-surface',
+            ].join(' ')}
+          >
+            <Smartphone className="h-3.5 w-3.5" />
+            Mobile
+          </button>
+        </div>
       </div>
 
       {/* Preview container */}
+      <div className={previewMode === 'mobile' ? 'max-w-[375px] mx-auto w-full' : ''}>
       <div
         className="rounded-xl border border-border overflow-hidden"
         style={{ fontFamily: fontStack, backgroundColor: bgColor }}
@@ -448,6 +483,7 @@ function LivePreview({ settings, isDark }: LivePreviewProps) {
           ))}
         </div>
       </div>
+      </div>
     </div>
   );
 }
@@ -465,6 +501,7 @@ export function ThemeSettings() {
 
   const [form, setForm] = useState<FormState>(() => settingsToFormState(undefined));
   const [isDirty, setIsDirty] = useState(false);
+  const [previewMode, setPreviewMode] = useState<PreviewMode>('desktop');
   const savedRef = useRef<FormState | null>(null);
 
   // Initialize form from fetched settings
@@ -884,7 +921,7 @@ export function ThemeSettings() {
         {/* Right: live preview */}
         <div className="lg:col-span-2">
           <div className="lg:sticky lg:top-6">
-            <LivePreview settings={form} isDark={isDark} />
+            <LivePreview settings={form} isDark={isDark} previewMode={previewMode} onPreviewModeChange={setPreviewMode} />
           </div>
         </div>
       </div>
