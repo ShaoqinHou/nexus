@@ -1,5 +1,6 @@
 import { type LucideIcon } from 'lucide-react';
 import { type ReactNode } from 'react';
+import type { TourStep } from '@web/platform/TourProvider';
 
 interface NavItem {
   label: string;
@@ -9,6 +10,12 @@ interface NavItem {
 
 type RouteComponent = () => ReactNode;
 
+export interface TourDefinition {
+  id: string;
+  label: string;
+  steps: TourStep[];
+}
+
 export interface MiniAppDefinition {
   id: string;
   name: string;
@@ -17,6 +24,7 @@ export interface MiniAppDefinition {
   navItems: NavItem[];
   merchantRoutes: RouteComponent[];
   customerRoutes: RouteComponent[];
+  tours?: TourDefinition[];
 }
 
 const registry: MiniAppDefinition[] = [];

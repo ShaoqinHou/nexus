@@ -95,10 +95,12 @@ function MenuItemCard({
   item,
   onOpenDetail,
   disabled = false,
+  tourTarget,
 }: {
   item: PublicMenuItem;
   onOpenDetail: (item: PublicMenuItem) => void;
   disabled?: boolean;
+  tourTarget?: string;
 }) {
   const { items, addItem, updateQuantity } = useCart();
 
@@ -199,6 +201,7 @@ function MenuItemCard({
             onClick={handleAdd}
             className="h-10 w-10 !p-0"
             aria-label={`Add ${item.name} to cart`}
+            {...(tourTarget ? { 'data-tour': tourTarget } : {})}
           >
             <Plus className="h-4 w-4" />
           </Button>
@@ -236,12 +239,14 @@ function CategorySection({
   sectionRef,
   onOpenDetail,
   disabled = false,
+  isFirstSection = false,
 }: {
   category: MenuCategory;
   items: PublicMenuItem[];
   sectionRef: (el: HTMLDivElement | null) => void;
   onOpenDetail: (item: PublicMenuItem) => void;
   disabled?: boolean;
+  isFirstSection?: boolean;
 }) {
   return (
     <div ref={sectionRef} className="scroll-mt-24">
@@ -254,12 +259,13 @@ function CategorySection({
         </p>
       )}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-        {items.map((item) => (
+        {items.map((item, idx) => (
           <MenuItemCard
             key={item.id}
             item={item}
             onOpenDetail={onOpenDetail}
             disabled={disabled}
+            tourTarget={isFirstSection && idx === 0 ? 'first-add-button' : undefined}
           />
         ))}
       </div>
@@ -687,7 +693,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
               </button>
             </div>
           ) : (
-            <div className="flex items-center gap-2 px-4 py-2.5">
+            <div data-tour="category-pills" className="flex items-center gap-2 px-4 py-2.5">
               <div className="flex-1 flex gap-2 overflow-x-auto scrollbar-hide">
                 {visibleCategories.map(({ category }) => (
                   <button
@@ -803,20 +809,26 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
             })()
           ) : (
             // Normal category layout
-            visibleCategories.map(({ category, items }) => {
-              const filtered = filterByAllergens(items);
-              if (filtered.length === 0) return null;
-              return (
-                <CategorySection
-                  key={category.id}
-                  category={category}
-                  items={filtered}
-                  sectionRef={setSectionRef(category.id)}
-                  onOpenDetail={setDetailItem}
-                  disabled={disabled}
-                />
-              );
-            })
+            (() => {
+              let firstRendered = false;
+              return visibleCategories.map(({ category, items }) => {
+                const filtered = filterByAllergens(items);
+                if (filtered.length === 0) return null;
+                const isFirst = !firstRendered;
+                firstRendered = true;
+                return (
+                  <CategorySection
+                    key={category.id}
+                    category={category}
+                    items={filtered}
+                    sectionRef={setSectionRef(category.id)}
+                    onOpenDetail={setDetailItem}
+                    disabled={disabled}
+                    isFirstSection={isFirst}
+                  />
+                );
+              });
+            })()
           )}
 
           {/* Combo Deals section */}

@@ -113,7 +113,7 @@ export function QRCodes() {
         </div>
 
         {/* QR code grid */}
-        <div className="qr-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div data-tour="qr-grid" className="qr-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {Array.from({ length: tableCount }, (_, i) => i + 1).map((tableNum) => {
             const dataUrl = qrCodes.get(tableNum);
             const url = `${window.location.origin}${import.meta.env.BASE_URL}order/${tenantSlug}?table=${tableNum}`;

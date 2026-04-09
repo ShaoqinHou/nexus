@@ -9,6 +9,7 @@ import { LoginPage } from '@web/platform/auth/LoginPage';
 import { PlatformShell } from '@web/platform/layout/PlatformShell';
 import { CustomerShell } from '@web/platform/layout/CustomerShell';
 import { TenantProvider } from '@web/platform/tenant/TenantProvider';
+import { TourProvider } from '@web/platform/TourProvider';
 import { AuthGuard } from '@web/platform/auth/AuthGuard';
 import { MenuManagement } from '@web/apps/ordering/merchant/MenuManagement';
 import { ModifierManager } from '@web/apps/ordering/merchant/ModifierManager';
@@ -53,7 +54,9 @@ function StaffTenantLayout() {
   return (
     <AuthGuard tenantSlug={tenantSlug}>
       <TenantProvider tenantSlug={tenantSlug}>
-        <PlatformShell />
+        <TourProvider tenantSlug={tenantSlug}>
+          <PlatformShell />
+        </TourProvider>
       </TenantProvider>
     </AuthGuard>
   );
@@ -167,7 +170,9 @@ function CustomerOrderLayout() {
   const { tenantSlug } = customerRoute.useParams();
   return (
     <TenantProvider tenantSlug={tenantSlug}>
-      <CustomerShell />
+      <TourProvider>
+        <CustomerShell />
+      </TourProvider>
     </TenantProvider>
   );
 }

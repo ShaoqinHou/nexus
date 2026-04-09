@@ -125,6 +125,7 @@ export function CartSheet({
           {/* Collapsed bar / Sheet header */}
           <button
             type="button"
+            data-tour="cart-bar"
             onClick={toggleSheet}
             className="flex items-center justify-between px-4 py-4 w-full text-left shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >

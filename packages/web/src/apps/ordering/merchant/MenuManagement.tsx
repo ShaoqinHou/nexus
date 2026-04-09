@@ -359,7 +359,7 @@ function CategoryList({
     <Card className="h-full flex flex-col">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Categories</CardTitle>
-        <Button size="sm" onClick={onAdd}>
+        <Button data-tour="add-category" size="sm" onClick={onAdd}>
           <Plus className="h-4 w-4" />
           Add
         </Button>

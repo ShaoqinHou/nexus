@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useSearch } from '@tanstack/react-router';
 import { AlertCircle, QrCode, Clock } from 'lucide-react';
 import { Button } from '@web/components/ui';
@@ -8,9 +8,11 @@ import { CartSheet } from '@web/apps/ordering/customer/CartSheet';
 import { CartSidebar } from '@web/apps/ordering/customer/CartSidebar';
 import { OrderConfirmation } from '@web/apps/ordering/customer/OrderConfirmation';
 import { useTenant } from '@web/platform/tenant/TenantProvider';
+import { useTour, isTourCompleted } from '@web/platform/TourProvider';
 import { isOpenNow } from '@web/lib/theme';
 import type { TenantThemeSettings } from '@web/lib/theme';
 import type { Order } from '@web/apps/ordering/types';
+import { customerOnboardingSteps, CUSTOMER_TOUR_ID } from '@web/apps/ordering/tours/customerTour';
 
 type CustomerView =
   | { type: 'menu'; addToOrderId?: string }
@@ -45,6 +47,8 @@ interface CustomerAppInnerProps {
 function CustomerAppInner({ tenantSlug, tableNumber }: CustomerAppInnerProps) {
   const [view, setView] = useState<CustomerView>({ type: 'menu' });
   const { tenant } = useTenant();
+  const { startTour } = useTour();
+  const tourStartedRef = useRef(false);
 
   const settings = (tenant?.settings ?? {}) as TenantThemeSettings;
 
@@ -57,6 +61,19 @@ function CustomerAppInner({ tenantSlug, tableNumber }: CustomerAppInnerProps) {
 
   const openStatus = isOpenNow(settings.operatingHours);
   const isClosed = !openStatus.open;
+
+  // Auto-show customer tour on first visit
+  useEffect(() => {
+    if (tourStartedRef.current) return;
+    if (!isTourCompleted(CUSTOMER_TOUR_ID)) {
+      tourStartedRef.current = true;
+      // Delay to let menu load first
+      const timer = setTimeout(() => {
+        startTour(customerOnboardingSteps, CUSTOMER_TOUR_ID);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [startTour]);
 
   const recentOrders = useMemo(
     () => loadRecentOrders(tenantSlug, tableNumber),

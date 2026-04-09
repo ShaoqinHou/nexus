@@ -647,7 +647,7 @@ export function ThemeSettings() {
               <p className="text-sm text-text-secondary mb-4">
                 Choose a preset as a starting point, then customize to match your brand.
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+              <div data-tour="theme-presets" className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
                 {THEME_PRESETS.map((preset) => (
                   <PresetCard
                     key={preset.id}

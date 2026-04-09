@@ -9,10 +9,12 @@ import {
   ChevronLeft,
   LayoutDashboard,
   ArrowLeftRight,
+  HelpCircle,
 } from 'lucide-react';
 import { useAuth } from '@web/platform/auth/AuthProvider';
 import { useTheme } from '@web/platform/theme/ThemeProvider';
 import { useTenant } from '@web/platform/tenant/TenantProvider';
+import { useTour } from '@web/platform/TourProvider';
 import { getApps } from '@web/platform/registry';
 import { Button } from '@web/components/ui';
 
@@ -21,12 +23,16 @@ export function PlatformShell() {
   const hasMultipleTenants = tenants.length > 1;
   const { theme, toggleTheme } = useTheme();
   const { tenant } = useTenant();
+  const { startTour } = useTour();
   const { tenantSlug } = useParams({ strict: false }) as { tenantSlug: string };
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const apps = getApps();
   const location = useLocation();
+
+  // Get the first available tour from registered apps
+  const firstTour = apps.flatMap((app) => app.tours ?? []).at(0);
 
   const closeMobileSidebar = useCallback(() => {
     setSidebarOpen(false);
@@ -89,7 +95,7 @@ export function PlatformShell() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-4 px-2">
+        <nav data-tour="sidebar-nav" className="flex-1 overflow-y-auto py-4 px-2">
           <Link
             to="/t/$tenantSlug"
             params={{ tenantSlug }}
@@ -147,10 +153,18 @@ export function PlatformShell() {
                 {group.items.map((item) => {
                   const Icon = item.icon;
                   const isActiveNav = location.pathname.startsWith(item.path);
+                  // Map nav labels to data-tour attributes for the onboarding tour
+                  const tourAttrMap: Record<string, string> = {
+                    Modifiers: 'modifiers-link',
+                    Kitchen: 'kitchen-link',
+                    Analytics: 'analytics-link',
+                  };
+                  const tourAttr = tourAttrMap[item.label];
                   return (
                     <Link
                       key={item.path}
                       to={item.path}
+                      {...(tourAttr ? { 'data-tour': tourAttr } : {})}
                       className={[
                         'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors mb-1',
                         isActiveNav
@@ -200,6 +214,18 @@ export function PlatformShell() {
           </div>
 
           <div className="flex items-center gap-2">
+            {firstTour && (
+              <button
+                type="button"
+                onClick={() => startTour(firstTour.steps, firstTour.id)}
+                className="p-2 rounded-md text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors"
+                aria-label="Start guided tour"
+                title={firstTour.label}
+              >
+                <HelpCircle className="h-5 w-5" />
+              </button>
+            )}
+
             <button
               type="button"
               onClick={toggleTheme}

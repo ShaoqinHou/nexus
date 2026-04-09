@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Clock, ShoppingBag, ChevronDown, ChevronUp, AlertTriangle, ArrowRight, Printer, CreditCard } from 'lucide-react';
+import { Clock, ShoppingBag, ChevronDown, ChevronUp, AlertTriangle, ArrowRight, Printer, CreditCard, HelpCircle } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 import {
   ORDER_STATUSES,
@@ -23,7 +23,9 @@ import { StatusBadge, EmptyState, ConfirmButton } from '@web/components/patterns
 import { formatPrice, timeAgo } from '@web/lib/format';
 import { useTenant } from '@web/platform/tenant/TenantProvider';
 import { useToast } from '@web/platform/ToastProvider';
+import { useTour } from '@web/platform/TourProvider';
 import { useOrders, useUpdateOrderStatus, useHandleCancellationRequest, useUpdatePaymentStatus } from '../hooks/useOrders';
+import { staffOnboardingSteps, STAFF_TOUR_ID } from '../tours/staffTour';
 import type { Order } from '../types';
 import { OrderReceipt } from './OrderReceipt';
 
@@ -404,6 +406,7 @@ export function OrderDashboard() {
   const orders = ordersQuery.data ?? [];
 
   const { toast } = useToast();
+  const { startTour } = useTour();
   const updateStatus = useUpdateOrderStatus(tenantSlug);
   const handleCancellation = useHandleCancellationRequest(tenantSlug);
   const updatePayment = useUpdatePaymentStatus(tenantSlug);
@@ -460,7 +463,7 @@ export function OrderDashboard() {
       </div>
 
       {/* Filter bar */}
-      <Card>
+      <Card data-tour="order-filters">
         <CardContent className="flex flex-col sm:flex-row gap-3">
           <div className="w-full sm:w-48">
             <Select
@@ -500,9 +503,19 @@ export function OrderDashboard() {
           {/* Onboarding checklist for new restaurants (no orders, no filters) */}
           {!statusFilter && !tableFilter && (
             <div className="space-y-4 mt-6">
-              <div>
-                <h2 className="text-lg font-bold text-text">Welcome to your restaurant!</h2>
-                <p className="text-sm text-text-secondary mt-1">Let&apos;s get you set up. Follow these steps:</p>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-lg font-bold text-text">Welcome to your restaurant!</h2>
+                  <p className="text-sm text-text-secondary mt-1">Let&apos;s get you set up. Follow these steps:</p>
+                </div>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => startTour(staffOnboardingSteps, STAFF_TOUR_ID)}
+                >
+                  <HelpCircle className="h-4 w-4" />
+                  Take a Guided Tour
+                </Button>
               </div>
               <div className="space-y-3">
                 <OnboardingStep

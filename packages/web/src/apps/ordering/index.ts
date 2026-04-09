@@ -1,5 +1,6 @@
 import { registerApp } from '@web/platform/registry';
 import { UtensilsCrossed, LayoutDashboard, BookOpen, QrCode, Settings2, Tag, Package, Palette, ChefHat, BarChart3, Users } from 'lucide-react';
+import { staffOnboardingSteps, STAFF_TOUR_ID } from './tours/staffTour';
 
 registerApp({
   id: 'ordering',
@@ -20,4 +21,7 @@ registerApp({
   ],
   merchantRoutes: [],
   customerRoutes: [],
+  tours: [
+    { id: STAFF_TOUR_ID, label: 'Guided Tour', steps: staffOnboardingSteps },
+  ],
 });
