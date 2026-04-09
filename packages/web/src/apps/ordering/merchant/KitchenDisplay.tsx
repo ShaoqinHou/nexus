@@ -84,7 +84,7 @@ function useKitchenSSE(tenantSlug: string, token: string | null) {
       eventSourceRef.current.close();
     }
 
-    const url = `${API_BASE}/t/${tenantSlug}/ordering/kitchen/stream?token=${encodeURIComponent(token)}`;
+    const url = `${API_BASE}/t/${tenantSlug}/kitchen/stream?token=${encodeURIComponent(token)}`;
     const es = new EventSource(url);
     eventSourceRef.current = es;
 

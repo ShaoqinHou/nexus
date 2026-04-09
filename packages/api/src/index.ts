@@ -25,8 +25,8 @@ app.route('/api/platform', platformRoutes(db));
 const tenantApp = new Hono<TenantEnv>();
 tenantApp.use('*', tenantMiddleware(db));
 
+tenantApp.route('/kitchen', kitchenStreamRoutes(db)); // No auth middleware — handles its own JWT via query param
 tenantApp.route('/ordering', staffOrderingRoutes(db));
-tenantApp.route('/ordering/kitchen', kitchenStreamRoutes(db));
 tenantApp.route('/settings', tenantSettingsRoutes(db));
 tenantApp.route('/staff', staffRoutes(db));
 tenantApp.route('/upload', uploadRoutes(db));
