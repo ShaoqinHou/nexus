@@ -8,11 +8,11 @@ interface AuthGuardProps {
 }
 
 export function AuthGuard({ children }: AuthGuardProps) {
-  // TODO: Re-enable auth check before production
-  // const { isAuthenticated } = useAuth();
-  // if (!isAuthenticated) {
-  //   return <Navigate to="/login" />;
-  // }
+  const { isAuthenticated } = useAuth();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" />;
+  }
 
   return <>{children}</>;
 }

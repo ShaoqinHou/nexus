@@ -19,13 +19,18 @@ export function LoginPage() {
     setError('');
     setLoading(true);
 
+    // Default to demo credentials if empty
+    const slug = tenantSlug || 'demo';
+    const em = email || 'demo@example.com';
+    const pw = password || 'password123';
+
     try {
       if (mode === 'login') {
-        await login(email, password, tenantSlug);
+        await login(em, pw, slug);
       } else {
-        await register(tenantName, tenantSlug, email, password);
+        await register(tenantName, slug, em, pw);
       }
-      navigate({ to: '/t/$tenantSlug/ordering/orders', params: { tenantSlug } });
+      navigate({ to: '/t/$tenantSlug/ordering/orders', params: { tenantSlug: slug } });
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
@@ -74,26 +79,23 @@ export function LoginPage() {
             placeholder="demo"
             value={tenantSlug}
             onChange={(e) => setTenantSlug(e.target.value)}
-            helperText="The ID your restaurant was registered with"
-            required
+            helperText="Leave empty to use demo restaurant"
           />
 
           <Input
             label="Email"
             type="email"
-            placeholder="you@example.com"
+            placeholder="demo@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            required
           />
 
           <Input
             label="Password"
             type="password"
-            placeholder="Enter your password"
+            placeholder="password123"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            required
           />
 
           <Button
