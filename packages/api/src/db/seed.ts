@@ -31,15 +31,17 @@ function seed() {
     process.exit(1);
   }
 
-  // --- Idempotency: delete existing demo tenant and all its data ---
-  const existing = db
-    .select()
-    .from(tenants)
-    .where(eq(tenants.slug, 'demo'))
-    .get();
+  // --- Idempotency: delete existing demo tenants and all their data ---
+  function deleteTenantBySlug(slug: string) {
+    const existing = db
+      .select()
+      .from(tenants)
+      .where(eq(tenants.slug, slug))
+      .get();
 
-  if (existing) {
-    console.log('Existing demo tenant found — removing...');
+    if (!existing) return;
+
+    console.log(`Existing '${slug}' tenant found — removing...`);
 
     // Delete combo slot options, slots, deals (children first)
     const demoCombos = db
@@ -108,6 +110,9 @@ function seed() {
     // Delete tenant
     db.delete(tenants).where(eq(tenants.id, existing.id)).run();
   }
+
+  deleteTenantBySlug('demo');
+  deleteTenantBySlug('sakura');
 
   // --- Create tenant ---
   const tenantId = nanoid();
@@ -699,7 +704,287 @@ function seed() {
   }
 
   console.log(`Created ${analyticsOrders.length} additional analytics orders`);
-  console.log('Done! Login with: demo@example.com / password123 / demo');
+
+  // =================================================================
+  // SECOND TENANT: Sakura Sushi (same owner email for multi-restaurant demo)
+  // =================================================================
+
+  const sakuraTenantId = nanoid();
+  const sakuraNow = new Date().toISOString();
+
+  const sakuraSettings = JSON.stringify({
+    brandColor: '#be185d',
+    preset: 'fine-dining',
+    fontFamily: 'Playfair Display',
+    borderRadius: 'rounded',
+    surfaceStyle: 'glass',
+    coverImageUrl: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=800&q=80',
+    logoUrl: 'https://images.unsplash.com/photo-1553621042-f6e147245754?w=128&q=80',
+    operatingHours: [
+      { day: 0, open: '11:00', close: '21:00' },
+      { day: 1, open: '11:30', close: '22:00' },
+      { day: 2, open: '11:30', close: '22:00' },
+      { day: 3, open: '11:30', close: '22:00' },
+      { day: 4, open: '11:30', close: '22:00' },
+      { day: 5, open: '11:30', close: '23:00' },
+      { day: 6, open: '11:00', close: '23:00' },
+    ],
+  });
+
+  db.insert(tenants)
+    .values({
+      id: sakuraTenantId,
+      name: 'Sakura Sushi',
+      slug: 'sakura',
+      settings: sakuraSettings,
+      isActive: 1,
+      createdAt: sakuraNow,
+      updatedAt: sakuraNow,
+    })
+    .run();
+
+  console.log('Created tenant: Sakura Sushi (sakura)');
+
+  // Same owner email — this enables multi-restaurant switching
+  db.insert(staff)
+    .values({
+      id: nanoid(),
+      tenantId: sakuraTenantId,
+      email: 'demo@example.com',
+      passwordHash,
+      name: 'Demo Owner',
+      role: 'owner',
+      isActive: 1,
+      createdAt: sakuraNow,
+      updatedAt: sakuraNow,
+    })
+    .run();
+
+  console.log('Created owner for Sakura: demo@example.com');
+
+  // --- Sakura categories ---
+  const sakuraCategoryData = [
+    { name: 'Starters', sortOrder: 0 },
+    { name: 'Sushi Rolls', sortOrder: 1 },
+    { name: 'Ramen', sortOrder: 2 },
+    { name: 'Drinks', sortOrder: 3 },
+  ];
+
+  const sakuraCatIds: Record<string, string> = {};
+  for (const cat of sakuraCategoryData) {
+    const id = nanoid();
+    sakuraCatIds[cat.name] = id;
+    db.insert(menuCategories)
+      .values({
+        id,
+        tenantId: sakuraTenantId,
+        name: cat.name,
+        sortOrder: cat.sortOrder,
+        isActive: 1,
+        createdAt: sakuraNow,
+        updatedAt: sakuraNow,
+      })
+      .run();
+  }
+
+  // --- Sakura menu items ---
+  const sakuraItemDefs: ItemDef[] = [
+    // Starters
+    { name: 'Edamame', description: 'Steamed soybeans with sea salt', price: 7.0, category: 'Starters', sortOrder: 0, imageUrl: 'https://images.unsplash.com/photo-1564093497595-593b96d80571?w=400&q=80', tags: 'vegetarian,vegan,gluten-free' },
+    { name: 'Gyoza', description: 'Pan-fried pork dumplings (6 pcs)', price: 12.0, category: 'Starters', sortOrder: 1, isFeatured: 1, imageUrl: 'https://images.unsplash.com/photo-1496116218417-1a781b1c416c?w=400&q=80' },
+    { name: 'Miso Soup', description: 'Traditional soup with tofu and wakame', price: 6.5, category: 'Starters', sortOrder: 2, imageUrl: 'https://images.unsplash.com/photo-1607301405390-d831c242f59b?w=400&q=80', tags: 'vegetarian' },
+    // Sushi Rolls
+    { name: 'Salmon Nigiri', description: 'Fresh salmon over pressed rice (2 pcs)', price: 9.0, category: 'Sushi Rolls', sortOrder: 0, isFeatured: 1, imageUrl: 'https://images.unsplash.com/photo-1553621042-f6e147245754?w=400&q=80', tags: 'gluten-free' },
+    { name: 'Dragon Roll', description: 'Eel, avocado, cucumber topped with avocado', price: 18.0, category: 'Sushi Rolls', sortOrder: 1, imageUrl: 'https://images.unsplash.com/photo-1617196034796-73dfa7b1fd56?w=400&q=80', tags: 'popular' },
+    { name: 'Spicy Tuna Roll', description: 'Tuna, spicy mayo, cucumber (8 pcs)', price: 15.0, category: 'Sushi Rolls', sortOrder: 2, isFeatured: 1, imageUrl: 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=400&q=80', tags: 'spicy,popular' },
+    { name: 'Vegetable Roll', description: 'Avocado, cucumber, carrot, asparagus', price: 11.0, category: 'Sushi Rolls', sortOrder: 3, imageUrl: 'https://images.unsplash.com/photo-1559410545-0bdcd187e0a6?w=400&q=80', tags: 'vegetarian,vegan' },
+    { name: 'Rainbow Roll', description: 'California roll topped with assorted sashimi', price: 22.0, category: 'Sushi Rolls', sortOrder: 4, imageUrl: 'https://images.unsplash.com/photo-1611143669185-af224c5e3252?w=400&q=80', tags: 'popular' },
+    // Ramen
+    { name: 'Tonkotsu Ramen', description: 'Rich pork bone broth with chashu, egg, nori', price: 19.0, category: 'Ramen', sortOrder: 0, isFeatured: 1, imageUrl: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400&q=80', tags: 'popular' },
+    { name: 'Miso Ramen', description: 'Miso-based broth with corn, butter, bean sprouts', price: 17.5, category: 'Ramen', sortOrder: 1, imageUrl: 'https://images.unsplash.com/photo-1591814468924-caf88d1232e1?w=400&q=80' },
+    { name: 'Shoyu Ramen', description: 'Soy sauce broth with bamboo shoots and nori', price: 16.5, category: 'Ramen', sortOrder: 2, imageUrl: 'https://images.unsplash.com/photo-1557872943-16a5ac26437e?w=400&q=80' },
+    // Drinks
+    { name: 'Green Tea', description: 'Hot Japanese sencha', price: 4.0, category: 'Drinks', sortOrder: 0, tags: 'vegan,gluten-free' },
+    { name: 'Sake (Hot)', description: 'House sake, 180ml carafe', price: 12.0, category: 'Drinks', sortOrder: 1, imageUrl: 'https://images.unsplash.com/photo-1553484604-9f524520c793?w=400&q=80', tags: 'vegan,gluten-free' },
+    { name: 'Ramune Soda', description: 'Japanese marble soda', price: 5.5, category: 'Drinks', sortOrder: 2, tags: 'vegan' },
+    { name: 'Asahi Beer', description: 'Japanese lager, 500ml', price: 9.0, category: 'Drinks', sortOrder: 3, imageUrl: 'https://images.unsplash.com/photo-1535958636474-b021ee887b13?w=400&q=80', tags: 'vegan' },
+  ];
+
+  const sakuraItemIds: Record<string, string> = {};
+  for (const item of sakuraItemDefs) {
+    const id = nanoid();
+    sakuraItemIds[item.name] = id;
+    db.insert(menuItems)
+      .values({
+        id,
+        tenantId: sakuraTenantId,
+        categoryId: sakuraCatIds[item.category],
+        name: item.name,
+        description: item.description,
+        price: item.price,
+        imageUrl: item.imageUrl ?? null,
+        tags: item.tags ?? null,
+        isAvailable: 1,
+        isFeatured: item.isFeatured ?? 0,
+        sortOrder: item.sortOrder,
+        isActive: 1,
+        createdAt: sakuraNow,
+        updatedAt: sakuraNow,
+      })
+      .run();
+  }
+
+  console.log(`Created 4 Sakura categories with ${sakuraItemDefs.length} items`);
+
+  // --- Sakura modifier groups ---
+  const sakuraSpiceGroup = db.insert(modifierGroups).values({
+    id: nanoid(),
+    tenantId: sakuraTenantId,
+    name: 'Spice Level',
+    minSelections: 1,
+    maxSelections: 1,
+    sortOrder: 0,
+    isActive: 1,
+    createdAt: sakuraNow,
+    updatedAt: sakuraNow,
+  }).returning().get();
+
+  db.insert(modifierOptions).values([
+    { id: nanoid(), groupId: sakuraSpiceGroup.id, name: 'Mild', priceDelta: 0, isDefault: 1, sortOrder: 0, isActive: 1, createdAt: sakuraNow, updatedAt: sakuraNow },
+    { id: nanoid(), groupId: sakuraSpiceGroup.id, name: 'Medium', priceDelta: 0, isDefault: 0, sortOrder: 1, isActive: 1, createdAt: sakuraNow, updatedAt: sakuraNow },
+    { id: nanoid(), groupId: sakuraSpiceGroup.id, name: 'Hot', priceDelta: 0, isDefault: 0, sortOrder: 2, isActive: 1, createdAt: sakuraNow, updatedAt: sakuraNow },
+    { id: nanoid(), groupId: sakuraSpiceGroup.id, name: 'Extra Hot', priceDelta: 0.5, isDefault: 0, sortOrder: 3, isActive: 1, createdAt: sakuraNow, updatedAt: sakuraNow },
+  ]).run();
+
+  const ramenExtrasGroup = db.insert(modifierGroups).values({
+    id: nanoid(),
+    tenantId: sakuraTenantId,
+    name: 'Ramen Extras',
+    minSelections: 0,
+    maxSelections: 3,
+    sortOrder: 1,
+    isActive: 1,
+    createdAt: sakuraNow,
+    updatedAt: sakuraNow,
+  }).returning().get();
+
+  db.insert(modifierOptions).values([
+    { id: nanoid(), groupId: ramenExtrasGroup.id, name: 'Extra Chashu', priceDelta: 3.0, isDefault: 0, sortOrder: 0, isActive: 1, createdAt: sakuraNow, updatedAt: sakuraNow },
+    { id: nanoid(), groupId: ramenExtrasGroup.id, name: 'Extra Egg', priceDelta: 2.0, isDefault: 0, sortOrder: 1, isActive: 1, createdAt: sakuraNow, updatedAt: sakuraNow },
+    { id: nanoid(), groupId: ramenExtrasGroup.id, name: 'Extra Noodles', priceDelta: 2.5, isDefault: 0, sortOrder: 2, isActive: 1, createdAt: sakuraNow, updatedAt: sakuraNow },
+    { id: nanoid(), groupId: ramenExtrasGroup.id, name: 'Extra Corn', priceDelta: 1.5, isDefault: 0, sortOrder: 3, isActive: 1, createdAt: sakuraNow, updatedAt: sakuraNow },
+  ]).run();
+
+  // Link modifiers to ramen items
+  db.insert(menuItemModifierGroups).values([
+    { menuItemId: sakuraItemIds['Tonkotsu Ramen'], modifierGroupId: sakuraSpiceGroup.id, sortOrder: 0 },
+    { menuItemId: sakuraItemIds['Tonkotsu Ramen'], modifierGroupId: ramenExtrasGroup.id, sortOrder: 1 },
+    { menuItemId: sakuraItemIds['Miso Ramen'], modifierGroupId: sakuraSpiceGroup.id, sortOrder: 0 },
+    { menuItemId: sakuraItemIds['Miso Ramen'], modifierGroupId: ramenExtrasGroup.id, sortOrder: 1 },
+    { menuItemId: sakuraItemIds['Shoyu Ramen'], modifierGroupId: sakuraSpiceGroup.id, sortOrder: 0 },
+    { menuItemId: sakuraItemIds['Shoyu Ramen'], modifierGroupId: ramenExtrasGroup.id, sortOrder: 1 },
+    { menuItemId: sakuraItemIds['Spicy Tuna Roll'], modifierGroupId: sakuraSpiceGroup.id, sortOrder: 0 },
+  ]).run();
+
+  console.log('Created 2 Sakura modifier groups with options');
+
+  // --- Sakura sample orders ---
+  const sakuraPriceLookup: Record<string, number> = {};
+  for (const item of sakuraItemDefs) {
+    sakuraPriceLookup[item.name] = item.price;
+  }
+
+  const sakuraOrderDefs: OrderDef[] = [
+    {
+      tableNumber: '1',
+      status: 'pending',
+      minutesAgo: 8,
+      items: [
+        { name: 'Edamame', quantity: 1 },
+        { name: 'Spicy Tuna Roll', quantity: 2 },
+      ],
+    },
+    {
+      tableNumber: '3',
+      status: 'confirmed',
+      minutesAgo: 20,
+      items: [
+        { name: 'Gyoza', quantity: 1 },
+        { name: 'Tonkotsu Ramen', quantity: 2, modifiers: [{ name: 'Extra Chashu', price: 3.00 }] },
+        { name: 'Asahi Beer', quantity: 2 },
+      ],
+    },
+    {
+      tableNumber: '5',
+      status: 'preparing',
+      minutesAgo: 35,
+      items: [
+        { name: 'Dragon Roll', quantity: 1 },
+        { name: 'Rainbow Roll', quantity: 1 },
+        { name: 'Sake (Hot)', quantity: 1 },
+      ],
+    },
+    {
+      tableNumber: '2',
+      status: 'delivered',
+      minutesAgo: 55,
+      items: [
+        { name: 'Miso Soup', quantity: 2 },
+        { name: 'Salmon Nigiri', quantity: 4 },
+        { name: 'Miso Ramen', quantity: 1 },
+        { name: 'Green Tea', quantity: 2 },
+      ],
+    },
+  ];
+
+  for (const orderDef of sakuraOrderDefs) {
+    const total = orderDef.items.reduce(
+      (sum, item) => {
+        const modifierTotal = (item.modifiers ?? []).reduce((ms, m) => ms + m.price, 0);
+        return sum + (sakuraPriceLookup[item.name] + modifierTotal) * item.quantity;
+      },
+      0,
+    );
+
+    const createdAt = new Date(
+      Date.now() - orderDef.minutesAgo * 60 * 1000,
+    ).toISOString();
+
+    const orderId = nanoid();
+    db.insert(orders)
+      .values({
+        id: orderId,
+        tenantId: sakuraTenantId,
+        tableNumber: orderDef.tableNumber,
+        status: orderDef.status,
+        total,
+        createdAt,
+        updatedAt: createdAt,
+      })
+      .run();
+
+    for (const item of orderDef.items) {
+      const modifierTotal = (item.modifiers ?? []).reduce((ms, m) => ms + m.price, 0);
+      db.insert(orderItems)
+        .values({
+          id: nanoid(),
+          orderId,
+          menuItemId: sakuraItemIds[item.name],
+          name: item.name,
+          price: sakuraPriceLookup[item.name] + modifierTotal,
+          quantity: item.quantity,
+          modifiersJson: item.modifiers ? JSON.stringify(item.modifiers) : null,
+          createdAt,
+        })
+        .run();
+    }
+  }
+
+  console.log(`Created ${sakuraOrderDefs.length} Sakura sample orders`);
+  console.log('');
+  console.log('Done! Login with: demo@example.com / password123');
+  console.log('  - Demo Restaurant (demo)');
+  console.log('  - Sakura Sushi (sakura)');
 }
 
 try {

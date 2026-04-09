@@ -25,6 +25,15 @@ const loginSchema = z.object({
   tenantSlug: z.string().min(1, 'Tenant slug is required'),
 });
 
+const myTenantsSchema = z.object({
+  email: z.string().email('Invalid email'),
+  password: z.string().min(1, 'Password is required'),
+});
+
+const switchTenantSchema = z.object({
+  targetSlug: z.string().min(1, 'Target tenant slug is required'),
+});
+
 // --- Route Factory ---
 
 export function platformRoutes(db: DrizzleDB) {
@@ -149,6 +158,138 @@ export function platformRoutes(db: DrizzleDB) {
         id: tenant.id,
         name: tenant.name,
         slug: tenant.slug,
+      },
+    });
+  });
+
+  // My tenants: list all tenants a user has access to (by email + password)
+  router.post('/auth/my-tenants', zValidator('json', myTenantsSchema), async (c) => {
+    const { email, password } = c.req.valid('json');
+
+    // Find all active staff records with this email across all tenants
+    const staffRecords = db
+      .select({
+        staffId: staff.id,
+        passwordHash: staff.passwordHash,
+        name: staff.name,
+        role: staff.role,
+        tenantId: tenants.id,
+        tenantName: tenants.name,
+        tenantSlug: tenants.slug,
+      })
+      .from(staff)
+      .innerJoin(tenants, eq(staff.tenantId, tenants.id))
+      .where(
+        and(
+          eq(staff.email, email),
+          eq(staff.isActive, 1),
+          eq(tenants.isActive, 1)
+        )
+      )
+      .all();
+
+    if (staffRecords.length === 0) {
+      return c.json({ error: 'Invalid credentials' }, 401);
+    }
+
+    // Verify password against the first record (same email = same password across tenants)
+    const passwordValid = await bcrypt.compare(password, staffRecords[0].passwordHash);
+    if (!passwordValid) {
+      return c.json({ error: 'Invalid credentials' }, 401);
+    }
+
+    // Return the list of tenants (without password hashes)
+    const data = staffRecords.map((r) => ({
+      id: r.tenantId,
+      name: r.tenantName,
+      slug: r.tenantSlug,
+      role: r.role,
+    }));
+
+    return c.json({ data });
+  });
+
+  // Switch tenant: issue a new JWT for a different tenant using an existing valid JWT
+  router.post('/auth/switch-tenant', zValidator('json', switchTenantSchema), async (c) => {
+    const { targetSlug } = c.req.valid('json');
+
+    // Verify the current JWT
+    const authHeader = c.req.header('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return c.json({ error: 'Authorization header required' }, 401);
+    }
+
+    const token = authHeader.slice(7);
+
+    let payload: { staffId: string; tenantId: string };
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      if (typeof decoded !== 'object' || decoded === null || !('staffId' in decoded) || !('tenantId' in decoded)) {
+        return c.json({ error: 'Invalid token payload' }, 401);
+      }
+      payload = decoded as { staffId: string; tenantId: string };
+    } catch {
+      return c.json({ error: 'Invalid or expired token' }, 401);
+    }
+
+    // Find the current staff member to get their email
+    const currentStaff = db
+      .select()
+      .from(staff)
+      .where(and(eq(staff.id, payload.staffId), eq(staff.isActive, 1)))
+      .get();
+
+    if (!currentStaff) {
+      return c.json({ error: 'Staff member not found' }, 401);
+    }
+
+    // Resolve the target tenant
+    const targetTenant = db
+      .select()
+      .from(tenants)
+      .where(and(eq(tenants.slug, targetSlug), eq(tenants.isActive, 1)))
+      .get();
+
+    if (!targetTenant) {
+      return c.json({ error: 'Target tenant not found' }, 404);
+    }
+
+    // Find the staff record for this email in the target tenant
+    const targetStaff = db
+      .select()
+      .from(staff)
+      .where(
+        and(
+          eq(staff.tenantId, targetTenant.id),
+          eq(staff.email, currentStaff.email),
+          eq(staff.isActive, 1)
+        )
+      )
+      .get();
+
+    if (!targetStaff) {
+      return c.json({ error: 'You do not have access to this tenant' }, 403);
+    }
+
+    // Issue a new JWT for the target tenant
+    const newToken = jwt.sign(
+      { staffId: targetStaff.id, tenantId: targetTenant.id },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    return c.json({
+      token: newToken,
+      user: {
+        id: targetStaff.id,
+        email: targetStaff.email,
+        name: targetStaff.name,
+        role: targetStaff.role,
+      },
+      tenant: {
+        id: targetTenant.id,
+        name: targetTenant.name,
+        slug: targetTenant.slug,
       },
     });
   });

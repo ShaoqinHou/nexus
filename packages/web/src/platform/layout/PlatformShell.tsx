@@ -8,6 +8,7 @@ import {
   Moon,
   ChevronLeft,
   LayoutDashboard,
+  ArrowLeftRight,
 } from 'lucide-react';
 import { useAuth } from '@web/platform/auth/AuthProvider';
 import { useTheme } from '@web/platform/theme/ThemeProvider';
@@ -16,7 +17,8 @@ import { getApps } from '@web/platform/registry';
 import { Button } from '@web/components/ui';
 
 export function PlatformShell() {
-  const { user, logout } = useAuth();
+  const { user, logout, tenants } = useAuth();
+  const hasMultipleTenants = tenants.length > 1;
   const { theme, toggleTheme } = useTheme();
   const { tenant } = useTenant();
   const { tenantSlug } = useParams({ strict: false }) as { tenantSlug: string };
@@ -102,6 +104,23 @@ export function PlatformShell() {
             <LayoutDashboard className="h-5 w-5 shrink-0" />
             {!sidebarCollapsed && <span>Dashboard</span>}
           </Link>
+
+          {hasMultipleTenants && (
+            <Link
+              to="/t/$tenantSlug/restaurants"
+              params={{ tenantSlug }}
+              className={[
+                'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors mb-1',
+                location.pathname === `/t/${tenantSlug}/restaurants`
+                  ? 'bg-primary/10 text-primary font-medium'
+                  : 'text-text-secondary hover:text-text hover:bg-bg-muted',
+              ].join(' ')}
+              onClick={closeMobileSidebar}
+            >
+              <ArrowLeftRight className="h-5 w-5 shrink-0" />
+              {!sidebarCollapsed && <span>Switch Restaurant</span>}
+            </Link>
+          )}
 
           {(() => {
             const navGroups = [

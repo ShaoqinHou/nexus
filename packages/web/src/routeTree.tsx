@@ -21,6 +21,7 @@ import { KitchenDisplay } from '@web/apps/ordering/merchant/KitchenDisplay';
 import { Analytics } from '@web/apps/ordering/merchant/Analytics';
 import { StaffManagement } from '@web/apps/ordering/merchant/StaffManagement';
 import { CustomerApp } from '@web/apps/ordering/customer/CustomerApp';
+import { TenantPicker } from '@web/platform/auth/TenantPicker';
 
 // Register mini-app modules (triggers side-effect registration)
 import '@web/apps/ordering/index';
@@ -129,6 +130,13 @@ const orderingStaffRoute = createRoute({
   component: StaffManagement,
 });
 
+// Restaurant switcher route
+const restaurantsRoute = createRoute({
+  getParentRoute: () => tenantRoute,
+  path: '/restaurants',
+  component: TenantPicker,
+});
+
 // Staff tenant catch-all for unknown module routes
 const tenantCatchAllRoute = createRoute({
   getParentRoute: () => tenantRoute,
@@ -211,6 +219,7 @@ const routeTree = rootRoute.addChildren([
   kitchenRoute,
   tenantRoute.addChildren([
     tenantIndexRoute,
+    restaurantsRoute,
     orderingMenuRoute,
     orderingModifiersRoute,
     orderingOrdersRoute,
