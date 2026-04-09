@@ -20,6 +20,7 @@ export interface ComboSelection {
   menuItemId: string;
   itemName: string;
   priceModifier: number;
+  modifiers?: CartItemModifier[];
 }
 
 export interface CartItem {

@@ -19,7 +19,11 @@ interface CreateOrderPayload {
   }>;
   comboItems?: Array<{
     comboDealId: string;
-    selections: Array<{ slotId: string; menuItemId: string }>;
+    selections: Array<{
+      slotId: string;
+      menuItemId: string;
+      modifiers?: Array<{ optionId: string }>;
+    }>;
     quantity: number;
     notes?: string;
   }>;
@@ -145,6 +149,13 @@ export function useCartOrder(options: UseCartOrderOptions) {
                 selections: (item.comboSelections ?? []).map((s) => ({
                   slotId: s.slotId,
                   menuItemId: s.menuItemId,
+                  ...(s.modifiers && s.modifiers.length > 0
+                    ? {
+                        modifiers: s.modifiers.map((m) => ({
+                          optionId: m.optionId,
+                        })),
+                      }
+                    : {}),
                 })),
                 quantity: item.quantity,
                 ...(item.notes ? { notes: item.notes } : {}),

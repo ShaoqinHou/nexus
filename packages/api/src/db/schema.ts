@@ -108,6 +108,7 @@ export const menuItemModifierGroups = sqliteTable('menu_item_modifier_groups', {
   menuItemId: text('menu_item_id').notNull().references(() => menuItems.id),
   modifierGroupId: text('modifier_group_id').notNull().references(() => modifierGroups.id),
   sortOrder: integer('sort_order').notNull().default(0),
+  priceOverrides: text('price_overrides'), // nullable JSON: { "optionId": { "priceDelta": 4.00 } }
 });
 
 // --- Promotions ---

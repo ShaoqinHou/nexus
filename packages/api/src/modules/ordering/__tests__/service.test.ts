@@ -224,7 +224,8 @@ function createTestDb() {
     CREATE TABLE menu_item_modifier_groups (
       menu_item_id TEXT NOT NULL REFERENCES menu_items(id),
       modifier_group_id TEXT NOT NULL REFERENCES modifier_groups(id),
-      sort_order INTEGER NOT NULL DEFAULT 0
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      price_overrides TEXT
     );
   `);
 

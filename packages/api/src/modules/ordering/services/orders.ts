@@ -32,9 +32,14 @@ export interface CreateOrderItem {
   modifiers?: OrderItemModifier[];
 }
 
+interface ComboSelectionModifier {
+  optionId: string;
+}
+
 interface ComboOrderSelection {
   slotId: string;
   menuItemId: string;
+  modifiers?: ComboSelectionModifier[];
 }
 
 interface ComboOrderItem {
@@ -229,6 +234,39 @@ export function createOrder(
 
           comboPriceModifiers += slotOption.priceModifier;
 
+          // Validate and snapshot modifiers for this combo selection
+          let selModifierPriceTotal = 0;
+          let selModifiersSnapshot: Array<{ name: string; price: number }> | null = null;
+
+          if (sel.modifiers && sel.modifiers.length > 0) {
+            selModifiersSnapshot = [];
+            for (const mod of sel.modifiers) {
+              const option = db
+                .select()
+                .from(modifierOptions)
+                .where(
+                  and(
+                    eq(modifierOptions.id, mod.optionId),
+                    eq(modifierOptions.isActive, 1)
+                  )
+                )
+                .get();
+
+              if (!option) {
+                return { error: `Modifier option not found: ${mod.optionId}` as const };
+              }
+
+              // Snapshot from DB, not from client (client values are untrusted)
+              selModifiersSnapshot.push({
+                name: option.name,
+                price: option.priceDelta,
+              });
+              selModifierPriceTotal += option.priceDelta;
+            }
+          }
+
+          comboPriceModifiers += selModifierPriceTotal;
+
           // Snapshot each selected item as an order item linked to the combo
           resolvedItems.push({
             menuItemId: menuItem.id,
@@ -240,6 +278,7 @@ export function createOrder(
               comboName: deal.name,
               slotName: slot.name,
               priceModifier: slotOption.priceModifier,
+              ...(selModifiersSnapshot ? { itemModifiers: selModifiersSnapshot } : {}),
             }),
             comboDealId: deal.id,
             comboGroupId,

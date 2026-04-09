@@ -268,11 +268,14 @@ export function getItemModifierGroups(db: DrizzleDB, tenantId: string, menuItemI
     )
     .all();
 
-  // Preserve link sort order and attach options
+  // Preserve link sort order and attach options (with per-item price overrides applied)
   return links
     .map((link) => {
       const group = groups.find((g) => g.id === link.modifierGroupId);
       if (!group) return null;
+
+      const overrides: Record<string, { priceDelta: number }> | null =
+        link.priceOverrides ? JSON.parse(link.priceOverrides) : null;
 
       const options = db
         .select()
@@ -284,19 +287,38 @@ export function getItemModifierGroups(db: DrizzleDB, tenantId: string, menuItemI
           )
         )
         .orderBy(modifierOptions.sortOrder)
-        .all();
+        .all()
+        .map((option) => ({
+          ...option,
+          priceDelta: overrides?.[option.id]?.priceDelta ?? option.priceDelta,
+        }));
 
       return { ...group, options };
     })
     .filter((g): g is NonNullable<typeof g> => g !== null);
 }
 
+interface SetItemModifierGroupInput {
+  groupId: string;
+  priceOverrides?: Record<string, { priceDelta: number }>;
+}
+
 export function setItemModifierGroups(
   db: DrizzleDB,
   tenantId: string,
   menuItemId: string,
-  groupIds: string[]
+  groups: string[] | SetItemModifierGroupInput[]
 ) {
+  // Normalize: accept either string[] (backward compat) or SetItemModifierGroupInput[]
+  const normalized: SetItemModifierGroupInput[] =
+    groups.length === 0
+      ? []
+      : typeof groups[0] === 'string'
+        ? (groups as string[]).map((id) => ({ groupId: id }))
+        : (groups as SetItemModifierGroupInput[]);
+
+  const groupIds = normalized.map((g) => g.groupId);
+
   // Verify the menu item belongs to this tenant
   const item = db
     .select()
@@ -337,11 +359,12 @@ export function setItemModifierGroups(
     .where(eq(menuItemModifierGroups.menuItemId, menuItemId))
     .run();
 
-  // Insert new links with sort order
-  const links = groupIds.map((groupId, index) => ({
+  // Insert new links with sort order and optional price overrides
+  const links = normalized.map((g, index) => ({
     menuItemId,
-    modifierGroupId: groupId,
+    modifierGroupId: g.groupId,
     sortOrder: index,
+    priceOverrides: g.priceOverrides ? JSON.stringify(g.priceOverrides) : null,
   }));
 
   if (links.length > 0) {

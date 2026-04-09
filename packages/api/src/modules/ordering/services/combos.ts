@@ -7,6 +7,7 @@ import {
   comboSlotOptions,
 } from '../../../db/schema.js';
 import type { DrizzleDB } from '../../../db/client.js';
+import { getItemModifierGroups } from './modifiers.js';
 
 // --- Combo Deal Service ---
 
@@ -294,7 +295,16 @@ export function getPublicCombos(db: DrizzleDB, tenantId: string) {
         .orderBy(comboSlotOptions.sortOrder)
         .all();
 
-      return { ...slot, options };
+      // Attach modifier groups for each slot option's referenced menu item
+      const optionsWithModifiers = options.map((option) => {
+        const modifierGroupsList = getItemModifierGroups(db, tenantId, option.menuItemId);
+        return {
+          ...option,
+          modifierGroups: modifierGroupsList.length > 0 ? modifierGroupsList : undefined,
+        };
+      });
+
+      return { ...slot, options: optionsWithModifiers };
     });
 
     return { ...deal, slots: slotsWithOptions };

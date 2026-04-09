@@ -265,9 +265,11 @@ function seed() {
     updatedAt: now,
   }).returning().get();
 
+  const sizeRegularId = nanoid();
+  const sizeLargeId = nanoid();
   db.insert(modifierOptions).values([
-    { id: nanoid(), groupId: sizeGroup.id, name: 'Regular', priceDelta: 0, isDefault: 1, sortOrder: 0, isActive: 1, createdAt: now, updatedAt: now },
-    { id: nanoid(), groupId: sizeGroup.id, name: 'Large', priceDelta: 2.5, isDefault: 0, sortOrder: 1, isActive: 1, createdAt: now, updatedAt: now },
+    { id: sizeRegularId, groupId: sizeGroup.id, name: 'Regular', priceDelta: 0, isDefault: 1, sortOrder: 0, isActive: 1, createdAt: now, updatedAt: now },
+    { id: sizeLargeId, groupId: sizeGroup.id, name: 'Large', priceDelta: 2.5, isDefault: 0, sortOrder: 1, isActive: 1, createdAt: now, updatedAt: now },
   ]).run();
 
   const toppingsGroup = db.insert(modifierGroups).values({
@@ -282,8 +284,9 @@ function seed() {
     updatedAt: now,
   }).returning().get();
 
+  const extraCheeseId = nanoid();
   db.insert(modifierOptions).values([
-    { id: nanoid(), groupId: toppingsGroup.id, name: 'Extra Cheese', priceDelta: 1.5, isDefault: 0, sortOrder: 0, isActive: 1, createdAt: now, updatedAt: now },
+    { id: extraCheeseId, groupId: toppingsGroup.id, name: 'Extra Cheese', priceDelta: 1.5, isDefault: 0, sortOrder: 0, isActive: 1, createdAt: now, updatedAt: now },
     { id: nanoid(), groupId: toppingsGroup.id, name: 'Bacon', priceDelta: 2.0, isDefault: 0, sortOrder: 1, isActive: 1, createdAt: now, updatedAt: now },
     { id: nanoid(), groupId: toppingsGroup.id, name: 'Avocado', priceDelta: 2.5, isDefault: 0, sortOrder: 2, isActive: 1, createdAt: now, updatedAt: now },
     { id: nanoid(), groupId: toppingsGroup.id, name: 'Jalapeños', priceDelta: 1.0, isDefault: 0, sortOrder: 3, isActive: 1, createdAt: now, updatedAt: now },
@@ -307,11 +310,14 @@ function seed() {
     { id: nanoid(), groupId: spiceGroup.id, name: 'Hot', priceDelta: 0, isDefault: 0, sortOrder: 2, isActive: 1, createdAt: now, updatedAt: now },
   ]).run();
 
-  // Link modifier groups to menu items
+  // Link modifier groups to menu items (with per-item price overrides where needed)
+  // Burger: Large +$3.00 (override from default $2.50)
+  // Pizza: Large +$4.00 (override)
+  // Fish & Chips: Large +$2.50 (uses default, no override needed)
   db.insert(menuItemModifierGroups).values([
-    { menuItemId: itemIds['Margherita Pizza'], modifierGroupId: sizeGroup.id, sortOrder: 0 },
+    { menuItemId: itemIds['Margherita Pizza'], modifierGroupId: sizeGroup.id, sortOrder: 0, priceOverrides: JSON.stringify({ [sizeLargeId]: { priceDelta: 4.00 } }) },
     { menuItemId: itemIds['Margherita Pizza'], modifierGroupId: toppingsGroup.id, sortOrder: 1 },
-    { menuItemId: itemIds['Beef Burger'], modifierGroupId: sizeGroup.id, sortOrder: 0 },
+    { menuItemId: itemIds['Beef Burger'], modifierGroupId: sizeGroup.id, sortOrder: 0, priceOverrides: JSON.stringify({ [sizeLargeId]: { priceDelta: 3.00 } }) },
     { menuItemId: itemIds['Beef Burger'], modifierGroupId: toppingsGroup.id, sortOrder: 1 },
     { menuItemId: itemIds['Fish & Chips'], modifierGroupId: sizeGroup.id, sortOrder: 0 },
     { menuItemId: itemIds['Pad Thai'], modifierGroupId: spiceGroup.id, sortOrder: 0 },
@@ -485,11 +491,17 @@ function seed() {
   console.log(`Created 2 combo deals`);
 
   // --- Create sample orders ---
+  interface OrderItemDef {
+    name: string;
+    quantity: number;
+    modifiers?: Array<{ name: string; price: number }>;
+  }
+
   interface OrderDef {
     tableNumber: string;
     status: 'pending' | 'confirmed' | 'preparing' | 'delivered';
     minutesAgo: number;
-    items: Array<{ name: string; quantity: number }>;
+    items: OrderItemDef[];
   }
 
   const orderDefs: OrderDef[] = [
@@ -499,7 +511,7 @@ function seed() {
       minutesAgo: 5,
       items: [
         { name: 'Garlic Bread', quantity: 1 },
-        { name: 'Margherita Pizza', quantity: 1 },
+        { name: 'Margherita Pizza', quantity: 1, modifiers: [{ name: 'Large', price: 4.00 }] },
       ],
     },
     {
@@ -517,7 +529,7 @@ function seed() {
       status: 'preparing',
       minutesAgo: 30,
       items: [
-        { name: 'Beef Burger', quantity: 2 },
+        { name: 'Beef Burger', quantity: 2, modifiers: [{ name: 'Large', price: 3.00 }, { name: 'Extra Cheese', price: 1.50 }] },
         { name: 'Craft Beer', quantity: 2 },
       ],
     },
@@ -540,9 +552,12 @@ function seed() {
   }
 
   for (const orderDef of orderDefs) {
-    // Calculate total
+    // Calculate total (including modifier prices)
     const total = orderDef.items.reduce(
-      (sum, item) => sum + priceLookup[item.name] * item.quantity,
+      (sum, item) => {
+        const modifierTotal = (item.modifiers ?? []).reduce((ms, m) => ms + m.price, 0);
+        return sum + (priceLookup[item.name] + modifierTotal) * item.quantity;
+      },
       0
     );
 
@@ -563,16 +578,18 @@ function seed() {
       })
       .run();
 
-    // Insert order items with snapshot name + price
+    // Insert order items with snapshot name + price + modifiers
     for (const item of orderDef.items) {
+      const modifierTotal = (item.modifiers ?? []).reduce((ms, m) => ms + m.price, 0);
       db.insert(orderItems)
         .values({
           id: nanoid(),
           orderId,
           menuItemId: itemIds[item.name],
           name: item.name,
-          price: priceLookup[item.name],
+          price: priceLookup[item.name] + modifierTotal,
           quantity: item.quantity,
+          modifiersJson: item.modifiers ? JSON.stringify(item.modifiers) : null,
           createdAt,
         })
         .run();

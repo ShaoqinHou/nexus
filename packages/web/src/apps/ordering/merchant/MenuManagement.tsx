@@ -409,15 +409,34 @@ function ItemModifiersDialog({
   const setGroups = useSetItemModifierGroups(tenantSlug);
 
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  // Per-group price overrides: { groupId: { optionId: { priceDelta: number } } }
+  const [overrides, setOverrides] = useState<
+    Record<string, Record<string, { priceDelta: number }>>
+  >({});
   const [initialized, setInitialized] = useState(false);
 
-  // Sync selected state when linked groups load
+  // Sync selected state and overrides when linked groups load
   useEffect(() => {
     if (!initialized && linkedQuery.isSuccess) {
       setSelected(new Set(linkedGroups.map((g) => g.id)));
+
+      // Detect existing overrides by comparing linked option prices to all-groups defaults
+      const detectedOverrides: Record<string, Record<string, { priceDelta: number }>> = {};
+      for (const linked of linkedGroups) {
+        const allGroup = allGroups.find((g) => g.id === linked.id);
+        if (!allGroup) continue;
+        for (const linkedOpt of linked.options) {
+          const defaultOpt = allGroup.options.find((o) => o.id === linkedOpt.id);
+          if (defaultOpt && linkedOpt.priceDelta !== defaultOpt.priceDelta) {
+            if (!detectedOverrides[linked.id]) detectedOverrides[linked.id] = {};
+            detectedOverrides[linked.id][linkedOpt.id] = { priceDelta: linkedOpt.priceDelta };
+          }
+        }
+      }
+      setOverrides(detectedOverrides);
       setInitialized(true);
     }
-  }, [linkedQuery.isSuccess, linkedGroups, initialized]);
+  }, [linkedQuery.isSuccess, linkedGroups, initialized, allGroups]);
 
   // Reset init on open
   useEffect(() => {
@@ -431,6 +450,12 @@ function ItemModifiersDialog({
       const next = new Set(prev);
       if (next.has(groupId)) {
         next.delete(groupId);
+        // Clear overrides for this group
+        setOverrides((prev) => {
+          const updated = { ...prev };
+          delete updated[groupId];
+          return updated;
+        });
       } else {
         next.add(groupId);
       }
@@ -438,9 +463,57 @@ function ItemModifiersDialog({
     });
   };
 
+  const setOptionOverride = (groupId: string, optionId: string, value: string) => {
+    setOverrides((prev) => {
+      const updated = { ...prev };
+      if (!value.trim()) {
+        // Clear this override
+        if (updated[groupId]) {
+          const groupOverrides = { ...updated[groupId] };
+          delete groupOverrides[optionId];
+          if (Object.keys(groupOverrides).length === 0) {
+            delete updated[groupId];
+          } else {
+            updated[groupId] = groupOverrides;
+          }
+        }
+        return updated;
+      }
+      const parsed = parseFloat(value);
+      if (!isNaN(parsed)) {
+        if (!updated[groupId]) updated[groupId] = {};
+        updated[groupId] = { ...updated[groupId], [optionId]: { priceDelta: parsed } };
+      }
+      return updated;
+    });
+  };
+
+  const clearOptionOverride = (groupId: string, optionId: string) => {
+    setOverrides((prev) => {
+      const updated = { ...prev };
+      if (updated[groupId]) {
+        const groupOverrides = { ...updated[groupId] };
+        delete groupOverrides[optionId];
+        if (Object.keys(groupOverrides).length === 0) {
+          delete updated[groupId];
+        } else {
+          updated[groupId] = groupOverrides;
+        }
+      }
+      return updated;
+    });
+  };
+
   const handleSave = () => {
+    const groups = Array.from(selected).map((groupId) => ({
+      groupId,
+      ...(overrides[groupId] && Object.keys(overrides[groupId]).length > 0
+        ? { priceOverrides: overrides[groupId] }
+        : {}),
+    }));
+
     setGroups.mutate(
-      { itemId: item.id, groupIds: Array.from(selected) },
+      { itemId: item.id, groups },
       {
         onSuccess: () => {
           toast('success', 'Item modifiers updated');
@@ -478,28 +551,82 @@ function ItemModifiersDialog({
           groups first.
         </p>
       ) : (
-        <div className="space-y-2 max-h-64 overflow-y-auto">
-          {allGroups.map((group) => (
-            <label
-              key={group.id}
-              className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-bg-muted cursor-pointer transition-colors"
-            >
-              <input
-                type="checkbox"
-                checked={selected.has(group.id)}
-                onChange={() => toggleGroup(group.id)}
-                className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
-              />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-text">{group.name}</p>
-                <p className="text-xs text-text-secondary">
-                  {group.options.length} option
-                  {group.options.length !== 1 ? 's' : ''}
-                  {group.minSelections > 0 ? ' \u00b7 Required' : ' \u00b7 Optional'}
-                </p>
+        <div className="space-y-3 max-h-[28rem] overflow-y-auto">
+          {allGroups.map((group) => {
+            const isSelected = selected.has(group.id);
+            return (
+              <div
+                key={group.id}
+                className="rounded-lg border border-border overflow-hidden"
+              >
+                <label className="flex items-center gap-3 p-3 hover:bg-bg-muted cursor-pointer transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => toggleGroup(group.id)}
+                    className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-text">{group.name}</p>
+                    <p className="text-xs text-text-secondary">
+                      {group.options.length} option
+                      {group.options.length !== 1 ? 's' : ''}
+                      {group.minSelections > 0 ? ' \u00b7 Required' : ' \u00b7 Optional'}
+                    </p>
+                  </div>
+                </label>
+
+                {isSelected && group.options.length > 0 && (
+                  <div className="border-t border-border bg-bg-surface px-3 py-2 space-y-1.5">
+                    <p className="text-xs font-medium text-text-secondary">
+                      Price overrides for this item
+                    </p>
+                    {group.options.map((option) => {
+                      const hasOverride = !!overrides[group.id]?.[option.id];
+                      const overrideValue = overrides[group.id]?.[option.id]?.priceDelta;
+                      return (
+                        <div
+                          key={option.id}
+                          className="flex items-center gap-2 text-xs"
+                        >
+                          <span className="flex-1 text-text truncate">
+                            {option.name}
+                          </span>
+                          <span className="text-text-tertiary whitespace-nowrap">
+                            Default: +${option.priceDelta.toFixed(2)}
+                          </span>
+                          <input
+                            type="number"
+                            step="0.01"
+                            placeholder={option.priceDelta.toFixed(2)}
+                            value={hasOverride ? overrideValue : ''}
+                            onChange={(e) =>
+                              setOptionOverride(group.id, option.id, e.target.value)
+                            }
+                            className={[
+                              'w-20 px-2 py-1 rounded border text-xs text-right',
+                              hasOverride
+                                ? 'border-primary text-primary bg-primary/5'
+                                : 'border-border text-text bg-bg',
+                            ].join(' ')}
+                          />
+                          {hasOverride && (
+                            <button
+                              type="button"
+                              onClick={() => clearOptionOverride(group.id, option.id)}
+                              className="text-primary hover:text-primary-hover text-xs whitespace-nowrap"
+                            >
+                              Reset
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-            </label>
-          ))}
+            );
+          })}
         </div>
       )}
     </Dialog>

@@ -193,10 +193,22 @@ export function CartSheet({
                           {isCombo && item.comboSelections && item.comboSelections.length > 0 && (
                             <div className="mt-1 space-y-0.5">
                               {item.comboSelections.map((sel) => (
-                                <p key={sel.slotId} className="text-xs text-text-tertiary">
-                                  {sel.slotName}: {sel.itemName}
-                                  {sel.priceModifier > 0 ? ` (+${formatPrice(sel.priceModifier)})` : ''}
-                                </p>
+                                <div key={sel.slotId}>
+                                  <p className="text-xs text-text-tertiary">
+                                    {sel.slotName}: {sel.itemName}
+                                    {sel.priceModifier > 0 ? ` (+${formatPrice(sel.priceModifier)})` : ''}
+                                  </p>
+                                  {sel.modifiers && sel.modifiers.length > 0 && (
+                                    <p className="text-xs text-text-tertiary ml-3">
+                                      + {sel.modifiers
+                                        .map(
+                                          (m) =>
+                                            `${m.name}${m.price > 0 ? ` (+${formatPrice(m.price)})` : ''}`,
+                                        )
+                                        .join(', ')}
+                                    </p>
+                                  )}
+                                </div>
                               ))}
                             </div>
                           )}

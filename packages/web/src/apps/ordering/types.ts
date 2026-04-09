@@ -153,4 +153,5 @@ export interface ComboSlotOption {
   sortOrder: number;
   menuItemName?: string;
   menuItemPrice?: number;
+  modifierGroups?: ModifierGroup[];
 }

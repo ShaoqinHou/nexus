@@ -144,14 +144,25 @@ export function useItemModifierGroups(tenantSlug: string, itemId: string) {
   });
 }
 
+interface SetItemModifierGroupInput {
+  groupId: string;
+  priceOverrides?: Record<string, { priceDelta: number }>;
+}
+
 export function useSetItemModifierGroups(tenantSlug: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ itemId, groupIds }: { itemId: string; groupIds: string[] }) =>
+    mutationFn: ({
+      itemId,
+      groups,
+    }: {
+      itemId: string;
+      groups: SetItemModifierGroupInput[];
+    }) =>
       apiClient.put(
         `/t/${tenantSlug}/ordering/items/${itemId}/modifiers`,
-        { groupIds },
+        { groups },
       ),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({

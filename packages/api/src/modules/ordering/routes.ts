@@ -121,8 +121,15 @@ const updateModifierOptionSchema = z.object({
 });
 
 const setItemModifierGroupsSchema = z.object({
-  groupIds: z.array(z.string().min(1)),
-});
+  groupIds: z.array(z.string().min(1)).optional(),
+  groups: z.array(z.object({
+    groupId: z.string().min(1),
+    priceOverrides: z.record(z.object({ priceDelta: z.number() })).optional(),
+  })).optional(),
+}).refine(
+  (data) => data.groupIds !== undefined || data.groups !== undefined,
+  { message: 'Either groupIds or groups must be provided' }
+);
 
 // --- Combo Deal Schemas ---
 
@@ -233,6 +240,11 @@ const comboOrderItemSchema = z.object({
     z.object({
       slotId: z.string().min(1, 'Slot ID is required'),
       menuItemId: z.string().min(1, 'Menu item ID is required'),
+      modifiers: z.array(
+        z.object({
+          optionId: z.string().min(1, 'Option ID is required'),
+        })
+      ).optional(),
     })
   ).min(1, 'At least one selection is required'),
   quantity: z.number().int().positive('Quantity must be positive'),
@@ -444,8 +456,10 @@ export function staffOrderingRoutes(db: DrizzleDB) {
     (c) => {
       const tenantId = c.var.tenantId;
       const itemId = c.req.param('id');
-      const { groupIds } = c.req.valid('json');
-      const result = setItemModifierGroups(db, tenantId, itemId, groupIds);
+      const body = c.req.valid('json');
+      // Support both legacy groupIds[] and new groups[] with price overrides
+      const groupsInput = body.groups ?? (body.groupIds ?? []).map((id: string) => ({ groupId: id }));
+      const result = setItemModifierGroups(db, tenantId, itemId, groupsInput);
       if ('error' in result) {
         return c.json({ error: result.error }, 404);
       }
