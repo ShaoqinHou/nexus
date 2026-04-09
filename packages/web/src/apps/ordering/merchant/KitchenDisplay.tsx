@@ -177,11 +177,16 @@ function KitchenOrderCard({
             : 'border-border',
       ].join(' ')}
     >
-      {/* Header — table number + time */}
+      {/* Header — table number + time + total */}
       <div className="flex items-center justify-between px-4 py-3 bg-bg-muted border-b border-border">
-        <span className="text-2xl font-black text-text leading-none">
-          #{order.tableNumber}
-        </span>
+        <div>
+          <span className="text-3xl font-black text-text leading-none">
+            T{order.tableNumber}
+          </span>
+          <span className="text-sm font-semibold text-text-secondary ml-2">
+            {formatPrice(order.total)}
+          </span>
+        </div>
         <div
           className={[
             'flex items-center gap-1.5 text-sm font-semibold',
@@ -198,34 +203,53 @@ function KitchenOrderCard({
       </div>
 
       {/* Items */}
-      <div className="px-4 py-3 space-y-1.5">
-        {order.items.map((item) => (
-          <div key={item.id} className="flex items-start gap-2">
-            <span className="text-lg font-bold text-text leading-tight shrink-0">
+      <div className="px-4 py-3 space-y-2.5">
+        {order.items.filter((item) => item.status !== 'cancelled').map((item) => (
+          <div key={item.id} className={[
+            'flex items-start gap-3 rounded-lg px-3 py-2',
+            item.status === 'cancel_requested' ? 'bg-warning-light/20 border border-warning/30' : 'bg-bg-muted/50',
+          ].join(' ')}>
+            <span className="text-xl font-black text-primary leading-tight shrink-0 min-w-[2rem] text-center">
               {item.quantity}x
             </span>
             <div className="min-w-0 flex-1">
-              <p className="text-base font-medium text-text leading-tight truncate">
+              <p className="text-base font-bold text-text leading-tight">
                 {item.name}
               </p>
-              {item.notes && (
-                <p className="text-sm text-warning font-medium mt-0.5 truncate">
-                  {item.notes}
-                </p>
-              )}
               {item.modifiersJson && (() => {
                 try {
-                  const mods = JSON.parse(item.modifiersJson) as { name: string; price: number }[];
-                  if (mods.length === 0) return null;
+                  const raw = JSON.parse(item.modifiersJson);
+                  // Handle both array format and combo object format
+                  let modNames: string[] = [];
+                  if (Array.isArray(raw)) {
+                    modNames = raw.map((m: { name: string }) => m.name);
+                  } else if (raw && typeof raw === 'object') {
+                    // Combo format: { comboName, slotName, priceModifier, itemModifiers? }
+                    if (raw.slotName) modNames.push(raw.slotName);
+                    if (raw.itemModifiers) {
+                      modNames.push(...(raw.itemModifiers as Array<{ name: string }>).map((m) => m.name));
+                    }
+                  }
+                  if (modNames.length === 0) return null;
                   return (
-                    <p className="text-sm text-text-tertiary mt-0.5 truncate">
-                      {mods.map((m) => m.name).join(', ')}
+                    <p className="text-sm font-semibold text-primary mt-1">
+                      {modNames.join(' · ')}
                     </p>
                   );
                 } catch {
                   return null;
                 }
               })()}
+              {item.notes && (
+                <p className="text-sm font-semibold text-warning mt-1">
+                  ⚠ {item.notes}
+                </p>
+              )}
+              {item.status === 'cancel_requested' && (
+                <p className="text-sm font-bold text-danger mt-1">
+                  ⛔ CANCEL REQUESTED
+                </p>
+              )}
             </div>
           </div>
         ))}
