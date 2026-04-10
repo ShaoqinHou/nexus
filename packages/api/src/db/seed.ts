@@ -62,6 +62,18 @@ function seed() {
     }
     db.delete(comboDeals).where(eq(comboDeals.tenantId, existing.id)).run();
 
+    // Delete order items for demo orders, then orders
+    // (must be before promoCodes — orders.promo_code_id FK references promoCodes)
+    const demoOrders = db
+      .select({ id: orders.id })
+      .from(orders)
+      .where(eq(orders.tenantId, existing.id))
+      .all();
+    for (const order of demoOrders) {
+      db.delete(orderItems).where(eq(orderItems.orderId, order.id)).run();
+    }
+    db.delete(orders).where(eq(orders.tenantId, existing.id)).run();
+
     // Delete promo codes, then promotions
     db.delete(promoCodes).where(eq(promoCodes.tenantId, existing.id)).run();
     db.delete(promotions).where(eq(promotions.tenantId, existing.id)).run();
@@ -77,19 +89,6 @@ function seed() {
       db.delete(modifierOptions).where(eq(modifierOptions.groupId, group.id)).run();
     }
     db.delete(modifierGroups).where(eq(modifierGroups.tenantId, existing.id)).run();
-
-    // Delete order items for demo orders
-    const demoOrders = db
-      .select({ id: orders.id })
-      .from(orders)
-      .where(eq(orders.tenantId, existing.id))
-      .all();
-    for (const order of demoOrders) {
-      db.delete(orderItems).where(eq(orderItems.orderId, order.id)).run();
-    }
-
-    // Delete orders
-    db.delete(orders).where(eq(orders.tenantId, existing.id)).run();
 
     // Delete customer sessions
     db.delete(customerSessions)

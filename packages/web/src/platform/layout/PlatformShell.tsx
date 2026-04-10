@@ -221,7 +221,14 @@ export function PlatformShell() {
             {firstTour && (
               <button
                 type="button"
-                onClick={() => startTour(firstTour.steps, firstTour.id)}
+                onClick={() => {
+                  const onEnd = firstTour.onEnd
+                    ? () => firstTour.onEnd!(tenantSlug)
+                    : undefined;
+                  // Silently clean up any orphaned tour items from previous runs
+                  if (firstTour.onEnd) void firstTour.onEnd(tenantSlug);
+                  startTour(firstTour.steps, firstTour.id, onEnd);
+                }}
                 className="p-2 rounded-md text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors"
                 aria-label="Start guided tour"
                 title={firstTour.label}

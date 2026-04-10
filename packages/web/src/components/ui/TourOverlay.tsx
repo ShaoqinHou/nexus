@@ -46,11 +46,17 @@ function getTooltipStyle(
 
   switch (placement) {
     case 'bottom':
-      style.top = targetRect.bottom + PADDING + TOOLTIP_GAP;
+      style.top = Math.max(16, Math.min(
+        targetRect.bottom + PADDING + TOOLTIP_GAP,
+        window.innerHeight - 220,
+      ));
       style.left = Math.max(16, Math.min(centerX - TOOLTIP_MAX_WIDTH / 2, window.innerWidth - TOOLTIP_MAX_WIDTH - 16));
       break;
     case 'top':
-      style.bottom = window.innerHeight - targetRect.top + PADDING + TOOLTIP_GAP;
+      style.bottom = Math.max(16, Math.min(
+        window.innerHeight - targetRect.top + PADDING + TOOLTIP_GAP,
+        window.innerHeight - 220,
+      ));
       style.left = Math.max(16, Math.min(centerX - TOOLTIP_MAX_WIDTH / 2, window.innerWidth - TOOLTIP_MAX_WIDTH - 16));
       break;
     case 'right':
@@ -117,6 +123,33 @@ export function TourOverlay({
 
   const overlay: ReactNode = (
     <>
+      {/* Pulsing ring around the spotlight to draw attention */}
+      {cutout && (
+        <>
+          <style>{`
+            @keyframes tourRingPulse {
+              0%   { box-shadow: 0 0 0 0px rgba(251,191,36,0.8), 0 0 0 0px rgba(251,191,36,0.4); }
+              60%  { box-shadow: 0 0 0 6px rgba(251,191,36,0),   0 0 0 12px rgba(251,191,36,0); }
+              100% { box-shadow: 0 0 0 0px rgba(251,191,36,0),   0 0 0 0px rgba(251,191,36,0); }
+            }
+          `}</style>
+          <div
+            style={{
+              position: 'fixed',
+              top: cutout.top,
+              left: cutout.left,
+              width: cutout.width,
+              height: cutout.height,
+              borderRadius: 8,
+              border: '2px solid rgba(251,191,36,0.9)',
+              pointerEvents: 'none',
+              zIndex: 90,
+              animation: 'tourRingPulse 1.8s ease-out infinite',
+            }}
+          />
+        </>
+      )}
+
       {/* Visual spotlight overlay — pointer-events: none so it doesn't block anything */}
       <div
         className={[

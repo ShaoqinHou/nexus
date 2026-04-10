@@ -21,6 +21,7 @@ import {
 } from '@web/components/ui';
 import { ConfirmButton, EmptyState } from '@web/components/patterns';
 import { formatPrice, parseTags } from '@web/lib/format';
+import { TOUR_MARKER } from '../tours/cleanup';
 import { useTenant } from '@web/platform/tenant/TenantProvider';
 import { useToast } from '@web/platform/ToastProvider';
 import {
@@ -124,6 +125,7 @@ function CategoryDialog({
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Optional description"
+          data-tour="category-description-input"
         />
       </form>
     </Dialog>
@@ -265,6 +267,7 @@ function ItemDialog({
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Optional description"
+          data-tour="item-description-input"
         />
         <Input
           label="Price"
@@ -274,6 +277,7 @@ function ItemDialog({
           value={price}
           onChange={(e) => setPrice(e.target.value)}
           placeholder="0.00"
+          data-tour="item-price-input"
           required
         />
         <ImageUpload
@@ -403,7 +407,7 @@ function CategoryList({
                     <p className="text-sm font-medium text-text truncate">
                       {cat.name}
                     </p>
-                    {cat.description && (
+                    {cat.description && cat.description !== TOUR_MARKER && (
                       <p className="text-xs text-text-secondary truncate">
                         {cat.description}
                       </p>
@@ -763,7 +767,7 @@ function MenuItemCard({
               <p className="text-sm font-medium text-text truncate">
                 {item.name}
               </p>
-              {item.description && (
+              {item.description && item.description !== TOUR_MARKER && (
                 <p className="text-xs text-text-secondary mt-0.5 line-clamp-2">
                   {item.description}
                 </p>

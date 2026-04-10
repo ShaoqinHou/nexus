@@ -26,6 +26,7 @@ import { useToast } from '@web/platform/ToastProvider';
 import { useTour } from '@web/platform/TourProvider';
 import { useOrders, useUpdateOrderStatus, useHandleCancellationRequest, useUpdatePaymentStatus } from '../hooks/useOrders';
 import { staffOnboardingSteps, STAFF_TOUR_ID } from '../tours/staffTour';
+import { cleanupStaffTourData } from '../tours/cleanup';
 import type { Order } from '../types';
 import { OrderReceipt } from './OrderReceipt';
 
@@ -511,7 +512,10 @@ export function OrderDashboard() {
                 <Button
                   variant="secondary"
                   size="sm"
-                  onClick={() => startTour(staffOnboardingSteps, STAFF_TOUR_ID)}
+                  onClick={() => {
+                    void cleanupStaffTourData(tenantSlug);
+                    startTour(staffOnboardingSteps, STAFF_TOUR_ID, () => cleanupStaffTourData(tenantSlug));
+                  }}
                 >
                   <HelpCircle className="h-4 w-4" />
                   Take a Guided Tour

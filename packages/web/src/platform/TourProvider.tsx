@@ -25,11 +25,12 @@ export interface TourStep {
   route?: string; // navigate to this route before showing step
   actionLabel?: string;
   waitForSelector?: string; // wait for this element before showing next step
-  inputValue?: string; // for 'input' type: pre-fill suggestion
+  inputValue?: string; // for 'input' type: auto-filled into the target field
+  extraFills?: { selector: string; value: string }[]; // additional fields to auto-fill alongside the target
 }
 
 interface TourContextValue {
-  startTour: (steps: TourStep[], tourId?: string) => void;
+  startTour: (steps: TourStep[], tourId?: string, onEnd?: () => Promise<void>) => void;
   endTour: () => void;
   nextStep: () => void;
   isActive: boolean;
@@ -92,17 +93,62 @@ export function TourProvider({ children, tenantSlug }: TourProviderProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fillRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rafRef = useRef<number | null>(null);
   const actionCleanupRef = useRef<(() => void) | null>(null);
+  const onEndRef = useRef<(() => Promise<void>) | null>(null);
 
   // Clean up polling on unmount
   useEffect(() => {
     return () => {
       if (pollRef.current) clearTimeout(pollRef.current);
+      if (fillRef.current) clearTimeout(fillRef.current);
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       if (actionCleanupRef.current) actionCleanupRef.current();
     };
   }, []);
+
+  // Fill a React-controlled input by using the native setter so onChange fires
+  const fillReactInput = useCallback((selector: string, value: string): boolean => {
+    const el = document.querySelector(selector) as HTMLInputElement | null;
+    if (!el) return false;
+    const nativeSetter = Object.getOwnPropertyDescriptor(
+      window.HTMLInputElement.prototype,
+      'value',
+    )?.set;
+    if (nativeSetter) {
+      nativeSetter.call(el, value);
+    } else {
+      el.value = value;
+    }
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+    return true;
+  }, []);
+
+  // Poll for an input step's target to appear, then auto-fill it
+  const scheduleAutoFill = useCallback(
+    (step: TourStep) => {
+      if (step.type !== 'input' || !step.inputValue) return;
+      if (fillRef.current) clearTimeout(fillRef.current);
+
+      let attempts = 0;
+      const poll = () => {
+        const filled = fillReactInput(step.target, step.inputValue!);
+        if (filled) {
+          step.extraFills?.forEach((f) => fillReactInput(f.selector, f.value));
+          return;
+        }
+        attempts += 1;
+        if (attempts < MAX_POLL_ATTEMPTS) {
+          fillRef.current = setTimeout(poll, POLL_INTERVAL);
+        }
+      };
+      // Small delay so the dialog/element has time to render
+      fillRef.current = setTimeout(poll, 300);
+    },
+    [fillReactInput],
+  );
 
   // Find and track target element position
   const updateTargetRect = useCallback((selector: string) => {
@@ -207,6 +253,7 @@ export function TourProvider({ children, tenantSlug }: TourProviderProps) {
           // After navigation, give React time to render, then poll for the target
           setTimeout(() => {
             pollForTarget(step.target);
+            scheduleAutoFill(step);
           }, 300);
           return;
         }
@@ -214,8 +261,9 @@ export function TourProvider({ children, tenantSlug }: TourProviderProps) {
 
       // No navigation needed, poll for target
       pollForTarget(step.target);
+      scheduleAutoFill(step);
     },
-    [tenantSlug, location.pathname, navigate, pollForTarget],
+    [tenantSlug, location.pathname, navigate, pollForTarget, scheduleAutoFill],
   );
 
   const endTour = useCallback(() => {
@@ -232,6 +280,12 @@ export function TourProvider({ children, tenantSlug }: TourProviderProps) {
       markTourCompleted(tourIdRef.current);
     }
     if (pollRef.current) clearTimeout(pollRef.current);
+    if (fillRef.current) clearTimeout(fillRef.current);
+    // Run cleanup in background — don't block UI
+    if (onEndRef.current) {
+      void onEndRef.current();
+      onEndRef.current = null;
+    }
   }, []);
 
   const nextStep = useCallback(() => {
@@ -315,10 +369,11 @@ export function TourProvider({ children, tenantSlug }: TourProviderProps) {
   }, [isActive, currentIdx, steps, nextStep]);
 
   const startTour = useCallback(
-    (tourSteps: TourStep[], tourId?: string) => {
+    (tourSteps: TourStep[], tourId?: string, onEnd?: () => Promise<void>) => {
       if (tourSteps.length === 0) return;
       const id = tourId ?? tourSteps[0].id;
       tourIdRef.current = id;
+      onEndRef.current = onEnd ?? null;
       setSteps(tourSteps);
       setCurrentIdx(0);
       setIsActive(true);

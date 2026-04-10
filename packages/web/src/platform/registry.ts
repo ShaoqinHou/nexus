@@ -14,6 +14,7 @@ export interface TourDefinition {
   id: string;
   label: string;
   steps: TourStep[];
+  onEnd?: (tenantSlug: string) => Promise<void>;
 }
 
 export interface MiniAppDefinition {

@@ -55,6 +55,7 @@ export const staffOnboardingSteps: TourStep[] = [
     description: 'Type a category name, like "Starters" or "Main Dishes".',
     placement: 'bottom',
     inputValue: 'Starters',
+    extraFills: [{ selector: '[data-tour="category-description-input"]', value: '__nexus_tour__' }],
   },
   {
     id: 'save-cat',
@@ -84,6 +85,10 @@ export const staffOnboardingSteps: TourStep[] = [
     description: 'Enter the dish name and price.',
     placement: 'bottom',
     inputValue: 'Caesar Salad',
+    extraFills: [
+      { selector: '[data-tour="item-price-input"]', value: '12.50' },
+      { selector: '[data-tour="item-description-input"]', value: '__nexus_tour__' },
+    ],
   },
   {
     id: 'save-item',
