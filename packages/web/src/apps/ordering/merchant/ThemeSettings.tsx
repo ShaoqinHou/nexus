@@ -143,7 +143,7 @@ function PresetCard({ preset, isActive, onClick }: PresetCardProps) {
       type="button"
       onClick={onClick}
       className={[
-        'relative flex flex-col items-start gap-2 p-4 rounded-lg border-2 transition-all text-left',
+        'relative flex flex-col items-start gap-2 p-4 min-h-[80px] rounded-lg border-2 transition-all text-left active:scale-[0.98]',
         'hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
         isActive
           ? 'border-primary bg-primary-light shadow-sm'
@@ -210,7 +210,7 @@ function RadioGroup<T extends string>({ label, options, value, onChange }: Radio
             type="button"
             onClick={() => onChange(option.value)}
             className={[
-              'flex flex-col items-center gap-1.5 px-4 py-3 rounded-lg border-2 transition-all flex-1',
+              'flex flex-col items-center gap-1.5 px-4 py-3 min-h-[64px] rounded-lg border-2 transition-all flex-1 active:scale-[0.98]',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
               value === option.value
                 ? 'border-primary bg-primary-light'
@@ -276,26 +276,26 @@ function LivePreview({ settings, isDark, previewMode, onPreviewModeChange }: Liv
             type="button"
             onClick={() => onPreviewModeChange('desktop')}
             className={[
-              'inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors',
+              'inline-flex items-center gap-1.5 px-3 py-2 min-h-[40px] text-xs font-medium rounded-md transition-colors active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
               previewMode === 'desktop'
                 ? 'bg-primary text-text-inverse'
                 : 'bg-bg-muted text-text-secondary hover:bg-bg-surface',
             ].join(' ')}
           >
-            <Monitor className="h-3.5 w-3.5" />
+            <Monitor className="h-4 w-4" />
             Desktop
           </button>
           <button
             type="button"
             onClick={() => onPreviewModeChange('mobile')}
             className={[
-              'inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors',
+              'inline-flex items-center gap-1.5 px-3 py-2 min-h-[40px] text-xs font-medium rounded-md transition-colors active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
               previewMode === 'mobile'
                 ? 'bg-primary text-text-inverse'
                 : 'bg-bg-muted text-text-secondary hover:bg-bg-surface',
             ].join(' ')}
           >
-            <Smartphone className="h-3.5 w-3.5" />
+            <Smartphone className="h-4 w-4" />
             Mobile
           </button>
         </div>
