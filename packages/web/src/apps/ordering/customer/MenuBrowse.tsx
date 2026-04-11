@@ -359,6 +359,9 @@ function MenuSkeleton() {
   );
 }
 
+const SEARCH_HISTORY_KEY = 'nexus_search_history';
+const MAX_SEARCH_HISTORY = 5;
+
 export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBrowseProps) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [detailItem, setDetailItem] = useState<PublicMenuItem | null>(null);
@@ -371,6 +374,39 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
   const sectionRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const { addItem } = useCart();
   const { theme, toggleTheme } = useTheme();
+
+  // Search history state
+  const [searchHistory, setSearchHistory] = useState<string[]>(() => {
+    try {
+      const stored = localStorage.getItem(SEARCH_HISTORY_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const addToSearchHistory = useCallback((query: string) => {
+    if (!query.trim()) return;
+    setSearchHistory((prev) => {
+      const filtered = prev.filter((q) => q !== query);
+      const updated = [query, ...filtered].slice(0, MAX_SEARCH_HISTORY);
+      try {
+        localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(updated));
+      } catch {
+        // Ignore localStorage errors
+      }
+      return updated;
+    });
+  }, []);
+
+  const clearSearchHistory = useCallback(() => {
+    setSearchHistory([]);
+    try {
+      localStorage.removeItem(SEARCH_HISTORY_KEY);
+    } catch {
+      // Ignore localStorage errors
+    }
+  }, []);
 
   const toggleAllergenFilter = useCallback((allergen: string) => {
     setHiddenAllergens((prev) => {
@@ -476,6 +512,17 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
   const scrollToTop = useCallback(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
+
+  // Track searches and add to history
+  useEffect(() => {
+    if (searchQuery.trim().length >= 2) {
+      // Debounce: add to history after user stops typing for 500ms
+      const timer = setTimeout(() => {
+        addToSearchHistory(searchQuery.trim());
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [searchQuery, addToSearchHistory]);
 
   // Temporarily disable scroll-spy during programmatic scroll
   const scrollToWithSpy = useCallback((categoryId: string) => {
@@ -707,36 +754,70 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
         {/* Category pills + search — mobile/tablet only */}
         <div className="sticky top-0 z-10 bg-bg/95 backdrop-blur-sm border-b border-border lg:hidden">
           {searchOpen ? (
-            <div className="flex items-center gap-2 px-4 min-h-[48px]">
-              <Search className="h-5 w-5 text-text-tertiary shrink-0" />
-              <div className="relative flex-1">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search menu..."
-                  autoFocus
-                  className="w-full bg-transparent text-base text-text placeholder:text-text-tertiary outline-none pr-10 py-2"
-                />
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-bg-muted text-text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                    aria-label="Clear search"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                )}
+            <>
+              <div className="flex items-center gap-2 px-4 min-h-[48px]">
+                <Search className="h-5 w-5 text-text-tertiary shrink-0" />
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search menu..."
+                    autoFocus
+                    className="w-full bg-transparent text-base text-text placeholder:text-text-tertiary outline-none pr-10 py-2"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-0 top-1/2 -translate-y-1/2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-bg-muted text-text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                      aria-label="Clear search"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSearchOpen(false)}
+                  className="shrink-0 text-base font-medium text-primary hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-2 py-1"
+                >
+                  Done
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => setSearchOpen(false)}
-                className="shrink-0 text-base font-medium text-primary hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-2 py-1"
-              >
-                Done
-              </button>
-            </div>
+              {/* Recent searches */}
+              {!searchQuery.trim() && searchHistory.length > 0 && (
+                <div className="px-4 py-2 border-t border-border bg-bg-surface">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-medium text-text-secondary">Recent Searches</p>
+                    <button
+                      type="button"
+                      onClick={clearSearchHistory}
+                      className="text-xs text-primary hover:text-primary-hover font-medium min-h-[44px] min-w-[44px] flex items-center justify-center"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    {searchHistory.map((query) => (
+                      <button
+                        key={query}
+                        type="button"
+                        onClick={() => {
+                          setSearchQuery(query);
+                          addToSearchHistory(query);
+                        }}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg text-left hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                      >
+                        <Search className="h-3.5 w-3.5 text-text-tertiary shrink-0" />
+                        <span className="text-sm text-text">{query}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
           ) : (
             <div data-tour="category-pills" className="flex items-center gap-2 px-4 py-2.5">
               <div className="flex-1 flex gap-2 overflow-x-auto scrollbar-hide">
