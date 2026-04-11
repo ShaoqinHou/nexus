@@ -138,6 +138,7 @@ export interface TenantThemeSettings {
   taxRate?: number;       // e.g. 15 for 15% GST
   taxInclusive?: boolean; // true = prices already include tax
   taxLabel?: string;      // e.g. "GST", "VAT", "Tax"
+  contactPhone?: string;  // Restaurant contact phone number
 }
 
 /** Check if restaurant is currently open based on operating hours */
