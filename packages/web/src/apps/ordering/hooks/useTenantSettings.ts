@@ -20,6 +20,8 @@ export function useTenantSettings(tenantSlug: string) {
         `/t/${tenantSlug}/settings`,
       ),
     select: (res) => res.data,
+    staleTime: 300000, // 5 minutes - settings rarely change
+    gcTime: 600000, // 10 minutes - keep settings cached longer
   });
 }
 

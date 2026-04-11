@@ -13,6 +13,8 @@ export function useModifierGroups(tenantSlug: string) {
         `/t/${tenantSlug}/ordering/modifiers`,
       ),
     select: (res) => res.data,
+    staleTime: 60000, // 1 minute - modifiers don't change often
+    gcTime: 300000, // 5 minutes
   });
 }
 

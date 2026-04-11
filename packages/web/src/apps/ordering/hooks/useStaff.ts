@@ -40,6 +40,8 @@ export function useStaff(tenantSlug: string) {
         `/t/${tenantSlug}/staff`,
       ),
     select: (res) => res.data,
+    staleTime: 60000, // 1 minute - staff list doesn't change often
+    gcTime: 300000, // 5 minutes
   });
 }
 

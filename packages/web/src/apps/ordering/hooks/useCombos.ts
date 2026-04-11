@@ -11,6 +11,8 @@ export function useCombos(tenantSlug: string) {
         `/t/${tenantSlug}/ordering/combos`,
       ),
     select: (res) => res.data,
+    staleTime: 60000, // 1 minute - combos don't change often
+    gcTime: 300000, // 5 minutes
   });
 }
 
