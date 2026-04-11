@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, useMemo, memo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Plus, Minus, UtensilsCrossed, Package, Search, X, AlertTriangle, ArrowUp, Moon, Sun } from 'lucide-react';
 import { apiClient } from '@web/lib/api';
@@ -56,7 +56,7 @@ function getTagColor(tag: string): string {
   }
 }
 
-function DietaryTagBadges({ tags }: { tags: string | null }) {
+const DietaryTagBadges = memo(function DietaryTagBadges({ tags }: { tags: string | null }) {
   const parsed = parseTags(tags);
   if (parsed.length === 0) return null;
   return (
@@ -74,9 +74,9 @@ function DietaryTagBadges({ tags }: { tags: string | null }) {
       ))}
     </div>
   );
-}
+});
 
-function AllergenBadges({ allergens }: { allergens: string | null }) {
+const AllergenBadges = memo(function AllergenBadges({ allergens }: { allergens: string | null }) {
   const parsed = parseTags(allergens);
   if (parsed.length === 0) return null;
   return (
@@ -91,9 +91,9 @@ function AllergenBadges({ allergens }: { allergens: string | null }) {
       ))}
     </div>
   );
-}
+});
 
-function MenuItemCard({
+const MenuItemCard = memo(function MenuItemCard({
   item,
   onOpenDetail,
   disabled = false,
@@ -233,9 +233,9 @@ function MenuItemCard({
       </div>
     </div>
   );
-}
+});
 
-function CategorySection({
+const CategorySection = memo(function CategorySection({
   category,
   items,
   sectionRef,
@@ -273,9 +273,9 @@ function CategorySection({
       </div>
     </div>
   );
-}
+});
 
-function ComboCard({
+const ComboCard = memo(function ComboCard({
   combo,
   onSelect,
 }: {
@@ -332,7 +332,7 @@ function ComboCard({
       </div>
     </button>
   );
-}
+});
 
 function MenuSkeleton() {
   return (
@@ -616,17 +616,32 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
   }
 
   // Filter to only active categories with available items
-  const visibleCategories = (menuData?.categories ?? []).filter(
-    (entry) => entry.category.isActive && entry.items.length > 0,
+  const visibleCategories = useMemo(
+    () => (menuData?.categories ?? []).filter(
+      (entry) => entry.category.isActive && entry.items.length > 0,
+    ),
+    [menuData?.categories],
   );
 
   // Active combo deals
-  const activeCombos = (menuData?.combos ?? []).filter(
-    (combo) => combo.isActive === 1,
+  const activeCombos = useMemo(
+    () => (menuData?.combos ?? []).filter(
+      (combo) => combo.isActive === 1,
+    ),
+    [menuData?.combos],
   );
 
   // Featured items
-  const featuredItems = menuData?.featured ?? [];
+  const featuredItems = useMemo(
+    () => menuData?.featured ?? [],
+    [menuData?.featured],
+  );
+
+  // Set default active category
+  const activeCatId = useMemo(
+    () => activeCategory ?? visibleCategories[0]?.category.id ?? null,
+    [activeCategory, visibleCategories],
+  );
 
   if (visibleCategories.length === 0 && activeCombos.length === 0) {
     return (
@@ -639,10 +654,6 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
       </div>
     );
   }
-
-  // Set default active category
-  const activeCatId =
-    activeCategory ?? visibleCategories[0]?.category.id ?? null;
 
   return (
     <>
