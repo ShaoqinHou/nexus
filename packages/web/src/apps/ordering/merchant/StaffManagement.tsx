@@ -158,11 +158,13 @@ function StaffCard({ member, currentUser, tenantSlug, onResetPassword }: StaffCa
         )}
 
         {canToggleActive && (
-          <Toggle
-            checked={member.isActive === 1}
-            onChange={handleToggleActive}
-            disabled={updateMutation.isPending}
-          />
+          <div className="min-h-[44px] flex items-center">
+            <Toggle
+              checked={member.isActive === 1}
+              onChange={handleToggleActive}
+              disabled={updateMutation.isPending}
+            />
+          </div>
         )}
 
         {canResetPassword && (
@@ -171,6 +173,7 @@ function StaffCard({ member, currentUser, tenantSlug, onResetPassword }: StaffCa
             size="sm"
             onClick={() => onResetPassword(member)}
             aria-label={`Reset password for ${member.name}`}
+            className="min-h-[44px]"
           >
             <KeyRound className="h-3.5 w-3.5" />
             Reset PW
@@ -184,6 +187,7 @@ function StaffCard({ member, currentUser, tenantSlug, onResetPassword }: StaffCa
             size="sm"
             confirmText="Confirm?"
             disabled={deleteMutation.isPending}
+            className="min-h-[44px]"
           >
             Deactivate
           </ConfirmButton>
@@ -264,7 +268,7 @@ function AddStaffDialog({ open, onClose, tenantSlug, currentUserRole }: AddStaff
       title="Add Staff Member"
       footer={
         <>
-          <Button variant="ghost" size="md" onClick={handleClose}>
+          <Button variant="ghost" size="md" onClick={handleClose} className="min-h-[48px]">
             Cancel
           </Button>
           <Button
@@ -272,6 +276,7 @@ function AddStaffDialog({ open, onClose, tenantSlug, currentUserRole }: AddStaff
             size="md"
             onClick={handleSubmit}
             loading={createMutation.isPending}
+            className="min-h-[48px]"
           >
             Add Staff
           </Button>
@@ -365,7 +370,7 @@ function ResetPasswordDialog({ open, onClose, tenantSlug, member }: ResetPasswor
       title={member ? `Reset Password: ${member.name}` : 'Reset Password'}
       footer={
         <>
-          <Button variant="ghost" size="md" onClick={handleClose}>
+          <Button variant="ghost" size="md" onClick={handleClose} className="min-h-[48px]">
             Cancel
           </Button>
           <Button
@@ -374,6 +379,7 @@ function ResetPasswordDialog({ open, onClose, tenantSlug, member }: ResetPasswor
             onClick={handleSubmit}
             loading={resetMutation.isPending}
             disabled={!newPassword.trim()}
+            className="min-h-[48px]"
           >
             Reset Password
           </Button>
@@ -462,7 +468,7 @@ export function StaffManagement() {
           </div>
         </div>
         {canAddStaff && (
-          <Button variant="primary" size="md" onClick={() => setDialogOpen(true)}>
+          <Button variant="primary" size="md" onClick={() => setDialogOpen(true)} className="min-h-[48px]">
             <Plus className="h-4 w-4" />
             Add Staff
           </Button>
