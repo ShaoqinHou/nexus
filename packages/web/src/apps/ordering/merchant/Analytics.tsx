@@ -396,7 +396,7 @@ export function Analytics() {
             type="button"
             onClick={() => setActiveTab('overview')}
             className={[
-              'px-3 py-1.5 text-sm font-medium rounded-md transition-colors',
+              'px-4 py-2.5 min-h-[44px] text-sm font-medium rounded-md transition-colors active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
               activeTab === 'overview'
                 ? 'bg-primary text-text-inverse'
                 : 'bg-bg-muted text-text-secondary hover:bg-bg-surface',
@@ -408,13 +408,13 @@ export function Analytics() {
             type="button"
             onClick={() => setActiveTab('daily-summary')}
             className={[
-              'px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center gap-1.5',
+              'px-4 py-2.5 min-h-[44px] text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
               activeTab === 'daily-summary'
                 ? 'bg-primary text-text-inverse'
                 : 'bg-bg-muted text-text-secondary hover:bg-bg-surface',
             ].join(' ')}
           >
-            <CalendarDays className="h-3.5 w-3.5" />
+            <CalendarDays className="h-4 w-4" />
             Daily Summary
           </button>
         </div>
@@ -454,7 +454,7 @@ export function Analytics() {
               type="button"
               onClick={() => setDays(d)}
               className={[
-                'px-3 py-1.5 text-sm font-medium rounded-md transition-colors',
+                'px-4 py-2.5 min-h-[44px] text-sm font-medium rounded-md transition-colors active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
                 days === d
                   ? 'bg-primary text-text-inverse'
                   : 'bg-bg-muted text-text-secondary hover:bg-bg-surface',
