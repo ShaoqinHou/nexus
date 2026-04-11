@@ -164,12 +164,12 @@ export function CartSidebar({
                     onClick={() =>
                       updateQuantity(index, item.quantity - 1)
                     }
-                    className="h-9 w-9 flex items-center justify-center rounded-full border border-border text-text-secondary hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                    className="h-12 w-12 flex items-center justify-center rounded-full border border-border text-text-secondary hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.95]"
                     aria-label={`Decrease ${item.name} quantity`}
                   >
-                    <Minus className="h-3.5 w-3.5" />
+                    <Minus className="h-4 w-4" />
                   </button>
-                  <span className="text-sm font-semibold text-text w-5 text-center">
+                  <span className="text-sm font-semibold text-text w-8 text-center">
                     {item.quantity}
                   </span>
                   <button
@@ -177,10 +177,10 @@ export function CartSidebar({
                     onClick={() =>
                       updateQuantity(index, item.quantity + 1)
                     }
-                    className="h-9 w-9 flex items-center justify-center rounded-full bg-primary text-text-inverse hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                    className="h-12 w-12 flex items-center justify-center rounded-full bg-primary text-text-inverse hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.95]"
                     aria-label={`Increase ${item.name} quantity`}
                   >
-                    <Plus className="h-3.5 w-3.5" />
+                    <Plus className="h-4 w-4" />
                   </button>
                 </div>
 
@@ -194,22 +194,22 @@ export function CartSidebar({
                       )
                     }
                     className={[
-                      'p-2 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+                      'min-h-[44px] min-w-[44px] flex items-center justify-center rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
                       item.notes
                         ? 'text-primary'
                         : 'text-text-tertiary hover:text-text-secondary',
                     ].join(' ')}
                     aria-label={`Add note for ${item.name}`}
                   >
-                    <MessageSquare className="h-3.5 w-3.5" />
+                    <MessageSquare className="h-5 w-5" />
                   </button>
                   <button
                     type="button"
                     onClick={() => removeItem(index)}
-                    className="p-2 rounded text-text-tertiary hover:text-danger transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                    className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded text-text-tertiary hover:text-danger hover:bg-danger/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                     aria-label={`Remove ${item.name} from cart`}
                   >
-                    <Trash2 className="h-3.5 w-3.5" />
+                    <Trash2 className="h-5 w-5" />
                   </button>
                 </div>
               </div>
@@ -225,7 +225,7 @@ export function CartSidebar({
                       updateItemNotes(index, e.target.value)
                     }
                     placeholder="Special requests..."
-                    className="w-full text-sm px-2.5 py-1.5 rounded border border-border bg-bg text-text placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-primary"
+                    className="w-full text-sm h-12 px-3 rounded border border-border bg-bg text-text placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                   {(item.notes ?? '').length > 400 && (
                     <span className="absolute bottom-1 right-2 text-xs text-text-tertiary">{500 - (item.notes ?? '').length}</span>
@@ -250,7 +250,7 @@ export function CartSidebar({
               }
               placeholder="Any special requests for your order..."
               rows={2}
-              className="w-full text-sm px-3 py-2 rounded-lg border border-border bg-bg text-text placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+              className="w-full text-sm h-12 px-3 py-2 rounded-lg border border-border bg-bg text-text placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-primary resize-none"
             />
             {notes.length > 400 && (
               <span className="absolute bottom-1 right-2 text-xs text-text-tertiary">{500 - notes.length}</span>
@@ -279,10 +279,10 @@ export function CartSidebar({
               <button
                 type="button"
                 onClick={handleRemovePromo}
-                className="p-2 rounded text-text-tertiary hover:text-danger transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded text-text-tertiary hover:text-danger hover:bg-danger/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                 aria-label="Remove promo code"
               >
-                <X className="h-3.5 w-3.5" />
+                <X className="h-4 w-4" />
               </button>
             </div>
           ) : (
