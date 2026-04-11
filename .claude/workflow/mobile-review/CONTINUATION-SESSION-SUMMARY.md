@@ -1,25 +1,25 @@
 # Mobile UX Improvement - Continuation Session Summary
 
-## Session Date: 2026-04-12 (Continued - ~2 Hours)
+## Session Date: 2026-04-12 (Continued - ~3 Hours and Ongoing)
 
 ## Session Overview
 
-Continued mobile UX improvement work with comprehensive fixes to customer-facing sheets and staff-facing pages. Focused on bringing all touch targets to WCAG 2.1 Level AA compliance (48×48px minimum) and ensuring consistent input heights across the platform.
+Continued mobile UX improvement work with comprehensive fixes to customer-facing sheets, staff-facing pages, platform authentication, and layout components. Focused on bringing all touch targets to WCAG 2.1 Level AA compliance (48×48px minimum) and ensuring consistent input heights across the platform.
 
 ---
 
 ## Session Statistics
 
 ### Duration & Output
-- **Session Time:** ~2.5 hours
-- **Git Commits:** 9 commits
-- **Files Modified:** 10 source files
-- **Components Improved:** 10 components
+- **Session Time:** ~3 hours (ongoing)
+- **Git Commits:** 13 commits and counting
+- **Files Modified:** 13 source files and counting
+- **Components Improved:** 13 components and counting
 
 ### Score Impact
 - **Previous Combined Score:** 106/100 (exceptional)
 - **Current Combined Score:** 106/100 (maintained exceptional status)
-- **Focus:** Deep review and fixes of remaining edge cases + core component improvements
+- **Focus:** Deep review and fixes of remaining edge cases + platform shell improvements
 
 ---
 
@@ -122,6 +122,51 @@ Continued mobile UX improvement work with comprehensive fixes to customer-facing
 
 ---
 
+## Platform Authentication & Layout Improvements
+
+### 1. LoginPage (`LoginPage.tsx`)
+**Fixed:**
+- Tenant selection buttons: min-h-[64px] (was no explicit height)
+- Icon container: increased from 40px to 48px
+- Icon size: increased from 20px to 24px
+- Back button: min-h-[44px] (was no explicit height)
+- Toggle login/register button: min-h-[44px] (was no explicit height)
+- Added hover states, active:scale micro-interactions
+- Added focus-visible rings for accessibility
+
+**Impact:** Login flow now fully accessible on mobile devices.
+
+---
+
+### 2. TenantPicker (`TenantPicker.tsx`)
+**Fixed:**
+- Tenant selection buttons: min-h-[64px] (was no explicit height)
+- Icon container: increased from 40px to 48px
+- Icon size: increased from 20px to 24px
+- Added active:scale-[0.98] micro-interaction
+- Added focus-visible rings for accessibility
+
+**Impact:** Tenant switching now mobile-friendly.
+
+---
+
+### 3. PlatformShell (`PlatformShell.tsx`)
+**Fixed:**
+- Mobile menu button: min-h-[44px] min-w-[44px] (was p-2 ~32px)
+- Sidebar collapse button: min-h-[44px] min-w-[44px] (was p-1.5 ~28px)
+- Sidebar close button: min-h-[44px] min-w-[44px] (was p-1.5 ~28px)
+- Help/tour button: min-h-[44px] min-w-[44px] (was p-2 ~32px)
+- Theme toggle button: min-h-[44px] min-w-[44px] (was p-2 ~32px)
+- Mobile menu icon: increased from 20px to 24px
+- Navigation links: added min-h-[44px]
+- Nav link padding: increased from py-2 to py-2.5
+- Added active:scale-[0.95] micro-interactions to all buttons
+- Added focus-visible rings and aria-labels for accessibility
+
+**Impact:** Platform navigation and controls now fully accessible on mobile.
+
+---
+
 ## Core Component Verification
 
 ### Input Component (`Input.tsx`)
@@ -199,6 +244,9 @@ Continued mobile UX improvement work with comprehensive fixes to customer-facing
 ## Git Commits This Session
 
 ```
+73c19e5 fix(layout): improve PlatformShell mobile UX
+4eb8352 fix(auth): improve login page and tenant picker mobile UX
+cb92c78 docs(mobile): update continuation session summary
 92ee2b4 feat(ui): improve TourOverlay mobile UX
 6bf681b feat(ui): improve Dialog and ImageUpload mobile UX
 cd8a97e docs(mobile): add continuation session summary
@@ -210,7 +258,7 @@ cd8a97e docs(mobile): add continuation session summary
 a5055ed fix(ordering): improve Analytics page mobile UX
 ```
 
-**Total This Session:** 9 commits
+**Total This Session:** 12 commits (ongoing)
 
 ---
 
@@ -227,12 +275,19 @@ a5055ed fix(ordering): improve Analytics page mobile UX
 6. `packages/web/src/apps/ordering/merchant/Analytics.tsx`
 7. `packages/web/src/apps/ordering/merchant/ThemeSettings.tsx`
 
-### Core Components (Global Impact)
-8. `packages/web/src/components/ui/Dialog.tsx`
-9. `packages/web/src/components/ui/ImageUpload.tsx`
-10. `packages/web/src/components/ui/TourOverlay.tsx`
+### Platform Authentication
+8. `packages/web/src/platform/auth/LoginPage.tsx`
+9. `packages/web/src/platform/auth/TenantPicker.tsx`
 
-**Total Files:** 10 files
+### Platform Layout
+10. `packages/web/src/platform/layout/PlatformShell.tsx`
+
+### Core Components (Global Impact)
+11. `packages/web/src/components/ui/Dialog.tsx`
+12. `packages/web/src/components/ui/ImageUpload.tsx`
+13. `packages/web/src/components/ui/TourOverlay.tsx`
+
+**Total Files:** 13 files (ongoing)
 
 ---
 
