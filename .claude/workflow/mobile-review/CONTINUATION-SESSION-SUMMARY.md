@@ -11,15 +11,15 @@ Continued mobile UX improvement work with comprehensive fixes to customer-facing
 ## Session Statistics
 
 ### Duration & Output
-- **Session Time:** ~2 hours
-- **Git Commits:** 8 commits
-- **Files Modified:** 7 source files
-- **Components Improved:** 7 components
+- **Session Time:** ~2.5 hours
+- **Git Commits:** 9 commits
+- **Files Modified:** 10 source files
+- **Components Improved:** 10 components
 
 ### Score Impact
 - **Previous Combined Score:** 106/100 (exceptional)
 - **Current Combined Score:** 106/100 (maintained exceptional status)
-- **Focus:** Deep review and fixes of remaining edge cases
+- **Focus:** Deep review and fixes of remaining edge cases + core component improvements
 
 ---
 
@@ -134,6 +134,44 @@ Continued mobile UX improvement work with comprehensive fixes to customer-facing
 - Height: h-12 (48px) - PERFECT
 - All selects using this component automatically mobile-friendly
 
+### Dialog Component (`Dialog.tsx`)
+**Status:** ✅ Now optimized
+- Close button: min-h-[44px] min-w-[44px] (was ~24px)
+- Icon size: increased from 20px to 24px
+- Added active:scale-[0.95] micro-interaction
+- Added aria-label for screen readers
+
+### ImageUpload Component (`ImageUpload.tsx`)
+**Status:** ✅ Now optimized
+- URL fallback button: min-h-[40px] (was too small)
+- Icon size: increased from 12px to 16px
+- Added padding and rounded styling for better touch area
+- Added hover:bg-bg-muted and active:scale-[0.98] for tactile feedback
+
+### TourOverlay Component (`TourOverlay.tsx`)
+**Status:** ✅ Now optimized
+- Skip tour button: min-h-[44px] (was no explicit height)
+- Next/Action button: min-h-[44px]
+- Added padding and rounded styling for better touch areas
+- Added active:scale-[0.98] micro-interactions
+- Added focus-visible rings for accessibility
+
+### ConfirmButton Pattern (`ConfirmButton.tsx`)
+**Status:** ✅ Already optimized
+- Uses Button component which has proper touch targets
+- Automatically mobile-friendly
+
+### FormField Pattern (`FormField.tsx`)
+**Status:** ✅ Already optimized
+- Wrapper component with no interactive elements
+- Children use Input/Select which are mobile-friendly
+
+### DataTable Pattern (`DataTable.tsx`)
+**Status:** ✅ Already optimized
+- Uses overflow-x-auto for responsive horizontal scrolling
+- py-3 cell padding is sufficient for data display
+- No interactive elements that need touch target fixes
+
 ---
 
 ## Technical Excellence
@@ -161,6 +199,9 @@ Continued mobile UX improvement work with comprehensive fixes to customer-facing
 ## Git Commits This Session
 
 ```
+92ee2b4 feat(ui): improve TourOverlay mobile UX
+6bf681b feat(ui): improve Dialog and ImageUpload mobile UX
+cd8a97e docs(mobile): add continuation session summary
 2edbf25 fix(ordering): improve CartSidebar mobile UX
 01e2f51 fix(ordering): improve ItemDetailSheet mobile UX
 04d2af2 fix(ordering): improve OrderConfirmation cancel button mobile UX
@@ -169,7 +210,7 @@ Continued mobile UX improvement work with comprehensive fixes to customer-facing
 a5055ed fix(ordering): improve Analytics page mobile UX
 ```
 
-**Total This Session:** 7 commits
+**Total This Session:** 9 commits
 
 ---
 
@@ -186,7 +227,12 @@ a5055ed fix(ordering): improve Analytics page mobile UX
 6. `packages/web/src/apps/ordering/merchant/Analytics.tsx`
 7. `packages/web/src/apps/ordering/merchant/ThemeSettings.tsx`
 
-**Total Files:** 7 files
+### Core Components (Global Impact)
+8. `packages/web/src/components/ui/Dialog.tsx`
+9. `packages/web/src/components/ui/ImageUpload.tsx`
+10. `packages/web/src/components/ui/TourOverlay.tsx`
+
+**Total Files:** 10 files
 
 ---
 
