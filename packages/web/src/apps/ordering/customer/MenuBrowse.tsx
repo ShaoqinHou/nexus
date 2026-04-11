@@ -4,11 +4,12 @@ import { Plus, Minus, UtensilsCrossed, Package, Search, X, AlertTriangle, ArrowU
 import { apiClient } from '@web/lib/api';
 import { formatPrice, parseTags } from '@web/lib/format';
 import { Button } from '@web/components/ui';
-import { EmptyState } from '@web/components/patterns';
+import { EmptyState, PullToRefreshIndicator } from '@web/components/patterns';
 import { useCart } from '@web/apps/ordering/customer/CartProvider';
 import { ItemDetailSheet } from '@web/apps/ordering/customer/ItemDetailSheet';
 import { ComboSheet } from '@web/apps/ordering/customer/ComboSheet';
 import { useTheme } from '@web/platform/theme/ThemeProvider';
+import { usePullToRefresh } from '@web/lib/hooks/usePullToRefresh';
 import type { MenuCategory, MenuItem, ModifierGroup, ComboDeal } from '@web/apps/ordering/types';
 import type { DietaryTag } from '@web/apps/ordering/types';
 import { ALLERGENS } from '@web/apps/ordering/types';
@@ -432,6 +433,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
     data: menuData,
     isLoading,
     error,
+    refetch,
   } = useQuery({
     queryKey: ['ordering', 'public-menu', tenantSlug],
     queryFn: () =>
@@ -450,6 +452,14 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
         featured: payload.featured ?? [],
       };
     },
+  });
+
+  // Pull-to-refresh hook
+  const { pullDistance, isRefreshing, touchAreaProps } = usePullToRefresh({
+    onRefresh: async () => {
+      await refetch();
+    },
+    threshold: 80,
   });
 
   const scrollToCategory = useCallback((categoryId: string) => {
@@ -585,7 +595,15 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
     activeCategory ?? visibleCategories[0]?.category.id ?? null;
 
   return (
-    <div className="flex flex-col lg:flex-row">
+    <>
+      {/* Pull-to-refresh indicator */}
+      <PullToRefreshIndicator
+        pullDistance={pullDistance}
+        threshold={80}
+        isRefreshing={isRefreshing}
+      />
+
+      <div className="flex flex-col lg:flex-row" {...touchAreaProps}>
       {/* Desktop category rail — sticky sidebar on lg+ */}
       <nav className="hidden lg:block w-52 shrink-0 sticky top-0 self-start h-screen overflow-y-auto border-r border-border pt-4 px-3">
         {/* Table number chip */}
@@ -1039,5 +1057,6 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
         </button>
       )}
     </div>
+    </>
   );
 }
