@@ -164,13 +164,13 @@ function OrderCard({
           <CardContent>
             {/* Order items list */}
             <div className="overflow-x-auto -mx-2 px-2">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-text-secondary">
-                  <th className="pb-2 font-medium">Item</th>
-                  <th className="pb-2 font-medium text-center">Qty</th>
-                  <th className="pb-2 font-medium text-right">Price</th>
-                  <th className="pb-2 font-medium text-right">Status</th>
+            <table className="w-full text-sm min-w-[500px]">
+              <thead className="sticky top-0 bg-bg-surface">
+                <tr className="text-left text-text-secondary border-b-2 border-border">
+                  <th className="pb-2 pr-4 font-medium">Item</th>
+                  <th className="pb-2 px-2 font-medium text-center">Qty</th>
+                  <th className="pb-2 px-4 font-medium text-right">Price</th>
+                  <th className="pb-2 pl-4 font-medium text-right">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -187,7 +187,7 @@ function OrderCard({
                         isItemCancelled ? 'opacity-50' : '',
                       ].join(' ')}
                     >
-                      <td className="py-2 text-text">
+                      <td className="py-3 pr-4 text-text">
                         <span className={isItemCancelled ? 'line-through text-text-tertiary' : ''}>
                           {item.name}
                         </span>
@@ -221,6 +221,7 @@ function OrderCard({
                                 onHandleCancellation(order.id, item.id, 'approve');
                               }}
                               disabled={isCancellationPending}
+                              className="min-h-[44px]"
                             >
                               Accept Cancel
                             </Button>
@@ -232,22 +233,23 @@ function OrderCard({
                                 onHandleCancellation(order.id, item.id, 'reject');
                               }}
                               disabled={isCancellationPending}
+                              className="min-h-[44px]"
                             >
                               Reject
                             </Button>
                           </div>
                         )}
                       </td>
-                      <td className="py-2 text-center text-text-secondary">
+                      <td className="py-3 px-2 text-center text-text-secondary">
                         {item.quantity}
                       </td>
                       <td className={[
-                        'py-2 text-right',
+                        'py-3 px-4 text-right',
                         isItemCancelled ? 'text-text-tertiary line-through' : 'text-text',
                       ].join(' ')}>
                         {formatPrice(item.price * item.quantity)}
                       </td>
-                      <td className="py-2 text-right">
+                      <td className="py-3 pl-4 text-right">
                         {isCancelRequested && (
                           <Badge variant="warning">Cancel Requested</Badge>
                         )}
@@ -288,6 +290,7 @@ function OrderCard({
                     onUpdateStatus(order.id, nextStatus);
                   }}
                   loading={isUpdating}
+                  className="min-h-[44px]"
                 >
                   {nextLabel}
                 </Button>
@@ -303,6 +306,7 @@ function OrderCard({
                     onUpdatePaymentStatus(order.id, 'paid');
                   }}
                   loading={isPaymentUpdating}
+                  className="min-h-[44px]"
                 >
                   <CreditCard className="h-3.5 w-3.5 mr-1" />
                   Mark Paid
@@ -317,6 +321,7 @@ function OrderCard({
                     onUpdatePaymentStatus(order.id, 'refunded');
                   }}
                   loading={isPaymentUpdating}
+                  className="min-h-[44px]"
                 >
                   Refund
                 </Button>
@@ -330,6 +335,7 @@ function OrderCard({
                   e.stopPropagation();
                   printReceipt(order, tenantName);
                 }}
+                className="min-h-[44px]"
               >
                 <Printer className="h-3.5 w-3.5 mr-1" />
                 Print
@@ -342,6 +348,7 @@ function OrderCard({
                   onConfirm={() => onUpdateStatus(order.id, 'cancelled')}
                   confirmText="Cancel this order?"
                   disabled={isUpdating}
+                  className="min-h-[44px]"
                 >
                   Cancel Order
                 </ConfirmButton>
