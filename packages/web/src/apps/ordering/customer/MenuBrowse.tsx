@@ -201,7 +201,7 @@ function MenuItemCard({
             variant="primary"
             size="sm"
             onClick={handleAdd}
-            className="min-h-[48px] min-w-[48px] !p-0"
+            className="min-h-[48px] min-w-[48px] !p-0 active:scale-[0.97] transition-transform"
             aria-label={`Add ${item.name} to cart`}
             {...(tourTarget ? { 'data-tour': tourTarget } : {})}
           >
@@ -212,7 +212,7 @@ function MenuItemCard({
             <button
               type="button"
               onClick={handleDecrement}
-              className="h-12 w-12 flex items-center justify-center rounded-full border border-border text-text-secondary hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              className="h-12 w-12 flex items-center justify-center rounded-full border border-border text-text-secondary hover:bg-bg-muted active:scale-[0.92] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               aria-label={`Decrease ${item.name} quantity`}
             >
               <Minus className="h-4 w-4" />
@@ -223,7 +223,7 @@ function MenuItemCard({
             <button
               type="button"
               onClick={handleAdd}
-              className="h-12 w-12 flex items-center justify-center rounded-full bg-primary text-text-inverse hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              className="h-12 w-12 flex items-center justify-center rounded-full bg-primary text-text-inverse hover:bg-primary-hover active:scale-[0.92] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               aria-label={`Increase ${item.name} quantity`}
             >
               <Plus className="h-4 w-4" />
@@ -286,7 +286,7 @@ function ComboCard({
     <button
       type="button"
       onClick={() => onSelect(combo)}
-      className="flex gap-3 p-3 rounded-lg border border-border bg-bg-elevated text-left transition-colors hover:bg-bg-muted w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+      className="flex gap-3 p-3 rounded-lg border border-border bg-bg-elevated text-left transition-all hover:bg-bg-muted w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]"
     >
       {/* Combo image */}
       {combo.imageUrl ? (
@@ -895,7 +895,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                     type="button"
                     onClick={() => scrollToWithSpy(category.id)}
                     className={[
-                      'shrink-0 px-3.5 py-1.5 rounded-full text-sm font-semibold transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+                      'shrink-0 px-3.5 py-1.5 rounded-full text-sm font-semibold transition-all whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.95]',
                       activeCatId === category.id
                         ? 'bg-primary text-text-inverse shadow-sm'
                         : 'bg-bg-muted text-text-secondary hover:text-text hover:bg-bg-strong',

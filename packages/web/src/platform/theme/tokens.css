@@ -30,6 +30,30 @@
   background-size: 1000px 100%;
 }
 
+/* Slide up and fade animation for toasts */
+@keyframes slide-up-fade {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  10% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  90% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
+}
+
+.animate-slide-up-fade {
+  animation: slide-up-fade 2s ease-out forwards;
+}
+
 :root {
   /* Surfaces */
   --color-bg: #ffffff;
