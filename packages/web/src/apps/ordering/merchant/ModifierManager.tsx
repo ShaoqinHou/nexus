@@ -89,7 +89,7 @@ function GroupDialog({
       title={isEdit ? 'Edit Modifier Group' : 'Add Modifier Group'}
       footer={
         <>
-          <Button variant="secondary" onClick={handleClose} disabled={loading}>
+          <Button variant="secondary" onClick={handleClose} disabled={loading} className="min-h-[48px]">
             Cancel
           </Button>
           <Button
@@ -97,6 +97,7 @@ function GroupDialog({
             form="group-form"
             loading={loading}
             disabled={!name.trim()}
+            className="min-h-[48px]"
           >
             {isEdit ? 'Save' : 'Add'}
           </Button>
@@ -112,7 +113,7 @@ function GroupDialog({
           required
           autoFocus
         />
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
             label="Min Selections"
             type="number"
@@ -190,7 +191,7 @@ function OptionDialog({
       title={isEdit ? 'Edit Option' : 'Add Option'}
       footer={
         <>
-          <Button variant="secondary" onClick={handleClose} disabled={loading}>
+          <Button variant="secondary" onClick={handleClose} disabled={loading} className="min-h-[48px]">
             Cancel
           </Button>
           <Button
@@ -198,6 +199,7 @@ function OptionDialog({
             form="option-form"
             loading={loading}
             disabled={!name.trim()}
+            className="min-h-[48px]"
           >
             {isEdit ? 'Save' : 'Add'}
           </Button>

@@ -95,7 +95,7 @@ function CategoryDialog({
       data-tour="category-dialog"
       footer={
         <>
-          <Button variant="secondary" onClick={handleClose} disabled={loading}>
+          <Button variant="secondary" onClick={handleClose} disabled={loading} className="min-h-[48px]">
             Cancel
           </Button>
           <Button
@@ -104,6 +104,7 @@ function CategoryDialog({
             form="category-form"
             loading={loading}
             disabled={!name.trim()}
+            className="min-h-[48px]"
           >
             {isEdit ? 'Save' : 'Add'}
           </Button>
@@ -237,7 +238,7 @@ function ItemDialog({
       data-tour="item-dialog"
       footer={
         <>
-          <Button variant="secondary" onClick={handleClose} disabled={loading}>
+          <Button variant="secondary" onClick={handleClose} disabled={loading} className="min-h-[48px]">
             Cancel
           </Button>
           <Button
@@ -246,6 +247,7 @@ function ItemDialog({
             form="item-form"
             loading={loading}
             disabled={!name.trim() || !price}
+            className="min-h-[48px]"
           >
             {isEdit ? 'Save' : 'Add'}
           </Button>
