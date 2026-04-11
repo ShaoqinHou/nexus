@@ -321,7 +321,7 @@ function GroupList({
                         e.stopPropagation();
                         onEdit(group);
                       }}
-                      className="p-2 sm:p-1 rounded text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors"
+                      className="min-h-[44px] min-w-[44px] p-2 sm:p-1 rounded text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                       aria-label={`Edit ${group.name}`}
                     >
                       <Pencil className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
@@ -331,7 +331,7 @@ function GroupList({
                       size="sm"
                       onConfirm={() => onDelete(group.id)}
                       confirmText="Delete?"
-                      className="!p-1 text-text-tertiary hover:text-danger"
+                      className="min-h-[44px] min-w-[44px] !p-1 text-text-tertiary hover:text-danger"
                     >
                       <span className="text-xs">Del</span>
                     </ConfirmButton>
@@ -387,6 +387,7 @@ function OptionCard({
             size="sm"
             onClick={() => onEdit(option)}
             aria-label={`Edit ${option.name}`}
+            className="min-h-[44px]"
           >
             <Pencil className="h-3.5 w-3.5" />
             Edit
@@ -396,6 +397,7 @@ function OptionCard({
             size="sm"
             onConfirm={() => onDelete(option.id)}
             confirmText="Delete?"
+            className="min-h-[44px]"
           >
             Delete
           </ConfirmButton>

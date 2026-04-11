@@ -587,7 +587,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
             )}
           </button>
           {allergenFilterOpen && (
-            <div className="mt-2 flex flex-wrap gap-1.5">
+            <div className="mt-2 flex flex-wrap gap-1.5 items-center">
               {ALLERGENS.map((allergen) => {
                 const isHidden = hiddenAllergens.has(allergen);
                 return (
@@ -606,6 +606,15 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                   </button>
                 );
               })}
+              {hiddenAllergens.size > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setHiddenAllergens(new Set())}
+                  className="ml-auto text-xs text-primary hover:text-primary-hover font-medium min-h-[44px] min-w-[44px] flex items-center justify-center"
+                >
+                  Clear All
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -745,12 +754,17 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                 className={[
                   'shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
                   hiddenAllergens.size > 0
-                    ? 'text-danger bg-danger-light'
+                    ? 'text-danger bg-danger-light relative'
                     : 'text-text-secondary hover:bg-bg-muted',
                 ].join(' ')}
-                aria-label="Allergen filter"
+                aria-label={`Allergen filter${hiddenAllergens.size > 0 ? ` (${hiddenAllergens.size} filtered)` : ''}`}
               >
                 <AlertTriangle className="h-5 w-5" />
+                {hiddenAllergens.size > 0 && (
+                  <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-danger text-text-inverse text-xs font-bold flex items-center justify-center">
+                    {hiddenAllergens.size}
+                  </span>
+                )}
               </button>
               {tableNumber && (
                 <span className="shrink-0 px-2 py-1 rounded-full bg-bg-muted text-xs font-semibold text-text-secondary">
@@ -762,9 +776,20 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
           {/* Mobile allergen filter panel */}
           {allergenFilterOpen && (
             <div className="px-4 py-2 border-t border-border bg-bg-surface lg:hidden">
-              <p className="text-xs font-medium text-text-secondary mb-1.5">
-                Hide items containing:
-              </p>
+              <div className="flex items-center justify-between mb-1.5">
+                <p className="text-xs font-medium text-text-secondary">
+                  Hide items containing:
+                </p>
+                {hiddenAllergens.size > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setHiddenAllergens(new Set())}
+                    className="text-xs text-primary hover:text-primary-hover font-medium min-h-[44px] min-w-[44px] flex items-center justify-center"
+                  >
+                    Clear All
+                  </button>
+                )}
+              </div>
               <div className="flex flex-wrap gap-1.5">
                 {ALLERGENS.map((allergen) => {
                   const isHidden = hiddenAllergens.has(allergen);

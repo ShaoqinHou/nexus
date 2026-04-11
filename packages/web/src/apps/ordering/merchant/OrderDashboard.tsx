@@ -110,7 +110,7 @@ function OrderCard({
       <button
         type="button"
         onClick={() => setExpanded(!expanded)}
-        className="w-full text-left"
+        className="w-full text-left min-h-[48px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
       >
         <CardContent className="flex items-center justify-between gap-3 sm:gap-4 py-4">
           <div className="flex items-center gap-3 sm:gap-4 min-w-0">
