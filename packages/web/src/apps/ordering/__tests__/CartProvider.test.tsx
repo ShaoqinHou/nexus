@@ -1,5 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
 import { CartProvider, useCart } from '@web/apps/ordering/customer/CartProvider';
+import { ToastProvider } from '@web/platform/ToastProvider';
 import type { ReactNode } from 'react';
 
 // Mock sessionStorage
@@ -15,7 +16,11 @@ vi.stubGlobal('sessionStorage', {
 });
 
 function wrapper({ children }: { children: ReactNode }) {
-  return <CartProvider tenantSlug="test" tableNumber="1">{children}</CartProvider>;
+  return (
+    <ToastProvider>
+      <CartProvider tenantSlug="test" tableNumber="1">{children}</CartProvider>
+    </ToastProvider>
+  );
 }
 
 function addSampleItem(
