@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Plus, Minus, UtensilsCrossed, Package, Search, X, AlertTriangle, ArrowUp } from 'lucide-react';
+import { Plus, Minus, UtensilsCrossed, Package, Search, X, AlertTriangle, ArrowUp, Moon, Sun } from 'lucide-react';
 import { apiClient } from '@web/lib/api';
 import { formatPrice, parseTags } from '@web/lib/format';
 import { Button } from '@web/components/ui';
@@ -8,6 +8,7 @@ import { EmptyState } from '@web/components/patterns';
 import { useCart } from '@web/apps/ordering/customer/CartProvider';
 import { ItemDetailSheet } from '@web/apps/ordering/customer/ItemDetailSheet';
 import { ComboSheet } from '@web/apps/ordering/customer/ComboSheet';
+import { useTheme } from '@web/platform/theme/ThemeProvider';
 import type { MenuCategory, MenuItem, ModifierGroup, ComboDeal } from '@web/apps/ordering/types';
 import type { DietaryTag } from '@web/apps/ordering/types';
 import { ALLERGENS } from '@web/apps/ordering/types';
@@ -369,6 +370,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
   const [showBackToTop, setShowBackToTop] = useState(false);
   const sectionRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const { addItem } = useCart();
+  const { theme, toggleTheme } = useTheme();
 
   const toggleAllergenFilter = useCallback((allergen: string) => {
     setHiddenAllergens((prev) => {
@@ -545,6 +547,21 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
             Table {tableNumber}
           </span>
         )}
+
+        {/* Theme toggle */}
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-text-secondary hover:bg-bg-muted transition-colors mb-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+        >
+          {theme === 'light' ? (
+            <Moon className="h-4 w-4" />
+          ) : (
+            <Sun className="h-4 w-4" />
+          )}
+          <span>{theme === 'light' ? 'Dark Mode' : 'Light Mode'}</span>
+        </button>
 
         {/* Always-visible search on desktop */}
         <div className="relative mb-4">
@@ -764,6 +781,19 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                   <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-danger text-text-inverse text-xs font-bold flex items-center justify-center">
                     {hiddenAllergens.size}
                   </span>
+                )}
+              </button>
+              {/* Theme toggle button */}
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-bg-muted text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+              >
+                {theme === 'light' ? (
+                  <Moon className="h-5 w-5" />
+                ) : (
+                  <Sun className="h-5 w-5" />
                 )}
               </button>
               {tableNumber && (
