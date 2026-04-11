@@ -111,7 +111,7 @@ function ItemPicker({
                 onAddItem(item);
                 setSearch('');
               }}
-              className="w-full flex items-center justify-between px-2 py-1.5 rounded text-left text-sm hover:bg-bg-muted transition-colors"
+              className="w-full flex items-center justify-between px-3 py-2.5 min-h-[44px] rounded text-left text-sm hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
               <span className="text-text truncate">{item.name}</span>
               <span className="text-text-secondary text-xs shrink-0 ml-2">
@@ -195,7 +195,7 @@ function SlotEditor({
           <button
             type="button"
             onClick={() => onRemove(index)}
-            className="p-1 rounded text-text-tertiary hover:text-danger transition-colors"
+            className="min-h-[44px] min-w-[44px] p-2 rounded text-text-tertiary hover:text-danger hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             aria-label="Remove slot"
           >
             <Trash2 className="h-4 w-4" />
@@ -247,7 +247,7 @@ function SlotEditor({
                 {opt.menuItemName}
               </span>
               <div className="flex items-center gap-2 shrink-0">
-                <label className="flex items-center gap-1 text-xs text-text-secondary">
+                <label className="flex items-center gap-1 text-xs text-text-secondary min-h-[44px]">
                   <span>+$</span>
                   <input
                     type="number"
@@ -260,7 +260,7 @@ function SlotEditor({
                     className="w-16 text-xs px-1.5 py-1 rounded border border-border bg-bg text-text focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                 </label>
-                <label className="flex items-center gap-1 text-xs text-text-secondary cursor-pointer">
+                <label className="flex items-center gap-1 text-xs text-text-secondary cursor-pointer min-h-[44px]">
                   <input
                     type="checkbox"
                     checked={opt.isDefault}
@@ -274,7 +274,7 @@ function SlotEditor({
                 <button
                   type="button"
                   onClick={() => handleRemoveOption(optIdx)}
-                  className="p-0.5 rounded text-text-tertiary hover:text-danger transition-colors"
+                  className="min-h-[44px] min-w-[44px] p-1 rounded text-text-tertiary hover:text-danger hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                   aria-label={`Remove ${opt.menuItemName}`}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
@@ -373,7 +373,7 @@ function ComboDialog({
       title={isEdit ? 'Edit Combo Deal' : 'Create Combo Deal'}
       footer={
         <>
-          <Button variant="secondary" onClick={handleClose} disabled={loading}>
+          <Button variant="secondary" onClick={handleClose} disabled={loading} className="min-h-[48px]">
             Cancel
           </Button>
           <Button
@@ -381,6 +381,7 @@ function ComboDialog({
             form="combo-form"
             loading={loading}
             disabled={!form.name.trim() || !form.basePrice || !hasValidSlots}
+            className="min-h-[48px]"
           >
             {isEdit ? 'Save' : 'Create'}
           </Button>
@@ -434,7 +435,7 @@ function ComboDialog({
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold text-text">Slots</h3>
-            <Button variant="secondary" size="sm" onClick={handleAddSlot}>
+            <Button variant="secondary" size="sm" onClick={handleAddSlot} className="min-h-[48px]">
               <Plus className="h-3.5 w-3.5" />
               Add Slot
             </Button>
@@ -519,17 +520,20 @@ function ComboCard({
           </div>
 
           <div className="flex items-center justify-between mt-3">
-            <Toggle
-              checked={combo.isActive === 1}
-              onChange={() => onToggleActive(combo)}
-              label={combo.isActive === 1 ? 'Active' : 'Inactive'}
-            />
+            <div className="min-h-[44px] flex items-center">
+              <Toggle
+                checked={combo.isActive === 1}
+                onChange={() => onToggleActive(combo)}
+                label={combo.isActive === 1 ? 'Active' : 'Inactive'}
+              />
+            </div>
 
             <div className="flex items-center gap-1">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => onEdit(combo)}
+                className="min-h-[44px]"
               >
                 Edit
               </Button>
@@ -538,6 +542,7 @@ function ComboCard({
                 size="sm"
                 onConfirm={() => onDelete(combo.id)}
                 confirmText="Delete?"
+                className="min-h-[44px]"
               >
                 Delete
               </ConfirmButton>
@@ -696,7 +701,7 @@ export function ComboManager() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-text">Combo Deals</h1>
-        <Button onClick={handleAdd}>
+        <Button onClick={handleAdd} className="min-h-[48px]">
           <Plus className="h-4 w-4" />
           Create Combo
         </Button>
