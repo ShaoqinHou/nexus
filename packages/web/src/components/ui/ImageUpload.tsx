@@ -309,9 +309,9 @@ export function ImageUpload({
             <button
               type="button"
               onClick={() => setShowUrlInput(true)}
-              className="inline-flex items-center gap-1 text-xs text-text-tertiary hover:text-text-secondary transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[40px] text-xs text-text-tertiary hover:text-text-secondary hover:bg-bg-muted rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]"
             >
-              <LinkIcon className="h-3 w-3" />
+              <LinkIcon className="h-4 w-4" />
               Or enter a URL instead
             </button>
           )}
