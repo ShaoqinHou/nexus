@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Plus, Minus, UtensilsCrossed, Package, Search, X, AlertTriangle } from 'lucide-react';
+import { Plus, Minus, UtensilsCrossed, Package, Search, X, AlertTriangle, ArrowUp } from 'lucide-react';
 import { apiClient } from '@web/lib/api';
 import { formatPrice, parseTags } from '@web/lib/format';
 import { Button } from '@web/components/ui';
@@ -199,32 +199,32 @@ function MenuItemCard({
             variant="primary"
             size="sm"
             onClick={handleAdd}
-            className="h-10 w-10 !p-0"
+            className="min-h-[48px] min-w-[48px] !p-0"
             aria-label={`Add ${item.name} to cart`}
             {...(tourTarget ? { 'data-tour': tourTarget } : {})}
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-5 w-5" />
           </Button>
         ) : (
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={handleDecrement}
-              className="h-9 w-9 flex items-center justify-center rounded-full border border-border text-text-secondary hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              className="h-12 w-12 flex items-center justify-center rounded-full border border-border text-text-secondary hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               aria-label={`Decrease ${item.name} quantity`}
             >
-              <Minus className="h-3.5 w-3.5" />
+              <Minus className="h-4 w-4" />
             </button>
-            <span className="text-sm font-semibold text-text w-5 text-center">
+            <span className="text-sm font-semibold text-text w-8 text-center">
               {totalQuantity}
             </span>
             <button
               type="button"
               onClick={handleAdd}
-              className="h-9 w-9 flex items-center justify-center rounded-full bg-primary text-text-inverse hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              className="h-12 w-12 flex items-center justify-center rounded-full bg-primary text-text-inverse hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               aria-label={`Increase ${item.name} quantity`}
             >
-              <Plus className="h-3.5 w-3.5" />
+              <Plus className="h-4 w-4" />
             </button>
           </div>
         )}
@@ -366,6 +366,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
   const [searchOpen, setSearchOpen] = useState(false);
   const [hiddenAllergens, setHiddenAllergens] = useState<Set<string>>(new Set());
   const [allergenFilterOpen, setAllergenFilterOpen] = useState(false);
+  const [showBackToTop, setShowBackToTop] = useState(false);
   const sectionRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const { addItem } = useCart();
 
@@ -457,6 +458,23 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
     return () => observer.disconnect();
   });
 
+  // Show back-to-top button after scrolling 1.5 screen heights
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      const screenHeight = window.innerHeight;
+      setShowBackToTop(scrollY > screenHeight * 1.5);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll(); // Initial check
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = useCallback(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
   // Temporarily disable scroll-spy during programmatic scroll
   const scrollToWithSpy = useCallback((categoryId: string) => {
     isScrollingRef.current = true;
@@ -530,21 +548,22 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
 
         {/* Always-visible search on desktop */}
         <div className="relative mb-4">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-text-tertiary" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-tertiary" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search menu..."
-            className="w-full text-sm pl-8 pr-3 py-2 rounded-lg border border-border bg-bg text-text placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-primary"
+            className="w-full text-base pl-10 pr-10 py-3 h-12 rounded-lg border border-border bg-bg text-text placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-primary"
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => setSearchQuery('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded-full hover:bg-bg-muted text-text-secondary"
+              className="absolute right-2 top-1/2 -translate-y-1/2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-bg-muted text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              aria-label="Clear search"
             >
-              <X className="h-3.5 w-3.5" />
+              <X className="h-4 w-4" />
             </button>
           )}
         </div>
@@ -599,9 +618,9 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
               type="button"
               onClick={() => scrollToWithSpy(category.id)}
               className={[
-                'text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                'text-left px-3 py-2 rounded-lg text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
                 activeCatId === category.id
-                  ? 'bg-primary text-text-inverse'
+                  ? 'bg-primary text-text-inverse shadow-sm'
                   : 'text-text-secondary hover:bg-bg-muted hover:text-text',
               ].join(' ')}
             >
@@ -662,8 +681,8 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
         {/* Category pills + search — mobile/tablet only */}
         <div className="sticky top-0 z-10 bg-bg/95 backdrop-blur-sm border-b border-border lg:hidden">
           {searchOpen ? (
-            <div className="flex items-center gap-2 px-4 py-2">
-              <Search className="h-4 w-4 text-text-tertiary shrink-0" />
+            <div className="flex items-center gap-2 px-4 min-h-[48px]">
+              <Search className="h-5 w-5 text-text-tertiary shrink-0" />
               <div className="relative flex-1">
                 <input
                   type="text"
@@ -671,23 +690,23 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search menu..."
                   autoFocus
-                  className="w-full bg-transparent text-sm text-text placeholder:text-text-tertiary outline-none pr-7"
+                  className="w-full bg-transparent text-base text-text placeholder:text-text-tertiary outline-none pr-10 py-2"
                 />
                 {searchQuery && (
                   <button
                     type="button"
                     onClick={() => setSearchQuery('')}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-bg-muted text-text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    className="absolute right-0 top-1/2 -translate-y-1/2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-bg-muted text-text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     aria-label="Clear search"
                   >
-                    <X className="h-3.5 w-3.5" />
+                    <X className="h-4 w-4" />
                   </button>
                 )}
               </div>
               <button
                 type="button"
                 onClick={() => setSearchOpen(false)}
-                className="shrink-0 text-sm font-medium text-primary hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-1"
+                className="shrink-0 text-base font-medium text-primary hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-2 py-1"
               >
                 Done
               </button>
@@ -701,10 +720,10 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                     type="button"
                     onClick={() => scrollToWithSpy(category.id)}
                     className={[
-                      'shrink-0 px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+                      'shrink-0 px-3.5 py-1.5 rounded-full text-sm font-semibold transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
                       activeCatId === category.id
-                        ? 'bg-primary text-text-inverse'
-                        : 'bg-bg-muted text-text-secondary hover:text-text',
+                        ? 'bg-primary text-text-inverse shadow-sm'
+                        : 'bg-bg-muted text-text-secondary hover:text-text hover:bg-bg-strong',
                     ].join(' ')}
                   >
                     {category.name}
@@ -714,24 +733,24 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
               <button
                 type="button"
                 onClick={() => setSearchOpen(true)}
-                className="shrink-0 p-2 rounded-full hover:bg-bg-muted text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-bg-muted text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 aria-label="Search menu"
               >
-                <Search className="h-4 w-4" />
+                <Search className="h-5 w-5" />
               </button>
               {/* Allergen filter toggle */}
               <button
                 type="button"
                 onClick={() => setAllergenFilterOpen((p) => !p)}
                 className={[
-                  'shrink-0 p-2 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                  'shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
                   hiddenAllergens.size > 0
                     ? 'text-danger bg-danger-light'
                     : 'text-text-secondary hover:bg-bg-muted',
                 ].join(' ')}
                 aria-label="Allergen filter"
               >
-                <AlertTriangle className="h-4 w-4" />
+                <AlertTriangle className="h-5 w-5" />
               </button>
               {tableNumber && (
                 <span className="shrink-0 px-2 py-1 rounded-full bg-bg-muted text-xs font-semibold text-text-secondary">
@@ -870,6 +889,18 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
           combo={selectedCombo}
           onClose={() => setSelectedCombo(null)}
         />
+      )}
+
+      {/* Back-to-top button */}
+      {showBackToTop && (
+        <button
+          type="button"
+          onClick={scrollToTop}
+          className="fixed bottom-20 right-4 lg:bottom-4 lg:right-8 z-30 min-h-[48px] min-w-[48px] h-14 w-14 flex items-center justify-center rounded-full bg-primary text-text-inverse shadow-lg hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          aria-label="Back to top"
+        >
+          <ArrowUp className="h-6 w-6" />
+        </button>
       )}
     </div>
   );

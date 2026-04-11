@@ -7,6 +7,7 @@ import {
   useMemo,
   type ReactNode,
 } from 'react';
+import { useToast } from '@web/platform/ToastProvider';
 
 export interface CartItemModifier {
   optionId: string;
@@ -221,6 +222,7 @@ interface CartProviderProps {
 
 export function CartProvider({ tenantSlug, tableNumber, children }: CartProviderProps) {
   const [state, dispatch] = useReducer(cartReducer, { tenantSlug, tableNumber }, loadCart);
+  const { toast } = useToast();
 
   // Persist to sessionStorage on every change
   useEffect(() => {
@@ -230,8 +232,10 @@ export function CartProvider({ tenantSlug, tableNumber, children }: CartProvider
   const addItem = useCallback(
     (item: AddItemPayload) => {
       dispatch({ type: 'ADD_ITEM', payload: item });
+      // Show success toast
+      toast('success', `Added ${item.name} to cart`);
     },
-    [],
+    [toast],
   );
 
   const removeItem = useCallback((cartIndex: number) => {

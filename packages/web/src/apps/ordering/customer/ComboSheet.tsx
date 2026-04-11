@@ -381,10 +381,10 @@ export function ComboSheet({ combo, onClose }: ComboSheetProps) {
 
           {/* Validation hints */}
           {validationErrors.length > 0 && (
-            <div className="text-center">
+            <div className="rounded-lg bg-danger-light border border-danger px-3 py-2">
               {validationErrors.map((err) => (
-                <p key={err} className="text-xs text-danger">
-                  {err}
+                <p key={err} className="text-xs font-medium text-danger text-center">
+                  ⚠ {err}
                 </p>
               ))}
             </div>
@@ -423,6 +423,11 @@ function SlotSelection({
           <Badge variant="warning">Required</Badge>
         ) : (
           <Badge variant="default">Optional</Badge>
+        )}
+        {selectedItemId && (
+          <Badge variant="success" className="flex items-center gap-1">
+            ✓ 1 selected
+          </Badge>
         )}
       </div>
       <div className="space-y-1.5">

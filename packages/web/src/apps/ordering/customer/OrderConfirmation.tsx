@@ -9,6 +9,7 @@ import {
   Loader2,
   Plus,
   X,
+  Phone,
 } from 'lucide-react';
 import { ORDER_STATUSES, MODIFIABLE_ORDER_STATUSES } from '@nexus/shared';
 import type { OrderStatus } from '@nexus/shared';
@@ -19,6 +20,7 @@ import { StatusBadge } from '@web/components/patterns';
 import { useToast } from '@web/platform/ToastProvider';
 import { orderingKeys } from '@web/apps/ordering/hooks/keys';
 import { useRequestItemCancellation } from '@web/apps/ordering/hooks/useOrders';
+import { useTenant } from '@web/platform/tenant/TenantProvider';
 import type { Order, SnapshotModifier } from '@web/apps/ordering/types';
 
 interface OrderConfirmationProps {
@@ -185,6 +187,16 @@ export function OrderConfirmation({
 }: OrderConfirmationProps) {
   const { toast } = useToast();
   const cancelItems = useRequestItemCancellation(tenantSlug);
+  const { tenant } = useTenant();
+
+  const handleContactRestaurant = useCallback(() => {
+    const phone = tenant?.settings?.contactPhone;
+    if (phone) {
+      window.location.href = `tel:${phone}`;
+    } else {
+      toast('error', 'Contact information not available');
+    }
+  }, [tenant, toast]);
 
   const {
     data: order,
@@ -292,6 +304,18 @@ export function OrderConfirmation({
           />
         </div>
       </div>
+
+      {/* Contact restaurant button */}
+      {tenant?.settings?.contactPhone && (
+        <button
+          type="button"
+          onClick={handleContactRestaurant}
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-border bg-bg-elevated hover:bg-bg-muted transition-colors text-text font-medium min-h-[48px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+        >
+          <Phone className="h-5 w-5" />
+          Contact Restaurant
+        </button>
+      )}
 
       {/* Status timeline */}
       {!isCancelled && (

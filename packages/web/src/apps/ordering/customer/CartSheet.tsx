@@ -98,9 +98,55 @@ export function CartSheet({
     setIsOpen(false);
   }, []);
 
-  // Don't render anything if cart is empty
-  if (totalItems === 0) {
+  // Don't render floating button if cart is empty
+  if (totalItems === 0 && !isOpen) {
     return null;
+  }
+
+  // Show empty state if cart is empty and sheet is open
+  if (totalItems === 0 && isOpen) {
+    return (
+      <>
+        {/* Backdrop */}
+        <div
+          className="fixed inset-0 bg-black/40 z-40 transition-opacity"
+          onClick={closeSheet}
+          aria-hidden="true"
+        />
+
+        {/* Sheet */}
+        <div className="fixed bottom-0 left-0 right-0 z-50 transition-transform duration-300 ease-out translate-y-0">
+          <div className="max-w-lg mx-auto bg-bg-elevated border-t border-x border-border rounded-t-2xl shadow-lg flex flex-col max-h-[85vh]">
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-4 border-b border-border">
+              <div className="flex items-center gap-3">
+                <ShoppingCart className="h-5 w-5 text-text-secondary" />
+                <span className="text-sm font-semibold text-text">Your Cart</span>
+              </div>
+              <button
+                type="button"
+                onClick={closeSheet}
+                className="p-2 rounded-full hover:bg-bg-muted transition-colors text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                aria-label="Close cart"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Empty state */}
+            <div className="flex-1 overflow-y-auto px-4 py-8 min-h-0">
+              <div className="text-center">
+                <ShoppingCart className="h-12 w-12 text-text-tertiary mx-auto mb-3" />
+                <h3 className="text-base font-semibold text-text mb-1">Your cart is empty</h3>
+                <p className="text-sm text-text-secondary">
+                  Add items from the menu to get started
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
+    );
   }
 
   return (
@@ -245,12 +291,12 @@ export function CartSheet({
                             onClick={() =>
                               updateQuantity(index, item.quantity - 1)
                             }
-                            className="h-9 w-9 flex items-center justify-center rounded-full border border-border text-text-secondary hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                            className="h-12 w-12 flex items-center justify-center rounded-full border border-border text-text-secondary hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                             aria-label={`Decrease ${item.name} quantity`}
                           >
-                            <Minus className="h-3.5 w-3.5" />
+                            <Minus className="h-4 w-4" />
                           </button>
-                          <span className="text-sm font-semibold text-text w-5 text-center">
+                          <span className="text-sm font-semibold text-text w-8 text-center">
                             {item.quantity}
                           </span>
                           <button
@@ -258,10 +304,10 @@ export function CartSheet({
                             onClick={() =>
                               updateQuantity(index, item.quantity + 1)
                             }
-                            className="h-9 w-9 flex items-center justify-center rounded-full bg-primary text-text-inverse hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                            className="h-12 w-12 flex items-center justify-center rounded-full bg-primary text-text-inverse hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                             aria-label={`Increase ${item.name} quantity`}
                           >
-                            <Plus className="h-3.5 w-3.5" />
+                            <Plus className="h-4 w-4" />
                           </button>
                         </div>
 
@@ -275,22 +321,22 @@ export function CartSheet({
                               )
                             }
                             className={[
-                              'p-2.5 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+                              'min-h-[48px] min-w-[48px] flex items-center justify-center rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
                               item.notes
                                 ? 'text-primary'
                                 : 'text-text-tertiary hover:text-text-secondary',
                             ].join(' ')}
                             aria-label={`Add note for ${item.name}`}
                           >
-                            <MessageSquare className="h-4 w-4" />
+                            <MessageSquare className="h-5 w-5" />
                           </button>
                           <button
                             type="button"
                             onClick={() => removeItem(index)}
-                            className="p-2.5 rounded text-text-tertiary hover:text-danger transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                            className="min-h-[48px] min-w-[48px] flex items-center justify-center rounded text-text-tertiary hover:text-danger transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                             aria-label={`Remove ${item.name} from cart`}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-5 w-5" />
                           </button>
                         </div>
                       </div>
@@ -360,10 +406,10 @@ export function CartSheet({
                       <button
                         type="button"
                         onClick={handleRemovePromo}
-                        className="p-2 rounded text-text-tertiary hover:text-danger transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                        className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded text-text-tertiary hover:text-danger transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                         aria-label="Remove promo code"
                       >
-                        <X className="h-3.5 w-3.5" />
+                        <X className="h-4 w-4" />
                       </button>
                     </div>
                   ) : (
