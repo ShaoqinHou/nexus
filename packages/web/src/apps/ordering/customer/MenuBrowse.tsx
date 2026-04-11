@@ -336,26 +336,76 @@ function ComboCard({
 
 function MenuSkeleton() {
   return (
-    <div className="p-4 space-y-4 animate-pulse">
-      {/* Category pills skeleton */}
-      <div className="flex gap-2 overflow-hidden">
-        {[1, 2, 3].map((i) => (
+    <div className="flex flex-col lg:flex-row">
+      {/* Desktop sidebar skeleton */}
+      <nav className="hidden lg:block w-52 shrink-0 sticky top-0 self-start h-screen overflow-y-auto border-r border-border pt-4 px-3">
+        {/* Search skeleton */}
+        <div className="h-12 rounded-lg bg-bg-muted mb-4 animate-shimmer" />
+        {/* Category links skeleton */}
+        {[1, 2, 3, 4, 5].map((i) => (
           <div
             key={i}
-            className="h-8 w-20 rounded-full bg-bg-muted shrink-0"
+            className="h-10 rounded-lg bg-bg-muted mb-2 animate-shimmer"
+            style={{ animationDelay: `${i * 100}ms` }}
           />
         ))}
-      </div>
-      {/* Menu items skeleton */}
-      {[1, 2, 3, 4].map((i) => (
-        <div key={i} className="flex gap-3 p-3 rounded-lg border border-border">
-          <div className="flex-1 space-y-2">
-            <div className="h-4 w-3/4 rounded bg-bg-muted" />
-            <div className="h-3 w-1/2 rounded bg-bg-muted" />
-          </div>
-          <div className="h-8 w-8 rounded bg-bg-muted shrink-0" />
+      </nav>
+
+      {/* Main content skeleton */}
+      <div className="flex-1 min-w-0 p-4 space-y-4">
+        {/* Category pills skeleton */}
+        <div className="flex gap-2 overflow-hidden lg:hidden">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="h-8 w-20 rounded-full bg-bg-muted shrink-0 animate-shimmer"
+              style={{ animationDelay: `${i * 100}ms` }}
+            />
+          ))}
         </div>
-      ))}
+
+        {/* Featured items skeleton */}
+        <div>
+          <div className="h-5 w-20 rounded bg-bg-muted mb-2 animate-shimmer" />
+          <div className="flex gap-3 overflow-x-auto">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="shrink-0 w-40 rounded-xl border border-border overflow-hidden"
+              >
+                <div className="w-full h-20 bg-bg-muted animate-shimmer" />
+                <div className="p-2 space-y-2">
+                  <div className="h-4 w-3/4 rounded bg-bg-muted animate-shimmer" />
+                  <div className="h-4 w-1/2 rounded bg-bg-muted animate-shimmer" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Menu items skeleton */}
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div
+            key={i}
+            className="flex gap-3 p-3 rounded-lg border border-border"
+            style={{ animationDelay: `${i * 50}ms` }}
+          >
+            {/* Image skeleton */}
+            <div className="w-16 h-16 lg:w-full lg:h-36 rounded-lg bg-bg-muted shrink-0 animate-shimmer" />
+            {/* Content skeleton */}
+            <div className="flex-1 min-w-0 lg:p-3 space-y-2">
+              <div className="h-4 w-3/4 rounded bg-bg-muted animate-shimmer" />
+              <div className="h-3 w-full rounded bg-bg-muted animate-shimmer" />
+              <div className="h-3 w-1/2 rounded bg-bg-muted animate-shimmer" />
+              <div className="h-6 w-6 rounded-full bg-bg-muted mt-2 animate-shimmer" />
+            </div>
+            {/* Action button skeleton */}
+            <div className="flex items-end shrink-0 lg:px-3 lg:pb-3">
+              <div className="h-12 w-12 rounded-full bg-bg-muted animate-shimmer" />
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

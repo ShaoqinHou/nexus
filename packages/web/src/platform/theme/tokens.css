@@ -9,6 +9,27 @@
   display: none;
 }
 
+/* Shimmer animation for loading states */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite linear;
+  background: linear-gradient(
+    90deg,
+    var(--color-bg-muted) 0%,
+    var(--color-bg-surface) 50%,
+    var(--color-bg-muted) 100%
+  );
+  background-size: 1000px 100%;
+}
+
 :root {
   /* Surfaces */
   --color-bg: #ffffff;
