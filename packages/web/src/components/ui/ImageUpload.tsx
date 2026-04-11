@@ -22,7 +22,14 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
 interface UploadResponse {
-  data: { url: string };
+  data: {
+    url: string;
+    thumbnailUrl: string;
+    width: number;
+    height: number;
+    size: number;
+    originalSize: number;
+  };
 }
 
 export function ImageUpload({

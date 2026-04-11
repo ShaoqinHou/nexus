@@ -1,7 +1,9 @@
 {
   "name": "nexus",
   "private": true,
-  "workspaces": ["packages/*"],
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "dev:api": "npm run dev --workspace=packages/api",
     "dev:web": "npm run dev --workspace=packages/web",
@@ -12,5 +14,8 @@
     "db:generate": "npm run db:generate --workspace=packages/api",
     "db:seed": "npm run db:seed --workspace=packages/api",
     "db:studio": "npm run db:studio --workspace=packages/api"
+  },
+  "dependencies": {
+    "sharp": "^0.34.5"
   }
 }

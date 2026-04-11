@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, writeFileSync, readFileSync, statSync } from 'no
 import { dirname, resolve, extname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { nanoid } from 'nanoid';
+import sharp from 'sharp';
 import type { DrizzleDB } from '../db/client.js';
 import type { AuthEnv } from '../lib/types.js';
 import { authMiddleware } from '../middleware/auth.js';
@@ -52,6 +53,59 @@ const MIME_TO_CONTENT_TYPE: Record<string, string> = {
   '.webp': 'image/webp',
 };
 
+// Image processing configuration
+const MAX_IMAGE_WIDTH = 1920;
+const THUMBNAIL_WIDTH = 400;
+const IMAGE_QUALITY = 85;
+
+// Process image: resize and compress, return optimized and thumbnail buffers
+async function processImage(buffer: Buffer, mimeType: string): Promise<{
+  optimized: Buffer;
+  thumbnail: Buffer;
+  width: number;
+  height: number;
+  format: string;
+}> {
+  const image = sharp(buffer);
+
+  // Get metadata for dimensions
+  const metadata = await image.metadata();
+  const originalWidth = metadata.width || 0;
+  const originalHeight = metadata.height || 0;
+
+  // Determine output format (prefer JPEG for compression, keep WebP if uploaded)
+  const outputFormat = mimeType === 'image/webp' ? 'webp' : 'jpeg';
+
+  // Process optimized version (max 1920px width, quality 85)
+  const optimized = await image
+    .resize(MAX_IMAGE_WIDTH, null, {
+      withoutEnlargement: true,
+      fit: 'inside',
+    })
+    .toFormat(outputFormat, { quality: IMAGE_QUALITY })
+    .toBuffer();
+
+  // Get optimized dimensions
+  const optimizedMetadata = await sharp(optimized).metadata();
+
+  // Generate thumbnail (400px width, quality 85)
+  const thumbnail = await sharp(buffer)
+    .resize(THUMBNAIL_WIDTH, null, {
+      withoutEnlargement: true,
+      fit: 'inside',
+    })
+    .toFormat(outputFormat, { quality: IMAGE_QUALITY })
+    .toBuffer();
+
+  return {
+    optimized,
+    thumbnail,
+    width: optimizedMetadata.width || originalWidth,
+    height: optimizedMetadata.height || originalHeight,
+    format: outputFormat,
+  };
+}
+
 // --- Tenant-scoped upload routes (mounted under /api/t/:tenantSlug/upload) ---
 
 export function uploadRoutes(db: DrizzleDB) {
@@ -80,16 +134,20 @@ export function uploadRoutes(db: DrizzleDB) {
 
     // Read file buffer and validate magic bytes
     const arrayBuffer = await file.arrayBuffer();
-    const buffer = new Uint8Array(arrayBuffer);
+    const buffer = Buffer.from(arrayBuffer);
 
-    const detectedMime = detectMimeType(buffer);
+    const detectedMime = detectMimeType(new Uint8Array(arrayBuffer));
     if (!detectedMime || !ALLOWED_MIME_TYPES.has(detectedMime)) {
       return c.json({ error: 'File content does not match an allowed image type (JPEG, PNG, WebP).' }, 400);
     }
 
-    // Use the detected MIME type for the extension (server-side truth)
-    const ext = MIME_TO_EXT[detectedMime] || '.bin';
+    // Process image: resize, compress, generate thumbnail
+    const processed = await processImage(buffer, detectedMime);
+
+    // Use the processed format for the extension
+    const ext = MIME_TO_EXT[`image/${processed.format}` as keyof typeof MIME_TO_EXT] || '.jpg';
     const filename = `${nanoid()}${ext}`;
+    const thumbFilename = `${nanoid()}-thumb${ext}`;
 
     // Ensure tenant upload directory exists
     const tenantUploadDir = join(UPLOADS_ROOT, tenantId);
@@ -97,13 +155,25 @@ export function uploadRoutes(db: DrizzleDB) {
       mkdirSync(tenantUploadDir, { recursive: true });
     }
 
-    // Write file to disk
+    // Write both files to disk
     const filePath = join(tenantUploadDir, filename);
-    writeFileSync(filePath, Buffer.from(arrayBuffer));
+    const thumbPath = join(tenantUploadDir, thumbFilename);
+    writeFileSync(filePath, processed.optimized);
+    writeFileSync(thumbPath, processed.thumbnail);
 
     const url = `/api/uploads/${tenantId}/${filename}`;
+    const thumbnailUrl = `/api/uploads/${tenantId}/${thumbFilename}`;
 
-    return c.json({ data: { url } }, 201);
+    return c.json({
+      data: {
+        url,
+        thumbnailUrl,
+        width: processed.width,
+        height: processed.height,
+        size: processed.optimized.length,
+        originalSize: buffer.length,
+      },
+    }, 201);
   });
 
   return router;
