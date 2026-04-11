@@ -76,7 +76,8 @@ export function PlatformShell() {
           <button
             type="button"
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="hidden lg:flex p-1.5 rounded-md text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors"
+            className="hidden lg:flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.95]"
+            aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             <ChevronLeft
               className={[
@@ -88,7 +89,8 @@ export function PlatformShell() {
           <button
             type="button"
             onClick={closeMobileSidebar}
-            className="lg:hidden p-1.5 rounded-md text-text-tertiary hover:text-text"
+            className="lg:hidden min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.95]"
+            aria-label="Close sidebar"
           >
             <X className="h-5 w-5" />
           </button>
@@ -100,7 +102,7 @@ export function PlatformShell() {
             to="/t/$tenantSlug"
             params={{ tenantSlug }}
             className={[
-              'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors mb-1',
+              'flex items-center gap-3 rounded-md px-3 py-2.5 min-h-[44px] text-sm font-medium transition-colors mb-1',
               location.pathname === `/t/${tenantSlug}`
                 ? 'bg-primary/10 text-primary font-medium'
                 : 'text-text-secondary hover:text-text hover:bg-bg-muted',
@@ -116,7 +118,7 @@ export function PlatformShell() {
               to="/t/$tenantSlug/restaurants"
               params={{ tenantSlug }}
               className={[
-                'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors mb-1',
+                'flex items-center gap-3 rounded-md px-3 py-2.5 min-h-[44px] text-sm font-medium transition-colors mb-1',
                 location.pathname === `/t/${tenantSlug}/restaurants`
                   ? 'bg-primary/10 text-primary font-medium'
                   : 'text-text-secondary hover:text-text hover:bg-bg-muted',
@@ -170,7 +172,7 @@ export function PlatformShell() {
                       to={item.path}
                       {...(tourAttr ? { 'data-tour': tourAttr } : {})}
                       className={[
-                        'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors mb-1',
+                        'flex items-center gap-3 rounded-md px-3 py-2.5 min-h-[44px] text-sm font-medium transition-colors mb-1',
                         isActiveNav
                           ? 'bg-primary/10 text-primary font-medium'
                           : 'text-text-secondary hover:text-text hover:bg-bg-muted',
@@ -208,9 +210,10 @@ export function PlatformShell() {
             <button
               type="button"
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-md text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors"
+              className="lg:hidden min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.95]"
+              aria-label="Open menu"
             >
-              <Menu className="h-5 w-5" />
+              <Menu className="h-6 w-6" />
             </button>
             <h2 className="text-lg font-semibold text-text truncate">
               {tenant?.name ?? tenantSlug}
@@ -229,7 +232,7 @@ export function PlatformShell() {
                   if (firstTour.onEnd) void firstTour.onEnd(tenantSlug);
                   startTour(firstTour.steps, firstTour.id, onEnd);
                 }}
-                className="p-2 rounded-md text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors"
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.95]"
                 aria-label="Start guided tour"
                 title={firstTour.label}
               >
@@ -240,7 +243,7 @@ export function PlatformShell() {
             <button
               type="button"
               onClick={toggleTheme}
-              className="p-2 rounded-md text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors"
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.95]"
               aria-label="Toggle theme"
             >
               {theme === 'light' ? (
