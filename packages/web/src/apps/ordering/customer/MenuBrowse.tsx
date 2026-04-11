@@ -886,7 +886,6 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
               )}
             </>
           ) : (
-          ) : (
             <div data-tour="category-pills" className="flex items-center gap-2 px-4 py-2.5">
               <div className="flex-1 flex gap-2 overflow-x-auto scrollbar-hide">
                 {visibleCategories.map(({ category }) => (
