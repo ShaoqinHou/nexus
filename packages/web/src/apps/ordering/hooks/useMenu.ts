@@ -13,6 +13,8 @@ export function useCategories(tenantSlug: string) {
         `/t/${tenantSlug}/ordering/categories`,
       ),
     select: (res) => res.data,
+    staleTime: 60000, // 1 minute - categories don't change often
+    gcTime: 300000, // 5 minutes
   });
 }
 
@@ -73,6 +75,8 @@ export function useMenuItems(tenantSlug: string, categoryId?: string) {
     queryKey: orderingKeys.items(categoryId),
     queryFn: () => apiClient.get<{ data: MenuItem[] }>(path),
     select: (res) => res.data,
+    staleTime: 60000, // 1 minute - menu items don't change often
+    gcTime: 300000, // 5 minutes
   });
 }
 

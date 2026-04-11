@@ -22,7 +22,9 @@ export function useOrders(
     queryKey: orderingKeys.orders(filters),
     queryFn: () => apiClient.get<{ data: Order[] }>(path),
     select: (res) => res.data,
-    refetchInterval: 10_000,
+    staleTime: 5000, // 5 seconds - orders change frequently
+    gcTime: 60000, // 1 minute
+    refetchInterval: 10_000, // Refetch every 10 seconds for real-time updates
   });
 }
 
@@ -33,6 +35,8 @@ export function useOrder(tenantSlug: string, orderId: string) {
       apiClient.get<{ data: Order }>(`/t/${tenantSlug}/ordering/orders/${orderId}`),
     select: (res) => res.data,
     enabled: !!orderId,
+    staleTime: 5000, // 5 seconds - single order updates frequently
+    gcTime: 60000, // 1 minute
   });
 }
 
