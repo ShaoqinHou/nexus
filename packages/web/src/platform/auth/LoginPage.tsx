@@ -112,10 +112,10 @@ export function LoginPage() {
                 type="button"
                 onClick={() => handleTenantSelect(tenant)}
                 disabled={loading}
-                className="w-full flex items-center gap-3 rounded-lg border border-border px-4 py-3 text-left transition-colors hover:bg-bg-muted hover:border-primary/50 disabled:opacity-50"
+                className="w-full flex items-center gap-3 rounded-lg border border-border px-4 py-3 min-h-[64px] text-left transition-colors hover:bg-bg-muted hover:border-primary/50 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]"
               >
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
-                  <Building2 className="h-5 w-5" />
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
+                  <Building2 className="h-6 w-6" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-text truncate">
@@ -135,7 +135,7 @@ export function LoginPage() {
               <button
                 type="button"
                 onClick={handleBackToLogin}
-                className="flex items-center gap-2 text-sm text-text-secondary hover:text-text transition-colors"
+                className="flex items-center gap-2 px-3 py-2 min-h-[44px] text-sm text-text-secondary hover:text-text hover:bg-bg-muted rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back to login
@@ -221,7 +221,7 @@ export function LoginPage() {
                 setMode(mode === 'login' ? 'register' : 'login');
                 setError('');
               }}
-              className="text-sm text-primary hover:text-primary-hover transition-colors"
+              className="px-3 py-2 min-h-[44px] text-sm text-primary hover:text-primary-hover hover:bg-primary-light rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]"
             >
               {mode === 'login'
                 ? "Don't have an account? Register"

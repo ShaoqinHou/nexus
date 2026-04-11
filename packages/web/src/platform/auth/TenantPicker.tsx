@@ -75,14 +75,14 @@ export function TenantPicker() {
               onClick={() => handleTenantSelect(tenant)}
               disabled={loading}
               className={[
-                'w-full flex items-center gap-3 rounded-lg border px-4 py-3 text-left transition-colors disabled:opacity-50',
+                'w-full flex items-center gap-3 rounded-lg border px-4 py-3 min-h-[64px] text-left transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]',
                 isCurrent
                   ? 'border-primary bg-primary/5'
                   : 'border-border hover:bg-bg-muted hover:border-primary/50',
               ].join(' ')}
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
-                <Building2 className="h-5 w-5" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
+                <Building2 className="h-6 w-6" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium text-text truncate">
