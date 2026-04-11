@@ -104,7 +104,7 @@ export function QRCodes() {
                   onChange={handleTableCountChange}
                 />
               </div>
-              <Button variant="secondary" onClick={handlePrint}>
+              <Button variant="secondary" onClick={handlePrint} className="min-h-[48px]">
                 <Printer className="h-4 w-4" />
                 Print All
               </Button>
