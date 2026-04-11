@@ -126,10 +126,10 @@ export function CartSheet({
               <button
                 type="button"
                 onClick={closeSheet}
-                className="p-2 rounded-full hover:bg-bg-muted transition-colors text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-bg-muted transition-colors text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                 aria-label="Close cart"
               >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5" />
               </button>
             </div>
 
@@ -207,10 +207,10 @@ export function CartSheet({
                 <button
                   type="button"
                   onClick={closeSheet}
-                  className="p-2 rounded-full hover:bg-bg-muted transition-colors text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                  className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-bg-muted transition-colors text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                   aria-label="Close cart"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-5 w-5" />
                 </button>
               </div>
 
@@ -352,7 +352,7 @@ export function CartSheet({
                               updateItemNotes(index, e.target.value)
                             }
                             placeholder="Special requests..."
-                            className="w-full text-sm px-2.5 py-1.5 rounded border border-border bg-bg text-text placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-primary"
+                            className="w-full text-sm h-12 px-3 rounded border border-border bg-bg text-text placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-primary"
                           />
                           {(item.notes ?? '').length > 400 && (
                             <span className="absolute bottom-1 right-2 text-xs text-text-tertiary">{500 - (item.notes ?? '').length}</span>
@@ -377,7 +377,7 @@ export function CartSheet({
                       }
                       placeholder="Any special requests for your order..."
                       rows={2}
-                      className="w-full text-sm px-3 py-2 rounded-lg border border-border bg-bg text-text placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+                      className="w-full text-sm h-12 px-3 py-2 rounded-lg border border-border bg-bg text-text placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-primary resize-none"
                     />
                     {notes.length > 400 && (
                       <span className="absolute bottom-1 right-2 text-xs text-text-tertiary">{500 - notes.length}</span>
@@ -415,7 +415,7 @@ export function CartSheet({
                   ) : (
                     <div className="flex items-center gap-2">
                       <div className="relative flex-1">
-                        <Tag className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-text-tertiary" />
+                        <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-tertiary" />
                         <input
                           type="text"
                           value={promoInput}
@@ -430,7 +430,7 @@ export function CartSheet({
                             }
                           }}
                           placeholder="Promo code"
-                          className="w-full text-sm pl-8 pr-3 py-2 rounded-lg border border-border bg-bg text-text placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-primary"
+                          className="w-full text-sm h-12 pl-10 pr-3 rounded-lg border border-border bg-bg text-text placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-primary"
                         />
                       </div>
                       <Button
