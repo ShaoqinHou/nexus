@@ -242,10 +242,10 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full p-2.5 text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             aria-label="Close"
           >
-            <X className="h-5 w-5" />
+            <X className="h-6 w-6" />
           </button>
         </div>
 
@@ -290,7 +290,7 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
                           onClick={() => toggleOption(group, option.id)}
                           disabled={isDisabled}
                           className={[
-                            'w-full flex items-center justify-between px-3 py-3 rounded-lg border text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+                            'w-full flex items-center justify-between px-4 py-3 min-h-[48px] rounded-lg border text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]',
                             isSelected
                               ? 'border-primary bg-primary/5'
                               : 'border-border hover:bg-bg-muted',
@@ -352,7 +352,7 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
                 }
                 placeholder="Any special requests..."
                 rows={2}
-                className="w-full text-sm px-3 py-2 rounded-lg border border-border bg-bg text-text placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+                className="w-full text-sm h-12 px-3 py-2 rounded-lg border border-border bg-bg text-text placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-primary resize-none"
               />
               {notes.length > 400 && (
                 <span className="absolute bottom-1 right-2 text-xs text-text-tertiary">{500 - notes.length}</span>
@@ -368,7 +368,7 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
             <button
               type="button"
               onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-              className="h-11 w-11 flex items-center justify-center rounded-full border border-border text-text-secondary hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              className="h-12 w-12 flex items-center justify-center rounded-full border border-border text-text-secondary hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.95]"
               aria-label="Decrease quantity"
             >
               <Minus className="h-4 w-4" />
@@ -379,7 +379,7 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
             <button
               type="button"
               onClick={() => setQuantity((q) => q + 1)}
-              className="h-11 w-11 flex items-center justify-center rounded-full bg-primary text-text-inverse hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              className="h-12 w-12 flex items-center justify-center rounded-full bg-primary text-text-inverse hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.95]"
               aria-label="Increase quantity"
             >
               <Plus className="h-4 w-4" />
