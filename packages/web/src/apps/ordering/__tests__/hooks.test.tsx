@@ -176,7 +176,7 @@ describe('useOrders', () => {
   it('fetches orders and unwraps response', async () => {
     server.use(
       http.get('/api/t/:tenantSlug/ordering/orders', () => {
-        return HttpResponse.json({ data: [mockOrder] });
+        return HttpResponse.json({ data: [mockOrder], total: 1, page: 1, limit: 50 });
       }),
     );
 
@@ -186,10 +186,12 @@ describe('useOrders', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(result.current.data).toHaveLength(1);
-    expect(result.current.data![0].id).toBe('order-1');
-    expect(result.current.data![0].status).toBe('pending');
-    expect(result.current.data![0].items).toHaveLength(1);
+    expect(result.current.data?.data).toHaveLength(1);
+    expect(result.current.data?.data[0].id).toBe('order-1');
+    expect(result.current.data?.data[0].status).toBe('pending');
+    expect(result.current.data?.data[0].items).toHaveLength(1);
+    expect(result.current.data?.total).toBe(1);
+    expect(result.current.data?.page).toBe(1);
   });
 
   it('builds query string from filters', async () => {
@@ -197,7 +199,7 @@ describe('useOrders', () => {
     server.use(
       http.get('/api/t/:tenantSlug/ordering/orders', ({ request }) => {
         requestSearch = new URL(request.url).search;
-        return HttpResponse.json({ data: [] });
+        return HttpResponse.json({ data: [], total: 0, page: 1, limit: 50 });
       }),
     );
 
@@ -218,7 +220,7 @@ describe('useOrders', () => {
     server.use(
       http.get('/api/t/:tenantSlug/ordering/orders', ({ request }) => {
         requestSearch = new URL(request.url).search;
-        return HttpResponse.json({ data: [] });
+        return HttpResponse.json({ data: [], total: 0, page: 1, limit: 50 });
       }),
     );
 

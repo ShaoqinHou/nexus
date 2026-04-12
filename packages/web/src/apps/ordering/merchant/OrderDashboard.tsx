@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Clock, ShoppingBag, ChevronDown, ChevronUp, AlertTriangle, ArrowRight, Printer, CreditCard, HelpCircle } from 'lucide-react';
+import { Clock, ShoppingBag, ChevronDown, ChevronUp, AlertTriangle, ArrowRight, Printer, CreditCard, HelpCircle, LayoutGrid, Bell } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 import {
   ORDER_STATUSES,
@@ -25,6 +25,8 @@ import { useTenant } from '@web/platform/tenant/TenantProvider';
 import { useToast } from '@web/platform/ToastProvider';
 import { useTour } from '@web/platform/TourProvider';
 import { useOrders, useUpdateOrderStatus, useHandleCancellationRequest, useUpdatePaymentStatus } from '../hooks/useOrders';
+import { useTableStatuses, useUpdateTableStatus, useWaiterCalls, useAcknowledgeWaiterCall } from '../hooks/useTables';
+import type { TableStatusValue } from '../hooks/useTables';
 import { staffOnboardingSteps, STAFF_TOUR_ID } from '../tours/staffTour';
 import { cleanupStaffTourData } from '../tours/cleanup';
 import type { Order } from '../types';
@@ -57,6 +59,153 @@ const PAYMENT_STATUS_MAP = {
   paid: 'success' as const,
   refunded: 'error' as const,
 };
+
+// ---------------------------------------------------------------------------
+// Table status
+// ---------------------------------------------------------------------------
+
+const TABLE_STATUS_LABEL: Record<TableStatusValue, string> = {
+  free: 'Free',
+  occupied: 'Occupied',
+  needs_cleaning: 'Needs Cleaning',
+};
+
+const TABLE_STATUS_COLOR: Record<TableStatusValue, string> = {
+  free: 'bg-success text-text-inverse',
+  occupied: 'bg-warning text-text-inverse',
+  needs_cleaning: 'bg-danger text-text-inverse',
+};
+
+const TABLE_STATUS_CYCLE: Record<TableStatusValue, TableStatusValue> = {
+  free: 'occupied',
+  occupied: 'needs_cleaning',
+  needs_cleaning: 'free',
+};
+
+function TableStatusPanel({ tenantSlug }: { tenantSlug: string }) {
+  const [open, setOpen] = useState(false);
+  const { toast } = useToast();
+  const tablesQuery = useTableStatuses(tenantSlug);
+  const updateTable = useUpdateTableStatus(tenantSlug);
+  const tables = tablesQuery.data ?? [];
+
+  const handleCycle = (tableNumber: string, currentStatus: TableStatusValue) => {
+    const nextStatus = TABLE_STATUS_CYCLE[currentStatus];
+    updateTable.mutate(
+      { tableNumber, status: nextStatus },
+      {
+        onError: () => toast('error', 'Failed to update table status'),
+      },
+    );
+  };
+
+  return (
+    <Card>
+      <button
+        type="button"
+        onClick={() => setOpen((p) => !p)}
+        className="w-full text-left min-h-[48px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+      >
+        <CardContent className="flex items-center justify-between gap-3 py-3">
+          <div className="flex items-center gap-2">
+            <LayoutGrid className="h-4 w-4 text-text-secondary" />
+            <span className="text-sm font-semibold text-text">Table Status</span>
+            {tables.length > 0 && (
+              <span className="text-xs text-text-tertiary">
+                ({tables.filter((t) => t.status === 'free').length} free,{' '}
+                {tables.filter((t) => t.status === 'occupied').length} occupied)
+              </span>
+            )}
+          </div>
+          {open ? (
+            <ChevronUp className="h-4 w-4 text-text-tertiary" />
+          ) : (
+            <ChevronDown className="h-4 w-4 text-text-tertiary" />
+          )}
+        </CardContent>
+      </button>
+
+      {open && (
+        <div className="border-t border-border">
+          <CardContent className="py-3">
+            {tables.length === 0 ? (
+              <p className="text-xs text-text-tertiary">
+                No tables tracked yet. Click a table chip to add it or update its status.
+              </p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {tables.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => handleCycle(t.tableNumber, t.status)}
+                    disabled={updateTable.isPending}
+                    className={[
+                      'px-3 py-1.5 rounded-full text-xs font-semibold transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+                      TABLE_STATUS_COLOR[t.status],
+                      updateTable.isPending ? 'opacity-60' : 'hover:opacity-80',
+                    ].join(' ')}
+                    title={`Table ${t.tableNumber} — ${TABLE_STATUS_LABEL[t.status]}. Click to cycle.`}
+                  >
+                    {t.tableNumber}
+                  </button>
+                ))}
+              </div>
+            )}
+            <p className="mt-2 text-xs text-text-tertiary">
+              Click a chip to cycle: Free → Occupied → Needs Cleaning → Free
+            </p>
+          </CardContent>
+        </div>
+      )}
+    </Card>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Waiter call banner
+// ---------------------------------------------------------------------------
+
+function WaiterCallBanner({ tenantSlug }: { tenantSlug: string }) {
+  const { toast } = useToast();
+  const callsQuery = useWaiterCalls(tenantSlug);
+  const acknowledge = useAcknowledgeWaiterCall(tenantSlug);
+  const calls = callsQuery.data ?? [];
+
+  if (calls.length === 0) return null;
+
+  const handleAck = (callId: string, tableNumber: string) => {
+    acknowledge.mutate(callId, {
+      onSuccess: () => toast('success', `Table ${tableNumber} acknowledged`),
+      onError: () => toast('error', 'Failed to acknowledge call'),
+    });
+  };
+
+  return (
+    <div className="rounded-lg border border-warning bg-warning-light p-3 flex flex-col gap-2">
+      <div className="flex items-center gap-2">
+        <Bell className="h-4 w-4 text-warning shrink-0" />
+        <span className="text-sm font-semibold text-warning">
+          {calls.length} waiter call{calls.length !== 1 ? 's' : ''} pending
+        </span>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {calls.map((call) => (
+          <Button
+            key={call.id}
+            size="sm"
+            variant="secondary"
+            onClick={() => handleAck(call.id, call.tableNumber)}
+            loading={acknowledge.isPending && acknowledge.variables === call.id}
+            className="min-h-[44px]"
+          >
+            Table {call.tableNumber} — Acknowledge
+          </Button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Print receipt helper
@@ -402,6 +551,7 @@ export function OrderDashboard() {
 
   const [statusFilter, setStatusFilter] = useState('');
   const [tableFilter, setTableFilter] = useState('');
+  const [page, setPage] = useState(1);
 
   const filters = useMemo(() => {
     const f: Record<string, string> = {};
@@ -410,8 +560,22 @@ export function OrderDashboard() {
     return f;
   }, [statusFilter, tableFilter]);
 
-  const ordersQuery = useOrders(tenantSlug, filters);
-  const orders = ordersQuery.data ?? [];
+  // Reset to page 1 when filters change
+  const handleStatusFilter = (value: string) => {
+    setStatusFilter(value);
+    setPage(1);
+  };
+  const handleTableFilter = (value: string) => {
+    setTableFilter(value);
+    setPage(1);
+  };
+
+  const ordersQuery = useOrders(tenantSlug, filters, page);
+  const ordersPage = ordersQuery.data;
+  const orders = ordersPage?.data ?? [];
+  const totalOrders = ordersPage?.total ?? 0;
+  const pageLimit = ordersPage?.limit ?? 50;
+  const totalPages = Math.max(1, Math.ceil(totalOrders / pageLimit));
 
   const { toast } = useToast();
   const { startTour } = useTour();
@@ -470,6 +634,12 @@ export function OrderDashboard() {
         </p>
       </div>
 
+      {/* Waiter call banner — only visible when calls are pending */}
+      <WaiterCallBanner tenantSlug={tenantSlug} />
+
+      {/* Table status panel */}
+      <TableStatusPanel tenantSlug={tenantSlug} />
+
       {/* Filter bar */}
       <Card data-tour="order-filters">
         <CardContent className="flex flex-col sm:flex-row gap-3">
@@ -477,7 +647,7 @@ export function OrderDashboard() {
             <Select
               options={STATUS_OPTIONS}
               value={statusFilter}
-              onChange={setStatusFilter}
+              onChange={handleStatusFilter}
               label="Status"
             />
           </div>
@@ -485,7 +655,7 @@ export function OrderDashboard() {
             <Input
               label="Table Number"
               value={tableFilter}
-              onChange={(e) => setTableFilter(e.target.value)}
+              onChange={(e) => handleTableFilter(e.target.value)}
               placeholder="e.g. 5"
             />
           </div>
@@ -578,6 +748,30 @@ export function OrderDashboard() {
               tenantName={tenant?.name ?? 'Restaurant'}
             />
           ))}
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-3 pt-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1}
+              >
+                Previous
+              </Button>
+              <span className="text-sm text-text-secondary">
+                Page {page} of {totalPages}
+              </span>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}
+              >
+                Next
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>

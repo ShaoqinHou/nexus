@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { Hono } from 'hono';
 import Database from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
+import { eq } from 'drizzle-orm';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import * as schema from '../../../db/schema';
@@ -1075,5 +1076,263 @@ describe('Tenant middleware', () => {
   it('returns 404 for customer routes with non-existent tenant', async () => {
     const res = await app.request('/api/order/no-such-tenant/ordering/menu');
     expect(res.status).toBe(404);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Payment Status Routes (Staff — owner/manager only)
+// ---------------------------------------------------------------------------
+
+describe('Payment Status routes', () => {
+  let db: TestDB;
+  let app: ReturnType<typeof createTestApp>;
+  let ownerToken: string;
+  let managerToken: string;
+  let staffToken: string;
+  let orderId: string;
+  const SLUG = 'payment-test';
+
+  beforeEach(async () => {
+    db = createTestDb();
+    app = createTestApp(db);
+    const tenant = createTestTenant(db, SLUG);
+    const owner = await createTestStaff(db, tenant.id, { email: 'owner@pay.com', role: 'owner' });
+    const manager = await createTestStaff(db, tenant.id, { email: 'manager@pay.com', role: 'manager' });
+    const staffMember = await createTestStaff(db, tenant.id, { email: 'staff@pay.com', role: 'staff' });
+    ownerToken = signToken(owner.id, tenant.id);
+    managerToken = signToken(manager.id, tenant.id);
+    staffToken = signToken(staffMember.id, tenant.id);
+
+    // Seed category + item + order
+    const catRes = await app.request(
+      jsonRequest(`/api/t/${SLUG}/ordering/categories`, 'POST', { name: 'Food' }, {
+        Authorization: `Bearer ${ownerToken}`,
+      })
+    );
+    const { data: cat } = await catRes.json();
+
+    const itemRes = await app.request(
+      jsonRequest(`/api/t/${SLUG}/ordering/items`, 'POST', {
+        categoryId: cat.id, name: 'Burger', price: 20,
+      }, { Authorization: `Bearer ${ownerToken}` })
+    );
+    const { data: item } = await itemRes.json();
+
+    const orderRes = await app.request(
+      jsonRequest(`/api/order/${SLUG}/ordering/orders`, 'POST', {
+        tableNumber: '7',
+        items: [{ menuItemId: item.id, quantity: 1 }],
+      })
+    );
+    const { data: order } = await orderRes.json();
+    orderId = order.id;
+  });
+
+  it('PATCH /orders/:id/payment with paymentStatus=paid updates the order (owner)', async () => {
+    const res = await app.request(
+      jsonRequest(`/api/t/${SLUG}/ordering/orders/${orderId}/payment`, 'PATCH', {
+        paymentStatus: 'paid',
+      }, { Authorization: `Bearer ${ownerToken}` })
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.data.paymentStatus).toBe('paid');
+  });
+
+  it('PATCH /orders/:id/payment allows manager role to update payment status', async () => {
+    const res = await app.request(
+      jsonRequest(`/api/t/${SLUG}/ordering/orders/${orderId}/payment`, 'PATCH', {
+        paymentStatus: 'paid',
+      }, { Authorization: `Bearer ${managerToken}` })
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.data.paymentStatus).toBe('paid');
+  });
+
+  it('PATCH /orders/:id/payment returns 403 for staff role', async () => {
+    const res = await app.request(
+      jsonRequest(`/api/t/${SLUG}/ordering/orders/${orderId}/payment`, 'PATCH', {
+        paymentStatus: 'paid',
+      }, { Authorization: `Bearer ${staffToken}` })
+    );
+    expect(res.status).toBe(403);
+    const body = await res.json();
+    expect(body.error).toContain('owner or manager');
+  });
+
+  it('PATCH /orders/:id/payment returns 401 for unauthenticated request', async () => {
+    const res = await app.request(
+      jsonRequest(`/api/t/${SLUG}/ordering/orders/${orderId}/payment`, 'PATCH', {
+        paymentStatus: 'paid',
+      })
+    );
+    expect(res.status).toBe(401);
+  });
+
+  it('PATCH /orders/:id/payment returns 400 for invalid paymentStatus value', async () => {
+    const res = await app.request(
+      jsonRequest(`/api/t/${SLUG}/ordering/orders/${orderId}/payment`, 'PATCH', {
+        paymentStatus: 'charged',
+      }, { Authorization: `Bearer ${ownerToken}` })
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it('PATCH /orders/:id/payment returns 404 for non-existent order', async () => {
+    const res = await app.request(
+      jsonRequest(`/api/t/${SLUG}/ordering/orders/nonexistent-order-id/payment`, 'PATCH', {
+        paymentStatus: 'paid',
+      }, { Authorization: `Bearer ${ownerToken}` })
+    );
+    expect(res.status).toBe(404);
+  });
+
+  it('PATCH /orders/:id/payment cannot update another tenant order', async () => {
+    // Create a second tenant with its own order
+    const tenant2 = createTestTenant(db, 'other-payment-tenant');
+    const owner2 = await createTestStaff(db, tenant2.id, { email: 'owner2@pay.com', role: 'owner' });
+    const token2 = signToken(owner2.id, tenant2.id);
+
+    const catRes2 = await app.request(
+      jsonRequest('/api/t/other-payment-tenant/ordering/categories', 'POST', { name: 'Food' }, {
+        Authorization: `Bearer ${token2}`,
+      })
+    );
+    const { data: cat2 } = await catRes2.json();
+
+    const itemRes2 = await app.request(
+      jsonRequest('/api/t/other-payment-tenant/ordering/items', 'POST', {
+        categoryId: cat2.id, name: 'Pasta', price: 18,
+      }, { Authorization: `Bearer ${token2}` })
+    );
+    const { data: item2 } = await itemRes2.json();
+
+    const orderRes2 = await app.request(
+      jsonRequest('/api/order/other-payment-tenant/ordering/orders', 'POST', {
+        tableNumber: '1',
+        items: [{ menuItemId: item2.id, quantity: 1 }],
+      })
+    );
+    const { data: otherOrder } = await orderRes2.json();
+
+    // Tenant 1 owner tries to update tenant 2's order via tenant 1's route
+    const res = await app.request(
+      jsonRequest(`/api/t/${SLUG}/ordering/orders/${otherOrder.id}/payment`, 'PATCH', {
+        paymentStatus: 'paid',
+      }, { Authorization: `Bearer ${ownerToken}` })
+    );
+    expect(res.status).toBe(404);
+  });
+
+  it('PATCH /orders/:id/payment supports all valid payment statuses', async () => {
+    for (const status of ['paid', 'refunded', 'unpaid'] as const) {
+      const res = await app.request(
+        jsonRequest(`/api/t/${SLUG}/ordering/orders/${orderId}/payment`, 'PATCH', {
+          paymentStatus: status,
+        }, { Authorization: `Bearer ${ownerToken}` })
+      );
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.data.paymentStatus).toBe(status);
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Tax — Route Integration
+// ---------------------------------------------------------------------------
+
+describe('Tax — route integration', () => {
+  let db: TestDB;
+  let app: ReturnType<typeof createTestApp>;
+  let ownerToken: string;
+  let menuItemId: string;
+  let tenantId: string;
+  const SLUG = 'tax-route-test';
+
+  beforeEach(async () => {
+    db = createTestDb();
+    app = createTestApp(db);
+    const tenant = createTestTenant(db, SLUG);
+    tenantId = tenant.id;
+    const owner = await createTestStaff(db, tenant.id);
+    ownerToken = signToken(owner.id, tenant.id);
+
+    // Seed a category + item via staff routes
+    const catRes = await app.request(
+      jsonRequest(`/api/t/${SLUG}/ordering/categories`, 'POST', { name: 'Food' }, {
+        Authorization: `Bearer ${ownerToken}`,
+      })
+    );
+    const { data: cat } = await catRes.json();
+
+    const itemRes = await app.request(
+      jsonRequest(`/api/t/${SLUG}/ordering/items`, 'POST', {
+        categoryId: cat.id, name: 'Burger', price: 20,
+      }, { Authorization: `Bearer ${ownerToken}` })
+    );
+    const { data: item } = await itemRes.json();
+    menuItemId = item.id;
+  });
+
+  function setTaxSettings(taxRate: number, taxInclusive: boolean) {
+    db.update(schema.tenants)
+      .set({ settings: JSON.stringify({ taxRate, taxInclusive }) })
+      .where(eq(schema.tenants.id, tenantId))
+      .run();
+  }
+
+  it('POST /orders on tenant with taxRate:10 returns correct taxAmount and total', async () => {
+    setTaxSettings(10, false);
+
+    const res = await app.request(
+      jsonRequest(`/api/order/${SLUG}/ordering/orders`, 'POST', {
+        tableNumber: '3',
+        items: [{ menuItemId, quantity: 1 }],
+      })
+    );
+
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    // item price = 20.00, exclusive 10% tax
+    // taxAmount = 20.00 * 0.10 = 2.00
+    // total = 20.00 + 2.00 = 22.00
+    expect(body.data.taxAmount).toBe(2.0);
+    expect(body.data.total).toBe(22.0);
+  });
+
+  it('POST /orders on tenant with no taxRate returns taxAmount:0', async () => {
+    // settings left as default '{}'
+    const res = await app.request(
+      jsonRequest(`/api/order/${SLUG}/ordering/orders`, 'POST', {
+        tableNumber: '4',
+        items: [{ menuItemId, quantity: 1 }],
+      })
+    );
+
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.data.taxAmount).toBe(0);
+    expect(body.data.total).toBe(20.0);
+  });
+
+  it('POST /orders on tenant with inclusive taxRate:10 leaves total unchanged', async () => {
+    setTaxSettings(10, true);
+
+    const res = await app.request(
+      jsonRequest(`/api/order/${SLUG}/ordering/orders`, 'POST', {
+        tableNumber: '5',
+        items: [{ menuItemId, quantity: 1 }],
+      })
+    );
+
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    // item price = 20.00 (tax already included)
+    // taxAmount = 20.00 - (20.00 / 1.10) = 20.00 - 18.18... ≈ 1.82
+    // total stays 20.00
+    expect(body.data.taxAmount).toBe(1.82);
+    expect(body.data.total).toBe(20.0);
   });
 });

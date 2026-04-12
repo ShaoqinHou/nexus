@@ -82,13 +82,16 @@ export function useDailyRevenue(tenantSlug: string, days: number = 30) {
   });
 }
 
-export function useTopItems(tenantSlug: string, limit: number = 10) {
+export function useTopItems(tenantSlug: string, limit: number = 10, days?: number) {
   return useQuery({
-    queryKey: [...orderingKeys.all, 'analytics', 'top-items', limit] as const,
-    queryFn: () =>
-      apiClient.get<{ data: TopItem[] }>(
-        `/t/${tenantSlug}/ordering/analytics/top-items?limit=${limit}`,
-      ),
+    queryKey: [...orderingKeys.all, 'analytics', 'top-items', limit, days] as const,
+    queryFn: () => {
+      const params = new URLSearchParams({ limit: String(limit) });
+      if (days !== undefined) params.set('days', String(days));
+      return apiClient.get<{ data: TopItem[] }>(
+        `/t/${tenantSlug}/ordering/analytics/top-items?${params}`,
+      );
+    },
     select: (res) => res.data,
     staleTime: ANALYTICS_STALE_TIME,
   });

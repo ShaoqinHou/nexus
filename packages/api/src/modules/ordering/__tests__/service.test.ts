@@ -38,6 +38,10 @@ import {
   createComboDeal,
   deleteComboDeal,
   getPublicCombos,
+  getDailyRevenue,
+  getTopItems,
+  getOrderStats,
+  getStatusBreakdown,
 } from '../service';
 
 type TestDB = ReturnType<typeof createTestDb>;
@@ -696,12 +700,14 @@ describe('Orders', () => {
       items: [{ menuItemId: itemA.id, quantity: 1 }],
     });
 
-    const ordersList = getOrders(db, tenantId);
-    expect(ordersList).toHaveLength(3);
+    const result = getOrders(db, tenantId);
+    expect(result.data).toHaveLength(3);
+    expect(result.total).toBe(3);
+    expect(result.page).toBe(1);
 
     // Verify desc ordering: each createdAt should be >= the next
-    for (let i = 0; i < ordersList.length - 1; i++) {
-      expect(ordersList[i].createdAt >= ordersList[i + 1].createdAt).toBe(
+    for (let i = 0; i < result.data.length - 1; i++) {
+      expect(result.data[i].createdAt >= result.data[i + 1].createdAt).toBe(
         true
       );
     }
@@ -720,13 +726,13 @@ describe('Orders', () => {
     const orderId1 = (r1 as { data: { id: string } }).data.id;
     updateOrderStatus(db, tenantId, orderId1, 'confirmed');
 
-    const confirmed = getOrders(db, tenantId, { status: 'confirmed' });
-    expect(confirmed).toHaveLength(1);
-    expect(confirmed[0].status).toBe('confirmed');
+    const confirmedResult = getOrders(db, tenantId, { status: 'confirmed' });
+    expect(confirmedResult.data).toHaveLength(1);
+    expect(confirmedResult.data[0].status).toBe('confirmed');
 
-    const pending = getOrders(db, tenantId, { status: 'pending' });
-    expect(pending).toHaveLength(1);
-    expect(pending[0].status).toBe('pending');
+    const pendingResult = getOrders(db, tenantId, { status: 'pending' });
+    expect(pendingResult.data).toHaveLength(1);
+    expect(pendingResult.data[0].status).toBe('pending');
   });
 
   it('filters orders by tableNumber', () => {
@@ -744,10 +750,51 @@ describe('Orders', () => {
     });
 
     const table5 = getOrders(db, tenantId, { tableNumber: '5' });
-    expect(table5).toHaveLength(2);
+    expect(table5.data).toHaveLength(2);
+    expect(table5.total).toBe(2);
 
     const table10 = getOrders(db, tenantId, { tableNumber: '10' });
-    expect(table10).toHaveLength(1);
+    expect(table10.data).toHaveLength(1);
+    expect(table10.total).toBe(1);
+  });
+
+  it('paginates orders — page 2 returns different results than page 1', () => {
+    // Create 4 orders
+    for (let i = 1; i <= 4; i++) {
+      createOrder(db, tenantId, {
+        tableNumber: String(i),
+        items: [{ menuItemId: itemA.id, quantity: 1 }],
+      });
+    }
+
+    const page1 = getOrders(db, tenantId, { limit: 2, page: 1 });
+    expect(page1.data).toHaveLength(2);
+    expect(page1.total).toBe(4);
+    expect(page1.page).toBe(1);
+    expect(page1.limit).toBe(2);
+
+    const page2 = getOrders(db, tenantId, { limit: 2, page: 2 });
+    expect(page2.data).toHaveLength(2);
+    expect(page2.total).toBe(4);
+    expect(page2.page).toBe(2);
+
+    // Pages should have different order IDs (no overlap)
+    const page1Ids = new Set(page1.data.map((o) => o.id));
+    for (const order of page2.data) {
+      expect(page1Ids.has(order.id)).toBe(false);
+    }
+  });
+
+  it('paginates orders — beyond last page returns empty data', () => {
+    createOrder(db, tenantId, {
+      tableNumber: '1',
+      items: [{ menuItemId: itemA.id, quantity: 1 }],
+    });
+
+    const page99 = getOrders(db, tenantId, { limit: 10, page: 99 });
+    expect(page99.data).toHaveLength(0);
+    expect(page99.total).toBe(1); // total still reflects real count
+    expect(page99.page).toBe(99);
   });
 });
 
@@ -830,12 +877,12 @@ describe('Tenant Isolation', () => {
     });
 
     const aOrders = getOrders(db, tenantAId);
-    expect(aOrders).toHaveLength(1);
-    expect(aOrders[0].tableNumber).toBe('1');
+    expect(aOrders.data).toHaveLength(1);
+    expect(aOrders.data[0].tableNumber).toBe('1');
 
     const bOrders = getOrders(db, tenantBId);
-    expect(bOrders).toHaveLength(1);
-    expect(bOrders[0].tableNumber).toBe('2');
+    expect(bOrders.data).toHaveLength(1);
+    expect(bOrders.data[0].tableNumber).toBe('2');
   });
 
   it('createMenuItem with tenant A ID and tenant B category returns error', () => {
@@ -1869,5 +1916,499 @@ describe('Order Modifications', () => {
       const result = handleCancellationRequest(db, otherTenant.id, order.id, order.items[0].id, 'approve');
       expect(result).toHaveProperty('error', 'Order not found');
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Tax Calculation
+// ---------------------------------------------------------------------------
+
+describe('Tax Calculation', () => {
+  let db: TestDB;
+  let tenantId: string;
+  let categoryId: string;
+
+  function createTestItem(name: string, price: number) {
+    const result = createMenuItem(db, tenantId, { categoryId, name, price });
+    return (result as { data: schema.MenuItem }).data;
+  }
+
+  function setTaxSettings(tid: string, taxRate: number, taxInclusive: boolean) {
+    db.update(schema.tenants)
+      .set({ settings: JSON.stringify({ taxRate, taxInclusive }) })
+      .where(eq(schema.tenants.id, tid))
+      .run();
+  }
+
+  function placeOrder(
+    items: Array<{ menuItemId: string; quantity: number }>,
+    promoCode?: string,
+  ) {
+    const result = createOrder(db, tenantId, {
+      tableNumber: '1',
+      items,
+      ...(promoCode ? { promoCode } : {}),
+    });
+    return (result as { data: { total: number; taxAmount: number | null; discountAmount: number | null } }).data;
+  }
+
+  beforeEach(() => {
+    db = createTestDb();
+    const tenant = createTestTenant(db, 'tax-test');
+    tenantId = tenant.id;
+    const category = createCategory(db, tenantId, { name: 'Mains' });
+    categoryId = category.id;
+  });
+
+  it('applies 10% exclusive tax: taxAmount = subtotal * 0.10, total = subtotal + taxAmount', () => {
+    setTaxSettings(tenantId, 10, false);
+    const item = createTestItem('Steak', 100);
+
+    const order = placeOrder([{ menuItemId: item.id, quantity: 1 }]);
+
+    // subtotal = 100.00, tax = 100 * 10% = 10.00, total = 110.00
+    expect(order.taxAmount).toBe(10.0);
+    expect(order.total).toBe(110.0);
+  });
+
+  it('applies 15% inclusive tax: taxAmount extracted from price-inclusive total, total unchanged', () => {
+    setTaxSettings(tenantId, 15, true);
+    // Item price is $23.00 — tax is already baked in
+    const item = createTestItem('GST Burger', 23);
+
+    const order = placeOrder([{ menuItemId: item.id, quantity: 1 }]);
+
+    // subtotal = 23.00
+    // taxAmount = 23.00 - (23.00 / 1.15) = 23.00 - 20.00 = 3.00
+    // total stays 23.00 (tax is included, not added on top)
+    expect(order.taxAmount).toBe(3.0);
+    expect(order.total).toBe(23.0);
+  });
+
+  it('applies 0% tax: taxAmount = 0, total = subtotal', () => {
+    setTaxSettings(tenantId, 0, false);
+    const item = createTestItem('Burger', 12.5);
+
+    const order = placeOrder([{ menuItemId: item.id, quantity: 2 }]);
+
+    // subtotal = 25.00, no tax
+    expect(order.taxAmount).toBe(0);
+    expect(order.total).toBe(25.0);
+  });
+
+  it('no tax configured: taxAmount = 0 (default settings)', () => {
+    // tenant settings stays as default '{}' — no taxRate set
+    const item = createTestItem('Chips', 8);
+
+    const order = placeOrder([{ menuItemId: item.id, quantity: 1 }]);
+
+    expect(order.taxAmount).toBe(0);
+    expect(order.total).toBe(8.0);
+  });
+
+  it('rounds taxAmount to 2 decimal places (e.g. $10.99 * 10% = $1.10 not $1.099)', () => {
+    setTaxSettings(tenantId, 10, false);
+    const item = createTestItem('Special', 10.99);
+
+    const order = placeOrder([{ menuItemId: item.id, quantity: 1 }]);
+
+    // subtotal = 10.99, tax = 10.99 * 0.10 = 1.099 → rounded to 1.10
+    expect(order.taxAmount).toBe(1.10);
+    expect(order.total).toBe(12.09);
+  });
+
+  it('applies discount before tax: tax is calculated on (subtotal - discount)', () => {
+    setTaxSettings(tenantId, 10, false);
+
+    // Set up a 10-off promotion + promo code
+    const promotion = db.insert(schema.promotions).values({
+      tenantId,
+      name: '$10 Off',
+      type: 'fixed',
+      discountValue: 10,
+      startsAt: '2020-01-01T00:00:00Z',
+      isActive: 1,
+    }).returning().get();
+
+    db.insert(schema.promoCodes).values({
+      tenantId,
+      promotionId: promotion.id,
+      code: 'TAX10',
+      isActive: 1,
+    }).run();
+
+    const item = createTestItem('Pasta', 50);
+
+    const result = createOrder(db, tenantId, {
+      tableNumber: '1',
+      items: [{ menuItemId: item.id, quantity: 1 }],
+      promoCode: 'TAX10',
+    });
+    const order = (result as { data: { total: number; taxAmount: number | null; discountAmount: number | null } }).data;
+
+    // subtotal = 50.00, discount = 10.00, subtotalAfterDiscount = 40.00
+    // tax = 40.00 * 10% = 4.00
+    // total = 40.00 + 4.00 = 44.00
+    expect(order.discountAmount).toBe(10.0);
+    expect(order.taxAmount).toBe(4.0);
+    expect(order.total).toBe(44.0);
+  });
+
+  it('tenant A taxRate does not affect tenant B order (tenant isolation)', () => {
+    // Tenant A: 20% tax
+    setTaxSettings(tenantId, 20, false);
+
+    // Tenant B: no tax
+    const tenantB = createTestTenant(db, 'tax-test-b');
+    const catB = createCategory(db, tenantB.id, { name: 'Food' });
+    const itemB = (createMenuItem(db, tenantB.id, { categoryId: catB.id, name: 'Soup', price: 10 }) as { data: schema.MenuItem }).data;
+
+    const resultB = createOrder(db, tenantB.id, {
+      tableNumber: '2',
+      items: [{ menuItemId: itemB.id, quantity: 1 }],
+    });
+    const orderB = (resultB as { data: { total: number; taxAmount: number | null } }).data;
+
+    // Tenant B has no tax configured — its order must not be affected by Tenant A's rate
+    expect(orderB.taxAmount).toBe(0);
+    expect(orderB.total).toBe(10.0);
+  });
+
+  it('multi-item order sums correctly with exclusive tax', () => {
+    setTaxSettings(tenantId, 10, false);
+    const burger = createTestItem('Burger', 12.5);
+    const fries = createTestItem('Fries', 8.0);
+
+    const order = placeOrder([
+      { menuItemId: burger.id, quantity: 2 }, // 12.50 * 2 = 25.00
+      { menuItemId: fries.id, quantity: 1 },  // 8.00  * 1 = 8.00
+    ]);
+
+    // subtotal = 33.00, tax = 33.00 * 10% = 3.30, total = 36.30
+    expect(order.taxAmount).toBe(3.30);
+    expect(order.total).toBe(36.30);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Allergen Management
+// NOTE: allergens are stored as a comma-separated string in the DB, not an
+// array. createMenuItem/updateMenuItem accept `allergens?: string`.
+// getPublicMenu returns the raw DB value — callers must split the string.
+// ---------------------------------------------------------------------------
+
+describe('Allergen Management', () => {
+  let db: TestDB;
+  let tenantId: string;
+  let categoryId: string;
+
+  beforeEach(() => {
+    db = createTestDb();
+    const tenant = createTestTenant(db, 'test-tenant');
+    tenantId = tenant.id;
+    const category = createCategory(db, tenantId, { name: 'Mains' });
+    categoryId = category.id;
+  });
+
+  it('menu item created with allergens stores the comma-separated string', () => {
+    const result = createMenuItem(db, tenantId, {
+      categoryId,
+      name: 'Pasta',
+      price: 18,
+      allergens: 'gluten,dairy',
+    });
+
+    expect(result).toHaveProperty('data');
+    const item = (result as { data: schema.MenuItem }).data;
+    // DB stores allergens as a raw comma-separated string
+    expect(item.allergens).toBe('gluten,dairy');
+  });
+
+  it('getPublicMenu returns allergens as a string that can be split into an array', () => {
+    const result = createMenuItem(db, tenantId, {
+      categoryId,
+      name: 'Cheesy Burger',
+      price: 16,
+      allergens: 'gluten,dairy,eggs',
+    });
+    expect(result).toHaveProperty('data');
+
+    const { categories: menu } = getPublicMenu(db, tenantId);
+    expect(menu).toHaveLength(1);
+    expect(menu[0].items).toHaveLength(1);
+
+    const publicItem = menu[0].items[0];
+    // allergens is a comma-separated string in the DB — callers split to get an array
+    expect(typeof publicItem.allergens).toBe('string');
+    const allergensArray = (publicItem.allergens as string).split(',');
+    expect(allergensArray).toEqual(['gluten', 'dairy', 'eggs']);
+  });
+
+  it('getPublicMenu item with no allergens returns null from the DB', () => {
+    createMenuItem(db, tenantId, {
+      categoryId,
+      name: 'Plain Rice',
+      price: 6,
+      // allergens not set
+    });
+
+    const { categories: menu } = getPublicMenu(db, tenantId);
+    expect(menu).toHaveLength(1);
+    const publicItem = menu[0].items[0];
+    // When no allergens are stored the column is NULL
+    expect(publicItem.allergens).toBeNull();
+  });
+
+  it('updateMenuItem can set allergens on an existing item', () => {
+    const result = createMenuItem(db, tenantId, {
+      categoryId,
+      name: 'Soy Noodles',
+      price: 14,
+    });
+    const item = (result as { data: schema.MenuItem }).data;
+    expect(item.allergens).toBeNull();
+
+    const updateResult = updateMenuItem(db, tenantId, item.id, {
+      allergens: 'soy,gluten',
+    });
+    expect(updateResult).toHaveProperty('data');
+    const updated = (updateResult as { data: schema.MenuItem }).data;
+    expect(updated.allergens).toBe('soy,gluten');
+  });
+
+  it('allergens are tenant-isolated — tenant B cannot see tenant A allergen data', () => {
+    const tenantB = createTestTenant(db, 'tenant-b');
+    const catB = createCategory(db, tenantB.id, { name: 'B Mains' });
+
+    // Tenant A item has allergens
+    createMenuItem(db, tenantId, {
+      categoryId,
+      name: 'A Burger',
+      price: 12,
+      allergens: 'gluten,dairy',
+    });
+    // Tenant B item has different allergens
+    createMenuItem(db, tenantB.id, {
+      categoryId: catB.id,
+      name: 'B Salad',
+      price: 10,
+      allergens: 'nuts',
+    });
+
+    const { categories: menuA } = getPublicMenu(db, tenantId);
+    const { categories: menuB } = getPublicMenu(db, tenantB.id);
+
+    expect(menuA).toHaveLength(1);
+    expect(menuA[0].items[0].allergens).toBe('gluten,dairy');
+
+    expect(menuB).toHaveLength(1);
+    expect(menuB[0].items[0].allergens).toBe('nuts');
+
+    // Confirm no cross-tenant leak: Tenant A sees only 1 item, Tenant B sees only 1 item
+    const allItemsA = menuA.flatMap((cat) => cat.items);
+    const allItemsB = menuB.flatMap((cat) => cat.items);
+    expect(allItemsA).toHaveLength(1);
+    expect(allItemsB).toHaveLength(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Analytics Service
+// ---------------------------------------------------------------------------
+
+describe('Analytics Service', () => {
+  let db: TestDB;
+  let tenantId: string;
+  let categoryId: string;
+  let itemA: schema.MenuItem;
+  let itemB: schema.MenuItem;
+
+  beforeEach(() => {
+    db = createTestDb();
+    const tenant = createTestTenant(db, 'test-tenant');
+    tenantId = tenant.id;
+    const cat = createCategory(db, tenantId, { name: 'Mains' });
+    categoryId = cat.id;
+    const resultA = createMenuItem(db, tenantId, {
+      categoryId,
+      name: 'Burger',
+      price: 15,
+    });
+    const resultB = createMenuItem(db, tenantId, {
+      categoryId,
+      name: 'Fries',
+      price: 5,
+    });
+    itemA = (resultA as { data: schema.MenuItem }).data;
+    itemB = (resultB as { data: schema.MenuItem }).data;
+  });
+
+  it('getDailyRevenue returns an array with date, revenue, orderCount, and avgOrderValue fields', () => {
+    createOrder(db, tenantId, {
+      tableNumber: '1',
+      items: [{ menuItemId: itemA.id, quantity: 1 }],
+    });
+    createOrder(db, tenantId, {
+      tableNumber: '2',
+      items: [{ menuItemId: itemB.id, quantity: 2 }],
+    });
+
+    const result = getDailyRevenue(db, tenantId, 30);
+
+    expect(Array.isArray(result)).toBe(true);
+    // At least today's row must be present
+    expect(result.length).toBeGreaterThanOrEqual(1);
+
+    const today = result[result.length - 1];
+    expect(today).toHaveProperty('date');
+    expect(today).toHaveProperty('revenue');
+    expect(today).toHaveProperty('orderCount');
+    expect(today).toHaveProperty('avgOrderValue');
+
+    // Two orders: Burger ($15) + 2×Fries ($10) = $25 total revenue
+    expect(today.orderCount).toBe(2);
+    expect(today.revenue).toBe(25);
+    expect(today.avgOrderValue).toBe(12.5);
+  });
+
+  it('getDailyRevenue returns empty array when tenant has no orders', () => {
+    const result = getDailyRevenue(db, tenantId, 30);
+    expect(result).toEqual([]);
+  });
+
+  it('getTopItems returns items sorted by revenue descending', () => {
+    // Place: 3× Burger ($15 each = $45), 5× Fries ($5 each = $25)
+    createOrder(db, tenantId, {
+      tableNumber: '1',
+      items: [{ menuItemId: itemA.id, quantity: 3 }],
+    });
+    createOrder(db, tenantId, {
+      tableNumber: '2',
+      items: [{ menuItemId: itemB.id, quantity: 5 }],
+    });
+
+    const topItems = getTopItems(db, tenantId, 10);
+
+    expect(Array.isArray(topItems)).toBe(true);
+    expect(topItems.length).toBeGreaterThanOrEqual(2);
+
+    // Each entry must have the expected fields
+    for (const row of topItems) {
+      expect(row).toHaveProperty('menuItemId');
+      expect(row).toHaveProperty('name');
+      expect(row).toHaveProperty('quantity');
+      expect(row).toHaveProperty('revenue');
+    }
+
+    // Burger has higher revenue ($45) — should be first
+    expect(topItems[0].name).toBe('Burger');
+    expect(topItems[0].quantity).toBe(3);
+    expect(topItems[0].revenue).toBe(45);
+
+    expect(topItems[1].name).toBe('Fries');
+    expect(topItems[1].quantity).toBe(5);
+    expect(topItems[1].revenue).toBe(25);
+  });
+
+  it('getTopItems returns empty array when tenant has no orders', () => {
+    const result = getTopItems(db, tenantId, 10);
+    expect(result).toEqual([]);
+  });
+
+  it('getOrderStats returns today/week/month/allTime with revenue and count', () => {
+    createOrder(db, tenantId, {
+      tableNumber: '1',
+      items: [{ menuItemId: itemA.id, quantity: 1 }],
+    });
+    createOrder(db, tenantId, {
+      tableNumber: '2',
+      items: [{ menuItemId: itemB.id, quantity: 2 }],
+    });
+
+    const stats = getOrderStats(db, tenantId);
+
+    expect(stats).toHaveProperty('today');
+    expect(stats).toHaveProperty('week');
+    expect(stats).toHaveProperty('month');
+    expect(stats).toHaveProperty('allTime');
+
+    for (const period of [stats.today, stats.week, stats.month, stats.allTime]) {
+      expect(period).toHaveProperty('revenue');
+      expect(period).toHaveProperty('count');
+      expect(typeof period.revenue).toBe('number');
+      expect(typeof period.count).toBe('number');
+    }
+
+    // Both orders were just created, so all periods should reflect them
+    expect(stats.today.count).toBe(2);
+    expect(stats.today.revenue).toBe(25); // $15 + $10
+    expect(stats.allTime.count).toBe(2);
+    expect(stats.allTime.revenue).toBe(25);
+  });
+
+  it('getStatusBreakdown returns a record keyed by status', () => {
+    const r1 = createOrder(db, tenantId, {
+      tableNumber: '1',
+      items: [{ menuItemId: itemA.id, quantity: 1 }],
+    });
+    const r2 = createOrder(db, tenantId, {
+      tableNumber: '2',
+      items: [{ menuItemId: itemB.id, quantity: 1 }],
+    });
+    const id1 = (r1 as { data: { id: string } }).data.id;
+    const id2 = (r2 as { data: { id: string } }).data.id;
+
+    updateOrderStatus(db, tenantId, id1, 'confirmed');
+    // id2 stays 'pending'
+
+    const breakdown = getStatusBreakdown(db, tenantId);
+
+    expect(breakdown).toHaveProperty('pending');
+    expect(breakdown).toHaveProperty('confirmed');
+    expect(breakdown['pending']).toBe(1);
+    expect(breakdown['confirmed']).toBe(1);
+  });
+
+  it('analytics only returns data for the requesting tenant', () => {
+    const tenantB = createTestTenant(db, 'tenant-b');
+    const catB = createCategory(db, tenantB.id, { name: 'B Mains' });
+    const itemBResult = createMenuItem(db, tenantB.id, {
+      categoryId: catB.id,
+      name: 'B Burger',
+      price: 20,
+    });
+    const itemBData = (itemBResult as { data: schema.MenuItem }).data;
+
+    // Tenant A: 1 order for $15
+    createOrder(db, tenantId, {
+      tableNumber: '1',
+      items: [{ menuItemId: itemA.id, quantity: 1 }],
+    });
+    // Tenant B: 1 order for $20
+    createOrder(db, tenantB.id, {
+      tableNumber: '2',
+      items: [{ menuItemId: itemBData.id, quantity: 1 }],
+    });
+
+    const statsA = getOrderStats(db, tenantId);
+    const statsB = getOrderStats(db, tenantB.id);
+
+    // Tenant A sees only its own order ($15)
+    expect(statsA.allTime.count).toBe(1);
+    expect(statsA.allTime.revenue).toBe(15);
+
+    // Tenant B sees only its own order ($20)
+    expect(statsB.allTime.count).toBe(1);
+    expect(statsB.allTime.revenue).toBe(20);
+
+    // Top items isolation
+    const topA = getTopItems(db, tenantId, 10);
+    const topB = getTopItems(db, tenantB.id, 10);
+
+    expect(topA).toHaveLength(1);
+    expect(topA[0].name).toBe('Burger');
+
+    expect(topB).toHaveLength(1);
+    expect(topB[0].name).toBe('B Burger');
   });
 });

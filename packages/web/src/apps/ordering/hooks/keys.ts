@@ -13,4 +13,6 @@ export const orderingKeys = {
     [...orderingKeys.all, 'item-modifiers', itemId] as const,
   promotions: () => [...orderingKeys.all, 'promotions'] as const,
   combos: () => [...orderingKeys.all, 'combos'] as const,
+  tableStatuses: () => [...orderingKeys.all, 'table-statuses'] as const,
+  waiterCalls: () => [...orderingKeys.all, 'waiter-calls'] as const,
 };

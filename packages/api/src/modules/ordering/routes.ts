@@ -7,7 +7,7 @@ import { eq, and } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import jwt from 'jsonwebtoken';
 import { authMiddleware, JWT_SECRET } from '../../middleware/auth.js';
-import { customerSessions, staff, ORDER_STATUSES, PROMOTION_TYPES, ORDER_ITEM_STATUSES, PAYMENT_STATUSES } from '../../db/schema.js';
+import { customerSessions, staff, ORDER_STATUSES, PROMOTION_TYPES, ORDER_ITEM_STATUSES, PAYMENT_STATUSES, TABLE_STATUSES } from '../../db/schema.js';
 import type { DrizzleDB } from '../../db/client.js';
 import type { AuthEnv, TenantEnv } from '../../lib/types.js';
 import {
@@ -56,6 +56,12 @@ import {
   getPromoStats,
   getStatusBreakdown,
   getDailySummary,
+  getOrdersForExport,
+  getTableStatuses,
+  upsertTableStatus,
+  getUnacknowledgedWaiterCalls,
+  acknowledgeWaiterCall,
+  createWaiterCall,
 } from './service.js';
 
 // --- Validation Schemas ---
@@ -588,8 +594,12 @@ export function staffOrderingRoutes(db: DrizzleDB) {
     const tenantId = c.var.tenantId;
     const status = c.req.query('status');
     const tableNumber = c.req.query('tableNumber');
-    const orderList = getOrders(db, tenantId, { status, tableNumber });
-    return c.json({ data: orderList });
+    const pageRaw = c.req.query('page');
+    const limitRaw = c.req.query('limit');
+    const page = pageRaw ? Math.max(1, parseInt(pageRaw, 10)) : 1;
+    const limit = limitRaw ? Math.min(200, Math.max(1, parseInt(limitRaw, 10))) : 50;
+    const result = getOrders(db, tenantId, { status, tableNumber, page, limit });
+    return c.json(result);
   });
 
   router.get('/orders/:id', (c) => {
@@ -694,7 +704,9 @@ export function staffOrderingRoutes(db: DrizzleDB) {
   router.get('/analytics/top-items', (c) => {
     const tenantId = c.var.tenantId;
     const limit = Number(c.req.query('limit') || '10');
-    const data = getTopItems(db, tenantId, limit);
+    const daysParam = c.req.query('days');
+    const days = daysParam !== undefined ? Number(daysParam) : undefined;
+    const data = getTopItems(db, tenantId, limit, days);
     return c.json({ data });
   });
 
@@ -728,6 +740,101 @@ export function staffOrderingRoutes(db: DrizzleDB) {
     const date = c.req.query('date') || new Date().toISOString().split('T')[0];
     const data = getDailySummary(db, tenantId, date);
     return c.json({ data });
+  });
+
+  // --- Orders CSV Export (owner/manager only, covered by analyticsGuard) ---
+
+  router.get('/orders/export', zValidator('query', z.object({
+    startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'startDate must be YYYY-MM-DD'),
+    endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'endDate must be YYYY-MM-DD'),
+    format: z.literal('csv').optional(),
+  })), (c) => {
+    const user = c.var.user;
+    if (user.role !== 'owner' && user.role !== 'manager') {
+      return c.json({ error: 'Only owner or manager can export orders' }, 403);
+    }
+
+    const tenantId = c.var.tenantId;
+    const { startDate, endDate } = c.req.valid('query');
+
+    const rows = getOrdersForExport(db, tenantId, startDate, endDate);
+
+    const escapeCell = (value: string | number): string => {
+      const str = String(value);
+      // Quote fields that contain commas, quotes, or newlines
+      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
+    const header = 'Date,Order ID,Table,Status,Payment Status,Items,Subtotal,Discount,Tax,Total';
+    const dataLines = rows.map((row) =>
+      [
+        escapeCell(row.date),
+        escapeCell(row.orderId),
+        escapeCell(row.tableNumber),
+        escapeCell(row.status),
+        escapeCell(row.paymentStatus),
+        escapeCell(row.items),
+        row.subtotal.toFixed(2),
+        row.discount.toFixed(2),
+        row.tax.toFixed(2),
+        row.total.toFixed(2),
+      ].join(',')
+    );
+
+    const csv = [header, ...dataLines].join('\n');
+    const filename = `orders-${startDate}-to-${endDate}.csv`;
+
+    return new Response(csv, {
+      headers: {
+        'Content-Type': 'text/csv; charset=utf-8',
+        'Content-Disposition': `attachment; filename="${filename}"`,
+      },
+    });
+  });
+
+  // --- Table Status ---
+
+  const updateTableStatusSchema = z.object({
+    status: z.enum(TABLE_STATUSES),
+  });
+
+  router.get('/tables', (c) => {
+    const tenantId = c.var.tenantId;
+    const tables = getTableStatuses(db, tenantId);
+    return c.json({ data: tables });
+  });
+
+  router.patch(
+    '/tables/:tableNumber',
+    zValidator('json', updateTableStatusSchema),
+    (c) => {
+      const tenantId = c.var.tenantId;
+      const tableNumber = c.req.param('tableNumber');
+      const { status } = c.req.valid('json');
+      const row = upsertTableStatus(db, tenantId, tableNumber, status);
+      return c.json({ data: row });
+    },
+  );
+
+  // --- Waiter Calls (staff: read + acknowledge) ---
+
+  router.get('/waiter-calls', (c) => {
+    const tenantId = c.var.tenantId;
+    const calls = getUnacknowledgedWaiterCalls(db, tenantId);
+    return c.json({ data: calls });
+  });
+
+  router.patch('/waiter-calls/:id/acknowledge', (c) => {
+    const tenantId = c.var.tenantId;
+    const callId = c.req.param('id');
+    const call = acknowledgeWaiterCall(db, tenantId, callId);
+    if (!call) {
+      return c.json({ error: 'Waiter call not found' }, 404);
+    }
+    return c.json({ data: call });
   });
 
   // Kitchen stream moved to kitchenStreamRoutes() — mounted without authMiddleware
@@ -984,6 +1091,19 @@ export function customerOrderingRoutes(db: DrizzleDB) {
       return c.json({ data: result.data });
     }
   );
+
+  // --- Waiter Call (customer-facing, no auth) ---
+
+  const callWaiterSchema = z.object({
+    tableNumber: z.string().min(1, 'Table number is required'),
+  });
+
+  router.post('/call-waiter', zValidator('json', callWaiterSchema), (c) => {
+    const tenantId = c.var.tenantId;
+    const { tableNumber } = c.req.valid('json');
+    const call = createWaiterCall(db, tenantId, tableNumber);
+    return c.json({ data: call }, 201);
+  });
 
   return router;
 }

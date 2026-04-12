@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect, useMemo, memo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Plus, Minus, UtensilsCrossed, Package, Search, X, AlertTriangle, ArrowUp, Moon, Sun } from 'lucide-react';
+import { Plus, Minus, UtensilsCrossed, Package, Search, X, AlertTriangle, ArrowUp, Moon, Sun, BellRing } from 'lucide-react';
 import { apiClient } from '@web/lib/api';
 import { formatPrice, parseTags } from '@web/lib/format';
 import { Button } from '@web/components/ui';
@@ -10,6 +10,8 @@ import { ItemDetailSheet } from '@web/apps/ordering/customer/ItemDetailSheet';
 import { ComboSheet } from '@web/apps/ordering/customer/ComboSheet';
 import { useTheme } from '@web/platform/theme/ThemeProvider';
 import { usePullToRefresh } from '@web/lib/hooks/usePullToRefresh';
+import { useCallWaiter } from '@web/apps/ordering/hooks/useTables';
+import { useToast } from '@web/platform/ToastProvider';
 import type { MenuCategory, MenuItem, ModifierGroup, ComboDeal } from '@web/apps/ordering/types';
 import type { DietaryTag } from '@web/apps/ordering/types';
 import { ALLERGENS } from '@web/apps/ordering/types';
@@ -422,9 +424,26 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
   const [hiddenAllergens, setHiddenAllergens] = useState<Set<string>>(new Set());
   const [allergenFilterOpen, setAllergenFilterOpen] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const [waiterCooldown, setWaiterCooldown] = useState(false);
   const sectionRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const { addItem } = useCart();
   const { theme, toggleTheme } = useTheme();
+  const { toast } = useToast();
+  const callWaiter = useCallWaiter(tenantSlug);
+
+  const handleCallWaiter = useCallback(() => {
+    if (!tableNumber || waiterCooldown) return;
+    callWaiter.mutate(tableNumber, {
+      onSuccess: () => {
+        toast('success', 'Waiter notified!');
+        setWaiterCooldown(true);
+        setTimeout(() => setWaiterCooldown(false), 30_000);
+      },
+      onError: () => {
+        toast('error', 'Could not call waiter. Please try again.');
+      },
+    });
+  }, [tableNumber, waiterCooldown, callWaiter, toast]);
 
   // Search history state
   const [searchHistory, setSearchHistory] = useState<string[]>(() => {
@@ -643,6 +662,20 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
     [activeCategory, visibleCategories],
   );
 
+  // Collect allergens that actually appear in the current menu (sorted by ALLERGENS order)
+  const menuAllergens = useMemo(() => {
+    const present = new Set<string>();
+    for (const { items } of visibleCategories) {
+      for (const item of items) {
+        for (const a of parseTags(item.allergens)) {
+          present.add(a);
+        }
+      }
+    }
+    // Keep canonical order from ALLERGENS constant, then any extras
+    return ALLERGENS.filter((a) => present.has(a));
+  }, [visibleCategories]);
+
   if (visibleCategories.length === 0 && activeCombos.length === 0) {
     return (
       <div className="p-4">
@@ -711,56 +744,58 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
           )}
         </div>
 
-        {/* Allergen filter */}
-        <div className="mb-4">
-          <button
-            type="button"
-            onClick={() => setAllergenFilterOpen((p) => !p)}
-            className={[
-              'flex items-center gap-1.5 text-xs font-medium px-2 py-1.5 rounded-lg transition-colors w-full text-left',
-              hiddenAllergens.size > 0
-                ? 'text-danger bg-danger-light'
-                : 'text-text-secondary hover:bg-bg-muted',
-            ].join(' ')}
-          >
-            <AlertTriangle className="h-3.5 w-3.5" />
-            Allergen Filter
-            {hiddenAllergens.size > 0 && (
-              <span className="ml-auto text-xs font-bold">{hiddenAllergens.size}</span>
-            )}
-          </button>
-          {allergenFilterOpen && (
-            <div className="mt-2 flex flex-wrap gap-1.5 items-center">
-              {ALLERGENS.map((allergen) => {
-                const isHidden = hiddenAllergens.has(allergen);
-                return (
-                  <button
-                    key={allergen}
-                    type="button"
-                    onClick={() => toggleAllergenFilter(allergen)}
-                    className={[
-                      'px-2 py-0.5 rounded-full text-xs font-medium border transition-colors',
-                      isHidden
-                        ? 'bg-danger text-text-inverse border-danger'
-                        : 'bg-bg-muted text-text-secondary border-border hover:border-border-strong',
-                    ].join(' ')}
-                  >
-                    {allergen}
-                  </button>
-                );
-              })}
+        {/* Allergen filter — only shown when menu has allergen data */}
+        {menuAllergens.length > 0 && (
+          <div className="mb-4">
+            <button
+              type="button"
+              onClick={() => setAllergenFilterOpen((p) => !p)}
+              className={[
+                'flex items-center gap-1.5 text-xs font-medium px-2 py-1.5 rounded-lg transition-colors w-full text-left',
+                hiddenAllergens.size > 0
+                  ? 'text-danger bg-danger-light'
+                  : 'text-text-secondary hover:bg-bg-muted',
+              ].join(' ')}
+            >
+              <AlertTriangle className="h-3.5 w-3.5" />
+              Allergen Filter
               {hiddenAllergens.size > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setHiddenAllergens(new Set())}
-                  className="ml-auto text-xs text-primary hover:text-primary-hover font-medium min-h-[44px] min-w-[44px] flex items-center justify-center"
-                >
-                  Clear All
-                </button>
+                <span className="ml-auto text-xs font-bold">{hiddenAllergens.size}</span>
               )}
-            </div>
-          )}
-        </div>
+            </button>
+            {allergenFilterOpen && (
+              <div className="mt-2 flex flex-wrap gap-1.5 items-center">
+                {menuAllergens.map((allergen) => {
+                  const isHidden = hiddenAllergens.has(allergen);
+                  return (
+                    <button
+                      key={allergen}
+                      type="button"
+                      onClick={() => toggleAllergenFilter(allergen)}
+                      className={[
+                        'px-2 py-0.5 rounded-full text-xs font-medium border transition-colors',
+                        isHidden
+                          ? 'bg-danger text-text-inverse border-danger'
+                          : 'bg-bg-muted text-text-secondary border-border hover:border-border-strong',
+                      ].join(' ')}
+                    >
+                      {allergen}
+                    </button>
+                  );
+                })}
+                {hiddenAllergens.size > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setHiddenAllergens(new Set())}
+                    className="ml-auto text-xs text-primary hover:text-primary-hover font-medium min-h-[44px] min-w-[44px] flex items-center justify-center"
+                  >
+                    Clear All
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Category links */}
         <div className="flex flex-col gap-0.5">
@@ -923,25 +958,27 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
               >
                 <Search className="h-5 w-5" />
               </button>
-              {/* Allergen filter toggle */}
-              <button
-                type="button"
-                onClick={() => setAllergenFilterOpen((p) => !p)}
-                className={[
-                  'shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-                  hiddenAllergens.size > 0
-                    ? 'text-danger bg-danger-light relative'
-                    : 'text-text-secondary hover:bg-bg-muted',
-                ].join(' ')}
-                aria-label={`Allergen filter${hiddenAllergens.size > 0 ? ` (${hiddenAllergens.size} filtered)` : ''}`}
-              >
-                <AlertTriangle className="h-5 w-5" />
-                {hiddenAllergens.size > 0 && (
-                  <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-danger text-text-inverse text-xs font-bold flex items-center justify-center">
-                    {hiddenAllergens.size}
-                  </span>
-                )}
-              </button>
+              {/* Allergen filter toggle — only when menu has allergen data */}
+              {menuAllergens.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setAllergenFilterOpen((p) => !p)}
+                  className={[
+                    'shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                    hiddenAllergens.size > 0
+                      ? 'text-danger bg-danger-light relative'
+                      : 'text-text-secondary hover:bg-bg-muted',
+                  ].join(' ')}
+                  aria-label={`Allergen filter${hiddenAllergens.size > 0 ? ` (${hiddenAllergens.size} filtered)` : ''}`}
+                >
+                  <AlertTriangle className="h-5 w-5" />
+                  {hiddenAllergens.size > 0 && (
+                    <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-danger text-text-inverse text-xs font-bold flex items-center justify-center">
+                      {hiddenAllergens.size}
+                    </span>
+                  )}
+                </button>
+              )}
               {/* Theme toggle button */}
               <button
                 type="button"
@@ -963,11 +1000,11 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
             </div>
           )}
           {/* Mobile allergen filter panel */}
-          {allergenFilterOpen && (
+          {allergenFilterOpen && menuAllergens.length > 0 && (
             <div className="px-4 py-2 border-t border-border bg-bg-surface lg:hidden">
               <div className="flex items-center justify-between mb-1.5">
                 <p className="text-xs font-medium text-text-secondary">
-                  Hide items containing:
+                  Avoid allergens:
                 </p>
                 {hiddenAllergens.size > 0 && (
                   <button
@@ -980,7 +1017,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                 )}
               </div>
               <div className="flex flex-wrap gap-1.5">
-                {ALLERGENS.map((allergen) => {
+                {menuAllergens.map((allergen) => {
                   const isHidden = hiddenAllergens.has(allergen);
                   return (
                     <button
@@ -988,7 +1025,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                       type="button"
                       onClick={() => toggleAllergenFilter(allergen)}
                       className={[
-                        'px-2 py-0.5 rounded-full text-xs font-medium border transition-colors',
+                        'min-h-[44px] px-3 py-1 rounded-full text-xs font-medium border transition-colors',
                         isHidden
                           ? 'bg-danger text-text-inverse border-danger'
                           : 'bg-bg-muted text-text-secondary border-border hover:border-border-strong',
@@ -1114,6 +1151,27 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
           aria-label="Back to top"
         >
           <ArrowUp className="h-6 w-6" />
+        </button>
+      )}
+
+      {/* Call waiter floating button — only shown when a table number is available */}
+      {tableNumber && (
+        <button
+          type="button"
+          onClick={handleCallWaiter}
+          disabled={waiterCooldown || callWaiter.isPending}
+          className={[
+            'fixed bottom-20 left-4 lg:bottom-4 lg:left-8 z-30 flex items-center gap-2 px-4 h-14 rounded-full shadow-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+            waiterCooldown || callWaiter.isPending
+              ? 'bg-bg-muted text-text-tertiary cursor-not-allowed'
+              : 'bg-warning text-text-inverse hover:opacity-90 active:scale-[0.97]',
+          ].join(' ')}
+          aria-label="Call waiter"
+        >
+          <BellRing className="h-5 w-5 shrink-0" />
+          <span className="text-sm font-semibold whitespace-nowrap">
+            {waiterCooldown ? 'Called!' : 'Call Waiter'}
+          </span>
         </button>
       )}
     </div>

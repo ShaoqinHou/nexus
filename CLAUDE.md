@@ -135,7 +135,7 @@ Shared components in `components/ui/` (primitives) and `components/patterns/` (r
 
 ### Database Schema (packages/api/src/db/)
 
-SQLite with Drizzle ORM (15 tables). Platform: `tenants`, `staff`, `customer_sessions`. Menu: `menu_categories`, `menu_items`, `modifier_groups`, `modifier_options`, `menu_item_modifier_groups`. Commerce: `promotions`, `promo_codes`, `combo_deals`, `combo_slots`, `combo_slot_options`. Orders: `orders`, `order_items`.
+SQLite with Drizzle ORM (16 tables). Platform: `tenants`, `staff`, `customer_sessions`. Menu: `menu_categories`, `menu_items`, `modifier_groups`, `modifier_options`, `menu_item_modifier_groups`. Commerce: `promotions`, `promo_codes`, `combo_deals`, `combo_slots`, `combo_slot_options`. Orders: `orders`, `order_items`.
 
 Conventions:
 - All business tables have `tenant_id` with FK to tenants

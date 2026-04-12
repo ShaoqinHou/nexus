@@ -10,7 +10,9 @@
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
     "db:seed": "tsx src/db/seed.ts",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "db:backup": "bash src/scripts/backup.sh",
+    "db:restore": "bash src/scripts/restore.sh"
   },
   "dependencies": {
     "@nexus/shared": "*",

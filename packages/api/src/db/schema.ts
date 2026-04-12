@@ -214,6 +214,33 @@ export const orderItems = sqliteTable('order_items', {
   index('idx_order_items_order').on(table.orderId),
 ]);
 
+// --- Table Status ---
+
+export const TABLE_STATUSES = ['free', 'occupied', 'needs_cleaning'] as const;
+export type TableStatus = typeof TABLE_STATUSES[number];
+
+export const tableStatuses = sqliteTable('table_statuses', {
+  id: text('id').primaryKey().$defaultFn(() => nanoid()),
+  tenantId: text('tenant_id').notNull().references(() => tenants.id),
+  tableNumber: text('table_number').notNull(),
+  status: text('status').notNull().$type<TableStatus>().default('free'),
+  updatedAt: text('updated_at').notNull().$defaultFn(() => new Date().toISOString()),
+}, (table) => [
+  uniqueIndex('table_statuses_tenant_table_idx').on(table.tenantId, table.tableNumber),
+]);
+
+// --- Waiter Calls ---
+
+export const waiterCalls = sqliteTable('waiter_calls', {
+  id: text('id').primaryKey().$defaultFn(() => nanoid()),
+  tenantId: text('tenant_id').notNull().references(() => tenants.id),
+  tableNumber: text('table_number').notNull(),
+  acknowledged: integer('acknowledged', { mode: 'boolean' }).notNull().default(false),
+  createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
+}, (table) => [
+  index('idx_waiter_calls_tenant_ack').on(table.tenantId, table.acknowledged),
+]);
+
 // --- Inferred Types ---
 
 export type Tenant = typeof tenants.$inferSelect;
@@ -238,3 +265,7 @@ export type ComboSlot = typeof comboSlots.$inferSelect;
 export type NewComboSlot = typeof comboSlots.$inferInsert;
 export type ComboSlotOption = typeof comboSlotOptions.$inferSelect;
 export type NewComboSlotOption = typeof comboSlotOptions.$inferInsert;
+export type TableStatusRow = typeof tableStatuses.$inferSelect;
+export type NewTableStatus = typeof tableStatuses.$inferInsert;
+export type WaiterCall = typeof waiterCalls.$inferSelect;
+export type NewWaiterCall = typeof waiterCalls.$inferInsert;

@@ -65,7 +65,14 @@ export function getTopItems(
   db: DrizzleDB,
   tenantId: string,
   limit: number = 10,
+  days?: number,
 ): TopItem[] {
+  const conditions = [eq(orders.tenantId, tenantId)];
+  if (days !== undefined) {
+    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+    conditions.push(gte(orders.createdAt, since));
+  }
+
   const rows = db
     .select({
       menuItemId: orderItems.menuItemId,
@@ -75,7 +82,7 @@ export function getTopItems(
     })
     .from(orderItems)
     .innerJoin(orders, eq(orderItems.orderId, orders.id))
-    .where(eq(orders.tenantId, tenantId))
+    .where(and(...conditions))
     .groupBy(orderItems.menuItemId, orderItems.name)
     .orderBy(desc(sql`total_revenue`))
     .limit(limit)

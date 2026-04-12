@@ -3,9 +3,17 @@ import { apiClient } from '@web/lib/api';
 import { orderingKeys } from './keys';
 import type { Order, OrderStatus, PaymentStatus } from '../types';
 
+export interface OrdersPage {
+  data: Order[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 export function useOrders(
   tenantSlug: string,
   filters?: Record<string, string>,
+  page?: number,
 ) {
   const params = new URLSearchParams();
   if (filters) {
@@ -15,13 +23,15 @@ export function useOrders(
       }
     }
   }
+  const currentPage = page ?? 1;
+  params.set('page', String(currentPage));
   const query = params.toString();
   const path = `/t/${tenantSlug}/ordering/orders${query ? `?${query}` : ''}`;
 
   return useQuery({
-    queryKey: orderingKeys.orders(filters),
-    queryFn: () => apiClient.get<{ data: Order[] }>(path),
-    select: (res) => res.data,
+    queryKey: orderingKeys.orders({ ...filters, page: String(currentPage) }),
+    queryFn: () => apiClient.get<OrdersPage>(path),
+    select: (res) => res,
     staleTime: 5000, // 5 seconds - orders change frequently
     gcTime: 60000, // 1 minute
     refetchInterval: 10_000, // Refetch every 10 seconds for real-time updates

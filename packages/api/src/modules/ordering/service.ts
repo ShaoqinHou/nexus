@@ -8,3 +8,4 @@ export * from './services/promotions.js';
 export * from './services/combos.js';
 export * from './services/orders.js';
 export * from './services/analytics.js';
+export * from './services/tables.js';

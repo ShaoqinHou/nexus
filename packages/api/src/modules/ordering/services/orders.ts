@@ -1,4 +1,4 @@
-import { eq, and, or, gte, desc, inArray, sql } from 'drizzle-orm';
+import { eq, and, or, gte, lte, desc, inArray, sql, count } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { MODIFIABLE_ORDER_STATUSES } from '@nexus/shared';
 import type { OrderItemStatus, PaymentStatus } from '@nexus/shared';
@@ -455,25 +455,41 @@ export function getOrder(db: DrizzleDB, tenantId: string, orderId: string) {
 export function getOrders(
   db: DrizzleDB,
   tenantId: string,
-  filters?: { status?: string; tableNumber?: string }
+  options?: { status?: string; tableNumber?: string; page?: number; limit?: number }
 ) {
+  const pageSize = options?.limit ?? 50;
+  const pageNum = options?.page ?? 1;
+  const offset = (pageNum - 1) * pageSize;
+
   const conditions = [eq(orders.tenantId, tenantId)];
 
-  if (filters?.status) {
-    conditions.push(eq(orders.status, filters.status as OrderStatus));
+  if (options?.status) {
+    conditions.push(eq(orders.status, options.status as OrderStatus));
   }
-  if (filters?.tableNumber) {
-    conditions.push(eq(orders.tableNumber, filters.tableNumber));
+  if (options?.tableNumber) {
+    conditions.push(eq(orders.tableNumber, options.tableNumber));
   }
+
+  const whereClause = and(...conditions);
+
+  // Get total count for pagination metadata
+  const totalResult = db
+    .select({ total: count() })
+    .from(orders)
+    .where(whereClause)
+    .get();
+  const total = totalResult?.total ?? 0;
 
   const orderList = db
     .select()
     .from(orders)
-    .where(and(...conditions))
+    .where(whereClause)
     .orderBy(desc(orders.createdAt))
+    .limit(pageSize)
+    .offset(offset)
     .all();
 
-  return orderList.map((order) => {
+  const data = orderList.map((order) => {
     const items = db
       .select()
       .from(orderItems)
@@ -482,6 +498,8 @@ export function getOrders(
 
     return { ...order, items };
   });
+
+  return { data, total, page: pageNum, limit: pageSize };
 }
 
 /**
@@ -961,4 +979,67 @@ export function updatePaymentStatus(
     .all();
 
   return { data: { ...updated, items } };
+}
+
+// --- Export Service ---
+
+export interface OrderExportRow {
+  date: string;
+  orderId: string;
+  tableNumber: string;
+  status: string;
+  paymentStatus: string;
+  items: string;
+  subtotal: number;
+  discount: number;
+  tax: number;
+  total: number;
+}
+
+/**
+ * Fetch orders for CSV export within an inclusive date range.
+ * startDate / endDate are YYYY-MM-DD strings (compared against DATE(createdAt)).
+ */
+export function getOrdersForExport(
+  db: DrizzleDB,
+  tenantId: string,
+  startDate: string,
+  endDate: string,
+): OrderExportRow[] {
+  const conditions = [
+    eq(orders.tenantId, tenantId),
+    gte(sql`DATE(${orders.createdAt})`, startDate),
+    lte(sql`DATE(${orders.createdAt})`, endDate),
+  ];
+
+  const orderList = db
+    .select()
+    .from(orders)
+    .where(and(...conditions))
+    .orderBy(desc(orders.createdAt))
+    .all();
+
+  return orderList.map((order) => {
+    const items = db
+      .select()
+      .from(orderItems)
+      .where(eq(orderItems.orderId, order.id))
+      .all();
+
+    const itemNames = items.map((i) => i.name).join('; ');
+    const subtotal = (order.total ?? 0) - (order.discountAmount ?? 0) - (order.taxAmount ?? 0);
+
+    return {
+      date: order.createdAt.split('T')[0],
+      orderId: order.id,
+      tableNumber: order.tableNumber,
+      status: order.status,
+      paymentStatus: order.paymentStatus,
+      items: itemNames,
+      subtotal: Math.round(subtotal * 100) / 100,
+      discount: Math.round((order.discountAmount ?? 0) * 100) / 100,
+      tax: Math.round((order.taxAmount ?? 0) * 100) / 100,
+      total: Math.round((order.total ?? 0) * 100) / 100,
+    };
+  });
 }

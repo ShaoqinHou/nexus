@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
-import { TrendingUp, ShoppingBag, DollarSign, BarChart3, PackageOpen, Tag, CalendarDays, Printer } from 'lucide-react';
+import { TrendingUp, ShoppingBag, DollarSign, BarChart3, PackageOpen, Tag, CalendarDays, Printer, Download } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, Button, Input, Badge } from '@web/components/ui';
 import { EmptyState } from '@web/components/patterns';
 import { formatPrice } from '@web/lib/format';
 import { useTenant } from '@web/platform/tenant/TenantProvider';
+import { useToast } from '@web/platform/ToastProvider';
 import {
   useDailyRevenue,
   useTopItems,
@@ -343,6 +344,49 @@ function DailySummarySection({ summary, tenantName }: { summary: DailySummary; t
 }
 
 // ---------------------------------------------------------------------------
+// CSV Export Helper
+// ---------------------------------------------------------------------------
+
+async function downloadOrdersCsv(
+  tenantSlug: string,
+  startDate: string,
+  endDate: string,
+): Promise<void> {
+  const apiBase = `${import.meta.env.BASE_URL}api`.replace(/\/\//g, '/');
+  const token = localStorage.getItem('nexus_token');
+
+  const params = new URLSearchParams({ startDate, endDate, format: 'csv' });
+  const url = `${apiBase}/t/${tenantSlug}/ordering/orders/export?${params.toString()}`;
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    let message = `Export failed (${response.status})`;
+    try {
+      const body = (await response.json()) as { error?: string };
+      if (body.error) message = body.error;
+    } catch {
+      // ignore
+    }
+    throw new Error(message);
+  }
+
+  const blob = await response.blob();
+  const objectUrl = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = objectUrl;
+  link.download = `orders-${startDate}-to-${endDate}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(objectUrl);
+}
+
+// ---------------------------------------------------------------------------
 // Analytics Page
 // ---------------------------------------------------------------------------
 
@@ -357,16 +401,35 @@ type AnalyticsTab = 'overview' | 'daily-summary';
 
 export function Analytics() {
   const { tenantSlug, tenant } = useTenant();
+  const { toast } = useToast();
   const [days, setDays] = useState(30);
   const [activeTab, setActiveTab] = useState<AnalyticsTab>('overview');
   const [summaryDate, setSummaryDate] = useState(
     () => new Date().toISOString().split('T')[0],
   );
+  const [exporting, setExporting] = useState(false);
+
+  const handleExport = async () => {
+    const endDate = new Date().toISOString().split('T')[0];
+    const startDate = days === 365
+      ? '2000-01-01'
+      : new Date(Date.now() - (days - 1) * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+    setExporting(true);
+    try {
+      await downloadOrdersCsv(tenantSlug, startDate, endDate);
+      toast('success', 'Orders exported successfully');
+    } catch (err) {
+      toast('error', err instanceof Error ? err.message : 'Export failed');
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const { data: stats, isLoading: statsLoading } = useOrderStats(tenantSlug);
   const { data: revenue, isLoading: revenueLoading } = useDailyRevenue(tenantSlug, days);
   const { data: peakHours, isLoading: peakLoading } = usePeakHours(tenantSlug, days);
-  const { data: topItems, isLoading: topLoading } = useTopItems(tenantSlug, 10);
+  const { data: topItems, isLoading: topLoading } = useTopItems(tenantSlug, 10, days);
   const { data: promoStats, isLoading: promoLoading } = usePromoStats(tenantSlug);
   const { data: dailySummary, isLoading: summaryLoading } = useDailySummary(tenantSlug, summaryDate);
 
@@ -390,7 +453,7 @@ export function Analytics() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h1 className="text-2xl font-bold text-text">Analytics</h1>
 
-        {/* Tab switcher */}
+        {/* Tab switcher + Export */}
         <div className="flex gap-2">
           <button
             type="button"
@@ -417,6 +480,14 @@ export function Analytics() {
             <CalendarDays className="h-4 w-4" />
             Daily Summary
           </button>
+          <Button
+            variant="secondary"
+            onClick={handleExport}
+            loading={exporting}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Export CSV
+          </Button>
         </div>
       </div>
 
@@ -519,7 +590,7 @@ export function Analytics() {
         {/* Top Items */}
         <Card>
           <CardHeader>
-            <CardTitle>Top 10 Items</CardTitle>
+            <CardTitle>Top 10 Items ({days === 365 ? 'All Time' : `Last ${days} Days`})</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             {topItems && topItems.length > 0 ? (

@@ -93,3 +93,22 @@ packages/web/src/
 - Verify marker: `.claude/workflow/verify-marker.txt`
 - Issues log: `.claude/workflow/issues.md`
 - Status: `.claude/workflow/STATUS.md`
+- Archive: `.claude/workflow/archive/` — completed work that is done
+
+## Agent Team Pattern
+
+When a task is complex enough to warrant it, use the Agent tool to spawn parallel subagents:
+- **Explore agent** — for codebase research, reading files, answering "what is X" questions
+- **general-purpose agent** — for implementing code, writing tests, making edits
+- Multiple agents can run in parallel for independent tasks (docs, tests, features)
+- Agent results come back as tool results — synthesize them yourself before acting
+- Name agents so you can SendMessage to resume them
+
+## Deploy to Production
+
+1. Build: `cd packages/web && MSYS_NO_PATHCONV=1 npx vite build --base /nexus/`
+2. SSH: `ssh -i ~/.ssh/DIOkii root@134.199.148.87`
+3. Pull latest: `cd /root/monoWeb/nexus && git pull`
+4. Copy static: `rsync -av --delete packages/web/dist/ root@134.199.148.87:/var/www/cv.rehou.games/nexus/`
+5. Restart API: `ssh -i ~/.ssh/DIOkii root@134.199.148.87 systemctl restart nexus-api`
+6. Verify: curl https://cv.rehou.games/nexus/ → should return HTML
