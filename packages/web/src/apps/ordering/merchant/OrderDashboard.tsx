@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { Clock, ShoppingBag, ChevronDown, ChevronUp, AlertTriangle, ArrowRight, Printer, CreditCard, HelpCircle, LayoutGrid, Bell, Receipt, Pencil, Tag, Check, Loader2 } from 'lucide-react';
+import { Clock, ShoppingBag, ChevronDown, ChevronUp, AlertTriangle, ArrowRight, Printer, CreditCard, HelpCircle, LayoutGrid, Bell, Receipt, Pencil, Tag, Check, Loader2, Trash2, Split, X } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 import {
   ORDER_STATUSES,
@@ -25,7 +25,7 @@ import { useTenant } from '@web/platform/tenant/TenantProvider';
 import { useAuth } from '@web/platform/auth/AuthProvider';
 import { useToast } from '@web/platform/ToastProvider';
 import { useTour } from '@web/platform/TourProvider';
-import { useOrders, useUpdateOrderStatus, useHandleCancellationRequest, useUpdatePaymentStatus, useUpdateStaffNotes, useApplyOverride } from '../hooks/useOrders';
+import { useOrders, useUpdateOrderStatus, useHandleCancellationRequest, useUpdatePaymentStatus, useUpdateStaffNotes, useApplyOverride, useAddPayment, useOrderPayments, useRemovePayment } from '../hooks/useOrders';
 import { useTableStatuses, useUpdateTableStatus, useWaiterCalls, useAcknowledgeWaiterCall } from '../hooks/useTables';
 import type { TableStatusValue } from '../hooks/useTables';
 import { staffOnboardingSteps, STAFF_TOUR_ID } from '../tours/staffTour';
@@ -548,6 +548,201 @@ function DiscountOverridePopover({
 }
 
 // ---------------------------------------------------------------------------
+// Split Payment panel
+// ---------------------------------------------------------------------------
+
+function SplitPaymentPanel({
+  order,
+  tenantSlug,
+  userRole,
+}: {
+  order: Order;
+  tenantSlug: string;
+  userRole: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [amount, setAmount] = useState('');
+  const [method, setMethod] = useState<PaymentMethod>('cash');
+  const [paidBy, setPaidBy] = useState('');
+  const { toast } = useToast();
+
+  const paymentsQuery = useOrderPayments(tenantSlug, open ? order.id : '');
+  const addPaymentMutation = useAddPayment(tenantSlug);
+  const removePaymentMutation = useRemovePayment(tenantSlug);
+
+  const payments = paymentsQuery.data ?? [];
+  const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
+  const roundedTotalPaid = Math.round(totalPaid * 100) / 100;
+  const remaining = Math.max(0, Math.round((order.total - roundedTotalPaid) * 100) / 100);
+
+  const handleSubmit = () => {
+    const numAmount = parseFloat(amount);
+    if (isNaN(numAmount) || numAmount <= 0) return;
+
+    addPaymentMutation.mutate(
+      { orderId: order.id, amount: numAmount, method, paidBy: paidBy.trim() || undefined },
+      {
+        onSuccess: () => {
+          toast('success', `Payment of ${formatPrice(numAmount)} recorded`);
+          setAmount('');
+          setPaidBy('');
+        },
+        onError: (err: Error) => {
+          toast('error', err.message || 'Failed to add payment');
+        },
+      },
+    );
+  };
+
+  const handleRemove = (paymentId: string) => {
+    removePaymentMutation.mutate(
+      { orderId: order.id, paymentId },
+      {
+        onSuccess: () => {
+          toast('success', 'Payment removed');
+        },
+        onError: (err: Error) => {
+          toast('error', err.message || 'Failed to remove payment');
+        },
+      },
+    );
+  };
+
+  if (!open) {
+    return (
+      <Button
+        size="sm"
+        variant="secondary"
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen(true);
+          setAmount(String(remaining > 0 ? remaining.toFixed(2) : order.total.toFixed(2)));
+        }}
+        className="min-h-[44px]"
+      >
+        <Split className="h-3.5 w-3.5 mr-1" />
+        Split Payment
+      </Button>
+    );
+  }
+
+  return (
+    <div
+      className="mt-3 rounded-lg border border-border bg-bg-surface p-3"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-sm font-semibold text-text">Split Payment</p>
+        <button
+          type="button"
+          onClick={() => setOpen(false)}
+          className="p-1 rounded hover:bg-bg-muted text-text-tertiary hover:text-text transition-colors"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+
+      {/* Existing payments */}
+      {payments.length > 0 && (
+        <div className="space-y-1.5 mb-3">
+          {payments.map((p) => (
+            <div key={p.id} className="flex items-center justify-between text-xs bg-bg-muted rounded-md px-2 py-1.5">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="font-semibold text-text">{formatPrice(p.amount)}</span>
+                <span className="text-text-secondary">{PAYMENT_METHOD_LABELS[p.method]}</span>
+                {p.paidBy && <span className="text-text-tertiary truncate">({p.paidBy})</span>}
+              </div>
+              {(userRole === 'owner' || userRole === 'manager') && (
+                <button
+                  type="button"
+                  onClick={() => handleRemove(p.id)}
+                  disabled={removePaymentMutation.isPending}
+                  className="shrink-0 p-1 rounded hover:bg-danger/10 text-text-tertiary hover:text-danger transition-colors"
+                  title="Remove payment"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </button>
+              )}
+            </div>
+          ))}
+          <div className="flex items-center justify-between text-xs pt-1 border-t border-border">
+            <span className="text-text-secondary">
+              Paid: <span className="font-semibold text-text">{formatPrice(roundedTotalPaid)}</span> / {formatPrice(order.total)}
+            </span>
+            {remaining > 0 && (
+              <span className="text-warning font-semibold">
+                Remaining: {formatPrice(remaining)}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Add payment form */}
+      {remaining > 0 && (
+        <div className="space-y-2">
+          <div className="grid grid-cols-3 gap-2">
+            <div>
+              <label className="text-xs text-text-secondary">Amount ($)</label>
+              <input
+                type="number"
+                step="0.01"
+                min="0.01"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className="w-full mt-0.5 text-sm border border-border rounded-md px-2 py-1.5 bg-bg text-text focus:outline-none focus:ring-1 focus:ring-primary"
+                placeholder={remaining.toFixed(2)}
+              />
+            </div>
+            <div>
+              <label className="text-xs text-text-secondary">Method</label>
+              <select
+                value={method}
+                onChange={(e) => setMethod(e.target.value as PaymentMethod)}
+                className="w-full mt-0.5 text-sm border border-border rounded-md px-2 py-1.5 bg-bg text-text focus:outline-none focus:ring-1 focus:ring-primary"
+              >
+                {PAYMENT_METHODS.map((m) => (
+                  <option key={m} value={m}>{PAYMENT_METHOD_LABELS[m]}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs text-text-secondary">Paid by</label>
+              <input
+                type="text"
+                value={paidBy}
+                onChange={(e) => setPaidBy(e.target.value)}
+                className="w-full mt-0.5 text-sm border border-border rounded-md px-2 py-1.5 bg-bg text-text focus:outline-none focus:ring-1 focus:ring-primary"
+                placeholder="Person 1"
+              />
+            </div>
+          </div>
+          <Button
+            size="sm"
+            variant="primary"
+            onClick={handleSubmit}
+            loading={addPaymentMutation.isPending}
+            disabled={!amount || parseFloat(amount) <= 0}
+            className="w-full min-h-[36px]"
+          >
+            Add Payment
+          </Button>
+        </div>
+      )}
+
+      {remaining <= 0 && payments.length > 0 && (
+        <div className="text-center">
+          <Badge variant="success">
+            <Check className="h-3 w-3 mr-1" />
+            Fully Paid
+          </Badge>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Single order card
 // ---------------------------------------------------------------------------
 
@@ -565,6 +760,7 @@ function OrderCard({
   isOverridePending,
   userRole,
   tenantName,
+  tenantSlug,
 }: {
   order: Order;
   onUpdateStatus: (id: string, status: OrderStatus) => void;
@@ -579,6 +775,7 @@ function OrderCard({
   isOverridePending: boolean;
   userRole: string;
   tenantName: string;
+  tenantSlug: string;
 }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -829,11 +1026,20 @@ function OrderCard({
 
                   {/* Payment status: dropdown for unpaid, locked badge for paid */}
                   {(order.paymentStatus ?? 'unpaid') !== 'paid' && order.status !== 'cancelled' && (
-                    <PaymentMethodSelect
-                      order={order}
-                      onSelect={onUpdatePaymentStatus}
-                      isPending={isPaymentUpdating}
-                    />
+                    <>
+                      <PaymentMethodSelect
+                        order={order}
+                        onSelect={onUpdatePaymentStatus}
+                        isPending={isPaymentUpdating}
+                      />
+                      {order.total > 0 && order.status === 'delivered' && (
+                        <SplitPaymentPanel
+                          order={order}
+                          tenantSlug={tenantSlug}
+                          userRole={userRole}
+                        />
+                      )}
+                    </>
                   )}
                   {(order.paymentStatus ?? 'unpaid') === 'paid' && (
                     <Button
@@ -1174,6 +1380,7 @@ export function OrderDashboard() {
               }
               userRole={user?.role ?? 'staff'}
               tenantName={tenant?.name ?? 'Restaurant'}
+              tenantSlug={tenantSlug}
             />
           ))}
 

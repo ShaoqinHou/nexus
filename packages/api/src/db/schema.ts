@@ -275,6 +275,21 @@ export const feedback = sqliteTable('feedback', {
   index('idx_feedback_tenant').on(table.tenantId, table.createdAt),
 ]);
 
+// --- Order Payments (Split Payment) ---
+
+export const orderPayments = sqliteTable('order_payments', {
+  id: text('id').primaryKey().$defaultFn(() => nanoid()),
+  orderId: text('order_id').notNull().references(() => orders.id),
+  tenantId: text('tenant_id').notNull().references(() => tenants.id),
+  amount: real('amount').notNull(),
+  method: text('method').$type<PaymentMethod>().notNull(),
+  paidBy: text('paid_by'), // optional label: "Person 1", "Seat A", etc.
+  createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
+}, (table) => [
+  index('idx_order_payments_order').on(table.orderId),
+  index('idx_order_payments_tenant').on(table.tenantId),
+]);
+
 // --- Inferred Types ---
 
 export type Tenant = typeof tenants.$inferSelect;
@@ -287,6 +302,7 @@ export type MenuCategory = typeof menuCategories.$inferSelect;
 export type MenuItem = typeof menuItems.$inferSelect;
 export type Order = typeof orders.$inferSelect;
 export type OrderItem = typeof orderItems.$inferSelect;
+export type OrderPayment = typeof orderPayments.$inferSelect;
 export type ModifierGroup = typeof modifierGroups.$inferSelect;
 export type ModifierOption = typeof modifierOptions.$inferSelect;
 export type Promotion = typeof promotions.$inferSelect;

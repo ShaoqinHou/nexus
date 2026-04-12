@@ -7,9 +7,10 @@ import { eq, and } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import jwt from 'jsonwebtoken';
 import { authMiddleware, JWT_SECRET } from '../../middleware/auth.js';
+import { sessionMiddleware } from '../../middleware/session.js';
 import { customerSessions, staff, ORDER_STATUSES, PROMOTION_TYPES, ORDER_ITEM_STATUSES, PAYMENT_STATUSES, PAYMENT_METHODS, TABLE_STATUSES, WAITER_CALL_TYPES } from '../../db/schema.js';
 import type { DrizzleDB } from '../../db/client.js';
-import type { AuthEnv, TenantEnv } from '../../lib/types.js';
+import type { AuthEnv, TenantEnv, CustomerEnv } from '../../lib/types.js';
 import {
   getCategories,
   createCategory,
@@ -62,6 +63,7 @@ import {
   getStatusBreakdown,
   getDailySummary,
   getOrdersForExport,
+  getOrdersBySessionId,
   getTableStatuses,
   upsertTableStatus,
   getUnacknowledgedWaiterCalls,
@@ -70,6 +72,9 @@ import {
   submitFeedback,
   getFeedback,
   getFeedbackSummary,
+  addPayment,
+  getOrderPayments,
+  removePayment,
 } from './service.js';
 
 // --- Validation Schemas ---
@@ -224,6 +229,14 @@ const createPromoCodeSchema = z.object({
 
 const validatePromoCodeSchema = z.object({
   code: z.string().min(1, 'Code is required'),
+});
+
+// --- Split Payment Schema ---
+
+const addPaymentSchema = z.object({
+  amount: z.number().positive('Amount must be positive'),
+  method: z.enum(PAYMENT_METHODS),
+  paidBy: z.string().max(100).optional(),
 });
 
 // --- Order Modification Schemas ---
@@ -662,6 +675,50 @@ export function staffOrderingRoutes(db: DrizzleDB) {
     }
   );
 
+  // --- Split Payments (Staff) ---
+
+  // Add a partial payment to an order (any staff)
+  router.post(
+    '/orders/:id/payments',
+    zValidator('json', addPaymentSchema),
+    (c) => {
+      const tenantId = c.var.tenantId;
+      const orderId = c.req.param('id');
+      const { amount, method, paidBy } = c.req.valid('json');
+      const result = addPayment(db, tenantId, orderId, amount, method, paidBy);
+      if ('error' in result) {
+        return c.json({ error: result.error }, 400);
+      }
+      return c.json({ data: result.data }, 201);
+    }
+  );
+
+  // List payments for an order (any staff)
+  router.get('/orders/:id/payments', (c) => {
+    const tenantId = c.var.tenantId;
+    const orderId = c.req.param('id');
+    const payments = getOrderPayments(db, tenantId, orderId);
+    return c.json({ data: payments });
+  });
+
+  // Remove a payment (owner/manager only)
+  router.delete(
+    '/orders/:id/payments/:paymentId',
+    (c) => {
+      const tenantId = c.var.tenantId;
+      const user = c.var.user;
+      if (user.role !== 'owner' && user.role !== 'manager') {
+        return c.json({ error: 'Only owner or manager can remove payments' }, 403);
+      }
+      const paymentId = c.req.param('paymentId');
+      const result = removePayment(db, tenantId, paymentId);
+      if ('error' in result) {
+        return c.json({ error: result.error }, 404);
+      }
+      return c.json({ data: result.data });
+    }
+  );
+
   // --- Order Modifications (Staff) ---
 
   // Staff can add items to an order
@@ -1030,11 +1087,26 @@ export function kitchenStreamRoutes(db: DrizzleDB) {
       return c.json({ error: 'Staff member not found or inactive' }, 401);
     }
 
+    // Check if tenant uses pre-pay model (kitchen only sees paid orders)
+    let isPrePay = false;
+    try {
+      const tenant = c.var.tenant;
+      const settings = tenant.settings ? JSON.parse(tenant.settings) : {};
+      isPrePay = settings.paymentModel === 'pre_pay';
+    } catch {
+      // If settings parsing fails, default to post-pay (show all orders)
+    }
+
+    const filterOrders = (allOrders: ReturnType<typeof getKitchenOrders>) => {
+      if (!isPrePay) return allOrders;
+      return allOrders.filter((o) => o.paymentStatus !== 'unpaid');
+    };
+
     return streamSSE(c, async (stream) => {
       let id = 0;
 
       // Send initial state
-      const initialOrders = getKitchenOrders(db, tenantId);
+      const initialOrders = filterOrders(getKitchenOrders(db, tenantId));
       await stream.writeSSE({
         data: JSON.stringify({ type: 'init', orders: initialOrders }),
         event: 'orders',
@@ -1046,7 +1118,7 @@ export function kitchenStreamRoutes(db: DrizzleDB) {
       const startTime = Date.now();
       while (Date.now() - startTime < MAX_AGE_MS) {
         await stream.sleep(3000);
-        const updatedOrders = getKitchenOrders(db, tenantId);
+        const updatedOrders = filterOrders(getKitchenOrders(db, tenantId));
         await stream.writeSSE({
           data: JSON.stringify({ type: 'update', orders: updatedOrders }),
           event: 'orders',
@@ -1095,6 +1167,14 @@ export function customerOrderingRoutes(db: DrizzleDB) {
           : null,
       },
     });
+  });
+
+  // Session-based order history — returns orders associated with the customer's session
+  router.get('/session/orders', sessionMiddleware(db) as unknown as MiddlewareHandler<TenantEnv>, (c) => {
+    const tenantId = c.var.tenantId;
+    const session = (c.var as unknown as CustomerEnv['Variables']).session;
+    const sessionOrders = getOrdersBySessionId(db, tenantId, session.id);
+    return c.json({ data: sessionOrders });
   });
 
   // Place order — creates session if needed

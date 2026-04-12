@@ -18,4 +18,6 @@ export const orderingKeys = {
   feedback: () => [...orderingKeys.all, 'feedback'] as const,
   feedbackSummary: () => [...orderingKeys.all, 'feedback-summary'] as const,
   menu: () => [...orderingKeys.all, 'menu'] as const,
+  payments: (orderId: string) => [...orderingKeys.all, 'payments', orderId] as const,
+  sessionOrders: () => [...orderingKeys.all, 'session-orders'] as const,
 };

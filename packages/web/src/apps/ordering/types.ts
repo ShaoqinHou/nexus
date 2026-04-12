@@ -92,6 +92,16 @@ export interface SnapshotModifier {
   price: number;
 }
 
+export interface OrderPayment {
+  id: string;
+  orderId: string;
+  tenantId: string;
+  amount: number;
+  method: PaymentMethod;
+  paidBy: string | null;
+  createdAt: string;
+}
+
 export interface Order {
   id: string;
   tenantId: string;

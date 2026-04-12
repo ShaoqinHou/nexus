@@ -13,9 +13,10 @@ import {
   promoCodes,
   orders,
   orderItems,
+  orderPayments,
 } from '../../../db/schema.js';
 import type { DrizzleDB } from '../../../db/client.js';
-import type { OrderStatus, PaymentMethod } from '../../../db/schema.js';
+import type { OrderStatus, PaymentMethod, OrderPayment } from '../../../db/schema.js';
 import { validatePromoCode, applyPromotion } from './promotions.js';
 import { upsertTableStatus } from './tables.js';
 
@@ -458,6 +459,31 @@ export function createOrder(
   upsertTableStatus(db, tenantId, data.tableNumber, 'occupied');
 
   return { data: { ...order, items: createdItems } };
+}
+
+export function getOrdersBySessionId(db: DrizzleDB, tenantId: string, sessionId: string) {
+  const orderList = db
+    .select()
+    .from(orders)
+    .where(
+      and(
+        eq(orders.tenantId, tenantId),
+        eq(orders.sessionId, sessionId)
+      )
+    )
+    .orderBy(desc(orders.createdAt))
+    .limit(10)
+    .all();
+
+  return orderList.map((order) => {
+    const items = db
+      .select()
+      .from(orderItems)
+      .where(eq(orderItems.orderId, order.id))
+      .all();
+
+    return { ...order, items };
+  });
 }
 
 export function getOrder(db: DrizzleDB, tenantId: string, orderId: string) {
@@ -1306,6 +1332,180 @@ export function toggleSoldOut(
     .get();
 
   return updated;
+}
+
+// --- Split Payment Service ---
+
+/**
+ * Add a partial payment to an order (split payment).
+ * Validates the order exists, belongs to the tenant, and is delivered.
+ * If total paid >= order total, auto-marks paymentStatus='paid'.
+ */
+export function addPayment(
+  db: DrizzleDB,
+  tenantId: string,
+  orderId: string,
+  amount: number,
+  method: PaymentMethod,
+  paidBy?: string,
+): { data: OrderPayment } | { error: string } {
+  // Validate order exists and belongs to tenant
+  const order = db
+    .select()
+    .from(orders)
+    .where(
+      and(
+        eq(orders.id, orderId),
+        eq(orders.tenantId, tenantId)
+      )
+    )
+    .get();
+
+  if (!order) {
+    return { error: 'Order not found' };
+  }
+
+  // Can only pay for delivered orders
+  if (order.status !== 'delivered') {
+    return { error: 'Can only add payments to delivered orders' };
+  }
+
+  // Can't pay for already fully paid orders
+  if (order.paymentStatus === 'paid') {
+    return { error: 'Order is already fully paid' };
+  }
+
+  // Create the payment record
+  const payment = db
+    .insert(orderPayments)
+    .values({
+      orderId,
+      tenantId,
+      amount,
+      method,
+      paidBy: paidBy ?? null,
+    })
+    .returning()
+    .get();
+
+  // Calculate total paid so far
+  const allPayments = db
+    .select()
+    .from(orderPayments)
+    .where(
+      and(
+        eq(orderPayments.orderId, orderId),
+        eq(orderPayments.tenantId, tenantId)
+      )
+    )
+    .all();
+
+  const totalPaid = allPayments.reduce((sum, p) => sum + p.amount, 0);
+  const roundedTotalPaid = Math.round(totalPaid * 100) / 100;
+
+  // If total paid >= order total, auto-mark as paid
+  if (roundedTotalPaid >= order.total) {
+    db.update(orders)
+      .set({
+        paymentStatus: 'paid',
+        paymentMethod: method, // last payment method used
+        updatedAt: new Date().toISOString(),
+      })
+      .where(eq(orders.id, orderId))
+      .run();
+
+    // Auto table status: delivered + paid -> needs_cleaning
+    upsertTableStatus(db, tenantId, order.tableNumber, 'needs_cleaning');
+  }
+
+  return { data: payment };
+}
+
+/**
+ * Get all payment records for an order.
+ */
+export function getOrderPayments(
+  db: DrizzleDB,
+  tenantId: string,
+  orderId: string,
+): OrderPayment[] {
+  return db
+    .select()
+    .from(orderPayments)
+    .where(
+      and(
+        eq(orderPayments.orderId, orderId),
+        eq(orderPayments.tenantId, tenantId)
+      )
+    )
+    .all();
+}
+
+/**
+ * Remove a payment record (owner/manager only).
+ * Recalculates whether the order should remain paid or revert to unpaid.
+ */
+export function removePayment(
+  db: DrizzleDB,
+  tenantId: string,
+  paymentId: string,
+): { data: OrderPayment } | { error: string } {
+  // Find the payment
+  const payment = db
+    .select()
+    .from(orderPayments)
+    .where(
+      and(
+        eq(orderPayments.id, paymentId),
+        eq(orderPayments.tenantId, tenantId)
+      )
+    )
+    .get();
+
+  if (!payment) {
+    return { error: 'Payment not found' };
+  }
+
+  // Delete the payment record
+  db.delete(orderPayments)
+    .where(eq(orderPayments.id, paymentId))
+    .run();
+
+  // Recalculate total paid for this order
+  const remainingPayments = db
+    .select()
+    .from(orderPayments)
+    .where(
+      and(
+        eq(orderPayments.orderId, payment.orderId),
+        eq(orderPayments.tenantId, tenantId)
+      )
+    )
+    .all();
+
+  const totalPaid = remainingPayments.reduce((sum, p) => sum + p.amount, 0);
+  const roundedTotalPaid = Math.round(totalPaid * 100) / 100;
+
+  // Get order to check if we need to revert payment status
+  const order = db
+    .select()
+    .from(orders)
+    .where(eq(orders.id, payment.orderId))
+    .get();
+
+  if (order && roundedTotalPaid < order.total) {
+    // Revert to unpaid if total is no longer met
+    db.update(orders)
+      .set({
+        paymentStatus: 'unpaid',
+        paymentMethod: null,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(eq(orders.id, payment.orderId))
+      .run();
+  }
+
+  return { data: payment };
 }
 
 // --- Export Service ---

@@ -81,10 +81,40 @@ function CustomerAppInner({ tenantSlug, tableNumber }: CustomerAppInnerProps) {
     }
   }, [startTour]);
 
-  const recentOrders = useMemo(
+  const localOrders = useMemo(
     () => loadRecentOrders(tenantSlug, tableNumber),
     [tenantSlug, tableNumber],
   );
+
+  // Fetch server-side order history (session-based, survives localStorage clears)
+  const { data: serverOrders } = useQuery({
+    queryKey: orderingKeys.sessionOrders(),
+    queryFn: () =>
+      apiClient.get<{ data: Order[] }>(`/order/${tenantSlug}/ordering/session/orders`).catch(() => ({ data: [] })),
+    select: (res) => res.data,
+    staleTime: 30_000,
+  });
+
+  // Merge localStorage + server orders, deduplicate by ID
+  const recentOrders = useMemo(() => {
+    const merged = new Map<string, OrderHistoryEntry>();
+    // Local entries first (have timestamps)
+    for (const entry of localOrders) {
+      merged.set(entry.id, entry);
+    }
+    // Add server orders that aren't already in local
+    if (serverOrders) {
+      for (const order of serverOrders) {
+        if (!merged.has(order.id)) {
+          merged.set(order.id, { id: order.id, timestamp: new Date(order.createdAt).getTime() });
+        }
+      }
+    }
+    // Sort by timestamp descending, limit to 5
+    return Array.from(merged.values())
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .slice(0, 5);
+  }, [localOrders, serverOrders]);
 
   // Check most recent order status to detect active orders at this table
   const mostRecentOrderId = recentOrders[0]?.id ?? null;

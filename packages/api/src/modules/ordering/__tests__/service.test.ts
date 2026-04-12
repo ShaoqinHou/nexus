@@ -253,6 +253,16 @@ function createTestDb() {
       updated_at TEXT NOT NULL
     );
     CREATE UNIQUE INDEX table_statuses_tenant_table_idx ON table_statuses(tenant_id, table_number);
+
+    CREATE TABLE order_payments (
+      id TEXT PRIMARY KEY,
+      order_id TEXT NOT NULL REFERENCES orders(id),
+      tenant_id TEXT NOT NULL REFERENCES tenants(id),
+      amount REAL NOT NULL,
+      method TEXT NOT NULL,
+      paid_by TEXT,
+      created_at TEXT NOT NULL
+    );
   `);
 
   return drizzle(sqlite, { schema });

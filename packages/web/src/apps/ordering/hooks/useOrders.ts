@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@web/lib/api';
 import { orderingKeys } from './keys';
-import type { Order, OrderStatus, PaymentStatus, PaymentMethod } from '../types';
+import type { Order, OrderStatus, PaymentStatus, PaymentMethod, OrderPayment } from '../types';
 
 export interface OrdersPage {
   data: Order[];
@@ -192,6 +192,52 @@ export function useUpdateStaffNotes(tenantSlug: string) {
         { staffNotes },
       ),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: orderingKeys.ordersAll() });
+    },
+  });
+}
+
+/** Staff adds a partial payment to an order (split payment) */
+export function useAddPayment(tenantSlug: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ orderId, amount, method, paidBy }: { orderId: string; amount: number; method: PaymentMethod; paidBy?: string }) =>
+      apiClient.post<{ data: OrderPayment }>(
+        `/t/${tenantSlug}/ordering/orders/${orderId}/payments`,
+        { amount, method, paidBy },
+      ),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: orderingKeys.payments(variables.orderId) });
+      queryClient.invalidateQueries({ queryKey: orderingKeys.ordersAll() });
+    },
+  });
+}
+
+/** Fetch all payments for an order */
+export function useOrderPayments(tenantSlug: string, orderId: string) {
+  return useQuery({
+    queryKey: orderingKeys.payments(orderId),
+    queryFn: () =>
+      apiClient.get<{ data: OrderPayment[] }>(`/t/${tenantSlug}/ordering/orders/${orderId}/payments`),
+    select: (res) => res.data,
+    enabled: !!orderId,
+    staleTime: 5000,
+    gcTime: 60000,
+  });
+}
+
+/** Owner/manager removes a payment record */
+export function useRemovePayment(tenantSlug: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ orderId, paymentId }: { orderId: string; paymentId: string }) =>
+      apiClient.delete<{ data: OrderPayment }>(
+        `/t/${tenantSlug}/ordering/orders/${orderId}/payments/${paymentId}`,
+      ),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: orderingKeys.payments(variables.orderId) });
       queryClient.invalidateQueries({ queryKey: orderingKeys.ordersAll() });
     },
   });
