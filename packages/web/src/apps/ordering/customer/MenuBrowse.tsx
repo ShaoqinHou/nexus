@@ -614,26 +614,6 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
     setTimeout(() => { isScrollingRef.current = false; }, 800);
   }, []);
 
-  if (isLoading) {
-    return <MenuSkeleton />;
-  }
-
-  if (error) {
-    return (
-      <div className="p-4">
-        <EmptyState
-          icon={UtensilsCrossed}
-          title="Unable to load menu"
-          description="Something went wrong loading the menu. Please try again."
-          action={{
-            label: 'Retry',
-            onClick: () => window.location.reload(),
-          }}
-        />
-      </div>
-    );
-  }
-
   // Filter to only active categories with available items
   const visibleCategories = useMemo(
     () => (menuData?.categories ?? []).filter(
@@ -675,6 +655,26 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
     // Keep canonical order from ALLERGENS constant, then any extras
     return ALLERGENS.filter((a) => present.has(a));
   }, [visibleCategories]);
+
+  if (isLoading) {
+    return <MenuSkeleton />;
+  }
+
+  if (error) {
+    return (
+      <div className="p-4">
+        <EmptyState
+          icon={UtensilsCrossed}
+          title="Unable to load menu"
+          description="Something went wrong loading the menu. Please try again."
+          action={{
+            label: 'Retry',
+            onClick: () => window.location.reload(),
+          }}
+        />
+      </div>
+    );
+  }
 
   if (visibleCategories.length === 0 && activeCombos.length === 0) {
     return (
