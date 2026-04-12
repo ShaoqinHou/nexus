@@ -1,10 +1,10 @@
 # Project Status
 
 ## Current State
-- **Phase:** Production v1 — multi-restaurant platform
+- **Phase:** Production v2 — restaurant operations upgrade
 - **Last verified:** 2026-04-12
 - **Live at:** https://cv.rehou.games/nexus/
-- **Commits:** 95+ | **Lines:** ~55,000 | **Tests:** 203 (181 API + 22 web)
+- **Commits:** 100+ | **Lines:** ~58,000 | **Tests:** 203 (181 API + 22 web)
 
 ## Features
 
@@ -13,7 +13,7 @@
 - [x] JWT auth with role hierarchy (owner > manager > staff)
 - [x] Staff management (CRUD, password reset, role editing)
 - [x] 3-package monorepo (api + web + shared)
-- [x] 16-table SQLite schema with performance indexes
+- [x] 18-table SQLite schema with performance indexes (+ feedback table)
 - [x] Theming engine (6 presets, palette generation, Google Fonts)
 - [x] Operating hours with enforcement + timezone display
 - [x] Image upload (multipart, drag-drop, progress)
@@ -25,7 +25,7 @@
 - [x] Combo deals with customizable slots + modifier support
 - [x] Promotions + promo codes (percentage/fixed, validation)
 - [x] Order modifications (add items, cancel with staff approval)
-- [x] Order lifecycle (pending → confirmed → preparing → ready → delivered)
+- [x] Order lifecycle (pending > confirmed > preparing > ready > delivered)
 - [x] Kitchen display (SSE real-time, Kanban, item checkboxes, sound alerts)
 - [x] Analytics dashboard (revenue, top items, peak hours, date range filter)
 - [x] QR code generator, category scroll-spy, menu search
@@ -37,14 +37,33 @@
 - [x] Onboarding tour (staff + customer)
 - [x] Operating hours enforcement (block orders outside hours)
 - [x] Image optimization with Sharp
-- [x] Allergen filter UI (customer can avoid allergens — legal requirement)
+- [x] Allergen filter UI (customer can avoid allergens)
 - [x] Orders list pagination (50 per page, staff dashboard)
 - [x] CSV export (orders + revenue, Analytics page)
 - [x] Table status management (free/occupied/needs_cleaning grid)
 - [x] Waiter call button (customer notifies staff, staff acknowledges)
-- [x] Analytics date range — Top Items wired to date picker
+- [x] Analytics date range - Top Items wired to date picker
 - [x] EOD daily summary report with print button
 - [x] Automated SQLite backup scripts (db:backup / db:restore)
+
+### v2 Features (2026-04-12)
+- [x] Payment type dropdown (cash/card/QR pay/voucher/complimentary)
+- [x] Staff notes on orders (internal notes separate from customer notes)
+- [x] Paid order guard (block add/cancel on paid orders)
+- [x] Price override / comp (owner/manager, with audit trail)
+- [x] Allergen snapshot in order items (food safety for kitchen)
+- [x] KDS item completion persistence (completedAt saved to DB)
+- [x] Request Bill button (customer, distinct from call waiter)
+- [x] Sold-out toggle (menu items, with customer-side display)
+- [x] KDS station filter (All / Kitchen / Bar / Pass views)
+- [x] KDS SSE exponential backoff reconnection + audio autoplay fix
+- [x] KDS kitchen ticket print button per order
+- [x] Order elapsed time badges on staff dashboard
+- [x] Auto table status on order events (occupied on order, needs_cleaning on delivered+paid)
+- [x] Category station assignment (kitchen / bar / all)
+- [x] Post-meal customer feedback (star rating + comment)
+- [x] Feedback analytics tab (avg rating, breakdown, recent comments)
+- [x] Join existing order landing screen (customer QR flow)
 
 ### Quality
 - [x] 203 tests (181 API + 22 web)
