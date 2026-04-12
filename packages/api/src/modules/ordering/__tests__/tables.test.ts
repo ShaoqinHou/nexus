@@ -40,6 +40,7 @@ function createTestDb() {
       id TEXT PRIMARY KEY,
       tenant_id TEXT NOT NULL REFERENCES tenants(id),
       table_number TEXT NOT NULL,
+      call_type TEXT NOT NULL DEFAULT 'assistance',
       acknowledged INTEGER NOT NULL DEFAULT 0,
       created_at TEXT NOT NULL
     );

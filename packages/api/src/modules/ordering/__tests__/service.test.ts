@@ -88,6 +88,7 @@ function createTestDb() {
       tenant_id TEXT NOT NULL REFERENCES tenants(id),
       name TEXT NOT NULL,
       description TEXT,
+      station TEXT NOT NULL DEFAULT 'all',
       sort_order INTEGER NOT NULL DEFAULT 0,
       is_active INTEGER NOT NULL DEFAULT 1,
       created_at TEXT NOT NULL,
@@ -106,6 +107,8 @@ function createTestDb() {
       allergens TEXT,
       is_featured INTEGER NOT NULL DEFAULT 0,
       is_available INTEGER NOT NULL DEFAULT 1,
+      is_sold_out INTEGER DEFAULT 0,
+      sold_out_until TEXT,
       sort_order INTEGER NOT NULL DEFAULT 0,
       is_active INTEGER NOT NULL DEFAULT 1,
       created_at TEXT NOT NULL,
@@ -180,10 +183,15 @@ function createTestDb() {
       table_number TEXT NOT NULL,
       status TEXT NOT NULL DEFAULT 'pending',
       payment_status TEXT NOT NULL DEFAULT 'unpaid',
+      payment_method TEXT,
       notes TEXT,
+      staff_notes TEXT,
       total REAL NOT NULL,
       tax_amount REAL DEFAULT 0,
       discount_amount REAL DEFAULT 0,
+      discount_override REAL,
+      override_reason TEXT,
+      override_by TEXT,
       promo_code_id TEXT REFERENCES promo_codes(id),
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
@@ -198,9 +206,11 @@ function createTestDb() {
       quantity INTEGER NOT NULL,
       notes TEXT,
       modifiers_json TEXT,
+      allergens TEXT,
       combo_deal_id TEXT REFERENCES combo_deals(id),
       combo_group_id TEXT,
       status TEXT NOT NULL DEFAULT 'active',
+      completed_at TEXT,
       created_at TEXT NOT NULL
     );
 
@@ -234,6 +244,15 @@ function createTestDb() {
       sort_order INTEGER NOT NULL DEFAULT 0,
       price_overrides TEXT
     );
+
+    CREATE TABLE table_statuses (
+      id TEXT PRIMARY KEY,
+      tenant_id TEXT NOT NULL REFERENCES tenants(id),
+      table_number TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'free',
+      updated_at TEXT NOT NULL
+    );
+    CREATE UNIQUE INDEX table_statuses_tenant_table_idx ON table_statuses(tenant_id, table_number);
   `);
 
   return drizzle(sqlite, { schema });

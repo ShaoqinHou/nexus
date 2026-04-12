@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   CheckCircle,
@@ -11,6 +11,7 @@ import {
   Plus,
   X,
   Phone,
+  Star,
 } from 'lucide-react';
 import { ORDER_STATUSES, MODIFIABLE_ORDER_STATUSES } from '@nexus/shared';
 import type { OrderStatus } from '@nexus/shared';
@@ -21,6 +22,7 @@ import { StatusBadge } from '@web/components/patterns';
 import { useToast } from '@web/platform/ToastProvider';
 import { orderingKeys } from '@web/apps/ordering/hooks/keys';
 import { useRequestItemCancellation } from '@web/apps/ordering/hooks/useOrders';
+import { useSubmitFeedback } from '@web/apps/ordering/hooks/useFeedback';
 import { useTenant } from '@web/platform/tenant/TenantProvider';
 import type { Order, SnapshotModifier } from '@web/apps/ordering/types';
 
@@ -174,6 +176,136 @@ function StatusTimeline({ currentStatus }: { currentStatus: OrderStatus }) {
         })}
       </div>
     </>
+  );
+}
+
+function getFeedbackKey(orderId: string): string {
+  return `nexus_feedback_${orderId}`;
+}
+
+function loadSubmittedFeedback(orderId: string): { rating: number; comment?: string } | null {
+  try {
+    const raw = localStorage.getItem(getFeedbackKey(orderId));
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveFeedback(orderId: string, rating: number, comment?: string): void {
+  try {
+    localStorage.setItem(getFeedbackKey(orderId), JSON.stringify({ rating, comment }));
+  } catch {
+    // localStorage may be unavailable
+  }
+}
+
+function FeedbackSection({
+  tenantSlug,
+  orderId,
+  tableNumber,
+}: {
+  tenantSlug: string;
+  orderId: string;
+  tableNumber: string;
+}) {
+  const { toast } = useToast();
+  const submitFeedback = useSubmitFeedback(tenantSlug);
+  const [submitted, setSubmitted] = useState<{ rating: number; comment?: string } | null>(
+    () => loadSubmittedFeedback(orderId),
+  );
+  const [rating, setRating] = useState(0);
+  const [hoveredStar, setHoveredStar] = useState(0);
+  const [comment, setComment] = useState('');
+
+  const handleSubmit = useCallback(() => {
+    if (rating === 0) return;
+    submitFeedback.mutate(
+      { orderId, tableNumber, rating, comment: comment.trim() || undefined },
+      {
+        onSuccess: () => {
+          saveFeedback(orderId, rating, comment.trim() || undefined);
+          setSubmitted({ rating, comment: comment.trim() || undefined });
+          toast('success', 'Thank you for your feedback!');
+        },
+        onError: () => {
+          toast('error', 'Could not submit feedback. Please try again.');
+        },
+      },
+    );
+  }, [orderId, tableNumber, rating, comment, submitFeedback, toast]);
+
+  if (submitted) {
+    return (
+      <div className="rounded-lg border border-border bg-bg-elevated px-4 py-4 text-center">
+        <p className="text-sm font-semibold text-text mb-2">Thanks for your feedback!</p>
+        <div className="flex items-center justify-center gap-1">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <Star
+              key={star}
+              className={[
+                'h-5 w-5',
+                star <= submitted.rating
+                  ? 'text-warning fill-warning'
+                  : 'text-text-tertiary',
+              ].join(' ')}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-lg border border-border bg-bg-elevated px-4 py-4">
+      <h3 className="text-sm font-semibold text-text text-center mb-3">
+        How was your meal?
+      </h3>
+
+      {/* Star rating */}
+      <div className="flex items-center justify-center gap-1 mb-3">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <button
+            key={star}
+            type="button"
+            onClick={() => setRating(star)}
+            onMouseEnter={() => setHoveredStar(star)}
+            onMouseLeave={() => setHoveredStar(0)}
+            className="min-h-[48px] min-w-[48px] flex items-center justify-center rounded-full hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            aria-label={`Rate ${star} star${star !== 1 ? 's' : ''}`}
+          >
+            <Star
+              className={[
+                'h-7 w-7 transition-colors',
+                star <= (hoveredStar || rating)
+                  ? 'text-warning fill-warning'
+                  : 'text-text-tertiary',
+              ].join(' ')}
+            />
+          </button>
+        ))}
+      </div>
+
+      {/* Optional comment */}
+      <textarea
+        value={comment}
+        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setComment(e.target.value)}
+        rows={2}
+        placeholder="Tell us about your experience..."
+        className="w-full rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text placeholder:text-text-tertiary resize-none focus:outline-none focus:ring-1 focus:ring-primary mb-3"
+      />
+
+      {/* Submit button */}
+      <Button
+        variant="primary"
+        className="w-full"
+        onClick={handleSubmit}
+        disabled={rating === 0 || submitFeedback.isPending}
+        loading={submitFeedback.isPending}
+      >
+        Submit Feedback
+      </Button>
+    </div>
   );
 }
 
@@ -488,6 +620,15 @@ export function OrderConfirmation({
           </p>
           <p className="text-sm text-text">{order.notes}</p>
         </div>
+      )}
+
+      {/* Post-meal feedback — only shown when delivered */}
+      {isDelivered && (
+        <FeedbackSection
+          tenantSlug={tenantSlug}
+          orderId={orderId}
+          tableNumber={order.tableNumber}
+        />
       )}
 
       {/* Back to menu */}

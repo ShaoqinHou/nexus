@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { Clock, ShoppingBag, ChevronDown, ChevronUp, AlertTriangle, ArrowRight, Printer, CreditCard, HelpCircle, LayoutGrid, Bell } from 'lucide-react';
+import { useState, useRef, useEffect, useMemo } from 'react';
+import { Clock, ShoppingBag, ChevronDown, ChevronUp, AlertTriangle, ArrowRight, Printer, CreditCard, HelpCircle, LayoutGrid, Bell, Pencil, Tag, Check, Loader2 } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 import {
   ORDER_STATUSES,
@@ -22,14 +22,17 @@ import {
 import { StatusBadge, EmptyState, ConfirmButton } from '@web/components/patterns';
 import { formatPrice, timeAgo } from '@web/lib/format';
 import { useTenant } from '@web/platform/tenant/TenantProvider';
+import { useAuth } from '@web/platform/auth/AuthProvider';
 import { useToast } from '@web/platform/ToastProvider';
 import { useTour } from '@web/platform/TourProvider';
-import { useOrders, useUpdateOrderStatus, useHandleCancellationRequest, useUpdatePaymentStatus } from '../hooks/useOrders';
+import { useOrders, useUpdateOrderStatus, useHandleCancellationRequest, useUpdatePaymentStatus, useUpdateStaffNotes, useApplyOverride } from '../hooks/useOrders';
 import { useTableStatuses, useUpdateTableStatus, useWaiterCalls, useAcknowledgeWaiterCall } from '../hooks/useTables';
 import type { TableStatusValue } from '../hooks/useTables';
 import { staffOnboardingSteps, STAFF_TOUR_ID } from '../tours/staffTour';
 import { cleanupStaffTourData } from '../tours/cleanup';
 import type { Order } from '../types';
+import type { PaymentMethod } from '../types';
+import { PAYMENT_METHOD_LABELS } from '../types';
 import { OrderReceipt } from './OrderReceipt';
 
 // ---------------------------------------------------------------------------
@@ -59,6 +62,40 @@ const PAYMENT_STATUS_MAP = {
   paid: 'success' as const,
   refunded: 'error' as const,
 };
+
+// ---------------------------------------------------------------------------
+// Elapsed time badge helper
+// ---------------------------------------------------------------------------
+
+function elapsedMinutes(isoString: string): number {
+  return Math.floor((Date.now() - new Date(isoString).getTime()) / 60000);
+}
+
+function ElapsedBadge({ createdAt }: { createdAt: string }) {
+  const mins = elapsedMinutes(createdAt);
+  const hrs = Math.floor(mins / 60);
+  const label = hrs > 0 ? `${hrs}h ${mins % 60}m` : `${mins}m`;
+
+  if (mins >= 15) {
+    return (
+      <span className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-xs font-semibold text-danger bg-danger/10 animate-pulse">
+        !{label}
+      </span>
+    );
+  }
+  if (mins >= 8) {
+    return (
+      <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold text-warning bg-warning/10">
+        {label}
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold text-text-secondary bg-bg-muted">
+      {label}
+    </span>
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Table status
@@ -223,6 +260,263 @@ function printReceipt(order: Order, tenantName: string) {
 }
 
 // ---------------------------------------------------------------------------
+// Payment method dropdown
+// ---------------------------------------------------------------------------
+
+const PAYMENT_METHODS: PaymentMethod[] = ['cash', 'card', 'qr_pay', 'voucher', 'complimentary'];
+
+function PaymentMethodSelect({
+  order,
+  onSelect,
+  isPending,
+}: {
+  order: Order;
+  onSelect: (orderId: string, paymentStatus: PaymentStatus, paymentMethod: PaymentMethod) => void;
+  isPending: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative inline-block">
+      <Button
+        size="sm"
+        variant="secondary"
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((prev) => !prev);
+        }}
+        loading={isPending}
+        className="min-h-[44px]"
+      >
+        <CreditCard className="h-3.5 w-3.5 mr-1" />
+        Mark Paid
+      </Button>
+      {open && (
+        <div className="absolute left-0 top-full mt-1 z-20 bg-bg-surface border border-border rounded shadow-lg p-1 min-w-[140px]">
+          {PAYMENT_METHODS.map((method) => (
+            <button
+              key={method}
+              type="button"
+              className={[
+                'w-full text-left text-sm px-3 py-2 rounded transition-colors',
+                method === 'complimentary'
+                  ? 'text-text-tertiary hover:bg-bg-muted italic'
+                  : 'text-text hover:bg-bg-muted',
+              ].join(' ')}
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelect(order.id, 'paid', method);
+                setOpen(false);
+              }}
+              disabled={isPending}
+            >
+              {PAYMENT_METHOD_LABELS[method]}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Staff notes inline editor
+// ---------------------------------------------------------------------------
+
+function StaffNotesEditor({
+  order,
+  onSave,
+  isSaving,
+}: {
+  order: Order;
+  onSave: (orderId: string, staffNotes: string) => void;
+  isSaving: boolean;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(order.staffNotes ?? '');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (editing && textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, [editing]);
+
+  const handleSave = () => {
+    const trimmed = value.trim();
+    onSave(order.id, trimmed);
+    setEditing(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSave();
+    }
+    if (e.key === 'Escape') {
+      setValue(order.staffNotes ?? '');
+      setEditing(false);
+    }
+  };
+
+  if (editing) {
+    return (
+      <div className="mt-2" onClick={(e) => e.stopPropagation()}>
+        <label className="text-xs font-medium text-text-secondary">Staff Notes:</label>
+        <div className="flex items-start gap-1.5 mt-0.5">
+          <textarea
+            ref={textareaRef}
+            rows={2}
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onBlur={handleSave}
+            onKeyDown={handleKeyDown}
+            className="flex-1 text-xs italic bg-primary/5 border border-primary/20 rounded-md p-2 text-text resize-none focus:outline-none focus:ring-1 focus:ring-primary"
+            placeholder="Add internal notes..."
+          />
+          {isSaving && <Loader2 className="h-3.5 w-3.5 text-text-tertiary animate-spin mt-1" />}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-2 flex items-start gap-1.5">
+      <div className="flex-1 min-w-0">
+        <span className="text-xs font-medium text-text-secondary">Staff Notes: </span>
+        {order.staffNotes ? (
+          <span className="text-xs italic text-text bg-primary/5 rounded px-1 py-0.5">{order.staffNotes}</span>
+        ) : (
+          <span className="text-xs text-text-tertiary italic">None</span>
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          setValue(order.staffNotes ?? '');
+          setEditing(true);
+        }}
+        className="shrink-0 p-1 rounded hover:bg-bg-muted text-text-tertiary hover:text-text transition-colors"
+        title="Edit staff notes"
+      >
+        <Pencil className="h-3 w-3" />
+      </button>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Price override popover (owner/manager only)
+// ---------------------------------------------------------------------------
+
+function DiscountOverridePopover({
+  order,
+  onApply,
+  isPending,
+}: {
+  order: Order;
+  onApply: (orderId: string, amount: number, reason: string) => void;
+  isPending: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [amount, setAmount] = useState('');
+  const [reason, setReason] = useState('');
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [open]);
+
+  const handleSubmit = () => {
+    const numAmount = parseFloat(amount);
+    if (isNaN(numAmount) || numAmount <= 0 || !reason.trim()) return;
+    onApply(order.id, numAmount, reason.trim());
+    setOpen(false);
+    setAmount('');
+    setReason('');
+  };
+
+  return (
+    <div ref={ref} className="relative inline-block">
+      <Button
+        size="sm"
+        variant="ghost"
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((prev) => !prev);
+        }}
+        className="min-h-[44px]"
+      >
+        <Tag className="h-3.5 w-3.5 mr-1" />
+        Discount
+      </Button>
+      {open && (
+        <div
+          className="absolute left-0 top-full mt-1 z-20 bg-bg-surface border border-border rounded shadow-lg p-3 min-w-[220px]"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <p className="text-xs font-semibold text-text mb-2">Apply Discount</p>
+          <div className="space-y-2">
+            <div>
+              <label className="text-xs text-text-secondary">Amount ($)</label>
+              <input
+                type="number"
+                step="0.01"
+                min="0.01"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className="w-full mt-0.5 text-sm border border-border rounded-md px-2 py-1.5 bg-bg text-text focus:outline-none focus:ring-1 focus:ring-primary"
+                placeholder="5.00"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-text-secondary">Reason (required)</label>
+              <textarea
+                rows={2}
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                className="w-full mt-0.5 text-sm border border-border rounded-md px-2 py-1.5 bg-bg text-text resize-none focus:outline-none focus:ring-1 focus:ring-primary"
+                placeholder="Birthday comp..."
+              />
+            </div>
+            <Button
+              size="sm"
+              variant="primary"
+              onClick={handleSubmit}
+              loading={isPending}
+              disabled={!amount || parseFloat(amount) <= 0 || !reason.trim()}
+              className="w-full min-h-[36px]"
+            >
+              Apply
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Single order card
 // ---------------------------------------------------------------------------
 
@@ -234,6 +528,11 @@ function OrderCard({
   isCancellationPending,
   onUpdatePaymentStatus,
   isPaymentUpdating,
+  onUpdateStaffNotes,
+  isStaffNotesSaving,
+  onApplyOverride,
+  isOverridePending,
+  userRole,
   tenantName,
 }: {
   order: Order;
@@ -241,8 +540,13 @@ function OrderCard({
   isUpdating: boolean;
   onHandleCancellation: (orderId: string, itemId: string, action: 'approve' | 'reject') => void;
   isCancellationPending: boolean;
-  onUpdatePaymentStatus: (id: string, paymentStatus: PaymentStatus) => void;
+  onUpdatePaymentStatus: (id: string, paymentStatus: PaymentStatus, paymentMethod?: PaymentMethod) => void;
   isPaymentUpdating: boolean;
+  onUpdateStaffNotes: (orderId: string, staffNotes: string) => void;
+  isStaffNotesSaving: boolean;
+  onApplyOverride: (orderId: string, amount: number, reason: string) => void;
+  isOverridePending: boolean;
+  userRole: string;
   tenantName: string;
 }) {
   const [expanded, setExpanded] = useState(false);
@@ -294,11 +598,18 @@ function OrderCard({
                 {timeAgo(order.createdAt)}
               </div>
             </div>
+            <ElapsedBadge createdAt={order.createdAt} />
             <StatusBadge status={order.status} statusMap={ORDER_STATUS_MAP} />
-            <StatusBadge
-              status={order.paymentStatus ?? 'unpaid'}
-              statusMap={PAYMENT_STATUS_MAP}
-            />
+            {(order.paymentStatus ?? 'unpaid') === 'paid' && order.paymentMethod ? (
+              <Badge variant="success">
+                Paid &middot; {PAYMENT_METHOD_LABELS[order.paymentMethod]}
+              </Badge>
+            ) : (
+              <StatusBadge
+                status={order.paymentStatus ?? 'unpaid'}
+                statusMap={PAYMENT_STATUS_MAP}
+              />
+            )}
             {expanded ? (
               <ChevronUp className="h-4 w-4 text-text-tertiary" />
             ) : (
@@ -429,78 +740,121 @@ function OrderCard({
               </p>
             )}
 
+            {/* Staff notes editor */}
+            <StaffNotesEditor
+              order={order}
+              onSave={onUpdateStaffNotes}
+              isSaving={isStaffNotesSaving}
+            />
+
+            {/* Discount override display */}
+            {order.discountOverride != null && order.discountOverride > 0 && (
+              <div className="mt-2 text-xs bg-warning/10 border border-warning/20 rounded-md p-2">
+                <span className="font-semibold text-warning">Discount: -{formatPrice(order.discountOverride)}</span>
+                {order.overrideReason && (
+                  <span className="text-text-secondary ml-1.5">({order.overrideReason})</span>
+                )}
+              </div>
+            )}
+
+            {/* Paid/Refunded guard badges */}
+            {(order.paymentStatus ?? 'unpaid') === 'paid' && (
+              <div className="mt-3">
+                <Badge variant="success">
+                  <Check className="h-3 w-3 mr-1" />
+                  Paid &mdash; Locked
+                  {order.paymentMethod ? ` (${PAYMENT_METHOD_LABELS[order.paymentMethod]})` : ''}
+                </Badge>
+              </div>
+            )}
+            {(order.paymentStatus ?? 'unpaid') === 'refunded' && (
+              <div className="mt-3">
+                <Badge variant="error">Refunded</Badge>
+              </div>
+            )}
+
             {/* Action buttons */}
             <div className="flex flex-wrap items-center gap-2 mt-4">
-              {nextStatus && nextLabel && (
-                <Button
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onUpdateStatus(order.id, nextStatus);
-                  }}
-                  loading={isUpdating}
-                  className="min-h-[44px]"
-                >
-                  {nextLabel}
-                </Button>
-              )}
+              {(order.paymentStatus ?? 'unpaid') === 'refunded' ? (
+                // Refunded — all actions disabled
+                <span className="text-xs text-text-tertiary italic">All actions disabled (order refunded)</span>
+              ) : (
+                <>
+                  {nextStatus && nextLabel && (
+                    <Button
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onUpdateStatus(order.id, nextStatus);
+                      }}
+                      loading={isUpdating}
+                      disabled={(order.paymentStatus ?? 'unpaid') === 'paid'}
+                      title={(order.paymentStatus ?? 'unpaid') === 'paid' ? 'Order is paid. Contact a manager to modify.' : undefined}
+                      className="min-h-[44px]"
+                    >
+                      {nextLabel}
+                    </Button>
+                  )}
 
-              {/* Payment status toggle */}
-              {(order.paymentStatus ?? 'unpaid') !== 'paid' && order.status !== 'cancelled' && (
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onUpdatePaymentStatus(order.id, 'paid');
-                  }}
-                  loading={isPaymentUpdating}
-                  className="min-h-[44px]"
-                >
-                  <CreditCard className="h-3.5 w-3.5 mr-1" />
-                  Mark Paid
-                </Button>
-              )}
-              {(order.paymentStatus ?? 'unpaid') === 'paid' && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onUpdatePaymentStatus(order.id, 'refunded');
-                  }}
-                  loading={isPaymentUpdating}
-                  className="min-h-[44px]"
-                >
-                  Refund
-                </Button>
-              )}
+                  {/* Payment status: dropdown for unpaid, locked badge for paid */}
+                  {(order.paymentStatus ?? 'unpaid') !== 'paid' && order.status !== 'cancelled' && (
+                    <PaymentMethodSelect
+                      order={order}
+                      onSelect={onUpdatePaymentStatus}
+                      isPending={isPaymentUpdating}
+                    />
+                  )}
+                  {(order.paymentStatus ?? 'unpaid') === 'paid' && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onUpdatePaymentStatus(order.id, 'refunded');
+                      }}
+                      loading={isPaymentUpdating}
+                      className="min-h-[44px]"
+                    >
+                      Refund
+                    </Button>
+                  )}
 
-              {/* Print receipt */}
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  printReceipt(order, tenantName);
-                }}
-                className="min-h-[44px]"
-              >
-                <Printer className="h-3.5 w-3.5 mr-1" />
-                Print
-              </Button>
+                  {/* Print receipt */}
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      printReceipt(order, tenantName);
+                    }}
+                    className="min-h-[44px]"
+                  >
+                    <Printer className="h-3.5 w-3.5 mr-1" />
+                    Print
+                  </Button>
 
-              {order.status !== 'cancelled' && order.status !== 'delivered' && (
-                <ConfirmButton
-                  variant="destructive"
-                  size="sm"
-                  onConfirm={() => onUpdateStatus(order.id, 'cancelled')}
-                  confirmText="Cancel this order?"
-                  disabled={isUpdating}
-                  className="min-h-[44px]"
-                >
-                  Cancel Order
-                </ConfirmButton>
+                  {/* Discount override — owner/manager only */}
+                  {(userRole === 'owner' || userRole === 'manager') && (order.paymentStatus ?? 'unpaid') !== 'paid' && (
+                    <DiscountOverridePopover
+                      order={order}
+                      onApply={onApplyOverride}
+                      isPending={isOverridePending}
+                    />
+                  )}
+
+                  {order.status !== 'cancelled' && order.status !== 'delivered' && (order.paymentStatus ?? 'unpaid') !== 'paid' && (
+                    <ConfirmButton
+                      variant="destructive"
+                      size="sm"
+                      onConfirm={() => onUpdateStatus(order.id, 'cancelled')}
+                      confirmText="Cancel this order?"
+                      disabled={isUpdating}
+                      className="min-h-[44px]"
+                    >
+                      Cancel Order
+                    </ConfirmButton>
+                  )}
+                </>
               )}
             </div>
           </CardContent>
@@ -548,6 +902,7 @@ function OnboardingStep({ number, title, description, link }: OnboardingStepProp
 
 export function OrderDashboard() {
   const { tenantSlug, tenant } = useTenant();
+  const { user } = useAuth();
 
   const [statusFilter, setStatusFilter] = useState('');
   const [tableFilter, setTableFilter] = useState('');
@@ -582,6 +937,8 @@ export function OrderDashboard() {
   const updateStatus = useUpdateOrderStatus(tenantSlug);
   const handleCancellation = useHandleCancellationRequest(tenantSlug);
   const updatePayment = useUpdatePaymentStatus(tenantSlug);
+  const updateStaffNotes = useUpdateStaffNotes(tenantSlug);
+  const applyOverride = useApplyOverride(tenantSlug);
 
   const handleUpdateStatus = (id: string, status: OrderStatus) => {
     updateStatus.mutate(
@@ -597,12 +954,13 @@ export function OrderDashboard() {
     );
   };
 
-  const handleUpdatePaymentStatus = (id: string, paymentStatus: PaymentStatus) => {
+  const handleUpdatePaymentStatus = (id: string, paymentStatus: PaymentStatus, paymentMethod?: PaymentMethod) => {
     updatePayment.mutate(
-      { id, paymentStatus },
+      { id, paymentStatus, paymentMethod },
       {
         onSuccess: () => {
-          toast('success', `Payment marked as ${PAYMENT_STATUS_LABELS[paymentStatus]}`);
+          const methodLabel = paymentMethod ? ` (${PAYMENT_METHOD_LABELS[paymentMethod]})` : '';
+          toast('success', `Payment marked as ${PAYMENT_STATUS_LABELS[paymentStatus]}${methodLabel}`);
         },
         onError: (err: Error) => {
           toast('error', err.message || 'Failed to update payment status');
@@ -620,6 +978,34 @@ export function OrderDashboard() {
         },
         onError: (err: Error) => {
           toast('error', err.message || 'Failed to handle cancellation');
+        },
+      },
+    );
+  };
+
+  const handleUpdateStaffNotes = (orderId: string, staffNotes: string) => {
+    updateStaffNotes.mutate(
+      { orderId, staffNotes },
+      {
+        onSuccess: () => {
+          toast('success', 'Staff notes updated');
+        },
+        onError: (err: Error) => {
+          toast('error', err.message || 'Failed to update staff notes');
+        },
+      },
+    );
+  };
+
+  const handleApplyOverride = (orderId: string, amount: number, reason: string) => {
+    applyOverride.mutate(
+      { orderId, amount, reason },
+      {
+        onSuccess: () => {
+          toast('success', `Discount of ${formatPrice(amount)} applied`);
+        },
+        onError: (err: Error) => {
+          toast('error', err.message || 'Failed to apply discount');
         },
       },
     );
@@ -745,6 +1131,17 @@ export function OrderDashboard() {
                 updatePayment.isPending &&
                 updatePayment.variables?.id === order.id
               }
+              onUpdateStaffNotes={handleUpdateStaffNotes}
+              isStaffNotesSaving={
+                updateStaffNotes.isPending &&
+                updateStaffNotes.variables?.orderId === order.id
+              }
+              onApplyOverride={handleApplyOverride}
+              isOverridePending={
+                applyOverride.isPending &&
+                applyOverride.variables?.orderId === order.id
+              }
+              userRole={user?.role ?? 'staff'}
               tenantName={tenant?.name ?? 'Restaurant'}
             />
           ))}

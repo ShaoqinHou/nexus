@@ -15,8 +15,9 @@ import {
   orderItems,
 } from '../../../db/schema.js';
 import type { DrizzleDB } from '../../../db/client.js';
-import type { OrderStatus } from '../../../db/schema.js';
+import type { OrderStatus, PaymentMethod } from '../../../db/schema.js';
 import { validatePromoCode, applyPromotion } from './promotions.js';
+import { upsertTableStatus } from './tables.js';
 
 // --- Order Service ---
 
@@ -76,6 +77,7 @@ export function createOrder(
     menuItemId: string;
     name: string;
     price: number;
+    allergens: string | null;
     quantity: number;
     notes: string | null;
     modifiersJson: string | null;
@@ -99,6 +101,19 @@ export function createOrder(
 
     if (!menuItem) {
       return { error: `Menu item not found or unavailable: ${orderItem.menuItemId}` as const };
+    }
+
+    // Sold-out check
+    if (menuItem.isSoldOut) {
+      // Auto-clear if soldOutUntil has passed
+      if (menuItem.soldOutUntil && new Date(menuItem.soldOutUntil) < new Date()) {
+        db.update(menuItems)
+          .set({ isSoldOut: 0, soldOutUntil: null, updatedAt: new Date().toISOString() })
+          .where(eq(menuItems.id, menuItem.id))
+          .run();
+      } else {
+        return { error: `Item '${menuItem.name}' is currently sold out` as const };
+      }
     }
 
     // Validate and snapshot modifiers
@@ -136,6 +151,7 @@ export function createOrder(
       menuItemId: menuItem.id,
       name: menuItem.name,
       price: menuItem.price + modifierPriceTotal,
+      allergens: menuItem.allergens ?? null,
       quantity: orderItem.quantity,
       notes: orderItem.notes ?? null,
       modifiersJson: modifiersSnapshot ? JSON.stringify(modifiersSnapshot) : null,
@@ -233,6 +249,18 @@ export function createOrder(
             return { error: `Menu item not found: ${sel.menuItemId}` as const };
           }
 
+          // Sold-out check for combo items
+          if (menuItem.isSoldOut) {
+            if (menuItem.soldOutUntil && new Date(menuItem.soldOutUntil) < new Date()) {
+              db.update(menuItems)
+                .set({ isSoldOut: 0, soldOutUntil: null, updatedAt: new Date().toISOString() })
+                .where(eq(menuItems.id, menuItem.id))
+                .run();
+            } else {
+              return { error: `Item '${menuItem.name}' is currently sold out` as const };
+            }
+          }
+
           comboPriceModifiers += slotOption.priceModifier;
 
           // Validate and snapshot modifiers for this combo selection
@@ -273,6 +301,7 @@ export function createOrder(
             menuItemId: menuItem.id,
             name: `[${deal.name}] ${menuItem.name}`,
             price: 0, // individual items in a combo are $0; combo price is on the group
+            allergens: menuItem.allergens ?? null,
             quantity: comboItem.quantity,
             notes: comboItem.notes ?? null,
             modifiersJson: JSON.stringify({
@@ -416,6 +445,7 @@ export function createOrder(
         price: item.price,
         quantity: item.quantity,
         notes: item.notes,
+        allergens: item.allergens,
         modifiersJson: item.modifiersJson,
         comboDealId: item.comboDealId,
         comboGroupId: item.comboGroupId,
@@ -423,6 +453,9 @@ export function createOrder(
       .returning()
       .get()
   );
+
+  // Auto-update table status to 'occupied' on new order
+  upsertTableStatus(db, tenantId, data.tableNumber, 'occupied');
 
   return { data: { ...order, items: createdItems } };
 }
@@ -567,6 +600,11 @@ export function updateOrderStatus(
     return undefined;
   }
 
+  // Auto table status: delivered + paid → needs_cleaning
+  if (status === 'delivered' && updated.paymentStatus === 'paid') {
+    upsertTableStatus(db, tenantId, updated.tableNumber, 'needs_cleaning');
+  }
+
   const items = db
     .select()
     .from(orderItems)
@@ -642,11 +680,17 @@ export function addItemsToOrder(
     return { error: `Cannot modify order in '${order.status}' status` as const };
   }
 
+  // Guard: cannot modify paid/refunded orders
+  if (order.paymentStatus === 'paid' || order.paymentStatus === 'refunded') {
+    return { error: 'Cannot modify a paid order' as const };
+  }
+
   // Validate and snapshot all items (same logic as createOrder for regular items)
   const resolvedItems: Array<{
     menuItemId: string;
     name: string;
     price: number;
+    allergens: string | null;
     quantity: number;
     notes: string | null;
     modifiersJson: string | null;
@@ -668,6 +712,18 @@ export function addItemsToOrder(
 
     if (!menuItem) {
       return { error: `Menu item not found or unavailable: ${orderItem.menuItemId}` as const };
+    }
+
+    // Sold-out check
+    if (menuItem.isSoldOut) {
+      if (menuItem.soldOutUntil && new Date(menuItem.soldOutUntil) < new Date()) {
+        db.update(menuItems)
+          .set({ isSoldOut: 0, soldOutUntil: null, updatedAt: new Date().toISOString() })
+          .where(eq(menuItems.id, menuItem.id))
+          .run();
+      } else {
+        return { error: `Item '${menuItem.name}' is currently sold out` as const };
+      }
     }
 
     // Validate and snapshot modifiers
@@ -704,6 +760,7 @@ export function addItemsToOrder(
       menuItemId: menuItem.id,
       name: menuItem.name,
       price: menuItem.price + modifierPriceTotal,
+      allergens: menuItem.allergens ?? null,
       quantity: orderItem.quantity,
       notes: orderItem.notes ?? null,
       modifiersJson: modifiersSnapshot ? JSON.stringify(modifiersSnapshot) : null,
@@ -721,6 +778,7 @@ export function addItemsToOrder(
         price: item.price,
         quantity: item.quantity,
         notes: item.notes,
+        allergens: item.allergens,
         modifiersJson: item.modifiersJson,
         status: 'active',
       })
@@ -786,6 +844,11 @@ export function requestItemCancellation(
 
   if (!(MODIFIABLE_ORDER_STATUSES as readonly string[]).includes(order.status)) {
     return { error: `Cannot modify order in '${order.status}' status` as const };
+  }
+
+  // Guard: cannot cancel items on paid/refunded orders
+  if (order.paymentStatus !== 'unpaid') {
+    return { error: 'Cannot modify a paid order' as const };
   }
 
   // Validate all items belong to this order and are currently active
@@ -937,6 +1000,7 @@ export function updatePaymentStatus(
   tenantId: string,
   orderId: string,
   paymentStatus: PaymentStatus,
+  paymentMethod?: PaymentMethod,
 ) {
   const order = db
     .select()
@@ -953,12 +1017,17 @@ export function updatePaymentStatus(
     return { error: 'Order not found' as const };
   }
 
+  const updateData: Record<string, unknown> = {
+    paymentStatus,
+    updatedAt: new Date().toISOString(),
+  };
+  if (paymentMethod !== undefined) {
+    updateData.paymentMethod = paymentMethod;
+  }
+
   const updated = db
     .update(orders)
-    .set({
-      paymentStatus,
-      updatedAt: new Date().toISOString(),
-    })
+    .set(updateData)
     .where(
       and(
         eq(orders.id, orderId),
@@ -972,6 +1041,11 @@ export function updatePaymentStatus(
     return { error: 'Failed to update payment status' as const };
   }
 
+  // Auto table status: delivered + paid → needs_cleaning
+  if (paymentStatus === 'paid' && updated.status === 'delivered') {
+    upsertTableStatus(db, tenantId, updated.tableNumber, 'needs_cleaning');
+  }
+
   const items = db
     .select()
     .from(orderItems)
@@ -979,6 +1053,201 @@ export function updatePaymentStatus(
     .all();
 
   return { data: { ...updated, items } };
+}
+
+// --- Staff Notes ---
+
+/**
+ * Update staff-only notes on an order.
+ */
+export function updateStaffNotes(
+  db: DrizzleDB,
+  tenantId: string,
+  orderId: string,
+  staffNotes: string,
+) {
+  const updated = db
+    .update(orders)
+    .set({
+      staffNotes,
+      updatedAt: new Date().toISOString(),
+    })
+    .where(
+      and(
+        eq(orders.id, orderId),
+        eq(orders.tenantId, tenantId)
+      )
+    )
+    .returning()
+    .get();
+
+  if (!updated) {
+    return undefined;
+  }
+
+  const items = db
+    .select()
+    .from(orderItems)
+    .where(eq(orderItems.orderId, updated.id))
+    .all();
+
+  return { ...updated, items };
+}
+
+// --- KDS Item Completion ---
+
+/**
+ * Toggle completion status of an individual order item (KDS use).
+ */
+export function toggleItemCompletion(
+  db: DrizzleDB,
+  tenantId: string,
+  orderId: string,
+  itemId: string,
+  completed: boolean,
+) {
+  // Validate order belongs to tenant
+  const order = db
+    .select()
+    .from(orders)
+    .where(
+      and(
+        eq(orders.id, orderId),
+        eq(orders.tenantId, tenantId)
+      )
+    )
+    .get();
+
+  if (!order) {
+    return undefined;
+  }
+
+  const updated = db
+    .update(orderItems)
+    .set({
+      completedAt: completed ? new Date().toISOString() : null,
+    })
+    .where(
+      and(
+        eq(orderItems.id, itemId),
+        eq(orderItems.orderId, orderId)
+      )
+    )
+    .returning()
+    .get();
+
+  return updated;
+}
+
+// --- Price Override / Comp ---
+
+/**
+ * Apply a manager discount override to an order.
+ * Recalculates the total: original subtotal - discountAmount - discountOverride + taxAmount
+ */
+export function applyDiscountOverride(
+  db: DrizzleDB,
+  tenantId: string,
+  orderId: string,
+  staffId: string,
+  amount: number,
+  reason: string,
+) {
+  const order = db
+    .select()
+    .from(orders)
+    .where(
+      and(
+        eq(orders.id, orderId),
+        eq(orders.tenantId, tenantId)
+      )
+    )
+    .get();
+
+  if (!order) {
+    return undefined;
+  }
+
+  // Recalculate total: compute original subtotal from active items
+  const activeItems = db
+    .select()
+    .from(orderItems)
+    .where(
+      and(
+        eq(orderItems.orderId, orderId),
+        or(
+          eq(orderItems.status, 'active'),
+          eq(orderItems.status, 'cancel_requested')
+        )
+      )
+    )
+    .all();
+
+  const subtotal = activeItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const discountAmount = order.discountAmount ?? 0;
+  const taxAmount = order.taxAmount ?? 0;
+  const newTotal = Math.max(0, Math.round((subtotal - discountAmount - amount + taxAmount) * 100) / 100);
+
+  const updated = db
+    .update(orders)
+    .set({
+      discountOverride: amount,
+      overrideReason: reason,
+      overrideBy: staffId,
+      total: newTotal,
+      updatedAt: new Date().toISOString(),
+    })
+    .where(
+      and(
+        eq(orders.id, orderId),
+        eq(orders.tenantId, tenantId)
+      )
+    )
+    .returning()
+    .get();
+
+  if (!updated) {
+    return undefined;
+  }
+
+  const items = db
+    .select()
+    .from(orderItems)
+    .where(eq(orderItems.orderId, updated.id))
+    .all();
+
+  return { ...updated, items };
+}
+
+// --- Sold Out Toggle ---
+
+/**
+ * Toggle sold-out status of a menu item.
+ */
+export function toggleSoldOut(
+  db: DrizzleDB,
+  tenantId: string,
+  itemId: string,
+  isSoldOut: boolean,
+  soldOutUntil?: string,
+) {
+  const updated = db
+    .update(menuItems)
+    .set({
+      isSoldOut: isSoldOut ? 1 : 0,
+      soldOutUntil: isSoldOut ? (soldOutUntil ?? null) : null,
+      updatedAt: new Date().toISOString(),
+    })
+    .where(
+      and(
+        eq(menuItems.id, itemId),
+        eq(menuItems.tenantId, tenantId)
+      )
+    )
+    .returning()
+    .get();
+
+  return updated;
 }
 
 // --- Export Service ---

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { TrendingUp, ShoppingBag, DollarSign, BarChart3, PackageOpen, Tag, CalendarDays, Printer, Download } from 'lucide-react';
+import { TrendingUp, ShoppingBag, DollarSign, BarChart3, PackageOpen, Tag, CalendarDays, Printer, Download, Star, MessageSquare } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, Button, Input, Badge } from '@web/components/ui';
 import { EmptyState } from '@web/components/patterns';
 import { formatPrice } from '@web/lib/format';
@@ -12,6 +12,8 @@ import {
   useOrderStats,
   usePromoStats,
   useDailySummary,
+  useFeedbackSummary,
+  useFeedbackList,
 } from '../hooks/useAnalytics';
 import type { DailyRevenue, PeakHour, DailySummary } from '../hooks/useAnalytics';
 
@@ -397,7 +399,7 @@ function DateRangeLabel(days: number): string {
   return `${days}d`;
 }
 
-type AnalyticsTab = 'overview' | 'daily-summary';
+type AnalyticsTab = 'overview' | 'daily-summary' | 'feedback';
 
 export function Analytics() {
   const { tenantSlug, tenant } = useTenant();
@@ -479,6 +481,19 @@ export function Analytics() {
           >
             <CalendarDays className="h-4 w-4" />
             Daily Summary
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('feedback')}
+            className={[
+              'px-4 py-2.5 min-h-[44px] text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+              activeTab === 'feedback'
+                ? 'bg-primary text-text-inverse'
+                : 'bg-bg-muted text-text-secondary hover:bg-bg-surface',
+            ].join(' ')}
+          >
+            <Star className="h-4 w-4" />
+            Feedback
           </button>
           <Button
             variant="secondary"
@@ -690,6 +705,156 @@ export function Analytics() {
       </div>
       </>
       )}
+
+      {/* Feedback Tab */}
+      {activeTab === 'feedback' && (
+        <FeedbackSection tenantSlug={tenantSlug} />
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Feedback Section (separate component to isolate hooks)
+// ---------------------------------------------------------------------------
+
+function FeedbackSection({ tenantSlug }: { tenantSlug: string }) {
+  const { data: summary } = useFeedbackSummary(tenantSlug);
+  const [page, setPage] = useState(1);
+  const { data: feedbackPage } = useFeedbackList(tenantSlug, page);
+
+  const entries = feedbackPage?.data ?? [];
+  const total = feedbackPage?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / 10));
+
+  return (
+    <div className="space-y-4">
+      {/* Summary cards */}
+      {summary && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Card>
+            <CardContent className="p-4 text-center">
+              <div className="flex items-center justify-center gap-1 mb-1">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <Star
+                    key={n}
+                    className={[
+                      'h-5 w-5',
+                      n <= Math.round(summary.avgRating)
+                        ? 'fill-warning text-warning'
+                        : 'text-border',
+                    ].join(' ')}
+                  />
+                ))}
+              </div>
+              <p className="text-2xl font-bold text-text tabular-nums">
+                {summary.avgRating > 0 ? summary.avgRating.toFixed(1) : '—'}
+              </p>
+              <p className="text-xs text-text-secondary">Average Rating</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 text-center">
+              <p className="text-2xl font-bold text-text tabular-nums">{summary.totalCount}</p>
+              <p className="text-xs text-text-secondary">Total Reviews</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <p className="text-xs text-text-secondary mb-2 text-center">Rating Breakdown</p>
+              {[5, 4, 3, 2, 1].map((n) => {
+                const count = summary.ratingBreakdown[String(n)] ?? 0;
+                const pct = summary.totalCount > 0 ? (count / summary.totalCount) * 100 : 0;
+                return (
+                  <div key={n} className="flex items-center gap-2 text-xs">
+                    <span className="w-3 text-text-secondary tabular-nums">{n}</span>
+                    <Star className="h-3 w-3 fill-warning text-warning shrink-0" />
+                    <div className="flex-1 h-2 bg-bg-muted rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-warning rounded-full transition-all"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                    <span className="w-6 text-right text-text-tertiary tabular-nums">{count}</span>
+                  </div>
+                );
+              })}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Recent feedback */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5 text-primary" />
+            Recent Feedback
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {entries.length > 0 ? (
+            <div className="space-y-3">
+              {entries.map((fb) => (
+                <div key={fb.id} className="flex gap-3 p-3 rounded-lg bg-bg-muted">
+                  <div className="shrink-0 flex items-center gap-0.5">
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <Star
+                        key={n}
+                        className={[
+                          'h-3.5 w-3.5',
+                          n <= fb.rating ? 'fill-warning text-warning' : 'text-border',
+                        ].join(' ')}
+                      />
+                    ))}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    {fb.comment && (
+                      <p className="text-sm text-text">{fb.comment}</p>
+                    )}
+                    <p className="text-xs text-text-tertiary mt-1">
+                      Table {fb.tableNumber} · {new Date(fb.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              ))}
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 pt-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page <= 1}
+                  >
+                    Previous
+                  </Button>
+                  <span className="text-sm text-text-secondary">
+                    {page} / {totalPages}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={page >= totalPages}
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="py-8">
+              <EmptyState
+                icon={Star}
+                title="No feedback yet"
+                description="Customer feedback will appear here after orders are delivered."
+              />
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

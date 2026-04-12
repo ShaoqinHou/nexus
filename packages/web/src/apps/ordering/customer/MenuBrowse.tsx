@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect, useMemo, memo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Plus, Minus, UtensilsCrossed, Package, Search, X, AlertTriangle, ArrowUp, Moon, Sun, BellRing } from 'lucide-react';
+import { Plus, Minus, UtensilsCrossed, Package, Search, X, AlertTriangle, ArrowUp, Moon, Sun, BellRing, Receipt } from 'lucide-react';
 import { apiClient } from '@web/lib/api';
 import { formatPrice, parseTags } from '@web/lib/format';
 import { Button } from '@web/components/ui';
@@ -18,6 +18,8 @@ import { ALLERGENS } from '@web/apps/ordering/types';
 
 interface PublicMenuItem extends MenuItem {
   modifierGroups?: ModifierGroup[];
+  isSoldOut?: number | null;
+  soldOutUntil?: string | null;
 }
 
 interface PublicMenuCategory {
@@ -138,7 +140,8 @@ const MenuItemCard = memo(function MenuItemCard({
     }
   }, [updateQuantity, items, item.id, totalQuantity]);
 
-  const isUnavailable = !item.isAvailable || disabled;
+  const isSoldOut = !!item.isSoldOut;
+  const isUnavailable = !item.isAvailable || disabled || isSoldOut;
 
   const [imgError, setImgError] = useState(false);
 
@@ -152,7 +155,7 @@ const MenuItemCard = memo(function MenuItemCard({
       className={[
         'flex gap-3 p-3 rounded-lg border border-border bg-bg-elevated',
         'lg:flex-col lg:gap-0 lg:p-0 lg:overflow-hidden',
-        isUnavailable ? 'opacity-50' : '',
+        isSoldOut ? 'opacity-60' : isUnavailable ? 'opacity-50' : '',
       ].join(' ')}
     >
       {/* Item image thumbnail — row on mobile, full-width top on desktop */}
@@ -175,9 +178,16 @@ const MenuItemCard = memo(function MenuItemCard({
           <h3 className="text-sm font-semibold text-text truncate">
             {item.name}
           </h3>
-          <span className="text-sm font-semibold text-primary whitespace-nowrap">
-            {formatPrice(item.price)}
-          </span>
+          <div className="flex items-center gap-2 shrink-0">
+            {isSoldOut && (
+              <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold bg-danger/10 text-danger">
+                Sold Out
+              </span>
+            )}
+            <span className="text-sm font-semibold text-primary whitespace-nowrap">
+              {formatPrice(item.price)}
+            </span>
+          </div>
         </div>
         {item.description && (
           <p className="mt-0.5 text-xs text-text-secondary line-clamp-2 lg:line-clamp-3">
@@ -192,7 +202,11 @@ const MenuItemCard = memo(function MenuItemCard({
             <span className="hidden lg:inline">Customizable{modifierPreview ? ` \u00b7 ${modifierPreview}` : ''}</span>
           </p>
         )}
-        {isUnavailable && (
+        {isSoldOut ? (
+          <p className="mt-1 text-xs font-medium text-danger">
+            Sold Out{item.soldOutUntil ? ` until ${item.soldOutUntil}` : ''}
+          </p>
+        ) : isUnavailable && (
           <p className="mt-1 text-xs font-medium text-danger">Unavailable</p>
         )}
       </div>
@@ -425,6 +439,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
   const [allergenFilterOpen, setAllergenFilterOpen] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [waiterCooldown, setWaiterCooldown] = useState(false);
+  const [billCooldown, setBillCooldown] = useState(false);
   const sectionRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const { addItem } = useCart();
   const { theme, toggleTheme } = useTheme();
@@ -433,7 +448,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
 
   const handleCallWaiter = useCallback(() => {
     if (!tableNumber || waiterCooldown) return;
-    callWaiter.mutate(tableNumber, {
+    callWaiter.mutate({ tableNumber, callType: 'assistance' }, {
       onSuccess: () => {
         toast('success', 'Waiter notified!');
         setWaiterCooldown(true);
@@ -444,6 +459,20 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
       },
     });
   }, [tableNumber, waiterCooldown, callWaiter, toast]);
+
+  const handleRequestBill = useCallback(() => {
+    if (!tableNumber || billCooldown) return;
+    callWaiter.mutate({ tableNumber, callType: 'bill' }, {
+      onSuccess: () => {
+        toast('success', 'Bill requested! A waiter will bring it shortly.');
+        setBillCooldown(true);
+        setTimeout(() => setBillCooldown(false), 30_000);
+      },
+      onError: () => {
+        toast('error', 'Could not request bill. Please try again.');
+      },
+    });
+  }, [tableNumber, billCooldown, callWaiter, toast]);
 
   // Search history state
   const [searchHistory, setSearchHistory] = useState<string[]>(() => {
@@ -1154,25 +1183,47 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
         </button>
       )}
 
-      {/* Call waiter floating button — only shown when a table number is available */}
+      {/* Floating action buttons — only shown when a table number is available */}
       {tableNumber && (
-        <button
-          type="button"
-          onClick={handleCallWaiter}
-          disabled={waiterCooldown || callWaiter.isPending}
-          className={[
-            'fixed bottom-20 left-4 lg:bottom-4 lg:left-8 z-30 flex items-center gap-2 px-4 h-14 rounded-full shadow-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
-            waiterCooldown || callWaiter.isPending
-              ? 'bg-bg-muted text-text-tertiary cursor-not-allowed'
-              : 'bg-warning text-text-inverse hover:opacity-90 active:scale-[0.97]',
-          ].join(' ')}
-          aria-label="Call waiter"
-        >
-          <BellRing className="h-5 w-5 shrink-0" />
-          <span className="text-sm font-semibold whitespace-nowrap">
-            {waiterCooldown ? 'Called!' : 'Call Waiter'}
-          </span>
-        </button>
+        <div className="fixed bottom-20 left-4 lg:bottom-4 lg:left-8 z-30 flex flex-col gap-2">
+          {/* Request Bill button */}
+          <button
+            type="button"
+            onClick={handleRequestBill}
+            disabled={billCooldown || callWaiter.isPending}
+            className={[
+              'flex items-center gap-2 px-4 h-14 rounded-full shadow-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+              billCooldown || callWaiter.isPending
+                ? 'bg-bg-muted text-text-tertiary cursor-not-allowed'
+                : 'bg-success text-text-inverse hover:opacity-90 active:scale-[0.97]',
+            ].join(' ')}
+            aria-label="Request bill"
+          >
+            <Receipt className="h-5 w-5 shrink-0" />
+            <span className="text-sm font-semibold whitespace-nowrap">
+              {billCooldown ? 'Requested!' : 'Request Bill'}
+            </span>
+          </button>
+
+          {/* Call Waiter button */}
+          <button
+            type="button"
+            onClick={handleCallWaiter}
+            disabled={waiterCooldown || callWaiter.isPending}
+            className={[
+              'flex items-center gap-2 px-4 h-14 rounded-full shadow-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+              waiterCooldown || callWaiter.isPending
+                ? 'bg-bg-muted text-text-tertiary cursor-not-allowed'
+                : 'bg-warning text-text-inverse hover:opacity-90 active:scale-[0.97]',
+            ].join(' ')}
+            aria-label="Call waiter"
+          >
+            <BellRing className="h-5 w-5 shrink-0" />
+            <span className="text-sm font-semibold whitespace-nowrap">
+              {waiterCooldown ? 'Called!' : 'Call Waiter'}
+            </span>
+          </button>
+        </div>
       )}
     </div>
     </>

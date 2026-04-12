@@ -157,3 +157,43 @@ export function useDailySummary(tenantSlug: string, date: string) {
     enabled: !!date,
   });
 }
+
+// --- Feedback Analytics ---
+
+export interface FeedbackSummary {
+  avgRating: number;
+  totalCount: number;
+  ratingBreakdown: Record<string, number>;
+}
+
+export interface FeedbackEntry {
+  id: string;
+  orderId: string;
+  tableNumber: string;
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+}
+
+export function useFeedbackSummary(tenantSlug: string) {
+  return useQuery({
+    queryKey: orderingKeys.feedbackSummary(),
+    queryFn: () =>
+      apiClient.get<{ data: FeedbackSummary }>(
+        `/t/${tenantSlug}/ordering/feedback/summary`,
+      ),
+    select: (res) => res.data,
+    staleTime: ANALYTICS_STALE_TIME,
+  });
+}
+
+export function useFeedbackList(tenantSlug: string, page = 1) {
+  return useQuery({
+    queryKey: [...orderingKeys.feedback(), page] as const,
+    queryFn: () =>
+      apiClient.get<{ data: FeedbackEntry[]; total: number; page: number; limit: number }>(
+        `/t/${tenantSlug}/ordering/feedback?page=${page}&limit=10`,
+      ),
+    staleTime: ANALYTICS_STALE_TIME,
+  });
+}

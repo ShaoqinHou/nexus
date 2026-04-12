@@ -92,10 +92,10 @@ export function useAcknowledgeWaiterCall(tenantSlug: string) {
 
 export function useCallWaiter(tenantSlug: string) {
   return useMutation({
-    mutationFn: (tableNumber: string) =>
+    mutationFn: ({ tableNumber, callType = 'assistance' }: { tableNumber: string; callType?: 'assistance' | 'bill' }) =>
       apiClient.post<{ data: WaiterCall }>(
         `/order/${tenantSlug}/ordering/call-waiter`,
-        { tableNumber },
+        { tableNumber, callType },
       ),
   });
 }

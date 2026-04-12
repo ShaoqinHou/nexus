@@ -15,4 +15,7 @@ export const orderingKeys = {
   combos: () => [...orderingKeys.all, 'combos'] as const,
   tableStatuses: () => [...orderingKeys.all, 'table-statuses'] as const,
   waiterCalls: () => [...orderingKeys.all, 'waiter-calls'] as const,
+  feedback: () => [...orderingKeys.all, 'feedback'] as const,
+  feedbackSummary: () => [...orderingKeys.all, 'feedback-summary'] as const,
+  menu: () => [...orderingKeys.all, 'menu'] as const,
 };

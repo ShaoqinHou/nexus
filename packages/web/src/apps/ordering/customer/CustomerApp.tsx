@@ -1,6 +1,8 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useSearch } from '@tanstack/react-router';
-import { AlertCircle, QrCode, Clock } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { AlertCircle, QrCode, Clock, ClipboardList, Plus, Eye } from 'lucide-react';
+import { apiClient } from '@web/lib/api';
 import { Button } from '@web/components/ui';
 import { CartProvider } from '@web/apps/ordering/customer/CartProvider';
 import { MenuBrowse } from '@web/apps/ordering/customer/MenuBrowse';
@@ -12,6 +14,7 @@ import { useTour, isTourCompleted } from '@web/platform/TourProvider';
 import { isOpenNow } from '@web/lib/theme';
 import type { TenantThemeSettings } from '@web/lib/theme';
 import type { Order } from '@web/apps/ordering/types';
+import { orderingKeys } from '@web/apps/ordering/hooks/keys';
 import { customerOnboardingSteps, CUSTOMER_TOUR_ID } from '@web/apps/ordering/tours/customerTour';
 
 type CustomerView =
@@ -44,8 +47,11 @@ interface CustomerAppInnerProps {
   tableNumber: string;
 }
 
+const ACTIVE_ORDER_STATUSES = ['pending', 'confirmed', 'preparing', 'ready'];
+
 function CustomerAppInner({ tenantSlug, tableNumber }: CustomerAppInnerProps) {
   const [view, setView] = useState<CustomerView>({ type: 'menu' });
+  const [joinDecision, setJoinDecision] = useState<null | 'join' | 'new'>(null);
   const { tenant } = useTenant();
   const { startTour } = useTour();
   const tourStartedRef = useRef(false);
@@ -80,8 +86,22 @@ function CustomerAppInner({ tenantSlug, tableNumber }: CustomerAppInnerProps) {
     [tenantSlug, tableNumber],
   );
 
+  // Check most recent order status to detect active orders at this table
+  const mostRecentOrderId = recentOrders[0]?.id ?? null;
+  const { data: recentOrder } = useQuery({
+    queryKey: orderingKeys.order(mostRecentOrderId ?? ''),
+    queryFn: () =>
+      apiClient.get<{ data: Order }>(`/order/${tenantSlug}/ordering/orders/${mostRecentOrderId}`),
+    select: (res) => res.data,
+    enabled: !!mostRecentOrderId && joinDecision === null,
+    staleTime: 10_000,
+  });
+
+  const hasActiveOrder = !!recentOrder && ACTIVE_ORDER_STATUSES.includes(recentOrder.status);
+
   const handleOrderPlaced = useCallback((order: Order) => {
     setView({ type: 'confirmation', orderId: order.id });
+    setJoinDecision(null); // Reset for next scan
     // Save to localStorage history
     try {
       const key = getHistoryKey(tenantSlug, tableNumber);
@@ -111,6 +131,54 @@ function CustomerAppInner({ tenantSlug, tableNumber }: CustomerAppInnerProps) {
         taxRate={settings.taxRate}
         taxInclusive={settings.taxInclusive}
       />
+    );
+  }
+
+  // Join-existing-order landing screen
+  if (joinDecision === null && hasActiveOrder && recentOrder && view.type === 'menu' && !view.addToOrderId) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] p-6 text-center">
+        <div className="rounded-full bg-primary-light p-4 mb-4">
+          <ClipboardList className="h-8 w-8 text-primary" />
+        </div>
+        <h2 className="text-lg font-bold text-text mb-2">
+          Table {tableNumber} has an active order
+        </h2>
+        <p className="text-sm text-text-secondary max-w-xs mb-6">
+          Order #{recentOrder.id.slice(-6).toUpperCase()} is currently {recentOrder.status}.
+          Would you like to add to it or start fresh?
+        </p>
+        <div className="flex flex-col gap-3 w-full max-w-xs">
+          <Button
+            variant="primary"
+            size="lg"
+            className="w-full"
+            onClick={() => {
+              setJoinDecision('join');
+              setView({ type: 'menu', addToOrderId: recentOrder.id });
+            }}
+          >
+            <Plus className="h-4 w-4" />
+            Add to existing order
+          </Button>
+          <Button
+            variant="secondary"
+            size="lg"
+            className="w-full"
+            onClick={() => setJoinDecision('new')}
+          >
+            Start new order
+          </Button>
+          <button
+            type="button"
+            onClick={() => setView({ type: 'confirmation', orderId: recentOrder.id })}
+            className="text-sm font-medium text-primary hover:text-primary-hover py-2 min-h-[48px] flex items-center justify-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+          >
+            <Eye className="h-4 w-4" />
+            View order
+          </button>
+        </div>
+      </div>
     );
   }
 

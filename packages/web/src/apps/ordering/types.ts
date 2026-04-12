@@ -7,11 +7,14 @@ export type { DietaryTag, Allergen } from '@nexus/shared';
 // These represent the API response shape (with transformations like nested items).
 // The underlying constants (OrderStatus, DietaryTag, etc.) come from @nexus/shared.
 
+export type CategoryStation = 'all' | 'kitchen' | 'bar';
+
 export interface MenuCategory {
   id: string;
   tenantId: string;
   name: string;
   description: string | null;
+  station: CategoryStation;
   sortOrder: number;
   isActive: number;
   createdAt: string;
@@ -29,6 +32,8 @@ export interface MenuItem {
   tags: string | null;
   allergens: string | null;
   isAvailable: number;
+  isSoldOut?: number | null;
+  soldOutUntil?: string | null;
   sortOrder: number;
   isActive: number;
   createdAt: string;
@@ -57,6 +62,16 @@ export interface ModifierOption {
   isActive: number;
 }
 
+export type PaymentMethod = 'cash' | 'card' | 'qr_pay' | 'voucher' | 'complimentary';
+
+export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
+  cash: 'Cash',
+  card: 'Card',
+  qr_pay: 'QR Pay',
+  voucher: 'Voucher',
+  complimentary: 'Complimentary',
+};
+
 export interface OrderItem {
   id: string;
   orderId: string;
@@ -65,8 +80,10 @@ export interface OrderItem {
   price: number;
   quantity: number;
   notes: string | null;
+  allergens: string | null;
   modifiersJson: string | null;
   status: OrderItemStatus;
+  completedAt: string | null;
   createdAt: string;
 }
 
@@ -82,10 +99,15 @@ export interface Order {
   tableNumber: string;
   status: OrderStatus;
   paymentStatus: PaymentStatus;
+  paymentMethod?: PaymentMethod | null;
   notes: string | null;
+  staffNotes?: string | null;
   total: number;
   discountAmount: number | null;
   taxAmount: number | null;
+  discountOverride?: number | null;
+  overrideReason?: string | null;
+  overrideBy?: string | null;
   items: OrderItem[];
   createdAt: string;
   updatedAt: string;

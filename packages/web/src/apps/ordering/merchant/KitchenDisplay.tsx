@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import {
   Maximize,
   Minimize,
@@ -9,6 +10,8 @@ import {
   ChefHat,
   Wifi,
   WifiOff,
+  Printer,
+  Filter,
 } from 'lucide-react';
 import {
   ORDER_STATUS_FLOW,
@@ -17,12 +20,62 @@ import {
 import type { OrderStatus } from '@nexus/shared';
 import { Button } from '@web/components/ui';
 import { ConfirmButton } from '@web/components/patterns';
+import { apiClient } from '@web/lib/api';
 import { formatPrice, timeAgo } from '@web/lib/format';
 import { useTenant } from '@web/platform/tenant/TenantProvider';
 import { useAuth } from '@web/platform/auth/AuthProvider';
 import { useToast } from '@web/platform/ToastProvider';
 import { useUpdateOrderStatus } from '../hooks/useOrders';
+import { orderingKeys } from '../hooks/keys';
 import type { Order } from '../types';
+
+// ---------------------------------------------------------------------------
+// Station filter types + helpers
+// ---------------------------------------------------------------------------
+
+type StationFilter = 'all' | 'kitchen' | 'bar' | 'pass';
+
+const STATION_OPTIONS: { value: StationFilter; label: string }[] = [
+  { value: 'all', label: 'All' },
+  { value: 'kitchen', label: 'Kitchen' },
+  { value: 'bar', label: 'Bar' },
+  { value: 'pass', label: 'Pass' },
+];
+
+const STATION_STORAGE_KEY = 'nexus_kds_station';
+
+interface CategoryInfo {
+  id: string;
+  station: string;
+}
+
+interface MenuItemInfo {
+  id: string;
+  categoryId: string;
+}
+
+/** Fetch categories + items to build menuItemId→station lookup */
+function useStationLookup(tenantSlug: string) {
+  const { data } = useQuery({
+    queryKey: orderingKeys.menu(),
+    queryFn: () =>
+      apiClient.get<{
+        data: { categories: { id: string; station?: string }[]; items: { id: string; categoryId: string }[] };
+      }>(`/t/${tenantSlug}/ordering/menu`),
+    staleTime: 60_000,
+    gcTime: 300_000,
+    select: (res) => {
+      const cats = (res.data?.categories ?? []) as CategoryInfo[];
+      const items = (res.data?.items ?? []) as MenuItemInfo[];
+      const catStation = new Map<string, string>();
+      for (const c of cats) catStation.set(c.id, c.station ?? 'all');
+      const itemStation = new Map<string, string>();
+      for (const i of items) itemStation.set(i.id, catStation.get(i.categoryId) ?? 'all');
+      return itemStation;
+    },
+  });
+  return data ?? new Map<string, string>();
+}
 
 // ---------------------------------------------------------------------------
 // Kitchen status columns
@@ -66,17 +119,39 @@ const KITCHEN_COLUMNS: {
 
 const API_BASE = `${import.meta.env.BASE_URL}api`.replace(/\/\//g, '/');
 
+// Backoff delays in ms: 3s → 6s → 12s → 24s → 48s → 60s (cap)
+const BACKOFF_DELAYS = [3000, 6000, 12000, 24000, 48000, 60000];
+
 function useKitchenSSE(tenantSlug: string, token: string | null) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // null = connected/idle, number = seconds remaining until reconnect
+  const [reconnectCountdown, setReconnectCountdown] = useState<number | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const backoffIndexRef = useRef(0);
+
+  const clearCountdown = useCallback(() => {
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+    setReconnectCountdown(null);
+  }, []);
 
   const connect = useCallback(() => {
     if (!token) {
       setError('Not authenticated');
       return;
+    }
+
+    // Clear any pending countdown
+    clearCountdown();
+    if (reconnectTimerRef.current) {
+      clearTimeout(reconnectTimerRef.current);
+      reconnectTimerRef.current = null;
     }
 
     // Close existing connection
@@ -104,20 +179,37 @@ function useKitchenSSE(tenantSlug: string, token: string | null) {
       es.close();
       eventSourceRef.current = null;
 
-      // Reconnect after 5 seconds
-      if (reconnectTimerRef.current) {
-        clearTimeout(reconnectTimerRef.current);
-      }
+      // Exponential backoff
+      const delayMs = BACKOFF_DELAYS[Math.min(backoffIndexRef.current, BACKOFF_DELAYS.length - 1)];
+      backoffIndexRef.current = Math.min(backoffIndexRef.current + 1, BACKOFF_DELAYS.length - 1);
+
+      const delaySec = Math.round(delayMs / 1000);
+      setReconnectCountdown(delaySec);
+
+      // Tick countdown every second
+      let remaining = delaySec;
+      countdownIntervalRef.current = setInterval(() => {
+        remaining -= 1;
+        if (remaining <= 0) {
+          clearCountdown();
+        } else {
+          setReconnectCountdown(remaining);
+        }
+      }, 1000);
+
       reconnectTimerRef.current = setTimeout(() => {
         connect();
-      }, 5000);
+      }, delayMs);
     };
 
     es.onopen = () => {
+      // Reset backoff on successful connection
+      backoffIndexRef.current = 0;
       setConnected(true);
       setError(null);
+      clearCountdown();
     };
-  }, [tenantSlug, token]);
+  }, [tenantSlug, token, clearCountdown]);
 
   useEffect(() => {
     connect();
@@ -131,14 +223,104 @@ function useKitchenSSE(tenantSlug: string, token: string | null) {
         clearTimeout(reconnectTimerRef.current);
         reconnectTimerRef.current = null;
       }
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
+        countdownIntervalRef.current = null;
+      }
     };
   }, [connect]);
 
   const reconnect = useCallback(() => {
+    backoffIndexRef.current = 0;
     connect();
   }, [connect]);
 
-  return { orders, connected, error, reconnect };
+  return { orders, connected, error, reconnect, reconnectCountdown };
+}
+
+// ---------------------------------------------------------------------------
+// Kitchen ticket print helper
+// ---------------------------------------------------------------------------
+
+function printKitchenTicket(order: Order) {
+  const printWindow = window.open('', '_blank', 'width=400,height=600');
+  if (!printWindow) return;
+
+  const time = new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const orderId = order.id.slice(-6).toUpperCase();
+
+  const itemLines = order.items
+    .filter((item) => item.status !== 'cancelled')
+    .map((item) => {
+      let modLine = '';
+      if (item.modifiersJson) {
+        try {
+          const raw = JSON.parse(item.modifiersJson) as unknown;
+          let modNames: string[] = [];
+          if (Array.isArray(raw)) {
+            modNames = (raw as Array<{ name: string }>).map((m) => m.name);
+          } else if (raw && typeof raw === 'object') {
+            const obj = raw as Record<string, unknown>;
+            if (typeof obj.slotName === 'string') modNames.push(obj.slotName);
+            if (Array.isArray(obj.itemModifiers)) {
+              modNames.push(...(obj.itemModifiers as Array<{ name: string }>).map((m) => m.name));
+            }
+          }
+          if (modNames.length > 0) {
+            modLine = `<div style="margin-left:2em;font-size:1em;">[${modNames.join(', ')}]</div>`;
+          }
+        } catch {
+          // Ignore parse errors
+        }
+      }
+      const noteLine = item.notes
+        ? `<div style="margin-left:2em;font-size:1em;">Note: ${item.notes}</div>`
+        : '';
+      // allergens may not exist on OrderItem — use optional chaining via unknown cast
+      const allergens = (item as unknown as Record<string, unknown>).allergens;
+      const allergenLine =
+        allergens && typeof allergens === 'string' && allergens.trim()
+          ? `<div style="margin-left:2em;font-size:1em;font-weight:bold;">** ALLERGEN: ${allergens} **</div>`
+          : '';
+      return `<div style="font-size:1.2em;font-weight:bold;">${item.quantity}x ${item.name}</div>${modLine}${noteLine}${allergenLine}`;
+    })
+    .join('<hr style="border:none;border-top:1px dashed #333;margin:4px 0;" />');
+
+  const orderNoteLine = order.notes
+    ? `<div style="margin-top:8px;font-weight:bold;">Notes: ${order.notes}</div>`
+    : '';
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+  <title>Kitchen Ticket #${orderId}</title>
+  <style>
+    body { font-family: monospace; padding: 16px; font-size: 14px; color: #000; }
+    h1 { font-size: 1.4em; margin: 0 0 4px; }
+    .divider { border: none; border-top: 2px solid #000; margin: 6px 0; }
+    .header-row { display: flex; justify-content: space-between; font-size: 1.1em; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>KITCHEN TICKET</h1>
+  <hr class="divider" />
+  <div class="header-row">
+    <span>Table: ${order.tableNumber}</span>
+    <span>${time}</span>
+  </div>
+  <div style="font-size:1em;">Order: #${orderId}</div>
+  <hr class="divider" />
+  ${itemLines}
+  <hr class="divider" />
+  ${orderNoteLine}
+</body>
+</html>`;
+
+  printWindow.document.write(html);
+  printWindow.document.close();
+  printWindow.focus();
+  printWindow.print();
+  printWindow.close();
 }
 
 // ---------------------------------------------------------------------------
@@ -183,13 +365,24 @@ function KitchenOrderCard({
     >
       {/* Header — table number + time + total */}
       <div className="flex items-center justify-between px-4 py-3 bg-bg-muted border-b border-border">
-        <div>
+        <div className="flex items-center gap-2">
           <span className="text-3xl font-black text-text leading-none">
             T{order.tableNumber}
           </span>
-          <span className="text-sm font-semibold text-text-secondary ml-2">
+          <span className="text-sm font-semibold text-text-secondary">
             {formatPrice(order.total)}
           </span>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              printKitchenTicket(order);
+            }}
+            className="p-1 rounded text-text-tertiary hover:text-text hover:bg-bg transition-colors"
+            title="Print kitchen ticket"
+          >
+            <Printer className="h-4 w-4" />
+          </button>
         </div>
         <div
           className={[
@@ -284,6 +477,15 @@ function KitchenOrderCard({
                     {isDone ? item.notes : `⚠ ${item.notes}`}
                   </p>
                 )}
+                {/* Allergen warning — critical for food safety */}
+                {(item as unknown as { allergens?: string | null }).allergens && (
+                  <p className={[
+                    'text-xs font-bold mt-1 px-1.5 py-0.5 rounded inline-block',
+                    isDone ? 'text-text-tertiary bg-bg-muted' : 'text-danger bg-danger/10',
+                  ].join(' ')}>
+                    ⚠ {(item as unknown as { allergens: string }).allergens}
+                  </p>
+                )}
                 {item.status === 'cancel_requested' && (
                   <p className="text-sm font-bold text-danger mt-1">
                     CANCEL REQUESTED
@@ -362,11 +564,46 @@ export function KitchenDisplay() {
   const { toast } = useToast();
   const updateStatus = useUpdateOrderStatus(tenantSlug);
 
-  const { orders, connected, reconnect } = useKitchenSSE(tenantSlug, token);
+  const { orders, connected, reconnect, reconnectCountdown } = useKitchenSSE(tenantSlug, token);
 
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [completedItems, setCompletedItems] = useState<Set<string>>(new Set());
+
+  // Station filter — persisted to localStorage
+  const [station, setStation] = useState<StationFilter>(() => {
+    try {
+      const stored = localStorage.getItem(STATION_STORAGE_KEY);
+      if (stored && STATION_OPTIONS.some((o) => o.value === stored)) return stored as StationFilter;
+    } catch { /* ignore */ }
+    return 'all';
+  });
+  const handleStationChange = useCallback((s: StationFilter) => {
+    setStation(s);
+    try { localStorage.setItem(STATION_STORAGE_KEY, s); } catch { /* ignore */ }
+  }, []);
+  const itemStationMap = useStationLookup(tenantSlug);
+
+  // Audio context — created on first user click to satisfy browser autoplay policy
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const [audioSuspended, setAudioSuspended] = useState(true);
+
+  useEffect(() => {
+    const handleClick = () => {
+      if (!audioCtxRef.current) {
+        audioCtxRef.current = new AudioContext();
+      }
+      if (audioCtxRef.current.state === 'suspended') {
+        void audioCtxRef.current.resume().then(() => {
+          setAudioSuspended(false);
+        });
+      } else {
+        setAudioSuspended(false);
+      }
+    };
+    document.addEventListener('click', handleClick, { once: false });
+    return () => document.removeEventListener('click', handleClick);
+  }, []);
 
   const toggleItemDone = useCallback((itemId: string) => {
     setCompletedItems((prev) => {
@@ -381,12 +618,25 @@ export function KitchenDisplay() {
   const prevOrderCountRef = useRef(orders.length);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  // Filter orders by station
+  const filteredOrders = useMemo(() => {
+    if (station === 'all') return orders;
+    if (station === 'pass') return orders.filter((o) => o.status === 'ready');
+    // kitchen/bar: order has at least one item matching the station
+    return orders.filter((o) =>
+      o.items.some((item) => {
+        const s = itemStationMap.get(item.menuItemId);
+        return s === station || s === 'all';
+      }),
+    );
+  }, [orders, station, itemStationMap]);
+
   // Group orders by status
   const ordersByStatus = new Map<OrderStatus, Order[]>();
   for (const col of KITCHEN_COLUMNS) {
     ordersByStatus.set(col.status, []);
   }
-  for (const order of orders) {
+  for (const order of filteredOrders) {
     const bucket = ordersByStatus.get(order.status as OrderStatus);
     if (bucket) {
       bucket.push(order);
@@ -397,18 +647,20 @@ export function KitchenDisplay() {
   const pendingCount = ordersByStatus.get('pending')?.length ?? 0;
   useEffect(() => {
     if (soundEnabled && pendingCount > prevOrderCountRef.current) {
-      // Play a beep using Web Audio API
+      // Play a beep using the ref-based AudioContext (avoids autoplay restriction)
       try {
-        const audioCtx = new AudioContext();
-        const oscillator = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        oscillator.connect(gain);
-        gain.connect(audioCtx.destination);
-        oscillator.frequency.value = 800;
-        oscillator.type = 'sine';
-        gain.gain.value = 0.3;
-        oscillator.start();
-        oscillator.stop(audioCtx.currentTime + 0.3);
+        const ctx = audioCtxRef.current;
+        if (ctx && ctx.state !== 'suspended') {
+          const oscillator = ctx.createOscillator();
+          const gain = ctx.createGain();
+          oscillator.connect(gain);
+          gain.connect(ctx.destination);
+          oscillator.frequency.value = 800;
+          oscillator.type = 'sine';
+          gain.gain.value = 0.3;
+          oscillator.start();
+          oscillator.stop(ctx.currentTime + 0.3);
+        }
       } catch {
         // Audio not available
       }
@@ -477,8 +729,17 @@ export function KitchenDisplay() {
     return () => clearInterval(interval);
   }, []);
 
+  const isReconnecting = !connected && reconnectCountdown !== null;
+
   return (
     <div className="h-screen flex flex-col bg-bg overflow-hidden">
+      {/* Sound autoplay banner — shown when sound is enabled but context not yet unlocked */}
+      {soundEnabled && audioSuspended && (
+        <div className="bg-warning-light text-warning text-xs font-semibold text-center py-1.5 shrink-0">
+          🔔 Click anywhere to enable sound alerts
+        </div>
+      )}
+
       {/* Toolbar */}
       <header className="flex items-center justify-between px-4 py-2 bg-bg-elevated border-b border-border shrink-0">
         <div className="flex items-center gap-3">
@@ -488,22 +749,57 @@ export function KitchenDisplay() {
           </h1>
           <div
             className={[
-              'flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full',
+              'flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-full',
               connected
                 ? 'bg-success-light text-success'
-                : 'bg-danger-light text-danger',
+                : isReconnecting
+                  ? 'bg-warning-light text-warning'
+                  : 'bg-danger-light text-danger',
             ].join(' ')}
           >
             {connected ? (
-              <Wifi className="h-3 w-3" />
+              <>
+                <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
+                <Wifi className="h-3 w-3" />
+                Live
+              </>
+            ) : isReconnecting ? (
+              <>
+                <span className="h-2 w-2 rounded-full bg-warning" />
+                <WifiOff className="h-3 w-3" />
+                Reconnecting in {reconnectCountdown}s...
+              </>
             ) : (
-              <WifiOff className="h-3 w-3" />
+              <>
+                <span className="h-2 w-2 rounded-full bg-danger" />
+                <WifiOff className="h-3 w-3" />
+                Disconnected
+              </>
             )}
-            {connected ? 'Live' : 'Disconnected'}
           </div>
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Station filter */}
+          <div className="flex items-center gap-1 bg-bg-muted rounded-lg p-0.5">
+            <Filter className="h-3.5 w-3.5 text-text-tertiary ml-1.5" />
+            {STATION_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => handleStationChange(opt.value)}
+                className={[
+                  'px-2 py-1 text-xs font-semibold rounded-md transition-colors',
+                  station === opt.value
+                    ? 'bg-primary text-text-inverse shadow-sm'
+                    : 'text-text-secondary hover:text-text hover:bg-bg',
+                ].join(' ')}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
           <span className="text-sm text-text-secondary font-mono hidden sm:inline">
             {currentTime.toLocaleTimeString()}
           </span>

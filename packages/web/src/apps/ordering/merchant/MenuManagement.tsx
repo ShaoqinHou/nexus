@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import {
   Button,
+  Badge,
   Card,
   CardHeader,
   CardTitle,
@@ -33,13 +34,14 @@ import {
   useCreateMenuItem,
   useUpdateMenuItem,
   useDeleteMenuItem,
+  useToggleSoldOut,
 } from '../hooks/useMenu';
 import {
   useModifierGroups,
   useItemModifierGroups,
   useSetItemModifierGroups,
 } from '../hooks/useModifiers';
-import type { MenuCategory, MenuItem } from '../types';
+import type { MenuCategory, MenuItem, CategoryStation } from '../types';
 import { DIETARY_TAGS, ALLERGENS } from '../types';
 
 // ---------------------------------------------------------------------------
@@ -348,6 +350,21 @@ function ItemDialog({
 // Category list (left panel)
 // ---------------------------------------------------------------------------
 
+const STATION_OPTIONS: { value: CategoryStation; label: string }[] = [
+  { value: 'all', label: 'All' },
+  { value: 'kitchen', label: 'Kitchen' },
+  { value: 'bar', label: 'Bar' },
+];
+
+function StationBadge({ station }: { station: CategoryStation }) {
+  if (!station || station === 'all') return null;
+  return (
+    <Badge variant={station === 'kitchen' ? 'warning' : 'info'} className="text-[10px] px-1.5 py-0">
+      {station === 'kitchen' ? 'Kitchen' : 'Bar'}
+    </Badge>
+  );
+}
+
 function CategoryList({
   categories,
   selectedId,
@@ -356,6 +373,7 @@ function CategoryList({
   onEdit,
   onDelete,
   onMove,
+  onStationChange,
   itemCountByCategory,
 }: {
   categories: MenuCategory[];
@@ -365,6 +383,7 @@ function CategoryList({
   onEdit: (cat: MenuCategory) => void;
   onDelete: (id: string) => void;
   onMove: (catId: string, direction: 'up' | 'down') => void;
+  onStationChange: (catId: string, station: CategoryStation) => void;
   itemCountByCategory: Record<string, number>;
 }) {
   return (
@@ -406,14 +425,33 @@ function CategoryList({
                   ].join(' ')}
                 >
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-text truncate">
-                      {cat.name}
-                    </p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-sm font-medium text-text truncate">
+                        {cat.name}
+                      </p>
+                      <StationBadge station={cat.station} />
+                    </div>
                     {cat.description && cat.description !== TOUR_MARKER && (
                       <p className="text-xs text-text-secondary truncate">
                         {cat.description}
                       </p>
                     )}
+                    <select
+                      value={cat.station || 'all'}
+                      onClick={(e) => e.stopPropagation()}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        onStationChange(cat.id, e.target.value as CategoryStation);
+                      }}
+                      className="mt-1 h-7 text-[11px] px-1.5 rounded border border-border bg-bg text-text-secondary appearance-none cursor-pointer hover:border-border-strong transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
+                      aria-label={`Station for ${cat.name}`}
+                    >
+                      {STATION_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <div className="flex items-center gap-1 shrink-0 ml-2">
@@ -733,6 +771,7 @@ function MenuItemCard({
   onEdit,
   onDelete,
   onToggleAvailability,
+  onToggleSoldOut,
   onManageModifiers,
   onMove,
   isFirst,
@@ -743,11 +782,13 @@ function MenuItemCard({
   onEdit: (item: MenuItem) => void;
   onDelete: (id: string) => void;
   onToggleAvailability: (item: MenuItem) => void;
+  onToggleSoldOut: (item: MenuItem) => void;
   onManageModifiers: (item: MenuItem) => void;
   onMove: (itemId: string, direction: 'up' | 'down') => void;
   isFirst: boolean;
   isLast: boolean;
 }) {
+  const isSoldOut = !!item.isSoldOut;
   return (
     <Card>
       <CardContent className="flex items-start gap-4">
@@ -794,11 +835,34 @@ function MenuItemCard({
           )}
 
           <div className="flex items-center justify-between mt-3">
-            <Toggle
-              checked={item.isAvailable === 1}
-              onChange={() => onToggleAvailability(item)}
-              label={item.isAvailable === 1 ? 'Available' : 'Unavailable'}
-            />
+            <div className="flex items-center gap-3">
+              <Toggle
+                checked={item.isAvailable === 1}
+                onChange={() => onToggleAvailability(item)}
+                label={item.isAvailable === 1 ? 'Available' : 'Unavailable'}
+              />
+              {isSoldOut ? (
+                <div className="flex items-center gap-1.5">
+                  <Badge variant="error">SOLD OUT</Badge>
+                  <button
+                    type="button"
+                    onClick={() => onToggleSoldOut(item)}
+                    className="text-xs text-primary hover:text-primary-hover font-medium transition-colors"
+                  >
+                    Undo
+                  </button>
+                </div>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onToggleSoldOut(item)}
+                  className="!min-h-0 !px-2 !py-1 text-xs text-text-tertiary hover:text-danger"
+                >
+                  Mark Sold Out
+                </Button>
+              )}
+            </div>
 
             <div className="flex flex-wrap items-center gap-1">
               <button
@@ -901,6 +965,7 @@ export function MenuManagement() {
   const createItem = useCreateMenuItem(tenantSlug);
   const updateItem = useUpdateMenuItem(tenantSlug);
   const deleteItem = useDeleteMenuItem(tenantSlug);
+  const toggleSoldOut = useToggleSoldOut(tenantSlug);
 
   // Dialog state
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
@@ -1049,6 +1114,35 @@ export function MenuManagement() {
     );
   };
 
+  const handleToggleSoldOut = (item: MenuItem) => {
+    const newSoldOut = !item.isSoldOut;
+    toggleSoldOut.mutate(
+      { itemId: item.id, isSoldOut: newSoldOut },
+      {
+        onSuccess: () => {
+          toast('success', newSoldOut ? 'Item marked as sold out' : 'Item no longer sold out');
+        },
+        onError: (err: Error) => {
+          toast('error', err.message || 'Failed to update sold out status');
+        },
+      },
+    );
+  };
+
+  const handleStationChange = (catId: string, station: CategoryStation) => {
+    updateCategory.mutate(
+      { id: catId, station },
+      {
+        onSuccess: () => {
+          toast('success', `Station updated to ${station === 'all' ? 'All' : station.charAt(0).toUpperCase() + station.slice(1)}`);
+        },
+        onError: (err: Error) => {
+          toast('error', err.message || 'Failed to update station');
+        },
+      },
+    );
+  };
+
   // --- Reorder handlers ---
 
   const handleMoveCategory = (catId: string, direction: 'up' | 'down') => {
@@ -1112,6 +1206,7 @@ export function MenuManagement() {
             onEdit={handleEditCategory}
             onDelete={handleDeleteCategory}
             onMove={handleMoveCategory}
+            onStationChange={handleStationChange}
             itemCountByCategory={itemCountByCategory}
           />
         </div>
@@ -1156,6 +1251,7 @@ export function MenuManagement() {
                       onEdit={handleEditItem}
                       onDelete={handleDeleteItem}
                       onToggleAvailability={handleToggleAvailability}
+                      onToggleSoldOut={handleToggleSoldOut}
                       onManageModifiers={setModifierLinkItem}
                       onMove={handleMoveItem}
                       isFirst={idx === 0}

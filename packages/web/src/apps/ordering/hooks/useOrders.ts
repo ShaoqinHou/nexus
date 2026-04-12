@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@web/lib/api';
 import { orderingKeys } from './keys';
-import type { Order, OrderStatus, PaymentStatus } from '../types';
+import type { Order, OrderStatus, PaymentStatus, PaymentMethod } from '../types';
 
 export interface OrdersPage {
   data: Order[];
@@ -153,10 +153,42 @@ export function useUpdatePaymentStatus(tenantSlug: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, paymentStatus }: { id: string; paymentStatus: PaymentStatus }) =>
+    mutationFn: ({ id, paymentStatus, paymentMethod }: { id: string; paymentStatus: PaymentStatus; paymentMethod?: PaymentMethod }) =>
       apiClient.patch<{ data: Order }>(
         `/t/${tenantSlug}/ordering/orders/${id}/payment`,
-        { paymentStatus },
+        { paymentStatus, paymentMethod },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: orderingKeys.ordersAll() });
+    },
+  });
+}
+
+/** Staff updates staff notes on an order */
+export function useUpdateStaffNotes(tenantSlug: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ orderId, staffNotes }: { orderId: string; staffNotes: string }) =>
+      apiClient.patch<{ data: Order }>(
+        `/t/${tenantSlug}/ordering/orders/${orderId}/notes`,
+        { staffNotes },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: orderingKeys.ordersAll() });
+    },
+  });
+}
+
+/** Owner/manager applies a discount override to an order */
+export function useApplyOverride(tenantSlug: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ orderId, amount, reason }: { orderId: string; amount: number; reason: string }) =>
+      apiClient.post<{ data: Order }>(
+        `/t/${tenantSlug}/ordering/orders/${orderId}/override`,
+        { amount, reason },
       ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: orderingKeys.ordersAll() });

@@ -46,11 +46,15 @@ export const customerSessions = sqliteTable('customer_sessions', {
 
 // --- Ordering Module Tables ---
 
+export const CATEGORY_STATIONS = ['all', 'kitchen', 'bar'] as const;
+export type CategoryStation = typeof CATEGORY_STATIONS[number];
+
 export const menuCategories = sqliteTable('menu_categories', {
   id: text('id').primaryKey().$defaultFn(() => nanoid()),
   tenantId: text('tenant_id').notNull().references(() => tenants.id),
   name: text('name').notNull(),
   description: text('description'),
+  station: text('station').$type<CategoryStation>().notNull().default('all'),
   sortOrder: integer('sort_order').notNull().default(0),
   isActive: integer('is_active').notNull().default(1),
   createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
@@ -69,6 +73,8 @@ export const menuItems = sqliteTable('menu_items', {
   allergens: text('allergens'), // comma-separated: "gluten,dairy,nuts"
   isAvailable: integer('is_available').notNull().default(1),
   isFeatured: integer('is_featured').notNull().default(0),
+  isSoldOut: integer('is_sold_out').default(0), // temporary sold-out (≠ inactive)
+  soldOutUntil: text('sold_out_until'), // ISO datetime — auto-clears after this time
   sortOrder: integer('sort_order').notNull().default(0),
   isActive: integer('is_active').notNull().default(1),
   createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
@@ -177,6 +183,9 @@ export const comboSlotOptions = sqliteTable('combo_slot_options', {
   sortOrder: integer('sort_order').notNull().default(0),
 });
 
+export const PAYMENT_METHODS = ['cash', 'card', 'qr_pay', 'voucher', 'complimentary'] as const;
+export type PaymentMethod = typeof PAYMENT_METHODS[number];
+
 export const orders = sqliteTable('orders', {
   id: text('id').primaryKey().$defaultFn(() => nanoid()),
   tenantId: text('tenant_id').notNull().references(() => tenants.id),
@@ -184,10 +193,15 @@ export const orders = sqliteTable('orders', {
   tableNumber: text('table_number').notNull(),
   status: text('status').notNull().$type<OrderStatus>().default('pending'),
   paymentStatus: text('payment_status').notNull().$type<PaymentStatus>().default('unpaid'),
-  notes: text('notes'),
+  paymentMethod: text('payment_method').$type<PaymentMethod>(), // recorded when marked paid
+  notes: text('notes'),                // customer notes
+  staffNotes: text('staff_notes'),     // staff-added notes (internal)
   total: real('total').notNull(),
   discountAmount: real('discount_amount').default(0),
   taxAmount: real('tax_amount').default(0),
+  discountOverride: real('discount_override'), // manager-applied ad-hoc discount
+  overrideReason: text('override_reason'),
+  overrideBy: text('override_by'),     // staff ID who applied override
   promoCodeId: text('promo_code_id').references(() => promoCodes.id),
   createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
   updatedAt: text('updated_at').notNull().$defaultFn(() => new Date().toISOString()),
@@ -205,10 +219,12 @@ export const orderItems = sqliteTable('order_items', {
   price: real('price').notNull(),
   quantity: integer('quantity').notNull(),
   notes: text('notes'),
+  allergens: text('allergens'), // snapshot from menu item at order time (comma-separated)
   modifiersJson: text('modifiers_json'),
   comboDealId: text('combo_deal_id').references(() => comboDeals.id),
   comboGroupId: text('combo_group_id'),
   status: text('status').notNull().$type<OrderItemStatus>().default('active'),
+  completedAt: text('completed_at'), // ISO datetime — set by kitchen when item is done
   createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
 }, (table) => [
   index('idx_order_items_order').on(table.orderId),
@@ -231,14 +247,32 @@ export const tableStatuses = sqliteTable('table_statuses', {
 
 // --- Waiter Calls ---
 
+export const WAITER_CALL_TYPES = ['assistance', 'bill'] as const;
+export type WaiterCallType = typeof WAITER_CALL_TYPES[number];
+
 export const waiterCalls = sqliteTable('waiter_calls', {
   id: text('id').primaryKey().$defaultFn(() => nanoid()),
   tenantId: text('tenant_id').notNull().references(() => tenants.id),
   tableNumber: text('table_number').notNull(),
+  callType: text('call_type').$type<WaiterCallType>().notNull().default('assistance'),
   acknowledged: integer('acknowledged', { mode: 'boolean' }).notNull().default(false),
   createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
 }, (table) => [
   index('idx_waiter_calls_tenant_ack').on(table.tenantId, table.acknowledged),
+]);
+
+// --- Customer Feedback ---
+
+export const feedback = sqliteTable('feedback', {
+  id: text('id').primaryKey().$defaultFn(() => nanoid()),
+  tenantId: text('tenant_id').notNull().references(() => tenants.id),
+  orderId: text('order_id').notNull().references(() => orders.id),
+  tableNumber: text('table_number').notNull(),
+  rating: integer('rating').notNull(), // 1-5
+  comment: text('comment'),
+  createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
+}, (table) => [
+  index('idx_feedback_tenant').on(table.tenantId, table.createdAt),
 ]);
 
 // --- Inferred Types ---
@@ -269,3 +303,5 @@ export type TableStatusRow = typeof tableStatuses.$inferSelect;
 export type NewTableStatus = typeof tableStatuses.$inferInsert;
 export type WaiterCall = typeof waiterCalls.$inferSelect;
 export type NewWaiterCall = typeof waiterCalls.$inferInsert;
+export type Feedback = typeof feedback.$inferSelect;
+export type NewFeedback = typeof feedback.$inferInsert;

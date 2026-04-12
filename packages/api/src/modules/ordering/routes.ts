@@ -7,7 +7,7 @@ import { eq, and } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import jwt from 'jsonwebtoken';
 import { authMiddleware, JWT_SECRET } from '../../middleware/auth.js';
-import { customerSessions, staff, ORDER_STATUSES, PROMOTION_TYPES, ORDER_ITEM_STATUSES, PAYMENT_STATUSES, TABLE_STATUSES } from '../../db/schema.js';
+import { customerSessions, staff, ORDER_STATUSES, PROMOTION_TYPES, ORDER_ITEM_STATUSES, PAYMENT_STATUSES, PAYMENT_METHODS, TABLE_STATUSES, WAITER_CALL_TYPES } from '../../db/schema.js';
 import type { DrizzleDB } from '../../db/client.js';
 import type { AuthEnv, TenantEnv } from '../../lib/types.js';
 import {
@@ -49,6 +49,10 @@ import {
   requestItemCancellation,
   handleCancellationRequest,
   updatePaymentStatus,
+  updateStaffNotes,
+  toggleItemCompletion,
+  applyDiscountOverride,
+  toggleSoldOut,
   getDailyRevenue,
   getTopItems,
   getPeakHours,
@@ -62,6 +66,9 @@ import {
   getUnacknowledgedWaiterCalls,
   acknowledgeWaiterCall,
   createWaiterCall,
+  submitFeedback,
+  getFeedback,
+  getFeedbackSummary,
 } from './service.js';
 
 // --- Validation Schemas ---
@@ -106,6 +113,7 @@ const updateOrderStatusSchema = z.object({
 
 const updatePaymentStatusSchema = z.object({
   paymentStatus: z.enum(PAYMENT_STATUSES),
+  paymentMethod: z.enum(PAYMENT_METHODS).optional(),
 });
 
 const createModifierGroupSchema = z.object({
@@ -639,8 +647,8 @@ export function staffOrderingRoutes(db: DrizzleDB) {
         return c.json({ error: 'Only owner or manager can update payment status' }, 403);
       }
       const orderId = c.req.param('id');
-      const { paymentStatus } = c.req.valid('json');
-      const result = updatePaymentStatus(db, tenantId, orderId, paymentStatus);
+      const { paymentStatus, paymentMethod } = c.req.valid('json');
+      const result = updatePaymentStatus(db, tenantId, orderId, paymentStatus, paymentMethod);
       if ('error' in result) {
         return c.json({ error: result.error }, 404);
       }
@@ -818,6 +826,129 @@ export function staffOrderingRoutes(db: DrizzleDB) {
       return c.json({ data: row });
     },
   );
+
+  // --- Staff Notes ---
+
+  const updateStaffNotesSchema = z.object({
+    staffNotes: z.string(),
+  });
+
+  router.patch(
+    '/orders/:id/notes',
+    zValidator('json', updateStaffNotesSchema),
+    (c) => {
+      const tenantId = c.var.tenantId;
+      const orderId = c.req.param('id');
+      const { staffNotes } = c.req.valid('json');
+      const order = updateStaffNotes(db, tenantId, orderId, staffNotes);
+      if (!order) {
+        return c.json({ error: 'Order not found' }, 404);
+      }
+      return c.json({ data: order });
+    }
+  );
+
+  // --- KDS Item Completion ---
+
+  const toggleItemCompletionSchema = z.object({
+    completed: z.boolean(),
+  });
+
+  router.patch(
+    '/orders/:id/items/:itemId/complete',
+    zValidator('json', toggleItemCompletionSchema),
+    (c) => {
+      const tenantId = c.var.tenantId;
+      const orderId = c.req.param('id');
+      const itemId = c.req.param('itemId');
+      const { completed } = c.req.valid('json');
+      const item = toggleItemCompletion(db, tenantId, orderId, itemId, completed);
+      if (!item) {
+        return c.json({ error: 'Order or item not found' }, 404);
+      }
+      return c.json({ data: item });
+    }
+  );
+
+  // --- Sold Out Toggle (owner/manager only) ---
+
+  const toggleSoldOutSchema = z.object({
+    isSoldOut: z.boolean(),
+    soldOutUntil: z.string().optional(),
+  });
+
+  router.patch(
+    '/menu/items/:id/sold-out',
+    zValidator('json', toggleSoldOutSchema),
+    (c) => {
+      const tenantId = c.var.tenantId;
+      const user = c.var.user;
+      if (user.role !== 'owner' && user.role !== 'manager') {
+        return c.json({ error: 'Only owner or manager can toggle sold-out status' }, 403);
+      }
+      const itemId = c.req.param('id');
+      const { isSoldOut, soldOutUntil } = c.req.valid('json');
+      const item = toggleSoldOut(db, tenantId, itemId, isSoldOut, soldOutUntil);
+      if (!item) {
+        return c.json({ error: 'Menu item not found' }, 404);
+      }
+      return c.json({ data: item });
+    }
+  );
+
+  // --- Price Override / Comp (owner/manager only) ---
+
+  const discountOverrideSchema = z.object({
+    amount: z.number().positive('Amount must be positive'),
+    reason: z.string().min(1, 'Reason is required'),
+  });
+
+  router.post(
+    '/orders/:id/override',
+    zValidator('json', discountOverrideSchema),
+    (c) => {
+      const tenantId = c.var.tenantId;
+      const user = c.var.user;
+      if (user.role !== 'owner' && user.role !== 'manager') {
+        return c.json({ error: 'Only owner or manager can apply discount overrides' }, 403);
+      }
+      const orderId = c.req.param('id');
+      const { amount, reason } = c.req.valid('json');
+      const order = applyDiscountOverride(db, tenantId, orderId, user.id, amount, reason);
+      if (!order) {
+        return c.json({ error: 'Order not found' }, 404);
+      }
+      return c.json({ data: order });
+    }
+  );
+
+  // --- Feedback (staff: read, owner/manager only) ---
+
+  router.get('/feedback', (c) => {
+    const tenantId = c.var.tenantId;
+    const user = c.var.user;
+    if (user.role !== 'owner' && user.role !== 'manager') {
+      return c.json({ error: 'Only owner or manager can view feedback' }, 403);
+    }
+    const pageRaw = c.req.query('page');
+    const limitRaw = c.req.query('limit');
+    const page = pageRaw ? Math.max(1, parseInt(pageRaw, 10)) : 1;
+    const limit = limitRaw ? Math.min(100, Math.max(1, parseInt(limitRaw, 10))) : 20;
+    const result = getFeedback(db, tenantId, page, limit);
+    return c.json(result);
+  });
+
+  router.get('/feedback/summary', (c) => {
+    const tenantId = c.var.tenantId;
+    const user = c.var.user;
+    if (user.role !== 'owner' && user.role !== 'manager') {
+      return c.json({ error: 'Only owner or manager can view feedback summary' }, 403);
+    }
+    const daysRaw = c.req.query('days');
+    const days = daysRaw ? parseInt(daysRaw, 10) : undefined;
+    const result = getFeedbackSummary(db, tenantId, days);
+    return c.json({ data: result });
+  });
 
   // --- Waiter Calls (staff: read + acknowledge) ---
 
@@ -1096,13 +1227,33 @@ export function customerOrderingRoutes(db: DrizzleDB) {
 
   const callWaiterSchema = z.object({
     tableNumber: z.string().min(1, 'Table number is required'),
+    callType: z.enum(WAITER_CALL_TYPES).optional().default('assistance'),
   });
 
   router.post('/call-waiter', zValidator('json', callWaiterSchema), (c) => {
     const tenantId = c.var.tenantId;
-    const { tableNumber } = c.req.valid('json');
-    const call = createWaiterCall(db, tenantId, tableNumber);
+    const { tableNumber, callType } = c.req.valid('json');
+    const call = createWaiterCall(db, tenantId, tableNumber, callType);
     return c.json({ data: call }, 201);
+  });
+
+  // --- Customer Feedback (no auth required) ---
+
+  const submitFeedbackSchema = z.object({
+    orderId: z.string().min(1, 'Order ID is required'),
+    tableNumber: z.string().min(1, 'Table number is required'),
+    rating: z.number().int().min(1).max(5),
+    comment: z.string().optional(),
+  });
+
+  router.post('/feedback', zValidator('json', submitFeedbackSchema), (c) => {
+    const tenantId = c.var.tenantId;
+    const { orderId, tableNumber, rating, comment } = c.req.valid('json');
+    const result = submitFeedback(db, tenantId, orderId, tableNumber, rating, comment);
+    if ('error' in result) {
+      return c.json({ error: result.error }, 400);
+    }
+    return c.json({ data: result.data }, 201);
   });
 
   return router;

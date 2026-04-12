@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@web/lib/api';
 import { orderingKeys } from './keys';
-import type { MenuCategory, MenuItem } from '../types';
+import type { MenuCategory, MenuItem, CategoryStation } from '../types';
 
 // --- Categories ---
 
@@ -40,7 +40,7 @@ export function useUpdateCategory(tenantSlug: string) {
     mutationFn: ({
       id,
       ...body
-    }: { id: string; name?: string; description?: string | null; sortOrder?: number }) =>
+    }: { id: string; name?: string; description?: string | null; sortOrder?: number; station?: CategoryStation }) =>
       apiClient.put<{ data: MenuCategory }>(
         `/t/${tenantSlug}/ordering/categories/${id}`,
         body,
@@ -130,6 +130,21 @@ export function useDeleteMenuItem(tenantSlug: string) {
   return useMutation({
     mutationFn: (id: string) =>
       apiClient.delete(`/t/${tenantSlug}/ordering/items/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: orderingKeys.itemsAll() });
+    },
+  });
+}
+
+export function useToggleSoldOut(tenantSlug: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ itemId, isSoldOut }: { itemId: string; isSoldOut: boolean }) =>
+      apiClient.patch<{ data: MenuItem }>(
+        `/t/${tenantSlug}/ordering/menu/items/${itemId}/sold-out`,
+        { isSoldOut },
+      ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: orderingKeys.itemsAll() });
     },

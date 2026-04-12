@@ -2,7 +2,7 @@ import { eq, and } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { tableStatuses, waiterCalls, TABLE_STATUSES } from '../../../db/schema.js';
 import type { DrizzleDB } from '../../../db/client.js';
-import type { TableStatus } from '../../../db/schema.js';
+import type { TableStatus, WaiterCallType } from '../../../db/schema.js';
 
 // --- Table Status Service ---
 
@@ -68,6 +68,7 @@ export function createWaiterCall(
   db: DrizzleDB,
   tenantId: string,
   tableNumber: string,
+  callType: WaiterCallType = 'assistance',
 ) {
   return db
     .insert(waiterCalls)
@@ -75,6 +76,7 @@ export function createWaiterCall(
       id: nanoid(),
       tenantId,
       tableNumber,
+      callType,
       acknowledged: false,
       createdAt: new Date().toISOString(),
     })
