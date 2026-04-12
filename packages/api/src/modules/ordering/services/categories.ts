@@ -38,13 +38,14 @@ export function updateCategory(
   db: DrizzleDB,
   tenantId: string,
   categoryId: string,
-  data: { name?: string; description?: string; sortOrder?: number; isActive?: number }
+  data: { name?: string; description?: string; station?: string; sortOrder?: number; isActive?: number }
 ) {
   const updateData: Record<string, unknown> = {
     updatedAt: new Date().toISOString(),
   };
   if (data.name !== undefined) updateData.name = data.name;
   if (data.description !== undefined) updateData.description = data.description;
+  if (data.station !== undefined) updateData.station = data.station;
   if (data.sortOrder !== undefined) updateData.sortOrder = data.sortOrder;
   if (data.isActive !== undefined) updateData.isActive = data.isActive;
 

@@ -81,6 +81,7 @@ const createCategorySchema = z.object({
 const updateCategorySchema = z.object({
   name: z.string().min(1).optional(),
   description: z.string().optional(),
+  station: z.enum(['all', 'kitchen', 'bar']).optional(),
   sortOrder: z.number().int().optional(),
   isActive: z.number().int().min(0).max(1).optional(),
 });
