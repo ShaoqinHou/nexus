@@ -1094,6 +1094,64 @@ export function updateStaffNotes(
   return { ...updated, items };
 }
 
+/**
+ * Update notes on an individual order item (customer-facing).
+ * Only allowed while order is in a modifiable status.
+ */
+export function updateItemNotes(
+  db: DrizzleDB,
+  tenantId: string,
+  orderId: string,
+  itemId: string,
+  notes: string,
+) {
+  // Validate order exists and belongs to tenant
+  const order = db
+    .select()
+    .from(orders)
+    .where(
+      and(
+        eq(orders.id, orderId),
+        eq(orders.tenantId, tenantId)
+      )
+    )
+    .get();
+
+  if (!order) {
+    return { error: 'Order not found' as const };
+  }
+
+  if (!(MODIFIABLE_ORDER_STATUSES as readonly string[]).includes(order.status)) {
+    return { error: `Cannot modify order in '${order.status}' status` as const };
+  }
+
+  // Validate item belongs to this order
+  const item = db
+    .select()
+    .from(orderItems)
+    .where(
+      and(
+        eq(orderItems.id, itemId),
+        eq(orderItems.orderId, orderId)
+      )
+    )
+    .get();
+
+  if (!item) {
+    return { error: 'Order item not found' as const };
+  }
+
+  // Update the notes
+  const updated = db
+    .update(orderItems)
+    .set({ notes: notes || null })
+    .where(eq(orderItems.id, itemId))
+    .returning()
+    .get();
+
+  return { data: updated };
+}
+
 // --- KDS Item Completion ---
 
 /**

@@ -50,6 +50,7 @@ import {
   handleCancellationRequest,
   updatePaymentStatus,
   updateStaffNotes,
+  updateItemNotes,
   toggleItemCompletion,
   applyDiscountOverride,
   toggleSoldOut,
@@ -250,6 +251,10 @@ const addItemsSchema = z.object({
 
 const cancelItemsSchema = z.object({
   orderItemIds: z.array(z.string().min(1)).min(1, 'At least one item ID is required'),
+});
+
+const updateItemNotesSchema = z.object({
+  notes: z.string().max(500, 'Notes must be 500 characters or less'),
 });
 
 const handleCancellationSchema = z.object({
@@ -1217,6 +1222,23 @@ export function customerOrderingRoutes(db: DrizzleDB) {
       const orderId = c.req.param('id');
       const { orderItemIds } = c.req.valid('json');
       const result = requestItemCancellation(db, tenantId, orderId, orderItemIds);
+      if ('error' in result) {
+        return c.json({ error: result.error }, 400);
+      }
+      return c.json({ data: result.data });
+    }
+  );
+
+  // Customer updates notes on a specific order item
+  router.patch(
+    '/orders/:orderId/items/:itemId/notes',
+    zValidator('json', updateItemNotesSchema),
+    (c) => {
+      const tenantId = c.var.tenantId;
+      const orderId = c.req.param('orderId');
+      const itemId = c.req.param('itemId');
+      const { notes } = c.req.valid('json');
+      const result = updateItemNotes(db, tenantId, orderId, itemId, notes);
       if ('error' in result) {
         return c.json({ error: result.error }, 400);
       }

@@ -58,19 +58,20 @@ interface MenuItemInfo {
 function useStationLookup(tenantSlug: string) {
   const { data } = useQuery({
     queryKey: orderingKeys.menu(),
-    queryFn: () =>
-      apiClient.get<{
-        data: { categories: { id: string; station?: string }[]; items: { id: string; categoryId: string }[] };
-      }>(`/t/${tenantSlug}/ordering/menu`),
+    queryFn: async () => {
+      const [catsRes, itemsRes] = await Promise.all([
+        apiClient.get<{ data: CategoryInfo[] }>(`/t/${tenantSlug}/ordering/categories`),
+        apiClient.get<{ data: MenuItemInfo[] }>(`/t/${tenantSlug}/ordering/items`),
+      ]);
+      return { categories: catsRes.data, items: itemsRes.data };
+    },
     staleTime: 60_000,
     gcTime: 300_000,
     select: (res) => {
-      const cats = (res.data?.categories ?? []) as CategoryInfo[];
-      const items = (res.data?.items ?? []) as MenuItemInfo[];
       const catStation = new Map<string, string>();
-      for (const c of cats) catStation.set(c.id, c.station ?? 'all');
+      for (const c of res.categories) catStation.set(c.id, c.station ?? 'all');
       const itemStation = new Map<string, string>();
-      for (const i of items) itemStation.set(i.id, catStation.get(i.categoryId) ?? 'all');
+      for (const i of res.items) itemStation.set(i.id, catStation.get(i.categoryId) ?? 'all');
       return itemStation;
     },
   });

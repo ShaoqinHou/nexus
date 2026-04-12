@@ -16,6 +16,7 @@ export interface WaiterCall {
   id: string;
   tenantId: string;
   tableNumber: string;
+  callType: 'assistance' | 'bill';
   acknowledged: boolean;
   createdAt: string;
 }

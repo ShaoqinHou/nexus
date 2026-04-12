@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   CheckCircle,
@@ -12,6 +12,8 @@ import {
   X,
   Phone,
   Star,
+  Pencil,
+  Check,
 } from 'lucide-react';
 import { ORDER_STATUSES, MODIFIABLE_ORDER_STATUSES } from '@nexus/shared';
 import type { OrderStatus } from '@nexus/shared';
@@ -21,7 +23,7 @@ import { Button, Badge } from '@web/components/ui';
 import { StatusBadge } from '@web/components/patterns';
 import { useToast } from '@web/platform/ToastProvider';
 import { orderingKeys } from '@web/apps/ordering/hooks/keys';
-import { useRequestItemCancellation } from '@web/apps/ordering/hooks/useOrders';
+import { useRequestItemCancellation, useUpdateItemNotes } from '@web/apps/ordering/hooks/useOrders';
 import { useSubmitFeedback } from '@web/apps/ordering/hooks/useFeedback';
 import { useTenant } from '@web/platform/tenant/TenantProvider';
 import type { Order, SnapshotModifier } from '@web/apps/ordering/types';
@@ -309,6 +311,109 @@ function FeedbackSection({
   );
 }
 
+function EditableItemNotes({
+  itemId,
+  orderId,
+  initialNotes,
+  tenantSlug,
+}: {
+  itemId: string;
+  orderId: string;
+  initialNotes: string | null;
+  tenantSlug: string;
+}) {
+  const [notes, setNotes] = useState(initialNotes ?? '');
+  const [saved, setSaved] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const updateNotes = useUpdateItemNotes(tenantSlug);
+  const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Sync with server data when it changes (e.g. from polling)
+  useEffect(() => {
+    if (!editing) {
+      setNotes(initialNotes ?? '');
+    }
+  }, [initialNotes, editing]);
+
+  const save = useCallback(() => {
+    const trimmed = notes.trim();
+    // Only save if value actually changed
+    if (trimmed === (initialNotes ?? '')) {
+      setEditing(false);
+      return;
+    }
+    updateNotes.mutate(
+      { orderId, itemId, notes: trimmed },
+      {
+        onSuccess: () => {
+          setSaved(true);
+          setEditing(false);
+          if (savedTimer.current) clearTimeout(savedTimer.current);
+          savedTimer.current = setTimeout(() => setSaved(false), 2000);
+        },
+      },
+    );
+  }, [notes, initialNotes, orderId, itemId, updateNotes]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        save();
+      } else if (e.key === 'Escape') {
+        setNotes(initialNotes ?? '');
+        setEditing(false);
+      }
+    },
+    [save, initialNotes],
+  );
+
+  if (!editing) {
+    return (
+      <div className="flex items-center gap-1 pl-8 mt-0.5">
+        <button
+          type="button"
+          onClick={() => {
+            setEditing(true);
+            // Focus the input after it renders
+            setTimeout(() => inputRef.current?.focus(), 0);
+          }}
+          className="flex items-center gap-1 text-xs text-text-tertiary hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary rounded px-1 py-0.5"
+        >
+          <Pencil className="h-3 w-3" />
+          {notes ? notes : 'Add note'}
+        </button>
+        {saved && (
+          <span className="flex items-center gap-0.5 text-xs text-success">
+            <Check className="h-3 w-3" />
+            Saved
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-1.5 pl-8 mt-1">
+      <input
+        ref={inputRef}
+        type="text"
+        value={notes}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNotes(e.target.value)}
+        onBlur={save}
+        onKeyDown={handleKeyDown}
+        placeholder="Add a note..."
+        maxLength={500}
+        className="flex-1 text-xs border border-border rounded px-2 py-1 bg-bg text-text placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-primary"
+      />
+      {updateNotes.isPending && (
+        <Loader2 className="h-3 w-3 animate-spin text-text-tertiary" />
+      )}
+    </div>
+  );
+}
+
 export function OrderConfirmation({
   tenantSlug,
   orderId,
@@ -519,11 +624,18 @@ export function OrderConfirmation({
                     } catch { /* ignore parse errors */ }
                     return null;
                   })()}
-                  {item.notes && (
+                  {isModifiable && itemStatus === 'active' ? (
+                    <EditableItemNotes
+                      itemId={item.id}
+                      orderId={order.id}
+                      initialNotes={item.notes}
+                      tenantSlug={tenantSlug}
+                    />
+                  ) : item.notes ? (
                     <p className="text-xs text-text-tertiary mt-0.5 pl-8">
                       {item.notes}
                     </p>
-                  )}
+                  ) : null}
                 </div>
                 <div className="flex items-center gap-2 shrink-0 ml-2">
                   <span className={[

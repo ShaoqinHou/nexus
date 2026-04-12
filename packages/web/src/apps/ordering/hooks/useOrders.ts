@@ -108,6 +108,23 @@ export function useRequestItemCancellation(tenantSlug: string) {
   });
 }
 
+/** Customer updates notes on a specific order item */
+export function useUpdateItemNotes(tenantSlug: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ orderId, itemId, notes }: { orderId: string; itemId: string; notes: string }) =>
+      apiClient.patch<{ data: unknown }>(
+        `/order/${tenantSlug}/ordering/orders/${orderId}/items/${itemId}/notes`,
+        { notes },
+      ),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: orderingKeys.order(variables.orderId) });
+      queryClient.invalidateQueries({ queryKey: orderingKeys.ordersAll() });
+    },
+  });
+}
+
 /** Staff handles cancellation request (approve/reject) */
 export function useHandleCancellationRequest(tenantSlug: string) {
   const queryClient = useQueryClient();

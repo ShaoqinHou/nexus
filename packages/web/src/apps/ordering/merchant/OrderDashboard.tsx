@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { Clock, ShoppingBag, ChevronDown, ChevronUp, AlertTriangle, ArrowRight, Printer, CreditCard, HelpCircle, LayoutGrid, Bell, Pencil, Tag, Check, Loader2 } from 'lucide-react';
+import { Clock, ShoppingBag, ChevronDown, ChevronUp, AlertTriangle, ArrowRight, Printer, CreditCard, HelpCircle, LayoutGrid, Bell, Receipt, Pencil, Tag, Check, Loader2 } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 import {
   ORDER_STATUSES,
@@ -218,28 +218,59 @@ function WaiterCallBanner({ tenantSlug }: { tenantSlug: string }) {
     });
   };
 
+  const billCalls = calls.filter((c) => c.callType === 'bill');
+  const assistCalls = calls.filter((c) => c.callType !== 'bill');
+
   return (
-    <div className="rounded-lg border border-warning bg-warning-light p-3 flex flex-col gap-2">
-      <div className="flex items-center gap-2">
-        <Bell className="h-4 w-4 text-warning shrink-0" />
-        <span className="text-sm font-semibold text-warning">
-          {calls.length} waiter call{calls.length !== 1 ? 's' : ''} pending
-        </span>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        {calls.map((call) => (
-          <Button
-            key={call.id}
-            size="sm"
-            variant="secondary"
-            onClick={() => handleAck(call.id, call.tableNumber)}
-            loading={acknowledge.isPending && acknowledge.variables === call.id}
-            className="min-h-[44px]"
-          >
-            Table {call.tableNumber} — Acknowledge
-          </Button>
-        ))}
-      </div>
+    <div className="space-y-2">
+      {billCalls.length > 0 && (
+        <div className="rounded-lg border border-success bg-success-light p-3 flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <Receipt className="h-4 w-4 text-success shrink-0" />
+            <span className="text-sm font-semibold text-success">
+              {billCalls.length} bill request{billCalls.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {billCalls.map((call) => (
+              <Button
+                key={call.id}
+                size="sm"
+                variant="secondary"
+                onClick={() => handleAck(call.id, call.tableNumber)}
+                loading={acknowledge.isPending && acknowledge.variables === call.id}
+                className="min-h-[44px] border-success/30"
+              >
+                Table {call.tableNumber} — Bill Ready
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
+      {assistCalls.length > 0 && (
+        <div className="rounded-lg border border-warning bg-warning-light p-3 flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <Bell className="h-4 w-4 text-warning shrink-0" />
+            <span className="text-sm font-semibold text-warning">
+              {assistCalls.length} waiter call{assistCalls.length !== 1 ? 's' : ''} pending
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {assistCalls.map((call) => (
+              <Button
+                key={call.id}
+                size="sm"
+                variant="secondary"
+                onClick={() => handleAck(call.id, call.tableNumber)}
+                loading={acknowledge.isPending && acknowledge.variables === call.id}
+                className="min-h-[44px]"
+              >
+                Table {call.tableNumber} — Acknowledge
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
