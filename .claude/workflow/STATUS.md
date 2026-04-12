@@ -1,10 +1,10 @@
 # Project Status
 
 ## Current State
-- **Phase:** Production v2 — restaurant operations upgrade
+- **Phase:** Production v2 — restaurant operations complete
 - **Last verified:** 2026-04-12
 - **Live at:** https://cv.rehou.games/nexus/
-- **Commits:** 100+ | **Lines:** ~58,000 | **Tests:** 203 (181 API + 22 web)
+- **Commits:** 110+ | **Lines:** ~61,000 | **Tests:** 203 (181 API + 22 web) + 15 Playwright E2E
 
 ## Features
 
@@ -64,9 +64,16 @@
 - [x] Post-meal customer feedback (star rating + comment)
 - [x] Feedback analytics tab (avg rating, breakdown, recent comments)
 - [x] Join existing order landing screen (customer QR flow)
+- [x] Split payment (partial payments, running totals, auto-mark-paid)
+- [x] Server-side order history (session-based, survives localStorage clears)
+- [x] Pre-pay tenant setting (KDS hides unpaid orders when enabled)
+- [x] Customer editable item notes on existing orders
+- [x] Waiter call banner: bill requests (green) vs assistance (amber)
+- [x] DB backup cron (daily 3am on server)
 
 ### Quality
-- [x] 203 tests (181 API + 22 web)
+- [x] 203 unit/integration tests (181 API + 22 web)
+- [x] 15 Playwright E2E tests (cooperative multi-user scenarios)
 - [x] Auth middleware tests (11 tests covering JWT validation paths)
 - [x] Tax calculation tests (service + route integration)
 - [x] Payment status tests (transitions + tenant isolation)
