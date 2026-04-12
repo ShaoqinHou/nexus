@@ -214,8 +214,8 @@ interface CustomerAppProps {
 }
 
 export function CustomerApp({ tenantSlug }: CustomerAppProps) {
-  const search = useSearch({ strict: false }) as Record<string, string>;
-  const tableNumber = search.table ?? '';
+  const search = useSearch({ strict: false }) as Record<string, unknown>;
+  const tableNumber = search.table != null ? String(search.table) : '';
 
   if (!tableNumber) {
     return (
