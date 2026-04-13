@@ -8,9 +8,11 @@ import {
 import { LoginPage } from '@web/platform/auth/LoginPage';
 import { PlatformShell } from '@web/platform/layout/PlatformShell';
 import { CustomerShell } from '@web/platform/layout/CustomerShell';
-import { TenantProvider } from '@web/platform/tenant/TenantProvider';
+import { TenantProvider, useTenant } from '@web/platform/tenant/TenantProvider';
 import { TourProvider } from '@web/platform/TourProvider';
 import { AuthGuard } from '@web/platform/auth/AuthGuard';
+import { LocaleProvider } from '@web/platform/LocaleProvider';
+import { SUPPORTED_LOCALES, type Locale } from '@web/lib/i18n';
 import { MenuManagement } from '@web/apps/ordering/merchant/MenuManagement';
 import { ModifierManager } from '@web/apps/ordering/merchant/ModifierManager';
 import { OrderDashboard } from '@web/apps/ordering/merchant/OrderDashboard';
@@ -48,15 +50,28 @@ const indexRoute = createRoute({
   },
 });
 
+// Inner wrapper that reads tenant locale (must be inside TenantProvider)
+function StaffLocaleShell() {
+  const { tenant } = useTenant();
+  const settings = tenant?.settings ? (typeof tenant.settings === 'string' ? JSON.parse(tenant.settings) : tenant.settings) : {};
+  const primaryLocale = SUPPORTED_LOCALES.includes(settings?.primaryLocale as Locale) ? settings.primaryLocale as Locale : undefined;
+
+  return (
+    <LocaleProvider defaultLocale={primaryLocale}>
+      <TourProvider tenantSlug={tenant?.slug ?? ''}>
+        <PlatformShell />
+      </TourProvider>
+    </LocaleProvider>
+  );
+}
+
 // Wrapper component for staff tenant routes
 function StaffTenantLayout() {
   const { tenantSlug } = tenantRoute.useParams();
   return (
     <AuthGuard tenantSlug={tenantSlug}>
       <TenantProvider tenantSlug={tenantSlug}>
-        <TourProvider tenantSlug={tenantSlug}>
-          <PlatformShell />
-        </TourProvider>
+        <StaffLocaleShell />
       </TenantProvider>
     </AuthGuard>
   );

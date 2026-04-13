@@ -16,7 +16,8 @@ import { useTheme } from '@web/platform/theme/ThemeProvider';
 import { useTenant } from '@web/platform/tenant/TenantProvider';
 import { useTour } from '@web/platform/TourProvider';
 import { getApps } from '@web/platform/registry';
-import { Button } from '@web/components/ui';
+import { Button, LanguagePicker } from '@web/components/ui';
+import { useLocale } from '@web/lib/i18n';
 
 export function PlatformShell() {
   const { user, logout, tenants } = useAuth();
@@ -30,6 +31,12 @@ export function PlatformShell() {
 
   const apps = getApps();
   const location = useLocation();
+
+  // Build available locales from tenant settings
+  const tenantSettings = tenant?.settings ? (typeof tenant.settings === 'string' ? JSON.parse(tenant.settings) : tenant.settings) : {};
+  const primaryLocale = tenantSettings?.primaryLocale || 'en';
+  const additionalLocales: string[] = tenantSettings?.supportedLocales || [];
+  const availableLocales = [primaryLocale, ...additionalLocales.filter((l: string) => l !== primaryLocale)];
 
   // Get the first available tour from registered apps
   const firstTour = apps.flatMap((app) => app.tours ?? []).at(0);
@@ -239,6 +246,8 @@ export function PlatformShell() {
                 <HelpCircle className="h-5 w-5" />
               </button>
             )}
+
+            <LanguagePicker availableLocales={availableLocales} />
 
             <button
               type="button"
