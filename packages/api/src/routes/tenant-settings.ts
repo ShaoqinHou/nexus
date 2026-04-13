@@ -27,6 +27,11 @@ const updateSettingsSchema = z.object({
   taxRate: z.number().min(0).max(100).optional(),
   taxInclusive: z.boolean().optional(),
   taxLabel: z.string().max(20).optional(),
+  primaryLocale: z.string().min(2).max(5).optional(),
+  supportedLocales: z.array(z.string().min(2).max(5)).optional(),
+  lastOrderMinutesBefore: z.number().int().min(0).max(120).optional(),
+  paymentModel: z.enum(['pre_pay', 'post_pay']).optional(),
+  kitchenLocale: z.string().min(2).max(5).optional(),
 });
 
 export function tenantSettingsRoutes(db: DrizzleDB) {
