@@ -35,7 +35,8 @@ function parseModifiers(json: string | null): string[] {
   return [];
 }
 
-function toHtml(order: Order, tenantName: string): string {
+function toHtml(order: Order, tenantName: string, t?: (key: string) => string): string {
+  const tr = t || ((k: string) => k);
   const activeItems = order.items.filter(
     (item) => (item.status ?? 'active') !== 'cancelled',
   );
@@ -105,8 +106,8 @@ function toHtml(order: Order, tenantName: string): string {
 
   <table>
     <tr>
-      <td>Table: ${escapeHtml(order.tableNumber)}</td>
-      <td class="right">Order #${shortId}</td>
+      <td>${tr('Table:')} ${escapeHtml(order.tableNumber)}</td>
+      <td class="right">${tr('Order')} #${shortId}</td>
     </tr>
     <tr>
       <td colspan="2">${formatDateTime(order.createdAt)}</td>
@@ -123,28 +124,28 @@ function toHtml(order: Order, tenantName: string): string {
 
   <table>
     <tr>
-      <td>Subtotal:</td>
+      <td>${tr('Subtotal')}:</td>
       <td class="right">${formatPrice(subtotal)}</td>
     </tr>
-    ${discount > 0 ? `<tr><td>Discount:</td><td class="right">-${formatPrice(discount)}</td></tr>` : ''}
+    ${discount > 0 ? `<tr><td>${tr('Discount')}:</td><td class="right">-${formatPrice(discount)}</td></tr>` : ''}
     <tr>
-      <td>GST (15%):</td>
+      <td>${tr('GST Collected')} (15%):</td>
       <td class="right">${formatPrice(tax)}</td>
     </tr>
     <tr class="bold">
-      <td>Total:</td>
+      <td>${tr('Total')}:</td>
       <td class="right">${formatPrice(total)}</td>
     </tr>
   </table>
 
   <div class="divider"></div>
 
-  <p>Status: ${paymentLabel}</p>
+  <p>${tr('Status')}: ${tr(paymentLabel)}</p>
 
-  ${order.notes ? `<p>Note: ${escapeHtml(order.notes)}</p>` : ''}
+  ${order.notes ? `<p>${tr('Notes:')}} ${escapeHtml(order.notes)}</p>` : ''}
 
   <div class="divider-thick"></div>
-  <p class="center footer">Thank you for dining with us!</p>
+  <p class="center footer">${tr('Thank you for dining with us!')}</p>
   <div class="divider-thick"></div>
 </body>
 </html>`;

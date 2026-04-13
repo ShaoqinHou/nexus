@@ -285,11 +285,11 @@ function WaiterCallBanner({ tenantSlug }: { tenantSlug: string }) {
 // Print receipt helper
 // ---------------------------------------------------------------------------
 
-function printReceipt(order: Order, tenantName: string) {
+function printReceipt(order: Order, tenantName: string, t?: (key: string) => string) {
   const printWindow = window.open('', '_blank', 'width=350,height=600');
   if (!printWindow) return;
 
-  const receiptHtml = OrderReceipt.toHtml(order, tenantName);
+  const receiptHtml = OrderReceipt.toHtml(order, tenantName, t);
   printWindow.document.write(receiptHtml);
   printWindow.document.close();
   printWindow.focus();
@@ -1073,7 +1073,7 @@ function OrderCard({
                     variant="secondary"
                     onClick={(e) => {
                       e.stopPropagation();
-                      printReceipt(order, tenantName);
+                      printReceipt(order, tenantName, t);
                     }}
                     className="min-h-[44px]"
                   >
