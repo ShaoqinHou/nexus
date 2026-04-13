@@ -1113,29 +1113,31 @@ export function staffOrderingRoutes(db: DrizzleDB) {
     let translatedCount = 0;
 
     try {
-      // Translate all active categories
+      // Translate all active categories directly to the requested locale
       const categories = getCategories(db, tenantId);
       for (const category of categories) {
-        const fields: Record<string, string> = {};
-        if (category.name) fields.name = category.name;
-        if (category.description) fields.description = category.description;
-
-        if (Object.keys(fields).length > 0) {
-          await autoTranslateEntity(db, tenantId, 'menu_category', category.id, fields, 'menu category');
-          translatedCount++;
+        for (const field of ['name', 'description'] as const) {
+          const text = category[field];
+          if (!text || !text.trim()) continue;
+          const translated = await translate({ text, targetLocale, context: `restaurant menu category ${field}` });
+          if (translated !== text) {
+            setTranslation(db, tenantId, 'menu_category', category.id, targetLocale, field, translated);
+            translatedCount++;
+          }
         }
       }
 
       // Translate all active menu items
       const items = getMenuItems(db, tenantId);
       for (const item of items) {
-        const fields: Record<string, string> = {};
-        if (item.name) fields.name = item.name;
-        if (item.description) fields.description = item.description;
-
-        if (Object.keys(fields).length > 0) {
-          await autoTranslateEntity(db, tenantId, 'menu_item', item.id, fields, 'menu item');
-          translatedCount++;
+        for (const field of ['name', 'description'] as const) {
+          const text = item[field];
+          if (!text || !text.trim()) continue;
+          const translated = await translate({ text, targetLocale, context: `restaurant menu item ${field}` });
+          if (translated !== text) {
+            setTranslation(db, tenantId, 'menu_item', item.id, targetLocale, field, translated);
+            translatedCount++;
+          }
         }
       }
 

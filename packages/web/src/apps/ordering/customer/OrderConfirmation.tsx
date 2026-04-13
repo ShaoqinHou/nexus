@@ -610,10 +610,10 @@ export function OrderConfirmation({
                       {item.name}
                     </span>
                     {isCancelRequested && (
-                      <Badge variant="warning">Cancellation Requested</Badge>
+                      <Badge variant="warning">{t('Cancellation Requested')}</Badge>
                     )}
                     {isItemCancelled && (
-                      <Badge variant="error">Cancelled</Badge>
+                      <Badge variant="error">{t('Cancelled')}</Badge>
                     )}
                   </div>
                   {item.modifiersJson && (() => {
@@ -671,7 +671,7 @@ export function OrderConfirmation({
           {(() => {
             const hasDiscount = order.discountAmount != null && order.discountAmount > 0;
             const hasTax = order.taxAmount != null && order.taxAmount > 0;
-            const effectiveTaxLabel = taxLabel || 'Tax';
+            const effectiveTaxLabel = taxLabel || t('Tax');
             const showSubtotal = hasDiscount || (hasTax && !taxInclusive);
 
             // Compute subtotal before discount (and before exclusive tax)
@@ -683,7 +683,7 @@ export function OrderConfirmation({
               <>
                 {showSubtotal && (
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-text-secondary">Subtotal</span>
+                    <span className="text-sm text-text-secondary">{t('Subtotal')}</span>
                     <span className="text-sm text-text">
                       {formatPrice(subtotalBeforeDiscount)}
                     </span>
@@ -691,7 +691,7 @@ export function OrderConfirmation({
                 )}
                 {hasDiscount && (
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-success">Discount</span>
+                    <span className="text-sm text-success">{t('Discount')}</span>
                     <span className="text-sm text-success">
                       -{formatPrice(order.discountAmount!)}
                     </span>
@@ -708,7 +708,7 @@ export function OrderConfirmation({
                   </div>
                 )}
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-text">Total</span>
+                  <span className="text-sm font-semibold text-text">{t('Total')}</span>
                   <span className="text-base font-bold text-text">
                     {formatPrice(order.total)}
                   </span>
@@ -716,7 +716,7 @@ export function OrderConfirmation({
                 {hasTax && taxInclusive && (
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-text-tertiary">
-                      Includes {effectiveTaxLabel}{taxRate ? ` (${taxRate}%)` : ''}
+                      {t('Includes')} {effectiveTaxLabel}{taxRate ? ` (${taxRate}%)` : ''}
                     </span>
                     <span className="text-xs text-text-tertiary">
                       {formatPrice(order.taxAmount!)}
@@ -733,7 +733,7 @@ export function OrderConfirmation({
       {order.notes && (
         <div className="rounded-lg border border-border bg-bg-elevated px-4 py-3">
           <p className="text-xs font-medium text-text-secondary mb-1">
-            Order Notes
+            {t('Order Notes')}
           </p>
           <p className="text-sm text-text">{order.notes}</p>
         </div>
@@ -755,7 +755,7 @@ export function OrderConfirmation({
         className="w-full"
         onClick={onBackToMenu}
       >
-        Place Another Order
+        {t('Place Another Order')}
       </Button>
     </div>
   );

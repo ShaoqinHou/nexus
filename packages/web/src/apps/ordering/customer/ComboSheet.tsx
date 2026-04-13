@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Plus, Minus } from 'lucide-react';
 import { Badge, Button } from '@web/components/ui';
+import { useT } from '@web/lib/i18n';
 import { formatPrice, formatPriceDelta } from '@web/lib/format';
 import { useCart } from '@web/apps/ordering/customer/CartProvider';
 import type { CartItemModifier } from '@web/apps/ordering/customer/CartProvider';
@@ -13,6 +14,7 @@ interface ComboSheetProps {
 }
 
 export function ComboSheet({ combo, onClose }: ComboSheetProps) {
+  const t = useT();
   const { addItem } = useCart();
   const overlayRef = useRef<HTMLDivElement>(null);
 
@@ -316,14 +318,14 @@ export function ComboSheet({ combo, onClose }: ComboSheetProps) {
               </p>
             )}
             <p className="text-base font-semibold text-primary mt-1">
-              from {formatPrice(combo.basePrice)}
+              {t('from')} {formatPrice(combo.basePrice)}
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
             className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-            aria-label="Close"
+            aria-label={t('Close')}
           >
             <X className="h-6 w-6" />
           </button>
@@ -351,7 +353,7 @@ export function ComboSheet({ combo, onClose }: ComboSheetProps) {
               type="button"
               onClick={() => setQuantity((q) => Math.max(1, q - 1))}
               className="h-12 w-12 flex items-center justify-center rounded-full border border-border text-text-secondary hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.95]"
-              aria-label="Decrease quantity"
+              aria-label={t('Decrease quantity')}
             >
               <Minus className="h-4 w-4" />
             </button>
@@ -362,7 +364,7 @@ export function ComboSheet({ combo, onClose }: ComboSheetProps) {
               type="button"
               onClick={() => setQuantity((q) => q + 1)}
               className="h-12 w-12 flex items-center justify-center rounded-full bg-primary text-text-inverse hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.95]"
-              aria-label="Increase quantity"
+              aria-label={t('Increase quantity')}
             >
               <Plus className="h-4 w-4" />
             </button>
@@ -376,7 +378,7 @@ export function ComboSheet({ combo, onClose }: ComboSheetProps) {
             onClick={handleAddToCart}
             disabled={!isValid}
           >
-            Add to Cart &mdash; {formatPrice(lineTotal)}
+            {t('Add to Cart')} &mdash; {formatPrice(lineTotal)}
           </Button>
 
           {/* Validation hints */}
@@ -413,6 +415,7 @@ function SlotSelection({
   modifierSelections: Record<string, Set<string>>;
   onToggleModifier: (slotId: string, group: ModifierGroup, optionId: string) => void;
 }) {
+  const t = useT();
   const isRequired = slot.minSelections > 0;
 
   return (
@@ -420,13 +423,13 @@ function SlotSelection({
       <div className="flex items-center gap-2 mb-2">
         <h3 className="text-sm font-semibold text-text">{slot.name}</h3>
         {isRequired ? (
-          <Badge variant="warning">Required</Badge>
+          <Badge variant="warning">{t('Required')}</Badge>
         ) : (
-          <Badge variant="default">Optional</Badge>
+          <Badge variant="default">{t('Optional')}</Badge>
         )}
         {selectedItemId && (
           <Badge variant="success" className="flex items-center gap-1">
-            ✓ 1 selected
+            {t('1 selected')}
           </Badge>
         )}
       </div>
@@ -486,13 +489,13 @@ function SlotSelection({
                             {group.name}
                           </span>
                           {isGroupRequired ? (
-                            <Badge variant="warning">Required</Badge>
+                            <Badge variant="warning">{t('Required')}</Badge>
                           ) : (
-                            <Badge variant="default">Optional</Badge>
+                            <Badge variant="default">{t('Optional')}</Badge>
                           )}
                           {!isSingle && (
                             <span className="text-xs text-text-tertiary">
-                              Up to {group.maxSelections}
+                              {t('Up to')} {group.maxSelections}
                             </span>
                           )}
                         </div>

@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Plus, Minus } from 'lucide-react';
 import { Badge, Button } from '@web/components/ui';
+import { useT } from '@web/lib/i18n';
 import { formatPrice, formatPriceDelta, parseTags } from '@web/lib/format';
 import { useCart } from '@web/apps/ordering/customer/CartProvider';
 import type { MenuItem, ModifierGroup, ModifierOption, DietaryTag } from '@web/apps/ordering/types';
@@ -33,6 +34,7 @@ interface ItemDetailSheetProps {
 }
 
 export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
+  const t = useT();
   const { addItem } = useCart();
   const overlayRef = useRef<HTMLDivElement>(null);
 
@@ -224,7 +226,7 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
             )}
             {item.allergens && parseTags(item.allergens).length > 0 && (
               <div className="flex flex-wrap items-center gap-1 mt-1.5">
-                <span className="text-xs font-semibold text-danger">Allergens:</span>
+                <span className="text-xs font-semibold text-danger">{t('Allergens:')}</span>
                 {parseTags(item.allergens).map((allergen) => (
                   <span
                     key={allergen}
@@ -243,7 +245,7 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
             type="button"
             onClick={onClose}
             className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-            aria-label="Close"
+            aria-label={t('Close')}
           >
             <X className="h-6 w-6" />
           </button>
@@ -264,13 +266,13 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
                     {group.name}
                   </h3>
                   {isRequired ? (
-                    <Badge variant="warning">Required</Badge>
+                    <Badge variant="warning">{t('Required')}</Badge>
                   ) : (
-                    <Badge variant="default">Optional</Badge>
+                    <Badge variant="default">{t('Optional')}</Badge>
                   )}
                   {!isSingle && (
                     <span className="text-xs text-text-tertiary">
-                      Up to {group.maxSelections}
+                      {t('Up to')} {group.maxSelections}
                     </span>
                   )}
                 </div>
@@ -341,7 +343,7 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
           {/* Notes */}
           <div>
             <label className="text-sm font-semibold text-text block mb-1.5">
-              Special Requests
+              {t('Special Requests')}
             </label>
             <div className="relative">
               <textarea
@@ -350,7 +352,7 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                   setNotes(e.target.value)
                 }
-                placeholder="Any special requests..."
+                placeholder={t('Any special requests...')}
                 rows={2}
                 className="w-full text-sm h-12 px-3 py-2 rounded-lg border border-border bg-bg text-text placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-primary resize-none"
               />
@@ -369,7 +371,7 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
               type="button"
               onClick={() => setQuantity((q) => Math.max(1, q - 1))}
               className="h-12 w-12 flex items-center justify-center rounded-full border border-border text-text-secondary hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.95]"
-              aria-label="Decrease quantity"
+              aria-label={t('Decrease quantity')}
             >
               <Minus className="h-4 w-4" />
             </button>
@@ -380,7 +382,7 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
               type="button"
               onClick={() => setQuantity((q) => q + 1)}
               className="h-12 w-12 flex items-center justify-center rounded-full bg-primary text-text-inverse hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.95]"
-              aria-label="Increase quantity"
+              aria-label={t('Increase quantity')}
             >
               <Plus className="h-4 w-4" />
             </button>
@@ -394,7 +396,7 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
             onClick={handleAddToCart}
             disabled={!isValid}
           >
-            Add to Cart &mdash; {formatPrice(lineTotal)}
+            {t('Add to Cart')} &mdash; {formatPrice(lineTotal)}
           </Button>
 
           {/* Validation hints */}
