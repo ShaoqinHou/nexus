@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { formatPrice } from '@web/lib/format';
 import { Button, Badge } from '@web/components/ui';
+import { useT } from '@web/lib/i18n';
 import { useCart } from '@web/apps/ordering/customer/CartProvider';
 import { useCartOrder } from '@web/apps/ordering/customer/useCartOrder';
 import type { Order } from '@web/apps/ordering/types';
@@ -34,6 +35,7 @@ export function CartSidebar({
   taxInclusive,
   taxLabel,
 }: CartSidebarProps) {
+  const t = useT();
   const {
     items,
     notes,
@@ -67,9 +69,9 @@ export function CartSidebar({
     return (
       <div className="flex flex-col items-center justify-center h-full p-6 text-center">
         <ShoppingCart className="h-10 w-10 text-text-tertiary mb-3" />
-        <p className="text-sm font-medium text-text-secondary">Your cart is empty</p>
+        <p className="text-sm font-medium text-text-secondary">{t('Your cart is empty')}</p>
         <p className="text-xs text-text-tertiary mt-1">
-          Add items from the menu to get started
+          {t('Add items from the menu to get started')}
         </p>
       </div>
     );
@@ -82,7 +84,7 @@ export function CartSidebar({
         <div className="flex items-center gap-2">
           <ShoppingCart className="h-5 w-5 text-primary" />
           <span className="text-sm font-semibold text-text">
-            Your Cart ({totalItems})
+            {t('Your Cart')} ({totalItems})
           </span>
         </div>
       </div>
@@ -113,7 +115,7 @@ export function CartSidebar({
                     {item.name}
                   </h4>
                   <p className="text-xs text-text-secondary">
-                    {formatPrice(item.price)} each
+                    {formatPrice(item.price)} {t('each')}
                   </p>
                   {/* Combo slot selections */}
                   {isCombo && item.comboSelections && item.comboSelections.length > 0 && (
@@ -224,7 +226,7 @@ export function CartSidebar({
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                       updateItemNotes(index, e.target.value)
                     }
-                    placeholder="Special requests..."
+                    placeholder={t('Special requests...')}
                     className="w-full text-sm h-12 px-3 rounded border border-border bg-bg text-text placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                   {(item.notes ?? '').length > 400 && (
@@ -239,7 +241,7 @@ export function CartSidebar({
         {/* Order notes */}
         <div className="pb-2">
           <label className="text-xs font-medium text-text-secondary block mb-1">
-            Order Notes
+            {t('Order Notes')}
           </label>
           <div className="relative">
             <textarea
@@ -248,7 +250,7 @@ export function CartSidebar({
               onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                 setNotes(e.target.value)
               }
-              placeholder="Any special requests for your order..."
+              placeholder={t('Any special requests for your order...')}
               rows={2}
               className="w-full text-sm h-12 px-3 py-2 rounded-lg border border-border bg-bg text-text placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-primary resize-none"
             />
@@ -302,7 +304,7 @@ export function CartSidebar({
                       handleApplyPromo();
                     }
                   }}
-                  placeholder="Promo code"
+                  placeholder={t('Promo code')}
                   className="w-full text-sm pl-8 pr-3 py-2 rounded-lg border border-border bg-bg text-text placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
@@ -313,7 +315,7 @@ export function CartSidebar({
                 loading={validatePromo.isPending}
                 disabled={!promoInput.trim()}
               >
-                Apply
+                {t('Apply')}
               </Button>
             </div>
           )}
@@ -355,7 +357,7 @@ export function CartSidebar({
               <>
                 {showSubtotal && (
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-text-secondary">Subtotal</span>
+                    <span className="text-sm text-text-secondary">{t('Subtotal')}</span>
                     <span className="text-sm text-text">
                       {formatPrice(totalPrice)}
                     </span>
@@ -363,7 +365,7 @@ export function CartSidebar({
                 )}
                 {appliedPromo && (
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-success">Discount</span>
+                    <span className="text-sm text-success">{t('Discount')}</span>
                     <span className="text-sm font-medium text-success">
                       -{formatPrice(discountAmount)}
                     </span>
@@ -372,7 +374,7 @@ export function CartSidebar({
                 {hasTax && !taxInclusive && (
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-text-secondary">
-                      Est. {effectiveLabel} ({effectiveRate}%)
+                      {t('Est.')} {effectiveLabel} ({effectiveRate}%)
                     </span>
                     <span className="text-sm text-text">
                       {formatPrice(estimatedTax)}
@@ -380,7 +382,7 @@ export function CartSidebar({
                   </div>
                 )}
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-text-secondary">Total</span>
+                  <span className="text-sm text-text-secondary">{t('Total')}</span>
                   <span className="text-lg font-bold text-text">
                     {formatPrice(displayTotal)}
                   </span>
@@ -388,7 +390,7 @@ export function CartSidebar({
                 {hasTax && taxInclusive && (
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-text-tertiary">
-                      Incl. {effectiveLabel} ({effectiveRate}%)
+                      {t('Incl.')} {effectiveLabel} ({effectiveRate}%)
                     </span>
                     <span className="text-xs text-text-tertiary">
                       {formatPrice(estimatedTax)}
@@ -409,7 +411,7 @@ export function CartSidebar({
           loading={placeOrderMutation.isPending}
           disabled={items.length === 0}
         >
-          {addToOrderId ? 'Add to Order' : 'Place Order'}
+          {addToOrderId ? t('Add to Order') : t('Place Order')}
         </Button>
       </div>
     </div>

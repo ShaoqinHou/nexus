@@ -16,7 +16,7 @@ import { isOpenNow, isOrderingOpen } from '@web/lib/theme';
 import type { TenantThemeSettings } from '@web/lib/theme';
 import type { Order } from '@web/apps/ordering/types';
 import type { Locale } from '@web/lib/i18n';
-import { SUPPORTED_LOCALES } from '@web/lib/i18n';
+import { SUPPORTED_LOCALES, useT } from '@web/lib/i18n';
 import { orderingKeys } from '@web/apps/ordering/hooks/keys';
 import { customerOnboardingSteps, CUSTOMER_TOUR_ID } from '@web/apps/ordering/tours/customerTour';
 
@@ -54,6 +54,7 @@ interface CustomerAppInnerProps {
 const ACTIVE_ORDER_STATUSES = ['pending', 'confirmed', 'preparing', 'ready'];
 
 function CustomerAppInner({ tenantSlug, tableNumber, availableLocales }: CustomerAppInnerProps) {
+  const t = useT();
   const [view, setView] = useState<CustomerView>({ type: 'menu' });
   const [joinDecision, setJoinDecision] = useState<null | 'join' | 'new'>(null);
   const { tenant } = useTenant();
@@ -178,11 +179,11 @@ function CustomerAppInner({ tenantSlug, tableNumber, availableLocales }: Custome
           <ClipboardList className="h-8 w-8 text-primary" />
         </div>
         <h2 className="text-lg font-bold text-text mb-2">
-          Table {tableNumber} has an active order
+          {t('Table')} {tableNumber} {t('has an active order')}
         </h2>
         <p className="text-sm text-text-secondary max-w-xs mb-6">
-          Order #{recentOrder.id.slice(-6).toUpperCase()} is currently {recentOrder.status}.
-          Would you like to add to it or start fresh?
+          {t('Order')} #{recentOrder.id.slice(-6).toUpperCase()} {t('is currently')} {t(recentOrder.status)}.
+          {' '}{t('Would you like to add to it or start fresh?')}
         </p>
         <div className="flex flex-col gap-3 w-full max-w-xs">
           <Button
@@ -195,7 +196,7 @@ function CustomerAppInner({ tenantSlug, tableNumber, availableLocales }: Custome
             }}
           >
             <Plus className="h-4 w-4" />
-            Add to existing order
+            {t('Add to existing order')}
           </Button>
           <Button
             variant="secondary"
@@ -203,7 +204,7 @@ function CustomerAppInner({ tenantSlug, tableNumber, availableLocales }: Custome
             className="w-full"
             onClick={() => setJoinDecision('new')}
           >
-            Start new order
+            {t('Start new order')}
           </Button>
           <button
             type="button"
@@ -211,7 +212,7 @@ function CustomerAppInner({ tenantSlug, tableNumber, availableLocales }: Custome
             className="text-sm font-medium text-primary hover:text-primary-hover py-2 min-h-[48px] flex items-center justify-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
           >
             <Eye className="h-4 w-4" />
-            View order
+            {t('View order')}
           </button>
         </div>
       </div>
@@ -228,7 +229,7 @@ function CustomerAppInner({ tenantSlug, tableNumber, availableLocales }: Custome
           <div className="max-w-3xl lg:max-w-7xl mx-auto flex items-center gap-2 px-4 py-2.5">
             <Clock className="h-4 w-4 text-warning shrink-0" />
             <p className="text-sm text-warning font-medium">
-              This restaurant is currently closed. Orders will be available during opening hours.
+              {t('This restaurant is currently closed.')} {t('Orders will be available during opening hours.')}
               {openStatus.nextChange && (
                 <span className="text-text-secondary font-normal"> ({openStatus.nextChange})</span>
               )}
@@ -243,7 +244,7 @@ function CustomerAppInner({ tenantSlug, tableNumber, availableLocales }: Custome
           <div className="max-w-3xl lg:max-w-7xl mx-auto flex items-center gap-2 px-4 py-2.5">
             <Clock className="h-4 w-4 text-warning shrink-0" />
             <p className="text-sm text-warning font-medium">
-              Last orders have been taken for today. Kitchen closed for new orders at {orderingStatus.kitchenClosesAt}.
+              {t('Last orders have been taken for today.')} {t('Kitchen closed for new orders at')} {orderingStatus.kitchenClosesAt}.
             </p>
           </div>
         </div>
@@ -254,14 +255,14 @@ function CustomerAppInner({ tenantSlug, tableNumber, availableLocales }: Custome
         <div className="fixed top-0 left-0 right-0 z-30 bg-primary-light border-b border-primary/20">
           <div className="max-w-3xl lg:max-w-7xl mx-auto flex items-center justify-between px-4 py-2.5">
             <p className="text-sm text-primary font-medium">
-              Adding items to order #{addToOrderId.slice(-6).toUpperCase()}
+              {t('Adding items to order')} #{addToOrderId.slice(-6).toUpperCase()}
             </p>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setView({ type: 'confirmation', orderId: addToOrderId })}
             >
-              Back to Order
+              {t('Back to Order')}
             </Button>
           </div>
         </div>
@@ -273,7 +274,7 @@ function CustomerAppInner({ tenantSlug, tableNumber, availableLocales }: Custome
         {recentOrders.length > 0 && !addToOrderId && (
           <div className="px-4 py-2 border-b border-border bg-bg-surface flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-xs text-text-secondary mb-1">Your recent orders</p>
+              <p className="text-xs text-text-secondary mb-1">{t('Your recent orders')}</p>
               <div className="flex gap-2">
                 {recentOrders.map((o) => (
                   <button
@@ -340,6 +341,7 @@ interface CustomerAppProps {
 }
 
 export function CustomerApp({ tenantSlug }: CustomerAppProps) {
+  const t = useT();
   const search = useSearch({ strict: false }) as Record<string, unknown>;
   const tableNumber = search.table != null ? String(search.table) : '';
   const { tenant } = useTenant();
@@ -351,10 +353,10 @@ export function CustomerApp({ tenantSlug }: CustomerAppProps) {
           <AlertCircle className="h-8 w-8 text-warning" />
         </div>
         <h2 className="text-lg font-bold text-text mb-2">
-          No Table Selected
+          {t('No Table Selected')}
         </h2>
         <p className="text-sm text-text-secondary max-w-xs">
-          Please scan the QR code at your table to start ordering.
+          {t('Please scan the QR code at your table to start ordering.')}
         </p>
         <div className="mt-6 rounded-full bg-bg-muted p-6">
           <QrCode className="h-12 w-12 text-text-tertiary" />

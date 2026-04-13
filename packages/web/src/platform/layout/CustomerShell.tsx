@@ -1,5 +1,6 @@
 import { Outlet, useSearch } from '@tanstack/react-router';
 import { useTenant } from '@web/platform/tenant/TenantProvider';
+import { useT } from '@web/lib/i18n';
 import type { TenantThemeSettings } from '@web/lib/theme';
 import { textColorOnBrand, isOpenNow } from '@web/lib/theme';
 
@@ -12,6 +13,7 @@ function RestaurantHero({
   settings: TenantThemeSettings;
   tableNumber: string;
 }) {
+  const t = useT();
   const hasCover = !!settings.coverImageUrl;
   const hasLogo = !!settings.logoUrl;
   const brandColor = settings.brandColor ?? 'var(--color-brand)';
@@ -40,7 +42,7 @@ function RestaurantHero({
       {/* Table number badge */}
       {tableNumber && (
         <div className="absolute top-3 right-3 rounded-full bg-bg/90 backdrop-blur-sm px-3 py-1 text-xs font-semibold text-text shadow-sm">
-          Table {tableNumber}
+          {t('Table')} {tableNumber}
         </div>
       )}
 
@@ -77,7 +79,7 @@ function RestaurantHero({
             <div className="flex items-center gap-1.5 mt-1">
               <span className={`h-2 w-2 rounded-full ${status.open ? 'bg-success' : 'bg-danger'}`} />
               <span className="text-xs text-text-secondary">
-                {status.open ? 'Open' : 'Closed'}
+                {status.open ? t('Open') : t('Closed')}
                 {status.nextChange && ` · ${status.nextChange}`}
               </span>
             </div>
@@ -89,6 +91,7 @@ function RestaurantHero({
 }
 
 export function CustomerShell() {
+  const t = useT();
   const { tenant, loading, error } = useTenant();
   const search = useSearch({ strict: false }) as Record<string, string>;
   const tableNumber = search.table ?? '';
@@ -96,7 +99,7 @@ export function CustomerShell() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-bg">
-        <div className="text-text-secondary text-sm">Loading...</div>
+        <div className="text-text-secondary text-sm">{t('Loading...')}</div>
       </div>
     );
   }
@@ -106,7 +109,7 @@ export function CustomerShell() {
       <div className="min-h-screen flex items-center justify-center bg-bg p-4">
         <div className="text-center">
           <h1 className="text-xl font-bold text-text mb-2">
-            Restaurant not found
+            {t('Restaurant not found')}
           </h1>
           <p className="text-sm text-text-secondary">{error}</p>
         </div>

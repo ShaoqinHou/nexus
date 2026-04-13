@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { useT } from '@web/lib/i18n';
 
 export type TourStepType = 'info' | 'action' | 'input';
 
@@ -93,6 +94,7 @@ export function TourOverlay({
   actionLabel,
   stepType,
 }: TourOverlayProps) {
+  const t = useT();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -105,7 +107,7 @@ export function TourOverlay({
 
   // For action/input steps, don't show Next — user must interact with the target
   const showNextButton = stepType === 'info';
-  const buttonLabel = actionLabel ?? (isLast ? 'Got it' : 'Next');
+  const buttonLabel = actionLabel ?? (isLast ? t('Got it') : t('Next'));
 
   const tooltipStyle = getTooltipStyle(targetRect, placement);
 
@@ -262,7 +264,7 @@ export function TourOverlay({
         {/* Step indicator */}
         <div className="flex items-center justify-between mb-3">
           <span className="text-xs font-medium text-text-tertiary">
-            Step {step + 1} of {total}
+            {t('Step')} {step + 1} {t('of')} {total}
           </span>
           <div className="flex gap-1">
             {Array.from({ length: total }, (_, i) => (
@@ -285,13 +287,13 @@ export function TourOverlay({
         {stepType === 'action' && !isCenter && (
           <p className="text-xs font-medium text-primary mt-2 flex items-center gap-1">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-            Click the highlighted element to continue
+            {t('Click the highlighted element to continue')}
           </p>
         )}
         {stepType === 'input' && (
           <p className="text-xs font-medium text-primary mt-2 flex items-center gap-1">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-            Type in the highlighted field, then press Next
+            {t('Type in the highlighted field, then press Next')}
           </p>
         )}
 
@@ -302,7 +304,7 @@ export function TourOverlay({
             onClick={onSkip}
             className="min-h-[44px] px-3 text-sm font-medium text-text-tertiary hover:text-text-secondary hover:bg-bg-muted rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]"
           >
-            Skip tour
+            {t('Skip tour')}
           </button>
           {(showNextButton || stepType === 'input') && (
             <button

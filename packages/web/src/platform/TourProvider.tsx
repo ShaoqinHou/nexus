@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from 'react';
 import { useNavigate, useLocation } from '@tanstack/react-router';
+import { useT } from '@web/lib/i18n';
 import { TourOverlay } from '@web/components/ui/TourOverlay';
 import type { TourStepType } from '@web/components/ui/TourOverlay';
 
@@ -84,6 +85,7 @@ interface TourProviderProps {
 }
 
 export function TourProvider({ children, tenantSlug }: TourProviderProps) {
+  const t = useT();
   const [steps, setSteps] = useState<TourStep[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
@@ -403,14 +405,14 @@ export function TourProvider({ children, tenantSlug }: TourProviderProps) {
         <TourOverlay
           key={currentStepData.id}
           targetRect={targetRect}
-          title={currentStepData.title}
-          description={currentStepData.description}
+          title={t(currentStepData.title)}
+          description={t(currentStepData.description)}
           step={currentIdx}
           total={steps.length}
           placement={currentStepData.placement}
           onNext={nextStep}
           onSkip={endTour}
-          actionLabel={currentStepData.actionLabel}
+          actionLabel={currentStepData.actionLabel ? t(currentStepData.actionLabel) : undefined}
           stepType={currentStepData.type ?? 'info'}
         />
       )}
