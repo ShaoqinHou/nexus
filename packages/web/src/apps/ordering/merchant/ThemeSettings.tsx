@@ -11,6 +11,7 @@ import {
   Toggle,
   ImageUpload,
 } from '@web/components/ui';
+import { useT } from '@web/lib/i18n';
 import { useTenant } from '@web/platform/tenant/TenantProvider';
 import { useTheme } from '@web/platform/theme/ThemeProvider';
 import { useToast } from '@web/platform/ToastProvider';
@@ -533,6 +534,7 @@ function LivePreview({ settings, isDark, previewMode, onPreviewModeChange }: Liv
 // --- Main Component ---
 
 export function ThemeSettings() {
+  const t = useT();
   const { tenant, tenantSlug } = useTenant();
   const { theme: appTheme } = useTheme();
   const { toast } = useToast();
@@ -621,7 +623,7 @@ export function ThemeSettings() {
     const settings = formStateToSettings(form);
     updateMutation.mutate(settings, {
       onSuccess: () => {
-        toast('success', 'Settings saved');
+        toast('success', t('Settings saved'));
         savedRef.current = { ...form };
         savedLocalesRef.current = [...form.supportedLocales];
         setIsDirty(false);
@@ -644,7 +646,7 @@ export function ThemeSettings() {
         }
       },
       onError: (err) => {
-        toast('error', err instanceof Error ? err.message : 'Failed to save settings');
+        toast('error', err instanceof Error ? err.message : t('Failed to save settings'));
       },
     });
   }, [form, updateMutation, toast, tenantSlug]);
@@ -664,16 +666,16 @@ export function ThemeSettings() {
         <div className="flex items-center gap-3">
           <Settings2 className="h-6 w-6 text-primary" />
           <div>
-            <h1 className="text-xl font-bold text-text">Settings</h1>
+            <h1 className="text-xl font-bold text-text">{t('Settings')}</h1>
             <p className="text-sm text-text-secondary">
-              Configure {tenant?.name ?? 'your restaurant'} settings and appearance
+              {t('Configure settings and appearance')}
             </p>
           </div>
         </div>
         {isDirty && (
           <Button variant="ghost" size="sm" onClick={handleReset}>
             <RotateCcw className="h-4 w-4" />
-            Reset
+            {t('Reset')}
           </Button>
         )}
       </div>
@@ -686,7 +688,7 @@ export function ThemeSettings() {
           {/* ═══════════ RESTAURANT SECTION ═══════════ */}
           <div className="flex items-center gap-2">
             <Store className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-bold text-text">Restaurant</h2>
+            <h2 className="text-lg font-bold text-text">{t('Restaurant')}</h2>
           </div>
 
           {/* Operating Hours (collapsible) */}
@@ -699,7 +701,7 @@ export function ThemeSettings() {
               >
                 <div className="flex items-center gap-2">
                   <Clock className="h-5 w-5 text-primary" />
-                  <CardTitle>Operating Hours</CardTitle>
+                  <CardTitle>{t('Operating Hours')}</CardTitle>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-sm text-text-secondary">
@@ -795,7 +797,7 @@ export function ThemeSettings() {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Timer className="h-5 w-5 text-primary" />
-                <CardTitle>Last Order Cutoff</CardTitle>
+                <CardTitle>{t('Last Order Cutoff')}</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -831,7 +833,7 @@ export function ThemeSettings() {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Globe className="h-5 w-5 text-primary" />
-                <CardTitle>Languages</CardTitle>
+                <CardTitle>{t('Languages')}</CardTitle>
               </div>
               <p className="text-sm text-text-secondary mt-1">
                 Set your restaurant's primary language and optional translations for foreign customers.
@@ -914,7 +916,7 @@ export function ThemeSettings() {
           {/* ═══════════ TAX SECTION ═══════════ */}
           <div className="flex items-center gap-2 pt-2">
             <Receipt className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-bold text-text">Tax</h2>
+            <h2 className="text-lg font-bold text-text">{t('Tax')}</h2>
           </div>
 
           <Card>
@@ -951,13 +953,13 @@ export function ThemeSettings() {
           {/* ═══════════ THEME SECTION ═══════════ */}
           <div className="flex items-center gap-2 pt-2">
             <Palette className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-bold text-text">Theme</h2>
+            <h2 className="text-lg font-bold text-text">{t('Theme')}</h2>
           </div>
 
           {/* Preset picker */}
           <Card>
             <CardHeader>
-              <CardTitle>Theme Presets</CardTitle>
+              <CardTitle>{t('Theme Presets')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-text-secondary mb-4">
@@ -979,7 +981,7 @@ export function ThemeSettings() {
           {/* Custom overrides */}
           <Card>
             <CardHeader>
-              <CardTitle>Custom Overrides</CardTitle>
+              <CardTitle>{t('Custom Overrides')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-5">
               {/* Brand Color */}
@@ -1116,7 +1118,7 @@ export function ThemeSettings() {
           {/* Branding Assets */}
           <Card>
             <CardHeader>
-              <CardTitle>Branding Assets</CardTitle>
+              <CardTitle>{t('Branding Assets')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <ImageUpload
@@ -1152,15 +1154,15 @@ export function ThemeSettings() {
       {/* Sticky save bar */}
       {isDirty && (
         <div className="fixed bottom-0 left-0 right-0 z-50 bg-bg-surface border-t border-border px-6 py-3 flex items-center justify-between shadow-lg">
-          <p className="text-sm text-text-secondary">You have unsaved changes</p>
+          <p className="text-sm text-text-secondary">{t('You have unsaved changes')}</p>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={handleReset}>
               <RotateCcw className="h-4 w-4" />
-              Discard
+              {t('Discard')}
             </Button>
             <Button variant="primary" onClick={handleSave} loading={updateMutation.isPending}>
               <Save className="h-4 w-4" />
-              Save Changes
+              {t('Save Changes')}
             </Button>
           </div>
         </div>

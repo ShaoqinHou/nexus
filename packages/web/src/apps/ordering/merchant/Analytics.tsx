@@ -212,32 +212,33 @@ function printDailyReport(summary: DailySummary, tenantName: string) {
 }
 
 function DailySummarySection({ summary, tenantName }: { summary: DailySummary; tenantName: string }) {
+  const t = useT();
   return (
     <div className="space-y-4">
       {/* Summary stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <StatCard
-          title="Revenue"
+          title={t('Revenue')}
           value={formatPrice(summary.totalRevenue)}
-          subtitle={`${summary.totalOrders} orders`}
+          subtitle={`${summary.totalOrders} ${t('orders')}`}
           icon={<DollarSign className="h-5 w-5" />}
         />
         <StatCard
-          title="Avg Order"
+          title={t('Avg Order')}
           value={formatPrice(summary.avgOrderValue)}
-          subtitle="per order"
+          subtitle={t('per order')}
           icon={<ShoppingBag className="h-5 w-5" />}
         />
         <StatCard
-          title="GST Collected"
+          title={t('GST Collected')}
           value={formatPrice(summary.totalTax)}
-          subtitle="15% GST"
+          subtitle={t('15% GST')}
           icon={<TrendingUp className="h-5 w-5" />}
         />
         <StatCard
-          title="Discounts"
+          title={t('Discounts')}
           value={formatPrice(summary.totalDiscounts)}
-          subtitle={`${summary.cancelledOrders} cancelled`}
+          subtitle={`${summary.cancelledOrders} ${t('cancelled')}`}
           icon={<Tag className="h-5 w-5" />}
         />
       </div>
@@ -246,15 +247,15 @@ function DailySummarySection({ summary, tenantName }: { summary: DailySummary; t
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Payment Breakdown</CardTitle>
+            <CardTitle>{t('Payment Breakdown')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Badge variant="success">Paid</Badge>
+                  <Badge variant="success">{t('Paid')}</Badge>
                   <span className="text-sm text-text-secondary">
-                    {summary.paymentBreakdown.paid.count} orders
+                    {summary.paymentBreakdown.paid.count} {t('orders')}
                   </span>
                 </div>
                 <span className="text-sm font-semibold text-text">
@@ -263,9 +264,9 @@ function DailySummarySection({ summary, tenantName }: { summary: DailySummary; t
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Badge variant="warning">Unpaid</Badge>
+                  <Badge variant="warning">{t('Unpaid')}</Badge>
                   <span className="text-sm text-text-secondary">
-                    {summary.paymentBreakdown.unpaid.count} orders
+                    {summary.paymentBreakdown.unpaid.count} {t('orders')}
                   </span>
                 </div>
                 <span className="text-sm font-semibold text-text">
@@ -274,9 +275,9 @@ function DailySummarySection({ summary, tenantName }: { summary: DailySummary; t
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Badge variant="error">Refunded</Badge>
+                  <Badge variant="error">{t('Refunded')}</Badge>
                   <span className="text-sm text-text-secondary">
-                    {summary.paymentBreakdown.refunded.count} orders
+                    {summary.paymentBreakdown.refunded.count} {t('orders')}
                   </span>
                 </div>
                 <span className="text-sm font-semibold text-text">
@@ -297,7 +298,7 @@ function DailySummarySection({ summary, tenantName }: { summary: DailySummary; t
 
         <Card>
           <CardHeader>
-            <CardTitle>Top 5 Items</CardTitle>
+            <CardTitle>{t('Top 5 Items')}</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             {summary.topItems.length > 0 ? (
@@ -305,9 +306,9 @@ function DailySummarySection({ summary, tenantName }: { summary: DailySummary; t
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border text-left">
-                      <th className="px-4 sm:px-6 py-3 font-medium text-text-secondary">Item</th>
-                      <th className="px-4 sm:px-6 py-3 font-medium text-text-secondary text-right">Qty</th>
-                      <th className="px-4 sm:px-6 py-3 font-medium text-text-secondary text-right">Revenue</th>
+                      <th className="px-4 sm:px-6 py-3 font-medium text-text-secondary">{t('Item')}</th>
+                      <th className="px-4 sm:px-6 py-3 font-medium text-text-secondary text-right">{t('Qty')}</th>
+                      <th className="px-4 sm:px-6 py-3 font-medium text-text-secondary text-right">{t('Revenue')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -326,7 +327,7 @@ function DailySummarySection({ summary, tenantName }: { summary: DailySummary; t
               </div>
             ) : (
               <div className="px-4 sm:px-6 py-8">
-                <EmptyState icon={PackageOpen} title="No sales data" description="No items sold on this date." />
+                <EmptyState icon={PackageOpen} title={t('No sales data')} description={t('No items sold on this date.')} />
               </div>
             )}
           </CardContent>
@@ -340,7 +341,7 @@ function DailySummarySection({ summary, tenantName }: { summary: DailySummary; t
           onClick={() => printDailyReport(summary, tenantName)}
         >
           <Printer className="h-4 w-4 mr-2" />
-          Print Report
+          {t('Print Report')}
         </Button>
       </div>
     </div>
@@ -404,6 +405,7 @@ function DateRangeLabel(days: number): string {
 type AnalyticsTab = 'overview' | 'daily-summary' | 'feedback';
 
 export function Analytics() {
+  const t = useT();
   const { tenantSlug, tenant } = useTenant();
   const { toast } = useToast();
   const [days, setDays] = useState(30);
@@ -422,9 +424,9 @@ export function Analytics() {
     setExporting(true);
     try {
       await downloadOrdersCsv(tenantSlug, startDate, endDate);
-      toast('success', 'Orders exported successfully');
+      toast('success', t('Orders exported successfully'));
     } catch (err) {
-      toast('error', err instanceof Error ? err.message : 'Export failed');
+      toast('error', err instanceof Error ? err.message : t('Export failed'));
     } finally {
       setExporting(false);
     }
@@ -455,7 +457,7 @@ export function Analytics() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <h1 className="text-2xl font-bold text-text">Analytics</h1>
+        <h1 className="text-2xl font-bold text-text">{t('Analytics')}</h1>
 
         {/* Tab switcher + Export */}
         <div className="flex gap-2">
@@ -469,7 +471,7 @@ export function Analytics() {
                 : 'bg-bg-muted text-text-secondary hover:bg-bg-surface',
             ].join(' ')}
           >
-            Overview
+            {t('Overview')}
           </button>
           <button
             type="button"
@@ -482,7 +484,7 @@ export function Analytics() {
             ].join(' ')}
           >
             <CalendarDays className="h-4 w-4" />
-            Daily Summary
+            {t('Daily Summary')}
           </button>
           <button
             type="button"
@@ -495,7 +497,7 @@ export function Analytics() {
             ].join(' ')}
           >
             <Star className="h-4 w-4" />
-            Feedback
+            {t('Feedback')}
           </button>
           <Button
             variant="secondary"
@@ -503,7 +505,7 @@ export function Analytics() {
             loading={exporting}
           >
             <Download className="h-4 w-4 mr-2" />
-            Export CSV
+            {t('Export CSV')}
           </Button>
         </div>
       </div>
@@ -516,7 +518,7 @@ export function Analytics() {
               type="date"
               value={summaryDate}
               onChange={(e) => setSummaryDate(e.target.value)}
-              label="Date"
+              label={t('Date')}
               className="w-48"
             />
           </div>
@@ -527,7 +529,7 @@ export function Analytics() {
           ) : dailySummary ? (
             <DailySummarySection summary={dailySummary} tenantName={tenant?.name ?? 'Restaurant'} />
           ) : (
-            <EmptyState icon={CalendarDays} title="No data" description="Select a date to view the daily summary." />
+            <EmptyState icon={CalendarDays} title={t('No data')} description={t('Select a date to view the daily summary.')} />
           )}
         </div>
       )}
@@ -556,27 +558,27 @@ export function Analytics() {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          title="Today's Revenue"
+          title={t("Today's Revenue")}
           value={formatPrice(stats?.today.revenue ?? 0)}
-          subtitle={`${stats?.today.count ?? 0} orders`}
+          subtitle={`${stats?.today.count ?? 0} ${t('orders')}`}
           icon={<DollarSign className="h-5 w-5" />}
         />
         <StatCard
-          title="This Week"
+          title={t('This Week')}
           value={formatPrice(stats?.week.revenue ?? 0)}
-          subtitle={`${stats?.week.count ?? 0} orders`}
+          subtitle={`${stats?.week.count ?? 0} ${t('orders')}`}
           icon={<TrendingUp className="h-5 w-5" />}
         />
         <StatCard
-          title="This Month"
+          title={t('This Month')}
           value={formatPrice(stats?.month.revenue ?? 0)}
-          subtitle={`${stats?.month.count ?? 0} orders`}
+          subtitle={`${stats?.month.count ?? 0} ${t('orders')}`}
           icon={<ShoppingBag className="h-5 w-5" />}
         />
         <StatCard
-          title="Avg Order Value"
+          title={t('Avg Order Value')}
           value={formatPrice(avgOrderValue)}
-          subtitle={`${stats?.allTime.count ?? 0} total orders`}
+          subtitle={`${stats?.allTime.count ?? 0} ${t('total orders')}`}
           icon={<BarChart3 className="h-5 w-5" />}
         />
       </div>
@@ -585,7 +587,7 @@ export function Analytics() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Daily Revenue ({days === 365 ? 'All Time' : `Last ${days} Days`})</CardTitle>
+            <CardTitle>{t('Daily Revenue')} ({days === 365 ? t('All Time') : `${t('Last')} ${days} ${t('Days')}`})</CardTitle>
           </CardHeader>
           <CardContent>
             <RevenueChart data={revenue ?? []} />
@@ -594,7 +596,7 @@ export function Analytics() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Peak Hours ({days === 365 ? 'All Time' : `Last ${days} Days`})</CardTitle>
+            <CardTitle>{t('Peak Hours')} ({days === 365 ? t('All Time') : `${t('Last')} ${days} ${t('Days')}`})</CardTitle>
           </CardHeader>
           <CardContent>
             <PeakHoursChart data={peakHours ?? []} />
@@ -607,7 +609,7 @@ export function Analytics() {
         {/* Top Items */}
         <Card>
           <CardHeader>
-            <CardTitle>Top 10 Items ({days === 365 ? 'All Time' : `Last ${days} Days`})</CardTitle>
+            <CardTitle>{t('Top 10 Items')} ({days === 365 ? t('All Time') : `${t('Last')} ${days} ${t('Days')}`})</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             {topItems && topItems.length > 0 ? (
@@ -615,12 +617,12 @@ export function Analytics() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border text-left">
-                      <th className="px-4 sm:px-6 py-3 font-medium text-text-secondary">Item</th>
+                      <th className="px-4 sm:px-6 py-3 font-medium text-text-secondary">{t('Item')}</th>
                       <th className="px-4 sm:px-6 py-3 font-medium text-text-secondary text-right">
-                        Qty Sold
+                        {t('Qty Sold')}
                       </th>
                       <th className="px-4 sm:px-6 py-3 font-medium text-text-secondary text-right">
-                        Revenue
+                        {t('Revenue')}
                       </th>
                     </tr>
                   </thead>
@@ -647,7 +649,7 @@ export function Analytics() {
               </div>
             ) : (
               <div className="px-4 sm:px-6 py-8">
-                <EmptyState icon={PackageOpen} title="No items sold yet" description="Sales data will appear here." />
+                <EmptyState icon={PackageOpen} title={t('No items sold yet')} description={t('Sales data will appear here.')} />
               </div>
             )}
           </CardContent>
@@ -656,7 +658,7 @@ export function Analytics() {
         {/* Promotion Performance */}
         <Card>
           <CardHeader>
-            <CardTitle>Promotion Performance</CardTitle>
+            <CardTitle>{t('Promotion Performance')}</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             {promoStats && promoStats.length > 0 ? (
@@ -665,13 +667,13 @@ export function Analytics() {
                   <thead>
                     <tr className="border-b border-border text-left">
                       <th className="px-4 sm:px-6 py-3 font-medium text-text-secondary">
-                        Promotion
+                        {t('Promotion')}
                       </th>
                       <th className="px-4 sm:px-6 py-3 font-medium text-text-secondary text-right">
-                        Uses
+                        {t('Uses')}
                       </th>
                       <th className="px-4 sm:px-6 py-3 font-medium text-text-secondary text-right">
-                        Discount Given
+                        {t('Discount Given')}
                       </th>
                     </tr>
                   </thead>
@@ -697,8 +699,8 @@ export function Analytics() {
               <div className="px-4 sm:px-6 py-8">
                 <EmptyState
                   icon={Tag}
-                  title="No promo usage yet"
-                  description="Promotion stats will appear when customers use promo codes."
+                  title={t('No promo usage yet')}
+                  description={t('Promotion stats will appear when customers use promo codes.')}
                 />
               </div>
             )}
@@ -721,6 +723,7 @@ export function Analytics() {
 // ---------------------------------------------------------------------------
 
 function FeedbackSection({ tenantSlug }: { tenantSlug: string }) {
+  const t = useT();
   const { data: summary } = useFeedbackSummary(tenantSlug);
   const [page, setPage] = useState(1);
   const { data: feedbackPage } = useFeedbackList(tenantSlug, page);
@@ -752,18 +755,18 @@ function FeedbackSection({ tenantSlug }: { tenantSlug: string }) {
               <p className="text-2xl font-bold text-text tabular-nums">
                 {summary.avgRating > 0 ? summary.avgRating.toFixed(1) : '—'}
               </p>
-              <p className="text-xs text-text-secondary">Average Rating</p>
+              <p className="text-xs text-text-secondary">{t('Average Rating')}</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
               <p className="text-2xl font-bold text-text tabular-nums">{summary.totalCount}</p>
-              <p className="text-xs text-text-secondary">Total Reviews</p>
+              <p className="text-xs text-text-secondary">{t('Total Reviews')}</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4">
-              <p className="text-xs text-text-secondary mb-2 text-center">Rating Breakdown</p>
+              <p className="text-xs text-text-secondary mb-2 text-center">{t('Rating Breakdown')}</p>
               {[5, 4, 3, 2, 1].map((n) => {
                 const count = summary.ratingBreakdown[String(n)] ?? 0;
                 const pct = summary.totalCount > 0 ? (count / summary.totalCount) * 100 : 0;
@@ -791,7 +794,7 @@ function FeedbackSection({ tenantSlug }: { tenantSlug: string }) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5 text-primary" />
-            Recent Feedback
+            {t('Recent Feedback')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -830,7 +833,7 @@ function FeedbackSection({ tenantSlug }: { tenantSlug: string }) {
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                     disabled={page <= 1}
                   >
-                    Previous
+                    {t('Previous')}
                   </Button>
                   <span className="text-sm text-text-secondary">
                     {page} / {totalPages}
@@ -841,7 +844,7 @@ function FeedbackSection({ tenantSlug }: { tenantSlug: string }) {
                     onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                     disabled={page >= totalPages}
                   >
-                    Next
+                    {t('Next')}
                   </Button>
                 </div>
               )}
@@ -850,8 +853,8 @@ function FeedbackSection({ tenantSlug }: { tenantSlug: string }) {
             <div className="py-8">
               <EmptyState
                 icon={Star}
-                title="No feedback yet"
-                description="Customer feedback will appear here after orders are delivered."
+                title={t('No feedback yet')}
+                description={t('Customer feedback will appear here after orders are delivered.')}
               />
             </div>
           )}

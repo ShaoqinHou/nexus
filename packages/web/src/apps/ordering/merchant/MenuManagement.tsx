@@ -22,6 +22,7 @@ import {
 } from '@web/components/ui';
 import { ConfirmButton, EmptyState } from '@web/components/patterns';
 import { formatPrice, parseTags } from '@web/lib/format';
+import { useT } from '@web/lib/i18n';
 import { TOUR_MARKER } from '../tours/cleanup';
 import { useTenant } from '@web/platform/tenant/TenantProvider';
 import { useToast } from '@web/platform/ToastProvider';
@@ -66,6 +67,7 @@ function CategoryDialog({
   initial?: CategoryFormData;
   loading: boolean;
 }) {
+  const t = useT();
   const [name, setName] = useState(initial?.name ?? '');
   const [description, setDescription] = useState(initial?.description ?? '');
 
@@ -93,12 +95,12 @@ function CategoryDialog({
     <Dialog
       open={open}
       onClose={handleClose}
-      title={isEdit ? 'Edit Category' : 'Add Category'}
+      title={isEdit ? t('Edit Category') : t('Add Category')}
       data-tour="category-dialog"
       footer={
         <>
           <Button variant="secondary" onClick={handleClose} disabled={loading} className="min-h-[48px]">
-            Cancel
+            {t('Cancel')}
           </Button>
           <Button
             data-tour="category-save"
@@ -108,7 +110,7 @@ function CategoryDialog({
             disabled={!name.trim()}
             className="min-h-[48px]"
           >
-            {isEdit ? 'Save' : 'Add'}
+            {isEdit ? t('Save') : t('Add')}
           </Button>
         </>
       }
@@ -116,7 +118,7 @@ function CategoryDialog({
       <form id="category-form" onSubmit={handleSubmit} className="space-y-4">
         <Input
           data-tour="category-name-input"
-          label="Name"
+          label={t('Name')}
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g. Mains, Drinks, Desserts"
@@ -124,10 +126,10 @@ function CategoryDialog({
           autoFocus
         />
         <Input
-          label="Description"
+          label={t('Description')}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Optional description"
+          placeholder={t('Optional description')}
           data-tour="category-description-input"
         />
       </form>
@@ -163,6 +165,7 @@ function ItemDialog({
   loading: boolean;
   tenantSlug: string;
 }) {
+  const t = useT();
   const [name, setName] = useState(initial?.name ?? '');
   const [description, setDescription] = useState(initial?.description ?? '');
   const [price, setPrice] = useState(initial?.price ?? '');
@@ -236,12 +239,12 @@ function ItemDialog({
     <Dialog
       open={open}
       onClose={handleClose}
-      title={isEdit ? 'Edit Item' : 'Add Item'}
+      title={isEdit ? t('Edit Item') : t('Add Item')}
       data-tour="item-dialog"
       footer={
         <>
           <Button variant="secondary" onClick={handleClose} disabled={loading} className="min-h-[48px]">
-            Cancel
+            {t('Cancel')}
           </Button>
           <Button
             data-tour="item-save"
@@ -251,7 +254,7 @@ function ItemDialog({
             disabled={!name.trim() || !price}
             className="min-h-[48px]"
           >
-            {isEdit ? 'Save' : 'Add'}
+            {isEdit ? t('Save') : t('Add')}
           </Button>
         </>
       }
@@ -259,7 +262,7 @@ function ItemDialog({
       <form id="item-form" onSubmit={handleSubmit} className="space-y-4">
         <Input
           data-tour="item-name-input"
-          label="Name"
+          label={t('Name')}
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g. Margherita Pizza"
@@ -267,14 +270,14 @@ function ItemDialog({
           autoFocus
         />
         <Input
-          label="Description"
+          label={t('Description')}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Optional description"
+          placeholder={t('Optional description')}
           data-tour="item-description-input"
         />
         <Input
-          label="Price"
+          label={t('Price')}
           type="number"
           step="0.01"
           min="0"
@@ -293,7 +296,7 @@ function ItemDialog({
         />
         <div>
           <label className="block text-sm font-medium text-text mb-1.5">
-            Tags
+            {t('Tags')}
           </label>
           <div className="flex flex-wrap gap-2">
             {DIETARY_TAGS.map((tag) => {
@@ -318,7 +321,7 @@ function ItemDialog({
         </div>
         <div>
           <label className="block text-sm font-medium text-text mb-1.5">
-            Allergens
+            {t('Allergens')}
           </label>
           <div className="flex flex-wrap gap-2">
             {ALLERGENS.map((allergen) => {
@@ -386,22 +389,23 @@ function CategoryList({
   onStationChange: (catId: string, station: CategoryStation) => void;
   itemCountByCategory: Record<string, number>;
 }) {
+  const t = useT();
   return (
     <Card className="h-full flex flex-col">
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Categories</CardTitle>
+        <CardTitle>{t('Categories')}</CardTitle>
         <Button data-tour="add-category" size="sm" onClick={onAdd}>
           <Plus className="h-4 w-4" />
-          Add
+          {t('Add')}
         </Button>
       </CardHeader>
       <CardContent className="flex-1 overflow-y-auto p-0">
         {categories.length === 0 ? (
           <EmptyState
             icon={FolderOpen}
-            title="No categories"
-            description="Create your first menu category to start adding items."
-            action={{ label: 'Add Category', onClick: onAdd }}
+            title={t('No categories')}
+            description={t('Create your first menu category to start adding items.')}
+            action={{ label: t('Add Category'), onClick: onAdd }}
           />
         ) : (
           <ul className="divide-y divide-border">
@@ -529,6 +533,7 @@ function ItemModifiersDialog({
   tenantSlug: string;
   item: MenuItem;
 }) {
+  const t = useT();
   const { toast } = useToast();
   const allGroupsQuery = useModifierGroups(tenantSlug);
   const allGroups = allGroupsQuery.data ?? [];
@@ -644,11 +649,11 @@ function ItemModifiersDialog({
       { itemId: item.id, groups },
       {
         onSuccess: () => {
-          toast('success', 'Item modifiers updated');
+          toast('success', t('Item modifiers updated'));
           onClose();
         },
         onError: (err: Error) => {
-          toast('error', err.message || 'Failed to update item modifiers');
+          toast('error', err.message || t('Failed to update item modifiers'));
         },
       },
     );
@@ -662,21 +667,20 @@ function ItemModifiersDialog({
       footer={
         <>
           <Button variant="secondary" onClick={onClose}>
-            Cancel
+            {t('Cancel')}
           </Button>
           <Button
             onClick={handleSave}
             loading={setGroups.isPending}
           >
-            Save
+            {t('Save')}
           </Button>
         </>
       }
     >
       {allGroups.length === 0 ? (
         <p className="text-sm text-text-secondary">
-          No modifier groups created yet. Go to the Modifiers page to create
-          groups first.
+          {t('No modifier groups created yet. Go to the Modifiers page to create groups first.')}
         </p>
       ) : (
         <div className="space-y-3 max-h-[28rem] overflow-y-auto">
@@ -788,6 +792,7 @@ function MenuItemCard({
   isFirst: boolean;
   isLast: boolean;
 }) {
+  const t = useT();
   const isSoldOut = !!item.isSoldOut;
   return (
     <Card>
@@ -839,7 +844,7 @@ function MenuItemCard({
               <Toggle
                 checked={item.isAvailable === 1}
                 onChange={() => onToggleAvailability(item)}
-                label={item.isAvailable === 1 ? 'Available' : 'Unavailable'}
+                label={item.isAvailable === 1 ? t('Available') : t('Unavailable')}
               />
               {isSoldOut ? (
                 <div className="flex items-center gap-1.5">
@@ -849,7 +854,7 @@ function MenuItemCard({
                     onClick={() => onToggleSoldOut(item)}
                     className="text-xs text-primary hover:text-primary-hover font-medium transition-colors"
                   >
-                    Undo
+                    {t('Undo')}
                   </button>
                 </div>
               ) : (
@@ -859,7 +864,7 @@ function MenuItemCard({
                   onClick={() => onToggleSoldOut(item)}
                   className="!min-h-0 !px-2 !py-1 text-xs text-text-tertiary hover:text-danger"
                 >
-                  Mark Sold Out
+                  {t('Mark Sold Out')}
                 </Button>
               )}
             </div>
@@ -891,7 +896,7 @@ function MenuItemCard({
                 className="min-h-[44px]"
               >
                 <Settings2 className="h-3.5 w-3.5" />
-                Modifiers
+                {t('Modifiers')}
               </Button>
               <Button
                 variant="ghost"
@@ -901,16 +906,16 @@ function MenuItemCard({
                 className="min-h-[44px]"
               >
                 <Pencil className="h-3.5 w-3.5" />
-                Edit
+                {t('Edit')}
               </Button>
               <ConfirmButton
                 variant="ghost"
                 size="sm"
                 onConfirm={() => onDelete(item.id)}
-                confirmText="Delete?"
+                confirmText={t('Delete?')}
                 className="min-h-[44px]"
               >
-                Delete
+                {t('Delete')}
               </ConfirmButton>
             </div>
           </div>
@@ -925,6 +930,7 @@ function MenuItemCard({
 // ---------------------------------------------------------------------------
 
 export function MenuManagement() {
+  const t = useT();
   const { tenantSlug } = useTenant();
   const { toast } = useToast();
 
@@ -997,10 +1003,10 @@ export function MenuManagement() {
         {
           onSuccess: () => {
             setCategoryDialogOpen(false);
-            toast('success', 'Category updated');
+            toast('success', t('Category updated'));
           },
           onError: (err: Error) => {
-            toast('error', err.message || 'Failed to update category');
+            toast('error', err.message || t('Failed to update category'));
           },
         },
       );
@@ -1008,10 +1014,10 @@ export function MenuManagement() {
       createCategory.mutate(data, {
         onSuccess: () => {
           setCategoryDialogOpen(false);
-          toast('success', 'Category created');
+          toast('success', t('Category created'));
         },
         onError: (err: Error) => {
-          toast('error', err.message || 'Failed to create category');
+          toast('error', err.message || t('Failed to create category'));
         },
       });
     }
@@ -1023,10 +1029,10 @@ export function MenuManagement() {
         if (selectedCategoryId === id) {
           setSelectedCategoryId(null);
         }
-        toast('success', 'Category deleted');
+        toast('success', t('Category deleted'));
       },
       onError: (err: Error) => {
-        toast('error', err.message || 'Failed to delete category');
+        toast('error', err.message || t('Failed to delete category'));
       },
     });
   };
@@ -1058,10 +1064,10 @@ export function MenuManagement() {
         {
           onSuccess: () => {
             setItemDialogOpen(false);
-            toast('success', 'Item updated');
+            toast('success', t('Item updated'));
           },
           onError: (err: Error) => {
-            toast('error', err.message || 'Failed to update item');
+            toast('error', err.message || t('Failed to update item'));
           },
         },
       );
@@ -1079,10 +1085,10 @@ export function MenuManagement() {
         {
           onSuccess: () => {
             setItemDialogOpen(false);
-            toast('success', 'Item created');
+            toast('success', t('Item created'));
           },
           onError: (err: Error) => {
-            toast('error', err.message || 'Failed to create item');
+            toast('error', err.message || t('Failed to create item'));
           },
         },
       );
@@ -1092,10 +1098,10 @@ export function MenuManagement() {
   const handleDeleteItem = (id: string) => {
     deleteItem.mutate(id, {
       onSuccess: () => {
-        toast('success', 'Item deleted');
+        toast('success', t('Item deleted'));
       },
       onError: (err: Error) => {
-        toast('error', err.message || 'Failed to delete item');
+        toast('error', err.message || t('Failed to delete item'));
       },
     });
   };
@@ -1105,10 +1111,10 @@ export function MenuManagement() {
       { id: item.id, isAvailable: item.isAvailable === 1 ? 0 : 1 },
       {
         onSuccess: () => {
-          toast('success', item.isAvailable === 1 ? 'Item marked unavailable' : 'Item marked available');
+          toast('success', item.isAvailable === 1 ? t('Item marked unavailable') : t('Item marked available'));
         },
         onError: (err: Error) => {
-          toast('error', err.message || 'Failed to update availability');
+          toast('error', err.message || t('Failed to update availability'));
         },
       },
     );
@@ -1120,10 +1126,10 @@ export function MenuManagement() {
       { itemId: item.id, isSoldOut: newSoldOut },
       {
         onSuccess: () => {
-          toast('success', newSoldOut ? 'Item marked as sold out' : 'Item no longer sold out');
+          toast('success', newSoldOut ? t('Item marked as sold out') : t('Item no longer sold out'));
         },
         onError: (err: Error) => {
-          toast('error', err.message || 'Failed to update sold out status');
+          toast('error', err.message || t('Failed to update sold out status'));
         },
       },
     );
@@ -1193,7 +1199,7 @@ export function MenuManagement() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold text-text">Menu Management</h1>
+      <h1 className="text-2xl font-bold text-text">{t('Menu Management')}</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:min-h-[60vh]">
         {/* Left panel: categories */}
@@ -1218,12 +1224,12 @@ export function MenuManagement() {
               <CardTitle>
                 {selectedCategory
                   ? `${selectedCategory.name} Items`
-                  : 'Menu Items'}
+                  : t('Menu Items')}
               </CardTitle>
               {activeCategoryId && (
                 <Button data-tour="add-item" size="sm" onClick={handleAddItem}>
                   <Plus className="h-4 w-4" />
-                  Add Item
+                  {t('Add Item')}
                 </Button>
               )}
             </CardHeader>
@@ -1231,15 +1237,15 @@ export function MenuManagement() {
               {!activeCategoryId ? (
                 <EmptyState
                   icon={FolderOpen}
-                  title="No category selected"
-                  description="Select a category from the left panel to see its items, or create one first."
+                  title={t('No category selected')}
+                  description={t('Select a category from the left panel to see its items, or create one first.')}
                 />
               ) : items.length === 0 ? (
                 <EmptyState
                   icon={UtensilsCrossed}
-                  title="No items yet"
-                  description="Add your first menu item to this category."
-                  action={{ label: 'Add Item', onClick: handleAddItem }}
+                  title={t('No items yet')}
+                  description={t('Add your first menu item to this category.')}
+                  action={{ label: t('Add Item'), onClick: handleAddItem }}
                 />
               ) : (
                 <div className="space-y-3">
