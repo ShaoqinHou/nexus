@@ -15,6 +15,20 @@
 - No `useEffect` for data fetching — use TanStack Query
 - No `any` in event handlers — type them: `React.MouseEvent<HTMLButtonElement>`
 
+## i18n (MANDATORY)
+- **ALL user-visible strings MUST use `t()` — no exceptions.** This includes:
+  - JSX text content, button labels, headings, placeholders, aria-labels
+  - Toast messages, error messages, empty states
+  - Select/dropdown option labels
+  - Dietary tags, allergen names, status labels
+  - Print template text (pass `t` as parameter to non-component functions)
+- Import `useT` from `@web/lib/i18n`, call `const t = useT()` at top of component
+- English strings are the keys: `t('Place Order')` not `t('order.place')`
+- Shared constants (`ORDER_STATUS_LABELS`, `DIETARY_TAGS`, `ALLERGENS`) — wrap their values in `t()` where rendered
+- Add all new strings to ALL 5 locale files: `en.json`, `zh.json`, `ja.json`, `ko.json`, `fr.json`
+- Dynamic DB content (menu item names, descriptions) — translated via GLM at save time, served via `?lang=` param
+- NEVER hardcode English in JSX — if you write `<p>Something</p>`, it MUST be `<p>{t('Something')}</p>`
+
 ## API (packages/api)
 - Hono HTTP server
 - Input validation with Zod schemas — validate ALL input, never trust the client

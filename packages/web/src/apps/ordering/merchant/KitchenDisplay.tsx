@@ -244,7 +244,7 @@ function useKitchenSSE(tenantSlug: string, token: string | null) {
 // Kitchen ticket print helper
 // ---------------------------------------------------------------------------
 
-function printKitchenTicket(order: Order) {
+function printKitchenTicket(order: Order, t: (key: string) => string) {
   const printWindow = window.open('', '_blank', 'width=400,height=600');
   if (!printWindow) return;
 
@@ -276,20 +276,20 @@ function printKitchenTicket(order: Order) {
         }
       }
       const noteLine = item.notes
-        ? `<div style="margin-left:2em;font-size:1em;">Note: ${item.notes}</div>`
+        ? `<div style="margin-left:2em;font-size:1em;">${t('Note:')} ${item.notes}</div>`
         : '';
       // allergens may not exist on OrderItem — use optional chaining via unknown cast
       const allergens = (item as unknown as Record<string, unknown>).allergens;
       const allergenLine =
         allergens && typeof allergens === 'string' && allergens.trim()
-          ? `<div style="margin-left:2em;font-size:1em;font-weight:bold;">** ALLERGEN: ${allergens} **</div>`
+          ? `<div style="margin-left:2em;font-size:1em;font-weight:bold;">** ${t('ALLERGEN:')} ${allergens} **</div>`
           : '';
       return `<div style="font-size:1.2em;font-weight:bold;">${item.quantity}x ${item.name}</div>${modLine}${noteLine}${allergenLine}`;
     })
     .join('<hr style="border:none;border-top:1px dashed #333;margin:4px 0;" />');
 
   const orderNoteLine = order.notes
-    ? `<div style="margin-top:8px;font-weight:bold;">Notes: ${order.notes}</div>`
+    ? `<div style="margin-top:8px;font-weight:bold;">${t('Notes:')} ${order.notes}</div>`
     : '';
 
   const html = `<!DOCTYPE html>
@@ -304,13 +304,13 @@ function printKitchenTicket(order: Order) {
   </style>
 </head>
 <body>
-  <h1>KITCHEN TICKET</h1>
+  <h1>${t('KITCHEN TICKET')}</h1>
   <hr class="divider" />
   <div class="header-row">
-    <span>Table: ${order.tableNumber}</span>
+    <span>${t('Table:')} ${order.tableNumber}</span>
     <span>${time}</span>
   </div>
-  <div style="font-size:1em;">Order: #${orderId}</div>
+  <div style="font-size:1em;">${t('Order:')} #${orderId}</div>
   <hr class="divider" />
   ${itemLines}
   <hr class="divider" />
@@ -379,7 +379,7 @@ function KitchenOrderCard({
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              printKitchenTicket(order);
+              printKitchenTicket(order, t);
             }}
             className="p-1 rounded text-text-tertiary hover:text-text hover:bg-bg transition-colors"
             title={t('Print kitchen ticket')}
@@ -398,7 +398,7 @@ function KitchenOrderCard({
           ].join(' ')}
         >
           <Clock className="h-4 w-4" />
-          {timeAgo(order.createdAt)}
+          {timeAgo(order.createdAt, t)}
         </div>
       </div>
 
@@ -537,7 +537,7 @@ function KitchenOrderCard({
             onClick={() => onAdvance(order.id, nextStatus)}
             loading={isUpdating}
           >
-            {nextLabel}
+            {t(nextLabel)}
           </Button>
         )}
         {order.status !== 'cancelled' && order.status !== 'delivered' && (
@@ -545,7 +545,7 @@ function KitchenOrderCard({
             variant="destructive"
             size="lg"
             onConfirm={() => onCancel(order.id)}
-            confirmText="Cancel?"
+            confirmText={t('Cancel?')}
             disabled={isUpdating}
             className="min-h-[52px]"
           >

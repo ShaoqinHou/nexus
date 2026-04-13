@@ -40,10 +40,13 @@ import { OrderReceipt } from './OrderReceipt';
 // Order status flow — derived from shared constants
 // ---------------------------------------------------------------------------
 
-const STATUS_OPTIONS: { value: string; label: string }[] = [
-  { value: '', label: 'All Statuses' },
-  ...ORDER_STATUSES.map((s) => ({ value: s, label: ORDER_STATUS_LABELS[s] })),
-];
+function useStatusOptions() {
+  const t = useT();
+  return useMemo(() => [
+    { value: '', label: t('All Statuses') },
+    ...ORDER_STATUSES.map((s) => ({ value: s, label: t(ORDER_STATUS_LABELS[s]) })),
+  ], [t]);
+}
 
 // ---------------------------------------------------------------------------
 // StatusBadge variant map for orders
@@ -357,7 +360,7 @@ function PaymentMethodSelect({
               }}
               disabled={isPending}
             >
-              {PAYMENT_METHOD_LABELS[method]}
+              {t(PAYMENT_METHOD_LABELS[method])}
             </button>
           ))}
         </div>
@@ -544,7 +547,7 @@ function DiscountOverridePopover({
               disabled={!amount || parseFloat(amount) <= 0 || !reason.trim()}
               className="w-full min-h-[36px]"
             >
-              Apply
+              {t('Apply')}
             </Button>
           </div>
         </div>
@@ -656,7 +659,7 @@ function SplitPaymentPanel({
             <div key={p.id} className="flex items-center justify-between text-xs bg-bg-muted rounded-md px-2 py-1.5">
               <div className="flex items-center gap-2 min-w-0">
                 <span className="font-semibold text-text">{formatPrice(p.amount)}</span>
-                <span className="text-text-secondary">{PAYMENT_METHOD_LABELS[p.method]}</span>
+                <span className="text-text-secondary">{t(PAYMENT_METHOD_LABELS[p.method])}</span>
                 {p.paidBy && <span className="text-text-tertiary truncate">({p.paidBy})</span>}
               </div>
               {(userRole === 'owner' || userRole === 'manager') && (
@@ -709,7 +712,7 @@ function SplitPaymentPanel({
                 className="w-full mt-0.5 text-sm border border-border rounded-md px-2 py-1.5 bg-bg text-text focus:outline-none focus:ring-1 focus:ring-primary"
               >
                 {PAYMENT_METHODS.map((m) => (
-                  <option key={m} value={m}>{PAYMENT_METHOD_LABELS[m]}</option>
+                  <option key={m} value={m}>{t(PAYMENT_METHOD_LABELS[m])}</option>
                 ))}
               </select>
             </div>
@@ -831,14 +834,14 @@ function OrderCard({
               </p>
               <div className="flex items-center gap-1 text-xs text-text-tertiary">
                 <Clock className="h-3 w-3" />
-                {timeAgo(order.createdAt)}
+                {timeAgo(order.createdAt, t)}
               </div>
             </div>
             <ElapsedBadge createdAt={order.createdAt} />
             <StatusBadge status={order.status} statusMap={ORDER_STATUS_MAP} />
             {(order.paymentStatus ?? 'unpaid') === 'paid' && order.paymentMethod ? (
               <Badge variant="success">
-                Paid &middot; {PAYMENT_METHOD_LABELS[order.paymentMethod]}
+                {t('Paid')} &middot; {t(PAYMENT_METHOD_LABELS[order.paymentMethod])}
               </Badge>
             ) : (
               <StatusBadge
@@ -999,13 +1002,13 @@ function OrderCard({
                 <Badge variant="success">
                   <Check className="h-3 w-3 mr-1" />
                   {t('Paid')} &mdash; {t('Locked')}
-                  {order.paymentMethod ? ` (${PAYMENT_METHOD_LABELS[order.paymentMethod]})` : ''}
+                  {order.paymentMethod ? ` (${t(PAYMENT_METHOD_LABELS[order.paymentMethod])})` : ''}
                 </Badge>
               </div>
             )}
             {(order.paymentStatus ?? 'unpaid') === 'refunded' && (
               <div className="mt-3">
-                <Badge variant="error">Refunded</Badge>
+                <Badge variant="error">{t('Refunded')}</Badge>
               </div>
             )}
 
@@ -1028,7 +1031,7 @@ function OrderCard({
                       title={(order.paymentStatus ?? 'unpaid') === 'paid' ? 'Order is paid. Contact a manager to modify.' : undefined}
                       className="min-h-[44px]"
                     >
-                      {nextLabel}
+                      {t(nextLabel)}
                     </Button>
                   )}
 
@@ -1147,6 +1150,7 @@ function OnboardingStep({ number, title, description, link }: OnboardingStepProp
 
 export function OrderDashboard() {
   const t = useT();
+  const statusOptions = useStatusOptions();
   const { tenantSlug, tenant } = useTenant();
   const { user } = useAuth();
 
@@ -1205,8 +1209,8 @@ export function OrderDashboard() {
       { id, paymentStatus, paymentMethod },
       {
         onSuccess: () => {
-          const methodLabel = paymentMethod ? ` (${PAYMENT_METHOD_LABELS[paymentMethod]})` : '';
-          toast('success', `Payment marked as ${PAYMENT_STATUS_LABELS[paymentStatus]}${methodLabel}`);
+          const methodLabel = paymentMethod ? ` (${t(PAYMENT_METHOD_LABELS[paymentMethod])})` : '';
+          toast('success', `${t('Payment marked as')} ${t(PAYMENT_STATUS_LABELS[paymentStatus])}${methodLabel}`);
         },
         onError: (err: Error) => {
           toast('error', err.message || t('Failed to update payment status'));
@@ -1277,7 +1281,7 @@ export function OrderDashboard() {
         <CardContent className="flex flex-col sm:flex-row gap-3">
           <div className="w-full sm:w-48">
             <Select
-              options={STATUS_OPTIONS}
+              options={statusOptions}
               value={statusFilter}
               onChange={handleStatusFilter}
               label={t('Status')}
@@ -1288,7 +1292,7 @@ export function OrderDashboard() {
               label={t('Table Number')}
               value={tableFilter}
               onChange={(e) => handleTableFilter(e.target.value)}
-              placeholder="e.g. 5"
+              placeholder={t('e.g. 5')}
             />
           </div>
         </CardContent>

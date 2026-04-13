@@ -149,7 +149,7 @@ function PeakHoursChart({ data }: { data: PeakHour[] }) {
 // Daily Summary / EOD Report
 // ---------------------------------------------------------------------------
 
-function printDailyReport(summary: DailySummary, tenantName: string) {
+function printDailyReport(summary: DailySummary, tenantName: string, t: (key: string) => string) {
   const printWindow = window.open('', '_blank', 'width=500,height=700');
   if (!printWindow) return;
 
@@ -161,7 +161,7 @@ function printDailyReport(summary: DailySummary, tenantName: string) {
     .join('\n');
 
   const html = `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>EOD Report - ${summary.date}</title>
+<html><head><meta charset="utf-8"><title>${t('Daily Report')} - ${summary.date}</title>
 <style>
   @page { margin: 20px; }
   body { font-family: Arial, sans-serif; font-size: 13px; max-width: 500px; margin: 0 auto; padding: 20px; }
@@ -177,30 +177,30 @@ function printDailyReport(summary: DailySummary, tenantName: string) {
   .stat-value { font-size: 20px; font-weight: bold; }
   .stat-label { font-size: 11px; color: #666; }
 </style></head><body>
-  <h1>${tenantName} - Daily Report</h1>
+  <h1>${tenantName} - ${t('Daily Report')}</h1>
   <p class="muted">${summary.date}</p>
 
   <div class="grid">
-    <div class="stat"><div class="stat-value">${formatPrice(summary.totalRevenue)}</div><div class="stat-label">Revenue</div></div>
-    <div class="stat"><div class="stat-value">${summary.totalOrders}</div><div class="stat-label">Orders</div></div>
-    <div class="stat"><div class="stat-value">${formatPrice(summary.avgOrderValue)}</div><div class="stat-label">Avg Order</div></div>
-    <div class="stat"><div class="stat-value">${formatPrice(summary.totalTax)}</div><div class="stat-label">GST Collected</div></div>
+    <div class="stat"><div class="stat-value">${formatPrice(summary.totalRevenue)}</div><div class="stat-label">${t('Revenue')}</div></div>
+    <div class="stat"><div class="stat-value">${summary.totalOrders}</div><div class="stat-label">${t('Orders')}</div></div>
+    <div class="stat"><div class="stat-value">${formatPrice(summary.avgOrderValue)}</div><div class="stat-label">${t('Avg Order')}</div></div>
+    <div class="stat"><div class="stat-value">${formatPrice(summary.totalTax)}</div><div class="stat-label">${t('GST Collected')}</div></div>
   </div>
 
-  <h2>Payment Breakdown</h2>
+  <h2>${t('Payment Breakdown')}</h2>
   <table>
-    <tr><td>Paid</td><td class="right">${summary.paymentBreakdown.paid.count} orders</td><td class="right bold">${formatPrice(summary.paymentBreakdown.paid.amount)}</td></tr>
-    <tr><td>Unpaid</td><td class="right">${summary.paymentBreakdown.unpaid.count} orders</td><td class="right">${formatPrice(summary.paymentBreakdown.unpaid.amount)}</td></tr>
-    <tr><td>Refunded</td><td class="right">${summary.paymentBreakdown.refunded.count} orders</td><td class="right">${formatPrice(summary.paymentBreakdown.refunded.amount)}</td></tr>
+    <tr><td>${t('Paid')}</td><td class="right">${summary.paymentBreakdown.paid.count} ${t('orders')}</td><td class="right bold">${formatPrice(summary.paymentBreakdown.paid.amount)}</td></tr>
+    <tr><td>${t('Unpaid')}</td><td class="right">${summary.paymentBreakdown.unpaid.count} ${t('orders')}</td><td class="right">${formatPrice(summary.paymentBreakdown.unpaid.amount)}</td></tr>
+    <tr><td>${t('Refunded')}</td><td class="right">${summary.paymentBreakdown.refunded.count} ${t('orders')}</td><td class="right">${formatPrice(summary.paymentBreakdown.refunded.amount)}</td></tr>
   </table>
 
-  ${summary.cancelledOrders > 0 ? `<h2>Cancellations</h2><p>${summary.cancelledOrders} cancelled orders (${formatPrice(summary.cancelledAmount)})</p>` : ''}
+  ${summary.cancelledOrders > 0 ? `<h2>${t('Cancellations')}</h2><p>${summary.cancelledOrders} ${t('cancelled')} (${formatPrice(summary.cancelledAmount)})</p>` : ''}
 
-  ${summary.totalDiscounts > 0 ? `<p>Total discounts: ${formatPrice(summary.totalDiscounts)}</p>` : ''}
+  ${summary.totalDiscounts > 0 ? `<p>${t('Discounts')}: ${formatPrice(summary.totalDiscounts)}</p>` : ''}
 
-  <h2>Top Items</h2>
+  <h2>${t('Top Items')}</h2>
   <table>
-    <tr><th>Item</th><th class="right">Qty</th><th class="right">Revenue</th></tr>
+    <tr><th>${t('Item')}</th><th class="right">${t('Qty')}</th><th class="right">${t('Revenue')}</th></tr>
     ${topItemsHtml}
   </table>
 </body></html>`;
@@ -338,7 +338,7 @@ function DailySummarySection({ summary, tenantName }: { summary: DailySummary; t
       <div className="flex justify-end">
         <Button
           variant="secondary"
-          onClick={() => printDailyReport(summary, tenantName)}
+          onClick={() => printDailyReport(summary, tenantName, t)}
         >
           <Printer className="h-4 w-4 mr-2" />
           {t('Print Report')}

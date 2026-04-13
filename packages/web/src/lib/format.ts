@@ -39,7 +39,7 @@ export function parseTags(tags: string | null | undefined): string[] {
 }
 
 /** Format relative time (e.g., "2m ago", "1h ago") */
-export function timeAgo(dateString: string): string {
+export function timeAgo(dateString: string, t?: (key: string) => string): string {
   const now = Date.now();
   const then = new Date(dateString).getTime();
   const diffMs = now - then;
@@ -47,10 +47,11 @@ export function timeAgo(dateString: string): string {
   const diffHr = Math.floor(diffMin / 60);
   const diffDay = Math.floor(diffHr / 24);
 
-  if (diffMin < 1) return 'just now';
-  if (diffMin < 60) return `${diffMin}m ago`;
-  if (diffHr < 24) return `${diffHr}h ago`;
-  return `${diffDay}d ago`;
+  const tr = t || ((k: string) => k);
+  if (diffMin < 1) return tr('just now');
+  if (diffMin < 60) return `${diffMin}${tr('m ago')}`;
+  if (diffHr < 24) return `${diffHr}${tr('h ago')}`;
+  return `${diffDay}${tr('d ago')}`;
 }
 
 /** Format date for display (e.g., "Apr 8, 2026") */

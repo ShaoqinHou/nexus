@@ -62,6 +62,7 @@ function getTagColor(tag: string): string {
 }
 
 const DietaryTagBadges = memo(function DietaryTagBadges({ tags }: { tags: string | null }) {
+  const t = useT();
   const parsed = parseTags(tags);
   if (parsed.length === 0) return null;
   return (
@@ -74,7 +75,7 @@ const DietaryTagBadges = memo(function DietaryTagBadges({ tags }: { tags: string
             getTagColor(tag),
           ].join(' ')}
         >
-          {tag}
+          {t(tag)}
         </span>
       ))}
     </div>
@@ -82,6 +83,7 @@ const DietaryTagBadges = memo(function DietaryTagBadges({ tags }: { tags: string
 });
 
 const AllergenBadges = memo(function AllergenBadges({ allergens }: { allergens: string | null }) {
+  const t = useT();
   const parsed = parseTags(allergens);
   if (parsed.length === 0) return null;
   return (
@@ -91,7 +93,7 @@ const AllergenBadges = memo(function AllergenBadges({ allergens }: { allergens: 
           key={allergen}
           className="inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-medium bg-danger-light text-danger"
         >
-          {allergen}
+          {t(allergen)}
         </span>
       ))}
     </div>
@@ -813,7 +815,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                           : 'bg-bg-muted text-text-secondary border-border hover:border-border-strong',
                       ].join(' ')}
                     >
-                      {allergen}
+                      {t(allergen)}
                     </button>
                   );
                 })}
@@ -1065,7 +1067,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                           : 'bg-bg-muted text-text-secondary border-border hover:border-border-strong',
                       ].join(' ')}
                     >
-                      {allergen}
+                      {t(allergen)}
                     </button>
                   );
                 })}

@@ -1,4 +1,5 @@
 import { Badge, type BadgeVariant } from '@web/components/ui';
+import { useT } from '@web/lib/i18n';
 
 const defaultStatusMap: Record<string, BadgeVariant> = {
   active: 'success',
@@ -27,12 +28,14 @@ export function StatusBadge({
   statusMap,
   className,
 }: StatusBadgeProps) {
+  const t = useT();
   const map = { ...defaultStatusMap, ...statusMap };
   const variant = map[status.toLowerCase()] ?? 'default';
+  const label = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
 
   return (
     <Badge variant={variant} className={className}>
-      {status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()}
+      {t(label)}
     </Badge>
   );
 }

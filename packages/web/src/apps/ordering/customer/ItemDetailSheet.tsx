@@ -219,7 +219,7 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
                       getTagColor(tag),
                     ].join(' ')}
                   >
-                    {tag}
+                    {t(tag)}
                   </span>
                 ))}
               </div>
@@ -232,7 +232,7 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
                     key={allergen}
                     className="inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-medium bg-danger-light text-danger"
                   >
-                    {allergen}
+                    {t(allergen)}
                   </span>
                 ))}
               </div>

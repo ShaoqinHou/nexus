@@ -121,7 +121,7 @@ function CategoryDialog({
           label={t('Name')}
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="e.g. Mains, Drinks, Desserts"
+          placeholder={t('e.g. Mains, Drinks, Desserts')}
           required
           autoFocus
         />
@@ -288,7 +288,7 @@ function ItemDialog({
           required
         />
         <ImageUpload
-          label="Image"
+          label={t('Image')}
           value={imageUrl || null}
           onChange={(url) => setImageUrl(url ?? '')}
           tenantSlug={tenantSlug}
@@ -313,7 +313,7 @@ function ItemDialog({
                       : 'bg-bg-muted text-text-secondary border-border hover:border-border-strong',
                   ].join(' ')}
                 >
-                  {tag}
+                  {t(tag)}
                 </button>
               );
             })}
@@ -338,7 +338,7 @@ function ItemDialog({
                       : 'bg-bg-muted text-text-secondary border-border hover:border-border-strong',
                   ].join(' ')}
                 >
-                  {allergen}
+                  {t(allergen)}
                 </button>
               );
             })}
@@ -360,10 +360,11 @@ const STATION_OPTIONS: { value: CategoryStation; label: string }[] = [
 ];
 
 function StationBadge({ station }: { station: CategoryStation }) {
+  const t = useT();
   if (!station || station === 'all') return null;
   return (
     <Badge variant={station === 'kitchen' ? 'warning' : 'info'} className="text-[10px] px-1.5 py-0">
-      {station === 'kitchen' ? 'Kitchen' : 'Bar'}
+      {station === 'kitchen' ? t('Kitchen') : t('Bar')}
     </Badge>
   );
 }
@@ -452,7 +453,7 @@ function CategoryList({
                     >
                       {STATION_OPTIONS.map((opt) => (
                         <option key={opt.value} value={opt.value}>
-                          {opt.label}
+                          {t(opt.label)}
                         </option>
                       ))}
                     </select>
@@ -833,7 +834,7 @@ function MenuItemCard({
                   key={tag}
                   className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-bg-muted text-text-secondary"
                 >
-                  {tag}
+                  {t(tag)}
                 </span>
               ))}
             </div>

@@ -15,9 +15,16 @@ interface LocaleProviderProps {
 }
 
 export function LocaleProvider({ children, defaultLocale }: LocaleProviderProps) {
-  const [locale, setLocaleState] = useState<Locale>(
-    () => defaultLocale ?? detectLocale(),
-  );
+  const [locale, setLocaleState] = useState<Locale>(() => {
+    // Priority: URL param > localStorage > restaurant default > browser language > 'en'
+    const detected = detectLocale(); // checks URL param then localStorage then browser
+    // If user has an explicit preference (URL or saved), use it over restaurant default
+    const urlParam = new URLSearchParams(window.location.search).get('lang');
+    const stored = localStorage.getItem('nexus_locale');
+    if (urlParam || stored) return detected;
+    // Otherwise use restaurant's primary language
+    return defaultLocale ?? detected;
+  });
   const [translations, setTranslations] = useState<Record<string, string>>({});
 
   const setLocale = useCallback((newLocale: Locale) => {

@@ -170,6 +170,7 @@ interface PresetCardProps {
 }
 
 function PresetCard({ preset, isActive, onClick }: PresetCardProps) {
+  const t = useT();
   const palette = generatePalette(preset.brandColor, false);
   return (
     <button
@@ -210,7 +211,7 @@ function PresetCard({ preset, isActive, onClick }: PresetCardProps) {
           {preset.fontFamily}
         </span>
         <span className="text-xs text-text-tertiary">
-          {preset.borderRadius === 'sharp' ? 'Sharp' : preset.borderRadius === 'pill' ? 'Pill' : 'Rounded'}
+          {preset.borderRadius === 'sharp' ? t('Sharp') : preset.borderRadius === 'pill' ? t('Pill') : t('Rounded')}
         </span>
       </div>
     </button>
@@ -271,6 +272,7 @@ interface LivePreviewProps {
 }
 
 function LivePreview({ settings, isDark, previewMode, onPreviewModeChange }: LivePreviewProps) {
+  const t = useT();
   const palette = generatePalette(settings.brandColor, isDark);
   const fontStack = settings.fontFamily === 'system-ui'
     ? 'system-ui, -apple-system, sans-serif'
@@ -302,7 +304,7 @@ function LivePreview({ settings, isDark, previewMode, onPreviewModeChange }: Liv
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
           <Eye className="h-4 w-4 text-text-secondary" />
-          <span className="text-sm font-medium text-text">Live Preview</span>
+          <span className="text-sm font-medium text-text">{t('Live Preview')}</span>
         </div>
         <div className="flex gap-1">
           <button
@@ -316,7 +318,7 @@ function LivePreview({ settings, isDark, previewMode, onPreviewModeChange }: Liv
             ].join(' ')}
           >
             <Monitor className="h-4 w-4" />
-            Desktop
+            {t('Desktop')}
           </button>
           <button
             type="button"
@@ -329,7 +331,7 @@ function LivePreview({ settings, isDark, previewMode, onPreviewModeChange }: Liv
             ].join(' ')}
           >
             <Smartphone className="h-4 w-4" />
-            Mobile
+            {t('Mobile')}
           </button>
         </div>
       </div>
@@ -612,8 +614,8 @@ export function ThemeSettings() {
       .map((day, i) => ({ ...day, name: DAY_NAMES[i] }))
       .filter((day) => day.isOpen && day.open >= day.close);
     if (invalidDays.length > 0) {
-      const names = invalidDays.map((d) => d.name).join(', ');
-      toast('error', `Invalid hours for: ${names}. Close time must be after open time.`);
+      const names = invalidDays.map((d) => t(d.name)).join(', ');
+      toast('error', `${t('Invalid hours for:')} ${names}. ${t('Close time must be after open time')}`);
       return;
     }
 
@@ -634,14 +636,14 @@ export function ThemeSettings() {
         );
         for (const locale of newLocales) {
           const langName = LOCALE_ENGLISH_NAMES[locale] ?? locale;
-          toast('info', `Translating menu to ${langName}...`);
+          toast('info', `${t('Translating menu to')} ${langName}...`);
           apiClient
             .post(`/t/${tenantSlug}/ordering/translate/batch`, { targetLocale: locale })
             .then(() => {
-              toast('success', `Menu translated to ${langName}!`);
+              toast('success', `${t('Menu translated to')} ${langName}!`);
             })
             .catch(() => {
-              toast('error', `Translation to ${langName} failed \u2014 you can retry from the Languages section`);
+              toast('error', `${t('Translation to')} ${langName} ${t('failed')} \u2014 ${t('you can retry from the Languages section')}`);
             });
         }
       },
@@ -709,14 +711,14 @@ export function ThemeSettings() {
                       const openDays = form.operatingHours
                         .map((d, i) => ({ ...d, name: DAY_NAMES[i]?.slice(0, 3) }))
                         .filter((d) => d.isOpen);
-                      if (openDays.length === 0) return 'Closed all days';
+                      if (openDays.length === 0) return t('Closed all days');
                       if (openDays.length === 7) {
                         const allSame = openDays.every(
                           (d) => d.open === openDays[0].open && d.close === openDays[0].close,
                         );
-                        if (allSame) return `Open daily ${openDays[0].open}\u2013${openDays[0].close}`;
+                        if (allSame) return `${t('Open daily')} ${openDays[0].open}\u2013${openDays[0].close}`;
                       }
-                      return `Open ${openDays.length} day${openDays.length > 1 ? 's' : ''}`;
+                      return `${t('Open')} ${openDays.length} ${openDays.length > 1 ? t('days') : t('day')}`;
                     })()}
                   </span>
                   {hoursExpanded ? (
@@ -730,7 +732,7 @@ export function ThemeSettings() {
             {hoursExpanded && (
               <CardContent className="space-y-3">
                 <p className="text-sm text-text-secondary">
-                  Set your opening hours. Days marked as closed will show a "closed" indicator to customers.
+                  {t('Set your opening hours. Days marked as closed will show a "closed" indicator to customers.')}
                 </p>
                 <div className="space-y-2">
                   {form.operatingHours.map((day, dayIndex) => (
@@ -740,13 +742,13 @@ export function ThemeSettings() {
                     >
                       {/* Day name */}
                       <span className="text-sm font-medium text-text w-24 shrink-0">
-                        {DAY_NAMES[dayIndex]}
+                        {t(DAY_NAMES[dayIndex])}
                       </span>
 
                       {/* Open toggle */}
                       <Toggle
                         checked={day.isOpen}
-                        label={day.isOpen ? 'Open' : 'Closed'}
+                        label={day.isOpen ? t('Open') : t('Closed')}
                         onChange={(checked) => {
                           const updated = [...form.operatingHours];
                           updated[dayIndex] = { ...updated[dayIndex], isOpen: checked };
@@ -768,7 +770,7 @@ export function ThemeSettings() {
                               }}
                               className="rounded-md border border-border px-2 py-1.5 text-sm text-text bg-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                             />
-                            <span className="text-xs text-text-tertiary">to</span>
+                            <span className="text-xs text-text-tertiary">{t('to')}</span>
                             <input
                               type="time"
                               value={day.close}
@@ -781,7 +783,7 @@ export function ThemeSettings() {
                             />
                           </div>
                           {day.open >= day.close && (
-                            <p className="text-xs text-danger mt-1">Close time must be after open time</p>
+                            <p className="text-xs text-danger mt-1">{t('Close time must be after open time')}</p>
                           )}
                         </div>
                       )}
@@ -802,10 +804,10 @@ export function ThemeSettings() {
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-sm text-text-secondary">
-                Stop accepting orders a set number of minutes before closing time. Leave empty or 0 for no restriction.
+                {t('Stop accepting orders a set number of minutes before closing time. Leave empty or 0 for no restriction.')}
               </p>
               <Input
-                label="Minutes before closing"
+                label={t('Minutes before closing')}
                 type="number"
                 min="0"
                 max="120"
@@ -816,7 +818,7 @@ export function ThemeSettings() {
               />
               {parseInt(form.lastOrderMinutesBefore, 10) > 0 && (
                 <p className="text-xs text-text-tertiary">
-                  Example: if you close at 22:00, last orders will be accepted until{' '}
+                  {t('Example: if you close at 22:00, last orders will be accepted until')}{' '}
                   {(() => {
                     const mins = parseInt(form.lastOrderMinutesBefore, 10);
                     const h = Math.floor((22 * 60 - mins) / 60);
@@ -836,7 +838,7 @@ export function ThemeSettings() {
                 <CardTitle>{t('Languages')}</CardTitle>
               </div>
               <p className="text-sm text-text-secondary mt-1">
-                Set your restaurant's primary language and optional translations for foreign customers.
+                {t("Set your restaurant's primary language and optional translations for foreign customers.")}
               </p>
             </CardHeader>
             <CardContent>
@@ -844,7 +846,7 @@ export function ThemeSettings() {
                 {/* Primary Language */}
                 <div>
                   <Select
-                    label="Primary Language"
+                    label={t('Primary Language')}
                     value={form.primaryLocale}
                     onChange={(value) => {
                       // Remove new primary from additional locales if it was there
@@ -858,15 +860,15 @@ export function ThemeSettings() {
                     }))}
                   />
                   <p className="text-xs text-text-tertiary mt-1.5">
-                    This is the language you write menu items in. Customers see this by default.
+                    {t('This is the language you write menu items in. Customers see this by default.')}
                   </p>
                 </div>
 
                 {/* Additional Languages */}
                 <div>
-                  <p className="text-sm font-medium text-text mb-1.5">Additional Languages</p>
+                  <p className="text-sm font-medium text-text mb-1.5">{t('Additional Languages')}</p>
                   <p className="text-xs text-text-tertiary mb-3">
-                    Menu items will be auto-translated to these languages. Customers can switch via the language picker.
+                    {t('Menu items will be auto-translated to these languages. Customers can switch via the language picker.')}
                   </p>
                   <div className="space-y-3">
                     {LANGUAGE_CONFIG.filter((lang) => lang.code !== form.primaryLocale).map((lang) => {
@@ -886,13 +888,13 @@ export function ThemeSettings() {
                             <p className="text-xs text-text-tertiary">{lang.description}</p>
                             {isNewlyEnabled && (
                               <p className="text-xs text-primary mt-1">
-                                Menu items will be translated automatically on save
+                                {t('Menu items will be translated automatically on save')}
                               </p>
                             )}
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
                             <span className="text-xs text-text-secondary">
-                              {isEnabled ? 'Enabled' : 'Disabled'}
+                              {isEnabled ? t('Enabled') : t('Disabled')}
                             </span>
                             <Toggle
                               checked={isEnabled}
@@ -922,29 +924,29 @@ export function ThemeSettings() {
           <Card>
             <CardContent className="space-y-4 pt-6">
               <p className="text-sm text-text-secondary">
-                Configure tax calculation for orders. Leave rate empty or 0 for no tax.
+                {t('Configure tax calculation for orders. Leave rate empty or 0 for no tax.')}
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input
-                  label="Tax Rate (%)"
+                  label={t('Tax Rate (%)')}
                   type="number"
                   step="0.01"
                   min="0"
                   max="100"
                   value={form.taxRate}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField('taxRate', e.target.value)}
-                  placeholder="e.g. 15"
+                  placeholder={t('e.g. 15')}
                 />
                 <Input
-                  label="Tax Label"
+                  label={t('Tax Label')}
                   value={form.taxLabel}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField('taxLabel', e.target.value)}
-                  placeholder="e.g. GST, VAT, Tax"
+                  placeholder={t('e.g. GST, VAT, Tax')}
                 />
               </div>
               <Toggle
                 checked={form.taxInclusive}
-                label={form.taxInclusive ? 'Tax inclusive (prices already include tax)' : 'Tax exclusive (tax added on top of prices)'}
+                label={form.taxInclusive ? t('Tax inclusive (prices already include tax)') : t('Tax exclusive (tax added on top of prices)')}
                 onChange={(checked) => updateField('taxInclusive', checked)}
               />
             </CardContent>
@@ -963,7 +965,7 @@ export function ThemeSettings() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-text-secondary mb-4">
-                Choose a preset as a starting point, then customize to match your brand.
+                {t('Choose a preset as a starting point, then customize to match your brand.')}
               </p>
               <div data-tour="theme-presets" className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
                 {THEME_PRESETS.map((preset) => (
@@ -986,7 +988,7 @@ export function ThemeSettings() {
             <CardContent className="space-y-5">
               {/* Brand Color */}
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-medium text-text">Brand Color</label>
+                <label className="text-sm font-medium text-text">{t('Brand Color')}</label>
                 <div className="flex items-center gap-3">
                   <div className="relative">
                     <input
@@ -1026,7 +1028,7 @@ export function ThemeSettings() {
 
               {/* Font Family */}
               <Select
-                label="Font Family"
+                label={t('Font Family')}
                 options={FONT_OPTIONS}
                 value={form.fontFamily}
                 onChange={(value) => {
@@ -1039,7 +1041,7 @@ export function ThemeSettings() {
 
               {/* Border Radius */}
               <RadioGroup<BorderRadius>
-                label="Border Radius"
+                label={t('Border Radius')}
                 value={form.borderRadius}
                 onChange={(value) => {
                   updateField('borderRadius', value);
@@ -1050,21 +1052,21 @@ export function ThemeSettings() {
                 options={[
                   {
                     value: 'sharp',
-                    label: 'Sharp',
+                    label: t('Sharp'),
                     preview: (
                       <div className="w-10 h-7 border-2 border-text-secondary rounded-sm" />
                     ),
                   },
                   {
                     value: 'rounded',
-                    label: 'Rounded',
+                    label: t('Rounded'),
                     preview: (
                       <div className="w-10 h-7 border-2 border-text-secondary rounded-lg" />
                     ),
                   },
                   {
                     value: 'pill',
-                    label: 'Pill',
+                    label: t('Pill'),
                     preview: (
                       <div className="w-10 h-7 border-2 border-text-secondary rounded-full" />
                     ),
@@ -1074,7 +1076,7 @@ export function ThemeSettings() {
 
               {/* Surface Style */}
               <RadioGroup<SurfaceStyle>
-                label="Surface Style"
+                label={t('Surface Style')}
                 value={form.surfaceStyle}
                 onChange={(value) => {
                   updateField('surfaceStyle', value);
@@ -1085,14 +1087,14 @@ export function ThemeSettings() {
                 options={[
                   {
                     value: 'flat',
-                    label: 'Flat',
+                    label: t('Flat'),
                     preview: (
                       <div className="w-10 h-7 bg-bg-muted border border-border" />
                     ),
                   },
                   {
                     value: 'subtle',
-                    label: 'Subtle',
+                    label: t('Subtle'),
                     preview: (
                       <div
                         className="w-10 h-7 bg-bg-surface border border-border"
@@ -1102,7 +1104,7 @@ export function ThemeSettings() {
                   },
                   {
                     value: 'elevated',
-                    label: 'Elevated',
+                    label: t('Elevated'),
                     preview: (
                       <div
                         className="w-10 h-7 bg-bg-surface border border-border"
@@ -1122,14 +1124,14 @@ export function ThemeSettings() {
             </CardHeader>
             <CardContent className="space-y-4">
               <ImageUpload
-                label="Logo"
+                label={t('Logo')}
                 value={form.logoUrl || null}
                 onChange={(url) => updateField('logoUrl', url ?? '')}
                 tenantSlug={tenantSlug}
                 aspectRatio="1:1"
               />
               <ImageUpload
-                label="Cover Image"
+                label={t('Cover Image')}
                 value={form.coverImageUrl || null}
                 onChange={(url) => updateField('coverImageUrl', url ?? '')}
                 tenantSlug={tenantSlug}

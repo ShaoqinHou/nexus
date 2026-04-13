@@ -85,7 +85,7 @@ export function PlatformShell() {
             type="button"
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
             className="hidden lg:flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.95]"
-            aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            aria-label={sidebarCollapsed ? t('Expand sidebar') : t('Collapse sidebar')}
           >
             <ChevronLeft
               className={[
@@ -98,7 +98,7 @@ export function PlatformShell() {
             type="button"
             onClick={closeMobileSidebar}
             className="lg:hidden min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.95]"
-            aria-label="Close sidebar"
+            aria-label={t('Close sidebar')}
           >
             <X className="h-5 w-5" />
           </button>
@@ -219,7 +219,7 @@ export function PlatformShell() {
               type="button"
               onClick={() => setSidebarOpen(true)}
               className="lg:hidden min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.95]"
-              aria-label="Open menu"
+              aria-label={t('Open menu')}
             >
               <Menu className="h-6 w-6" />
             </button>
@@ -254,7 +254,7 @@ export function PlatformShell() {
               type="button"
               onClick={toggleTheme}
               className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.95]"
-              aria-label="Toggle theme"
+              aria-label={t('Toggle theme')}
             >
               {theme === 'light' ? (
                 <Moon className="h-5 w-5" />
