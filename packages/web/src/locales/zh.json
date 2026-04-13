@@ -88,7 +88,6 @@
   "Switch to dark mode": "切换到深色模式",
   "items": "件",
   "item": "件",
-
   "Orders": "订单管理",
   "Auto-refreshes every 10s": "每10秒自动刷新",
   "Status": "状态",
@@ -169,7 +168,6 @@
   "Discount of": "折扣",
   "applied": "已应用",
   "Failed to apply discount": "应用折扣失败",
-
   "Kitchen": "厨房",
   "Live": "实时",
   "Reconnecting in": "重新连接倒计时",
@@ -192,7 +190,6 @@
   "All items ready — advance order?": "所有菜品已完成——推进订单？",
   "Cancel": "取消",
   "Click anywhere to enable sound alerts": "点击任意位置启用声音提醒",
-
   "Analytics": "数据分析",
   "Overview": "概览",
   "Daily Summary": "每日汇总",
@@ -244,7 +241,6 @@
   "Recent Feedback": "最新评价",
   "No feedback yet": "暂无评价",
   "Customer feedback will appear here after orders are delivered.": "订单送达后顾客评价将显示在此处。",
-
   "Menu Management": "菜单管理",
   "Categories": "分类",
   "Add": "添加",
@@ -293,7 +289,6 @@
   "Item modifiers updated": "菜品选项已更新",
   "Failed to update item modifiers": "更新菜品选项失败",
   "No modifier groups created yet. Go to the Modifiers page to create groups first.": "暂无选项组。请先前往选项管理页面创建选项组。",
-
   "Settings": "设置",
   "Configure settings and appearance": "配置设置与外观",
   "Reset": "重置",
@@ -310,5 +305,17 @@
   "Discard": "放弃",
   "Save Changes": "保存更改",
   "Settings saved": "设置已保存",
-  "Failed to save settings": "保存设置失败"
+  "Failed to save settings": "保存设置失败",
+  "Dashboard": "仪表盘",
+  "Switch Restaurant": "切换餐厅",
+  "Operations": "运营",
+  "Marketing": "营销",
+  "Management": "管理",
+  "Other": "其他",
+  "Combos": "套餐",
+  "Promotions": "促销",
+  "QR Codes": "二维码",
+  "Staff": "员工",
+  "Logout": "退出登录",
+  "Menu": "菜单"
 }

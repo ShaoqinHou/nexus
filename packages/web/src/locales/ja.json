@@ -88,7 +88,6 @@
   "Switch to dark mode": "ダークモードに切替",
   "items": "品",
   "item": "品",
-
   "Orders": "注文管理",
   "Auto-refreshes every 10s": "10秒ごとに自動更新",
   "Status": "ステータス",
@@ -169,7 +168,6 @@
   "Discount of": "割引額",
   "applied": "適用済み",
   "Failed to apply discount": "割引の適用に失敗しました",
-
   "Kitchen": "キッチン",
   "Live": "リアルタイム",
   "Reconnecting in": "再接続まで",
@@ -192,7 +190,6 @@
   "All items ready — advance order?": "全品完了 — 次のステータスへ進めますか？",
   "Cancel": "キャンセル",
   "Click anywhere to enable sound alerts": "画面をクリックして音声アラートを有効にしてください",
-
   "Analytics": "分析レポート",
   "Overview": "概要",
   "Daily Summary": "日次レポート",
@@ -244,7 +241,6 @@
   "Recent Feedback": "最新のフィードバック",
   "No feedback yet": "まだフィードバックがありません",
   "Customer feedback will appear here after orders are delivered.": "配膳後にお客様のフィードバックがここに表示されます。",
-
   "Menu Management": "メニュー管理",
   "Categories": "カテゴリー",
   "Add": "追加",
@@ -293,7 +289,6 @@
   "Item modifiers updated": "商品オプションを更新しました",
   "Failed to update item modifiers": "商品オプションの更新に失敗しました",
   "No modifier groups created yet. Go to the Modifiers page to create groups first.": "まだオプショングループがありません。先にオプション管理ページで作成してください。",
-
   "Settings": "設定",
   "Configure settings and appearance": "設定と外観をカスタマイズ",
   "Reset": "リセット",
@@ -310,5 +305,17 @@
   "Discard": "破棄",
   "Save Changes": "変更を保存",
   "Settings saved": "設定を保存しました",
-  "Failed to save settings": "設定の保存に失敗しました"
+  "Failed to save settings": "設定の保存に失敗しました",
+  "Dashboard": "ダッシュボード",
+  "Switch Restaurant": "レストラン切替",
+  "Operations": "オペレーション",
+  "Marketing": "マーケティング",
+  "Management": "管理",
+  "Other": "その他",
+  "Combos": "セット",
+  "Promotions": "プロモーション",
+  "QR Codes": "QRコード",
+  "Staff": "スタッフ",
+  "Logout": "ログアウト",
+  "Menu": "メニュー"
 }

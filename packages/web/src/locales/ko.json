@@ -88,7 +88,6 @@
   "Switch to dark mode": "다크 모드로 전환",
   "items": "개",
   "item": "개",
-
   "Orders": "주문 관리",
   "Auto-refreshes every 10s": "10초마다 자동 새로고침",
   "Status": "상태",
@@ -169,7 +168,6 @@
   "Discount of": "할인 금액",
   "applied": "적용됨",
   "Failed to apply discount": "할인 적용 실패",
-
   "Kitchen": "주방",
   "Live": "실시간",
   "Reconnecting in": "재연결까지",
@@ -192,7 +190,6 @@
   "All items ready — advance order?": "모든 항목 완료 — 다음 단계로 진행하시겠습니까?",
   "Cancel": "취소",
   "Click anywhere to enable sound alerts": "화면을 클릭하여 소리 알림을 활성화하세요",
-
   "Analytics": "분석",
   "Overview": "개요",
   "Daily Summary": "일간 요약",
@@ -244,7 +241,6 @@
   "Recent Feedback": "최근 피드백",
   "No feedback yet": "아직 피드백이 없습니다",
   "Customer feedback will appear here after orders are delivered.": "배달 완료 후 고객 피드백이 여기에 표시됩니다.",
-
   "Menu Management": "메뉴 관리",
   "Categories": "카테고리",
   "Add": "추가",
@@ -293,7 +289,6 @@
   "Item modifiers updated": "항목 옵션 업데이트됨",
   "Failed to update item modifiers": "항목 옵션 업데이트 실패",
   "No modifier groups created yet. Go to the Modifiers page to create groups first.": "아직 옵션 그룹이 없습니다. 먼저 옵션 관리 페이지에서 그룹을 만드세요.",
-
   "Settings": "설정",
   "Configure settings and appearance": "설정 및 외관 구성",
   "Reset": "초기화",
@@ -310,5 +305,17 @@
   "Discard": "취소",
   "Save Changes": "변경 사항 저장",
   "Settings saved": "설정 저장됨",
-  "Failed to save settings": "설정 저장 실패"
+  "Failed to save settings": "설정 저장 실패",
+  "Dashboard": "대시보드",
+  "Switch Restaurant": "레스토랑 전환",
+  "Operations": "운영",
+  "Marketing": "마케팅",
+  "Management": "관리",
+  "Other": "기타",
+  "Combos": "세트 메뉴",
+  "Promotions": "프로모션",
+  "QR Codes": "QR 코드",
+  "Staff": "직원",
+  "Logout": "로그아웃",
+  "Menu": "메뉴"
 }

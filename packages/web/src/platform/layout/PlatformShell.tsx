@@ -17,7 +17,7 @@ import { useTenant } from '@web/platform/tenant/TenantProvider';
 import { useTour } from '@web/platform/TourProvider';
 import { getApps } from '@web/platform/registry';
 import { Button, LanguagePicker } from '@web/components/ui';
-import { useLocale } from '@web/lib/i18n';
+import { useT } from '@web/lib/i18n';
 
 export function PlatformShell() {
   const { user, logout, tenants } = useAuth();
@@ -29,6 +29,7 @@ export function PlatformShell() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
+  const t = useT();
   const apps = getApps();
   const location = useLocation();
 
@@ -117,7 +118,7 @@ export function PlatformShell() {
             onClick={closeMobileSidebar}
           >
             <LayoutDashboard className="h-5 w-5 shrink-0" />
-            {!sidebarCollapsed && <span>Dashboard</span>}
+            {!sidebarCollapsed && <span>{t('Dashboard')}</span>}
           </Link>
 
           {hasMultipleTenants && (
@@ -133,7 +134,7 @@ export function PlatformShell() {
               onClick={closeMobileSidebar}
             >
               <ArrowLeftRight className="h-5 w-5 shrink-0" />
-              {!sidebarCollapsed && <span>Switch Restaurant</span>}
+              {!sidebarCollapsed && <span>{t('Switch Restaurant')}</span>}
             </Link>
           )}
 
@@ -156,7 +157,7 @@ export function PlatformShell() {
               <div key={group.label} className="mb-3">
                 {!sidebarCollapsed && (
                   <p className="text-[10px] font-semibold text-text-tertiary uppercase tracking-wider px-3 mb-1">
-                    {group.label}
+                    {t(group.label)}
                   </p>
                 )}
                 {group.items.map((item) => {
@@ -187,7 +188,7 @@ export function PlatformShell() {
                       onClick={closeMobileSidebar}
                     >
                       <Icon className="h-5 w-5 shrink-0" />
-                      {!sidebarCollapsed && <span>{item.label}</span>}
+                      {!sidebarCollapsed && <span>{t(item.label)}</span>}
                     </Link>
                   );
                 })}
@@ -264,7 +265,7 @@ export function PlatformShell() {
 
             <Button variant="ghost" size="sm" onClick={logout}>
               <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">Logout</span>
+              <span className="hidden sm:inline">{t('Logout')}</span>
             </Button>
           </div>
         </header>

@@ -88,7 +88,6 @@
   "Switch to dark mode": "Mode sombre",
   "items": "articles",
   "item": "article",
-
   "Orders": "Commandes",
   "Auto-refreshes every 10s": "Actualisation automatique toutes les 10s",
   "Status": "Statut",
@@ -169,7 +168,6 @@
   "Discount of": "Réduction de",
   "applied": "appliquée",
   "Failed to apply discount": "Échec de l'application de la réduction",
-
   "Kitchen": "Cuisine",
   "Live": "En direct",
   "Reconnecting in": "Reconnexion dans",
@@ -192,7 +190,6 @@
   "All items ready — advance order?": "Tous les articles prêts — avancer la commande ?",
   "Cancel": "Annuler",
   "Click anywhere to enable sound alerts": "Cliquez n'importe où pour activer les alertes sonores",
-
   "Analytics": "Analyses",
   "Overview": "Vue d'ensemble",
   "Daily Summary": "Résumé quotidien",
@@ -244,7 +241,6 @@
   "Recent Feedback": "Avis récents",
   "No feedback yet": "Aucun avis pour l'instant",
   "Customer feedback will appear here after orders are delivered.": "Les avis clients apparaîtront ici après la livraison des commandes.",
-
   "Menu Management": "Gestion du menu",
   "Categories": "Catégories",
   "Add": "Ajouter",
@@ -293,7 +289,6 @@
   "Item modifiers updated": "Options du plat mises à jour",
   "Failed to update item modifiers": "Échec de la mise à jour des options",
   "No modifier groups created yet. Go to the Modifiers page to create groups first.": "Aucun groupe d'options créé. Allez dans la page Options pour en créer.",
-
   "Settings": "Paramètres",
   "Configure settings and appearance": "Configurer les paramètres et l'apparence",
   "Reset": "Réinitialiser",
@@ -310,5 +305,17 @@
   "Discard": "Annuler",
   "Save Changes": "Enregistrer les modifications",
   "Settings saved": "Paramètres enregistrés",
-  "Failed to save settings": "Échec de l'enregistrement des paramètres"
+  "Failed to save settings": "Échec de l'enregistrement des paramètres",
+  "Dashboard": "Tableau de bord",
+  "Switch Restaurant": "Changer de restaurant",
+  "Operations": "Opérations",
+  "Marketing": "Marketing",
+  "Management": "Gestion",
+  "Other": "Autre",
+  "Combos": "Formules",
+  "Promotions": "Promotions",
+  "QR Codes": "QR Codes",
+  "Staff": "Personnel",
+  "Logout": "Déconnexion",
+  "Menu": "Menu"
 }

@@ -88,7 +88,6 @@
   "Switch to dark mode": "Switch to dark mode",
   "items": "items",
   "item": "item",
-
   "Orders": "Orders",
   "Auto-refreshes every 10s": "Auto-refreshes every 10s",
   "Status": "Status",
@@ -169,7 +168,6 @@
   "Discount of": "Discount of",
   "applied": "applied",
   "Failed to apply discount": "Failed to apply discount",
-
   "Kitchen": "Kitchen",
   "Live": "Live",
   "Reconnecting in": "Reconnecting in",
@@ -192,7 +190,6 @@
   "All items ready — advance order?": "All items ready — advance order?",
   "Cancel": "Cancel",
   "Click anywhere to enable sound alerts": "Click anywhere to enable sound alerts",
-
   "Analytics": "Analytics",
   "Overview": "Overview",
   "Daily Summary": "Daily Summary",
@@ -244,7 +241,6 @@
   "Recent Feedback": "Recent Feedback",
   "No feedback yet": "No feedback yet",
   "Customer feedback will appear here after orders are delivered.": "Customer feedback will appear here after orders are delivered.",
-
   "Menu Management": "Menu Management",
   "Categories": "Categories",
   "Add": "Add",
@@ -293,7 +289,6 @@
   "Item modifiers updated": "Item modifiers updated",
   "Failed to update item modifiers": "Failed to update item modifiers",
   "No modifier groups created yet. Go to the Modifiers page to create groups first.": "No modifier groups created yet. Go to the Modifiers page to create groups first.",
-
   "Settings": "Settings",
   "Configure settings and appearance": "Configure settings and appearance",
   "Reset": "Reset",
@@ -310,5 +305,17 @@
   "Discard": "Discard",
   "Save Changes": "Save Changes",
   "Settings saved": "Settings saved",
-  "Failed to save settings": "Failed to save settings"
+  "Failed to save settings": "Failed to save settings",
+  "Dashboard": "Dashboard",
+  "Switch Restaurant": "Switch Restaurant",
+  "Operations": "Operations",
+  "Marketing": "Marketing",
+  "Management": "Management",
+  "Other": "Other",
+  "Combos": "Combos",
+  "Promotions": "Promotions",
+  "QR Codes": "QR Codes",
+  "Staff": "Staff",
+  "Logout": "Logout",
+  "Menu": "Menu"
 }
