@@ -1,11 +1,13 @@
 # Project Status
 
 ## Current State
-- **Phase:** Production v2 — restaurant operations + i18n complete
+- **Phase:** Production v2 — restaurant operations + i18n + performance
 - **Last verified:** 2026-04-14
 - **Live at:** https://cv.rehou.games/nexus/
-- **Commits:** 130+ | **Lines:** ~68,000 | **Tests:** 203 (181 API + 22 web) + 21 Playwright E2E
-- **Locale keys:** 495 per language (en/zh/ja/ko/fr)
+- **Commits:** 135 | **Lines:** 33,368 | **Components:** 53 | **API routes:** 67
+- **Tests:** 203 unit (181 API + 22 web) + 21 Playwright E2E + 7 smoke tests
+- **Locale keys:** 688 per language (en/zh/ja/ko/fr)
+- **Bundle:** 240KB main (lazy-loaded routes, vendor-split)
 
 ## Features
 
