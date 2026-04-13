@@ -6,7 +6,7 @@ import { streamSSE } from 'hono/streaming';
 import { eq, and } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import jwt from 'jsonwebtoken';
-import { translate } from '../../lib/translate.js';
+import { translate, translateBatch } from '../../lib/translate.js';
 import { authMiddleware, JWT_SECRET } from '../../middleware/auth.js';
 import { sessionMiddleware } from '../../middleware/session.js';
 import { customerSessions, staff, ORDER_STATUSES, PROMOTION_TYPES, ORDER_ITEM_STATUSES, PAYMENT_STATUSES, PAYMENT_METHODS, TABLE_STATUSES, WAITER_CALL_TYPES } from '../../db/schema.js';
@@ -1113,31 +1113,57 @@ export function staffOrderingRoutes(db: DrizzleDB) {
     let translatedCount = 0;
 
     try {
-      // Translate all active categories directly to the requested locale
+      // Collect ALL translatable texts into one batch (1-2 API calls instead of 30+)
+      const batchItems: { key: string; text: string; context: string; entityType: string; entityId: string; field: string }[] = [];
+
       const categories = getCategories(db, tenantId);
       for (const category of categories) {
         for (const field of ['name', 'description'] as const) {
           const text = category[field];
           if (!text || !text.trim()) continue;
-          const translated = await translate({ text, targetLocale, context: `restaurant menu category ${field}` });
-          if (translated !== text) {
-            setTranslation(db, tenantId, 'menu_category', category.id, targetLocale, field, translated);
-            translatedCount++;
-          }
+          batchItems.push({
+            key: `cat:${category.id}:${field}`,
+            text,
+            context: `restaurant menu category ${field}`,
+            entityType: 'menu_category',
+            entityId: category.id,
+            field,
+          });
         }
       }
 
-      // Translate all active menu items
       const items = getMenuItems(db, tenantId);
       for (const item of items) {
         for (const field of ['name', 'description'] as const) {
           const text = item[field];
           if (!text || !text.trim()) continue;
-          const translated = await translate({ text, targetLocale, context: `restaurant menu item ${field}` });
-          if (translated !== text) {
-            setTranslation(db, tenantId, 'menu_item', item.id, targetLocale, field, translated);
-            translatedCount++;
-          }
+          batchItems.push({
+            key: `item:${item.id}:${field}`,
+            text,
+            context: `restaurant menu item ${field}`,
+            entityType: 'menu_item',
+            entityId: item.id,
+            field,
+          });
+        }
+      }
+
+      if (batchItems.length === 0) {
+        return c.json({ data: { count: 0 } });
+      }
+
+      // Send ALL texts in one translateBatch call (packs into 1-2 API requests)
+      const results = await translateBatch(
+        batchItems.map((b) => ({ key: b.key, text: b.text, context: b.context })),
+        targetLocale,
+      );
+
+      // Store results
+      for (const item of batchItems) {
+        const translated = results.get(item.key);
+        if (translated && translated !== item.text) {
+          setTranslation(db, tenantId, item.entityType, item.entityId, targetLocale, item.field, translated);
+          translatedCount++;
         }
       }
 

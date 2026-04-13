@@ -22,6 +22,7 @@ import { Button } from '@web/components/ui';
 import { ConfirmButton } from '@web/components/patterns';
 import { apiClient } from '@web/lib/api';
 import { formatPrice, timeAgo } from '@web/lib/format';
+import { useT } from '@web/lib/i18n';
 import { useTenant } from '@web/platform/tenant/TenantProvider';
 import { useAuth } from '@web/platform/auth/AuthProvider';
 import { useToast } from '@web/platform/ToastProvider';
@@ -343,6 +344,7 @@ function KitchenOrderCard({
   completedItems: Set<string>;
   onToggleItem: (itemId: string) => void;
 }) {
+  const t = useT();
   const nextStatus = ORDER_STATUS_FLOW[order.status];
   const nextLabel = ORDER_FLOW_LABELS[order.status];
 
@@ -380,7 +382,7 @@ function KitchenOrderCard({
               printKitchenTicket(order);
             }}
             className="p-1 rounded text-text-tertiary hover:text-text hover:bg-bg transition-colors"
-            title="Print kitchen ticket"
+            title={t('Print kitchen ticket')}
           >
             <Printer className="h-4 w-4" />
           </button>
@@ -489,7 +491,7 @@ function KitchenOrderCard({
                 )}
                 {item.status === 'cancel_requested' && (
                   <p className="text-sm font-bold text-danger mt-1">
-                    CANCEL REQUESTED
+                    {t('CANCEL REQUESTED')}
                   </p>
                 )}
               </div>
@@ -520,7 +522,7 @@ function KitchenOrderCard({
         return (
           <div className="mx-4 mb-2 rounded-md bg-success-light px-3 py-2 text-center">
             <p className="text-sm font-bold text-success">
-              All items ready — advance order?
+              {t('All items ready — advance order?')}
             </p>
           </div>
         );
@@ -547,7 +549,7 @@ function KitchenOrderCard({
             disabled={isUpdating}
             className="min-h-[52px]"
           >
-            Cancel
+            {t('Cancel')}
           </ConfirmButton>
         )}
       </div>
@@ -560,6 +562,7 @@ function KitchenOrderCard({
 // ---------------------------------------------------------------------------
 
 export function KitchenDisplay() {
+  const t = useT();
   const { tenantSlug, tenant } = useTenant();
   const { token } = useAuth();
   const { toast } = useToast();
@@ -700,10 +703,10 @@ export function KitchenDisplay() {
       { id: orderId, status },
       {
         onSuccess: () => {
-          toast('success', `Order updated`);
+          toast('success', t('Order updated'));
         },
         onError: (err: Error) => {
-          toast('error', err.message || 'Failed to update order');
+          toast('error', err.message || t('Failed to update order'));
         },
       },
     );
@@ -714,10 +717,10 @@ export function KitchenDisplay() {
       { id: orderId, status: 'cancelled' as OrderStatus },
       {
         onSuccess: () => {
-          toast('success', 'Order cancelled');
+          toast('success', t('Order cancelled'));
         },
         onError: (err: Error) => {
-          toast('error', err.message || 'Failed to cancel order');
+          toast('error', err.message || t('Failed to cancel order'));
         },
       },
     );
@@ -737,7 +740,7 @@ export function KitchenDisplay() {
       {/* Sound autoplay banner — shown when sound is enabled but context not yet unlocked */}
       {soundEnabled && audioSuspended && (
         <div className="bg-warning-light text-warning text-xs font-semibold text-center py-1.5 shrink-0">
-          🔔 Click anywhere to enable sound alerts
+          {t('Click anywhere to enable sound alerts')}
         </div>
       )}
 
@@ -746,7 +749,7 @@ export function KitchenDisplay() {
         <div className="flex items-center gap-3">
           <ChefHat className="h-6 w-6 text-primary" />
           <h1 className="text-lg font-bold text-text">
-            {tenant?.name ?? tenantSlug} Kitchen
+            {tenant?.name ?? tenantSlug} {t('Kitchen')}
           </h1>
           <div
             className={[
@@ -762,19 +765,19 @@ export function KitchenDisplay() {
               <>
                 <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
                 <Wifi className="h-3 w-3" />
-                Live
+                {t('Live')}
               </>
             ) : isReconnecting ? (
               <>
                 <span className="h-2 w-2 rounded-full bg-warning" />
                 <WifiOff className="h-3 w-3" />
-                Reconnecting in {reconnectCountdown}s...
+                {t('Reconnecting in')} {reconnectCountdown}s...
               </>
             ) : (
               <>
                 <span className="h-2 w-2 rounded-full bg-danger" />
                 <WifiOff className="h-3 w-3" />
-                Disconnected
+                {t('Disconnected')}
               </>
             )}
           </div>
@@ -796,7 +799,7 @@ export function KitchenDisplay() {
                     : 'text-text-secondary hover:text-text hover:bg-bg',
                 ].join(' ')}
               >
-                {opt.label}
+                {t(opt.label)}
               </button>
             ))}
           </div>
@@ -809,7 +812,7 @@ export function KitchenDisplay() {
             type="button"
             onClick={reconnect}
             className="p-2 rounded-md text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors"
-            title="Reconnect"
+            title={t('Reconnect')}
           >
             <RefreshCw className="h-5 w-5" />
           </button>
@@ -818,7 +821,7 @@ export function KitchenDisplay() {
             type="button"
             onClick={() => setSoundEnabled(!soundEnabled)}
             className="p-2 rounded-md text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors"
-            title={soundEnabled ? 'Mute notifications' : 'Enable sound notifications'}
+            title={soundEnabled ? t('Mute notifications') : t('Enable sound notifications')}
           >
             {soundEnabled ? (
               <Volume2 className="h-5 w-5" />
@@ -831,7 +834,7 @@ export function KitchenDisplay() {
             type="button"
             onClick={toggleFullscreen}
             className="p-2 rounded-md text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors"
-            title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+            title={isFullscreen ? t('Exit fullscreen') : t('Enter fullscreen')}
           >
             {isFullscreen ? (
               <Minimize className="h-5 w-5" />
@@ -863,7 +866,7 @@ export function KitchenDisplay() {
                     col.colorClass,
                   ].join(' ')}
                 >
-                  <h2 className="text-lg font-bold">{col.label}</h2>
+                  <h2 className="text-lg font-bold">{t(col.label)}</h2>
                   <span className="text-lg font-black">{colOrders.length}</span>
                 </div>
 
@@ -871,7 +874,7 @@ export function KitchenDisplay() {
                 <div className="flex-1 overflow-y-auto p-3 space-y-3 scrollbar-hide">
                   {colOrders.length === 0 ? (
                     <div className="flex items-center justify-center h-24 text-text-tertiary text-sm">
-                      No orders
+                      {t('No orders')}
                     </div>
                   ) : (
                     colOrders.map((order) => (

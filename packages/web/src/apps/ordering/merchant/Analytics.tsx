@@ -3,6 +3,7 @@ import { TrendingUp, ShoppingBag, DollarSign, BarChart3, PackageOpen, Tag, Calen
 import { Card, CardHeader, CardTitle, CardContent, Button, Input, Badge } from '@web/components/ui';
 import { EmptyState } from '@web/components/patterns';
 import { formatPrice } from '@web/lib/format';
+import { useT } from '@web/lib/i18n';
 import { useTenant } from '@web/platform/tenant/TenantProvider';
 import { useToast } from '@web/platform/ToastProvider';
 import {
@@ -108,6 +109,7 @@ function StatCard({ title, value, subtitle, icon }: StatCardProps) {
 // ---------------------------------------------------------------------------
 
 function RevenueChart({ data }: { data: DailyRevenue[] }) {
+  const t = useT();
   const chartData = useMemo(
     () =>
       data.map((d) => ({
@@ -119,7 +121,7 @@ function RevenueChart({ data }: { data: DailyRevenue[] }) {
 
   if (data.length === 0) {
     return (
-      <EmptyState icon={BarChart3} title="No revenue data" description="Orders will appear here once placed." />
+      <EmptyState icon={BarChart3} title={t('No revenue data')} description={t('Orders will appear here once placed.')} />
     );
   }
 

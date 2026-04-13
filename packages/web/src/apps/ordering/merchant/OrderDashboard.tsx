@@ -21,6 +21,7 @@ import {
 } from '@web/components/ui';
 import { StatusBadge, EmptyState, ConfirmButton } from '@web/components/patterns';
 import { formatPrice, timeAgo } from '@web/lib/format';
+import { useT } from '@web/lib/i18n';
 import { useTenant } from '@web/platform/tenant/TenantProvider';
 import { useAuth } from '@web/platform/auth/AuthProvider';
 import { useToast } from '@web/platform/ToastProvider';
@@ -101,7 +102,7 @@ function ElapsedBadge({ createdAt }: { createdAt: string }) {
 // Table status
 // ---------------------------------------------------------------------------
 
-const TABLE_STATUS_LABEL: Record<TableStatusValue, string> = {
+const TABLE_STATUS_LABEL_KEYS: Record<TableStatusValue, string> = {
   free: 'Free',
   occupied: 'Occupied',
   needs_cleaning: 'Needs Cleaning',
@@ -120,6 +121,7 @@ const TABLE_STATUS_CYCLE: Record<TableStatusValue, TableStatusValue> = {
 };
 
 function TableStatusPanel({ tenantSlug }: { tenantSlug: string }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
   const tablesQuery = useTableStatuses(tenantSlug);
@@ -131,7 +133,7 @@ function TableStatusPanel({ tenantSlug }: { tenantSlug: string }) {
     updateTable.mutate(
       { tableNumber, status: nextStatus },
       {
-        onError: () => toast('error', 'Failed to update table status'),
+        onError: () => toast('error', t('Failed to update table status')),
       },
     );
   };
@@ -146,11 +148,11 @@ function TableStatusPanel({ tenantSlug }: { tenantSlug: string }) {
         <CardContent className="flex items-center justify-between gap-3 py-3">
           <div className="flex items-center gap-2">
             <LayoutGrid className="h-4 w-4 text-text-secondary" />
-            <span className="text-sm font-semibold text-text">Table Status</span>
+            <span className="text-sm font-semibold text-text">{t('Table Status')}</span>
             {tables.length > 0 && (
               <span className="text-xs text-text-tertiary">
-                ({tables.filter((t) => t.status === 'free').length} free,{' '}
-                {tables.filter((t) => t.status === 'occupied').length} occupied)
+                ({tables.filter((tbl) => tbl.status === 'free').length} {t('free')},{' '}
+                {tables.filter((tbl) => tbl.status === 'occupied').length} {t('occupied')})
               </span>
             )}
           </div>
@@ -167,30 +169,30 @@ function TableStatusPanel({ tenantSlug }: { tenantSlug: string }) {
           <CardContent className="py-3">
             {tables.length === 0 ? (
               <p className="text-xs text-text-tertiary">
-                No tables tracked yet. Click a table chip to add it or update its status.
+                {t('No tables tracked yet. Click a table chip to add it or update its status.')}
               </p>
             ) : (
               <div className="flex flex-wrap gap-2">
-                {tables.map((t) => (
+                {tables.map((tbl) => (
                   <button
-                    key={t.id}
+                    key={tbl.id}
                     type="button"
-                    onClick={() => handleCycle(t.tableNumber, t.status)}
+                    onClick={() => handleCycle(tbl.tableNumber, tbl.status)}
                     disabled={updateTable.isPending}
                     className={[
                       'px-3 py-1.5 rounded-full text-xs font-semibold transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
-                      TABLE_STATUS_COLOR[t.status],
+                      TABLE_STATUS_COLOR[tbl.status],
                       updateTable.isPending ? 'opacity-60' : 'hover:opacity-80',
                     ].join(' ')}
-                    title={`Table ${t.tableNumber} — ${TABLE_STATUS_LABEL[t.status]}. Click to cycle.`}
+                    title={`${t('Table')} ${tbl.tableNumber} — ${t(TABLE_STATUS_LABEL_KEYS[tbl.status])}. ${t('Click to cycle.')}`}
                   >
-                    {t.tableNumber}
+                    {tbl.tableNumber}
                   </button>
                 ))}
               </div>
             )}
             <p className="mt-2 text-xs text-text-tertiary">
-              Click a chip to cycle: Free → Occupied → Needs Cleaning → Free
+              {t('Click a chip to cycle: Free > Occupied > Needs Cleaning > Free')}
             </p>
           </CardContent>
         </div>
@@ -204,6 +206,7 @@ function TableStatusPanel({ tenantSlug }: { tenantSlug: string }) {
 // ---------------------------------------------------------------------------
 
 function WaiterCallBanner({ tenantSlug }: { tenantSlug: string }) {
+  const t = useT();
   const { toast } = useToast();
   const callsQuery = useWaiterCalls(tenantSlug);
   const acknowledge = useAcknowledgeWaiterCall(tenantSlug);
@@ -213,8 +216,8 @@ function WaiterCallBanner({ tenantSlug }: { tenantSlug: string }) {
 
   const handleAck = (callId: string, tableNumber: string) => {
     acknowledge.mutate(callId, {
-      onSuccess: () => toast('success', `Table ${tableNumber} acknowledged`),
-      onError: () => toast('error', 'Failed to acknowledge call'),
+      onSuccess: () => toast('success', `${t('Table')} ${tableNumber} ${t('acknowledged')}`),
+      onError: () => toast('error', t('Failed to acknowledge call')),
     });
   };
 
@@ -228,7 +231,7 @@ function WaiterCallBanner({ tenantSlug }: { tenantSlug: string }) {
           <div className="flex items-center gap-2">
             <Receipt className="h-4 w-4 text-success shrink-0" />
             <span className="text-sm font-semibold text-success">
-              {billCalls.length} bill request{billCalls.length !== 1 ? 's' : ''}
+              {billCalls.length} {t('bill request')}{billCalls.length !== 1 ? 's' : ''}
             </span>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -241,7 +244,7 @@ function WaiterCallBanner({ tenantSlug }: { tenantSlug: string }) {
                 loading={acknowledge.isPending && acknowledge.variables === call.id}
                 className="min-h-[44px] border-success/30"
               >
-                Table {call.tableNumber} — Bill Ready
+                {t('Table')} {call.tableNumber} — {t('Bill Ready')}
               </Button>
             ))}
           </div>
@@ -252,7 +255,7 @@ function WaiterCallBanner({ tenantSlug }: { tenantSlug: string }) {
           <div className="flex items-center gap-2">
             <Bell className="h-4 w-4 text-warning shrink-0" />
             <span className="text-sm font-semibold text-warning">
-              {assistCalls.length} waiter call{assistCalls.length !== 1 ? 's' : ''} pending
+              {assistCalls.length} {t('waiter call')}{assistCalls.length !== 1 ? 's' : ''} {t('pending')}
             </span>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -265,7 +268,7 @@ function WaiterCallBanner({ tenantSlug }: { tenantSlug: string }) {
                 loading={acknowledge.isPending && acknowledge.variables === call.id}
                 className="min-h-[44px]"
               >
-                Table {call.tableNumber} — Acknowledge
+                {t('Table')} {call.tableNumber} — {t('Acknowledge')}
               </Button>
             ))}
           </div>
@@ -305,6 +308,7 @@ function PaymentMethodSelect({
   onSelect: (orderId: string, paymentStatus: PaymentStatus, paymentMethod: PaymentMethod) => void;
   isPending: boolean;
 }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -332,7 +336,7 @@ function PaymentMethodSelect({
         className="min-h-[44px]"
       >
         <CreditCard className="h-3.5 w-3.5 mr-1" />
-        Mark Paid
+        {t('Mark Paid')}
       </Button>
       {open && (
         <div className="absolute left-0 top-full mt-1 z-20 bg-bg-surface border border-border rounded shadow-lg p-1 min-w-[140px]">
@@ -375,6 +379,7 @@ function StaffNotesEditor({
   onSave: (orderId: string, staffNotes: string) => void;
   isSaving: boolean;
 }) {
+  const t = useT();
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(order.staffNotes ?? '');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -405,7 +410,7 @@ function StaffNotesEditor({
   if (editing) {
     return (
       <div className="mt-2" onClick={(e) => e.stopPropagation()}>
-        <label className="text-xs font-medium text-text-secondary">Staff Notes:</label>
+        <label className="text-xs font-medium text-text-secondary">{t('Staff Notes:')}</label>
         <div className="flex items-start gap-1.5 mt-0.5">
           <textarea
             ref={textareaRef}
@@ -415,7 +420,7 @@ function StaffNotesEditor({
             onBlur={handleSave}
             onKeyDown={handleKeyDown}
             className="flex-1 text-xs italic bg-primary/5 border border-primary/20 rounded-md p-2 text-text resize-none focus:outline-none focus:ring-1 focus:ring-primary"
-            placeholder="Add internal notes..."
+            placeholder={t('Add internal notes...')}
           />
           {isSaving && <Loader2 className="h-3.5 w-3.5 text-text-tertiary animate-spin mt-1" />}
         </div>
@@ -426,11 +431,11 @@ function StaffNotesEditor({
   return (
     <div className="mt-2 flex items-start gap-1.5">
       <div className="flex-1 min-w-0">
-        <span className="text-xs font-medium text-text-secondary">Staff Notes: </span>
+        <span className="text-xs font-medium text-text-secondary">{t('Staff Notes:')} </span>
         {order.staffNotes ? (
           <span className="text-xs italic text-text bg-primary/5 rounded px-1 py-0.5">{order.staffNotes}</span>
         ) : (
-          <span className="text-xs text-text-tertiary italic">None</span>
+          <span className="text-xs text-text-tertiary italic">{t('None')}</span>
         )}
       </div>
       <button
@@ -462,6 +467,7 @@ function DiscountOverridePopover({
   onApply: (orderId: string, amount: number, reason: string) => void;
   isPending: boolean;
 }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState('');
   const [reason, setReason] = useState('');
@@ -499,17 +505,17 @@ function DiscountOverridePopover({
         className="min-h-[44px]"
       >
         <Tag className="h-3.5 w-3.5 mr-1" />
-        Discount
+        {t('Discount')}
       </Button>
       {open && (
         <div
           className="absolute left-0 top-full mt-1 z-20 bg-bg-surface border border-border rounded shadow-lg p-3 min-w-[220px]"
           onClick={(e) => e.stopPropagation()}
         >
-          <p className="text-xs font-semibold text-text mb-2">Apply Discount</p>
+          <p className="text-xs font-semibold text-text mb-2">{t('Apply Discount')}</p>
           <div className="space-y-2">
             <div>
-              <label className="text-xs text-text-secondary">Amount ($)</label>
+              <label className="text-xs text-text-secondary">{t('Amount ($)')}</label>
               <input
                 type="number"
                 step="0.01"
@@ -521,7 +527,7 @@ function DiscountOverridePopover({
               />
             </div>
             <div>
-              <label className="text-xs text-text-secondary">Reason (required)</label>
+              <label className="text-xs text-text-secondary">{t('Reason (required)')}</label>
               <textarea
                 rows={2}
                 value={reason}
@@ -560,6 +566,7 @@ function SplitPaymentPanel({
   tenantSlug: string;
   userRole: string;
 }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState('');
   const [method, setMethod] = useState<PaymentMethod>('cash');
@@ -583,12 +590,12 @@ function SplitPaymentPanel({
       { orderId: order.id, amount: numAmount, method, paidBy: paidBy.trim() || undefined },
       {
         onSuccess: () => {
-          toast('success', `Payment of ${formatPrice(numAmount)} recorded`);
+          toast('success', `${t('Payment of')} ${formatPrice(numAmount)} ${t('recorded')}`);
           setAmount('');
           setPaidBy('');
         },
         onError: (err: Error) => {
-          toast('error', err.message || 'Failed to add payment');
+          toast('error', err.message || t('Failed to add payment'));
         },
       },
     );
@@ -599,10 +606,10 @@ function SplitPaymentPanel({
       { orderId: order.id, paymentId },
       {
         onSuccess: () => {
-          toast('success', 'Payment removed');
+          toast('success', t('Payment removed'));
         },
         onError: (err: Error) => {
-          toast('error', err.message || 'Failed to remove payment');
+          toast('error', err.message || t('Failed to remove payment'));
         },
       },
     );
@@ -621,7 +628,7 @@ function SplitPaymentPanel({
         className="min-h-[44px]"
       >
         <Split className="h-3.5 w-3.5 mr-1" />
-        Split Payment
+        {t('Split Payment')}
       </Button>
     );
   }
@@ -632,7 +639,7 @@ function SplitPaymentPanel({
       onClick={(e) => e.stopPropagation()}
     >
       <div className="flex items-center justify-between mb-3">
-        <p className="text-sm font-semibold text-text">Split Payment</p>
+        <p className="text-sm font-semibold text-text">{t('Split Payment')}</p>
         <button
           type="button"
           onClick={() => setOpen(false)}
@@ -667,11 +674,11 @@ function SplitPaymentPanel({
           ))}
           <div className="flex items-center justify-between text-xs pt-1 border-t border-border">
             <span className="text-text-secondary">
-              Paid: <span className="font-semibold text-text">{formatPrice(roundedTotalPaid)}</span> / {formatPrice(order.total)}
+              {t('Paid')}: <span className="font-semibold text-text">{formatPrice(roundedTotalPaid)}</span> / {formatPrice(order.total)}
             </span>
             {remaining > 0 && (
               <span className="text-warning font-semibold">
-                Remaining: {formatPrice(remaining)}
+                {t('Remaining')}: {formatPrice(remaining)}
               </span>
             )}
           </div>
@@ -683,7 +690,7 @@ function SplitPaymentPanel({
         <div className="space-y-2">
           <div className="grid grid-cols-3 gap-2">
             <div>
-              <label className="text-xs text-text-secondary">Amount ($)</label>
+              <label className="text-xs text-text-secondary">{t('Amount ($)')}</label>
               <input
                 type="number"
                 step="0.01"
@@ -695,7 +702,7 @@ function SplitPaymentPanel({
               />
             </div>
             <div>
-              <label className="text-xs text-text-secondary">Method</label>
+              <label className="text-xs text-text-secondary">{t('Method')}</label>
               <select
                 value={method}
                 onChange={(e) => setMethod(e.target.value as PaymentMethod)}
@@ -707,7 +714,7 @@ function SplitPaymentPanel({
               </select>
             </div>
             <div>
-              <label className="text-xs text-text-secondary">Paid by</label>
+              <label className="text-xs text-text-secondary">{t('Paid by')}</label>
               <input
                 type="text"
                 value={paidBy}
@@ -725,7 +732,7 @@ function SplitPaymentPanel({
             disabled={!amount || parseFloat(amount) <= 0}
             className="w-full min-h-[36px]"
           >
-            Add Payment
+            {t('Add Payment')}
           </Button>
         </div>
       )}
@@ -734,7 +741,7 @@ function SplitPaymentPanel({
         <div className="text-center">
           <Badge variant="success">
             <Check className="h-3 w-3 mr-1" />
-            Fully Paid
+            {t('Fully Paid')}
           </Badge>
         </div>
       )}
@@ -777,6 +784,7 @@ function OrderCard({
   tenantName: string;
   tenantSlug: string;
 }) {
+  const t = useT();
   const [expanded, setExpanded] = useState(false);
 
   const nextStatus = ORDER_STATUS_FLOW[order.status];
@@ -855,10 +863,10 @@ function OrderCard({
             <table className="w-full text-sm min-w-[500px]">
               <thead className="sticky top-0 bg-bg-surface">
                 <tr className="text-left text-text-secondary border-b-2 border-border">
-                  <th className="pb-2 pr-4 font-medium">Item</th>
-                  <th className="pb-2 px-2 font-medium text-center">Qty</th>
-                  <th className="pb-2 px-4 font-medium text-right">Price</th>
-                  <th className="pb-2 pl-4 font-medium text-right">Status</th>
+                  <th className="pb-2 pr-4 font-medium">{t('Item')}</th>
+                  <th className="pb-2 px-2 font-medium text-center">{t('Qty')}</th>
+                  <th className="pb-2 px-4 font-medium text-right">{t('Price')}</th>
+                  <th className="pb-2 pl-4 font-medium text-right">{t('Status')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -911,7 +919,7 @@ function OrderCard({
                               disabled={isCancellationPending}
                               className="min-h-[44px]"
                             >
-                              Accept Cancel
+                              {t('Accept Cancel')}
                             </Button>
                             <Button
                               size="sm"
@@ -923,7 +931,7 @@ function OrderCard({
                               disabled={isCancellationPending}
                               className="min-h-[44px]"
                             >
-                              Reject
+                              {t('Reject')}
                             </Button>
                           </div>
                         )}
@@ -939,7 +947,7 @@ function OrderCard({
                       </td>
                       <td className="py-3 pl-4 text-right">
                         {isCancelRequested && (
-                          <Badge variant="warning">Cancel Requested</Badge>
+                          <Badge variant="warning">{t('Cancel Requested')}</Badge>
                         )}
                         {isItemCancelled && (
                           <Badge variant="error">Cancelled</Badge>
@@ -952,7 +960,7 @@ function OrderCard({
               <tfoot>
                 <tr className="border-t border-border">
                   <td className="pt-2 font-semibold text-text" colSpan={3}>
-                    Total
+                    {t('Total')}
                   </td>
                   <td className="pt-2 text-right font-semibold text-text">
                     {formatPrice(order.total)}
@@ -990,7 +998,7 @@ function OrderCard({
               <div className="mt-3">
                 <Badge variant="success">
                   <Check className="h-3 w-3 mr-1" />
-                  Paid &mdash; Locked
+                  {t('Paid')} &mdash; {t('Locked')}
                   {order.paymentMethod ? ` (${PAYMENT_METHOD_LABELS[order.paymentMethod]})` : ''}
                 </Badge>
               </div>
@@ -1005,7 +1013,7 @@ function OrderCard({
             <div className="flex flex-wrap items-center gap-2 mt-4">
               {(order.paymentStatus ?? 'unpaid') === 'refunded' ? (
                 // Refunded — all actions disabled
-                <span className="text-xs text-text-tertiary italic">All actions disabled (order refunded)</span>
+                <span className="text-xs text-text-tertiary italic">{t('All actions disabled (order refunded)')}</span>
               ) : (
                 <>
                   {nextStatus && nextLabel && (
@@ -1052,7 +1060,7 @@ function OrderCard({
                       loading={isPaymentUpdating}
                       className="min-h-[44px]"
                     >
-                      Refund
+                      {t('Refund')}
                     </Button>
                   )}
 
@@ -1067,7 +1075,7 @@ function OrderCard({
                     className="min-h-[44px]"
                   >
                     <Printer className="h-3.5 w-3.5 mr-1" />
-                    Print
+                    {t('Print')}
                   </Button>
 
                   {/* Discount override — owner/manager only */}
@@ -1084,11 +1092,11 @@ function OrderCard({
                       variant="destructive"
                       size="sm"
                       onConfirm={() => onUpdateStatus(order.id, 'cancelled')}
-                      confirmText="Cancel this order?"
+                      confirmText={t('Cancel this order?')}
                       disabled={isUpdating}
                       className="min-h-[44px]"
                     >
-                      Cancel Order
+                      {t('Cancel Order')}
                     </ConfirmButton>
                   )}
                 </>
@@ -1138,6 +1146,7 @@ function OnboardingStep({ number, title, description, link }: OnboardingStepProp
 // ---------------------------------------------------------------------------
 
 export function OrderDashboard() {
+  const t = useT();
   const { tenantSlug, tenant } = useTenant();
   const { user } = useAuth();
 
@@ -1182,10 +1191,10 @@ export function OrderDashboard() {
       { id, status },
       {
         onSuccess: () => {
-          toast('success', `Order status updated to ${status}`);
+          toast('success', `${t('Order status updated to')} ${status}`);
         },
         onError: (err: Error) => {
-          toast('error', err.message || 'Failed to update order status');
+          toast('error', err.message || t('Failed to update order status'));
         },
       },
     );
@@ -1200,7 +1209,7 @@ export function OrderDashboard() {
           toast('success', `Payment marked as ${PAYMENT_STATUS_LABELS[paymentStatus]}${methodLabel}`);
         },
         onError: (err: Error) => {
-          toast('error', err.message || 'Failed to update payment status');
+          toast('error', err.message || t('Failed to update payment status'));
         },
       },
     );
@@ -1211,10 +1220,10 @@ export function OrderDashboard() {
       { orderId, itemId, action },
       {
         onSuccess: () => {
-          toast('success', action === 'approve' ? 'Item cancelled' : 'Cancellation rejected');
+          toast('success', action === 'approve' ? t('Item cancelled') : t('Cancellation rejected'));
         },
         onError: (err: Error) => {
-          toast('error', err.message || 'Failed to handle cancellation');
+          toast('error', err.message || t('Failed to handle cancellation'));
         },
       },
     );
@@ -1225,10 +1234,10 @@ export function OrderDashboard() {
       { orderId, staffNotes },
       {
         onSuccess: () => {
-          toast('success', 'Staff notes updated');
+          toast('success', t('Staff notes updated'));
         },
         onError: (err: Error) => {
-          toast('error', err.message || 'Failed to update staff notes');
+          toast('error', err.message || t('Failed to update staff notes'));
         },
       },
     );
@@ -1239,10 +1248,10 @@ export function OrderDashboard() {
       { orderId, amount, reason },
       {
         onSuccess: () => {
-          toast('success', `Discount of ${formatPrice(amount)} applied`);
+          toast('success', `${t('Discount of')} ${formatPrice(amount)} ${t('applied')}`);
         },
         onError: (err: Error) => {
-          toast('error', err.message || 'Failed to apply discount');
+          toast('error', err.message || t('Failed to apply discount'));
         },
       },
     );
@@ -1251,9 +1260,9 @@ export function OrderDashboard() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-text">Orders</h1>
+        <h1 className="text-2xl font-bold text-text">{t('Orders')}</h1>
         <p className="text-xs text-text-tertiary">
-          Auto-refreshes every 10s
+          {t('Auto-refreshes every 10s')}
         </p>
       </div>
 
@@ -1271,12 +1280,12 @@ export function OrderDashboard() {
               options={STATUS_OPTIONS}
               value={statusFilter}
               onChange={handleStatusFilter}
-              label="Status"
+              label={t('Status')}
             />
           </div>
           <div className="w-full sm:w-48">
             <Input
-              label="Table Number"
+              label={t('Table Number')}
               value={tableFilter}
               onChange={(e) => handleTableFilter(e.target.value)}
               placeholder="e.g. 5"
@@ -1288,17 +1297,17 @@ export function OrderDashboard() {
       {/* Order list */}
       {ordersQuery.isLoading ? (
         <div className="flex items-center justify-center py-12">
-          <p className="text-sm text-text-secondary">Loading orders...</p>
+          <p className="text-sm text-text-secondary">{t('Loading orders...')}</p>
         </div>
       ) : orders.length === 0 ? (
         <>
           <EmptyState
             icon={ShoppingBag}
-            title="No orders"
+            title={t('No orders')}
             description={
               statusFilter || tableFilter
-                ? 'No orders match your filters. Try adjusting them.'
-                : 'No orders yet. Orders will appear here when customers place them.'
+                ? t('No orders match your filters. Try adjusting them.')
+                : t('No orders yet. Orders will appear here when customers place them.')
             }
           />
           {/* Onboarding checklist for new restaurants (no orders, no filters) */}
@@ -1306,8 +1315,8 @@ export function OrderDashboard() {
             <div className="space-y-4 mt-6">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h2 className="text-lg font-bold text-text">Welcome to your restaurant!</h2>
-                  <p className="text-sm text-text-secondary mt-1">Let&apos;s get you set up. Follow these steps:</p>
+                  <h2 className="text-lg font-bold text-text">{t('Welcome to your restaurant!')}</h2>
+                  <p className="text-sm text-text-secondary mt-1">{t("Let's get you set up. Follow these steps:")}</p>
                 </div>
                 <Button
                   variant="secondary"
@@ -1318,32 +1327,32 @@ export function OrderDashboard() {
                   }}
                 >
                   <HelpCircle className="h-4 w-4" />
-                  Take a Guided Tour
+                  {t('Take a Guided Tour')}
                 </Button>
               </div>
               <div className="space-y-3">
                 <OnboardingStep
                   number={1}
-                  title="Set up your menu"
-                  description="Add categories and items for customers to browse"
+                  title={t('Set up your menu')}
+                  description={t('Add categories and items for customers to browse')}
                   link={`/t/${tenantSlug}/ordering/menu`}
                 />
                 <OnboardingStep
                   number={2}
-                  title="Configure modifiers"
-                  description="Add sizes, toppings, and other customizations"
+                  title={t('Configure modifiers')}
+                  description={t('Add sizes, toppings, and other customizations')}
                   link={`/t/${tenantSlug}/ordering/modifiers`}
                 />
                 <OnboardingStep
                   number={3}
-                  title="Customize your theme"
-                  description="Set your brand colors, logo, and operating hours"
+                  title={t('Customize your theme')}
+                  description={t('Set your brand colors, logo, and operating hours')}
                   link={`/t/${tenantSlug}/ordering/settings`}
                 />
                 <OnboardingStep
                   number={4}
-                  title="Generate QR codes"
-                  description="Print codes for your tables so customers can order"
+                  title={t('Generate QR codes')}
+                  description={t('Print codes for your tables so customers can order')}
                   link={`/t/${tenantSlug}/ordering/qr`}
                 />
               </div>
@@ -1392,10 +1401,10 @@ export function OrderDashboard() {
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page <= 1}
               >
-                Previous
+                {t('Previous')}
               </Button>
               <span className="text-sm text-text-secondary">
-                Page {page} of {totalPages}
+                {t('Page')} {page} / {totalPages}
               </span>
               <Button
                 variant="secondary"
@@ -1403,7 +1412,7 @@ export function OrderDashboard() {
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page >= totalPages}
               >
-                Next
+                {t('Next')}
               </Button>
             </div>
           )}
