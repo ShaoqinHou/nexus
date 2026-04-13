@@ -12,6 +12,7 @@ import { useTheme } from '@web/platform/theme/ThemeProvider';
 import { usePullToRefresh } from '@web/lib/hooks/usePullToRefresh';
 import { useCallWaiter } from '@web/apps/ordering/hooks/useTables';
 import { useToast } from '@web/platform/ToastProvider';
+import { useT } from '@web/lib/i18n';
 import type { MenuCategory, MenuItem, ModifierGroup, ComboDeal } from '@web/apps/ordering/types';
 import type { DietaryTag } from '@web/apps/ordering/types';
 import { ALLERGENS } from '@web/apps/ordering/types';
@@ -108,6 +109,7 @@ const MenuItemCard = memo(function MenuItemCard({
   disabled?: boolean;
   tourTarget?: string;
 }) {
+  const t = useT();
   const { items, addItem, updateQuantity } = useCart();
 
   const hasModifiers =
@@ -181,7 +183,7 @@ const MenuItemCard = memo(function MenuItemCard({
           <div className="flex items-center gap-2 shrink-0">
             {isSoldOut && (
               <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold bg-danger/10 text-danger">
-                Sold Out
+                {t('Sold Out')}
               </span>
             )}
             <span className="text-sm font-semibold text-primary whitespace-nowrap">
@@ -198,16 +200,16 @@ const MenuItemCard = memo(function MenuItemCard({
         <AllergenBadges allergens={item.allergens} />
         {hasModifiers && (
           <p className="mt-0.5 text-xs text-text-tertiary">
-            <span className="lg:hidden">Customizable</span>
-            <span className="hidden lg:inline">Customizable{modifierPreview ? ` \u00b7 ${modifierPreview}` : ''}</span>
+            <span className="lg:hidden">{t('Customizable')}</span>
+            <span className="hidden lg:inline">{t('Customizable')}{modifierPreview ? ` \u00b7 ${modifierPreview}` : ''}</span>
           </p>
         )}
         {isSoldOut ? (
           <p className="mt-1 text-xs font-medium text-danger">
-            Sold Out{item.soldOutUntil ? ` until ${item.soldOutUntil}` : ''}
+            {t('Sold Out')}{item.soldOutUntil ? ` ${t('until')} ${item.soldOutUntil}` : ''}
           </p>
         ) : isUnavailable && (
-          <p className="mt-1 text-xs font-medium text-danger">Unavailable</p>
+          <p className="mt-1 text-xs font-medium text-danger">{t('Unavailable')}</p>
         )}
       </div>
 
@@ -298,6 +300,7 @@ const ComboCard = memo(function ComboCard({
   combo: ComboDeal;
   onSelect: (combo: ComboDeal) => void;
 }) {
+  const t = useT();
   return (
     <button
       type="button"
@@ -327,7 +330,7 @@ const ComboCard = memo(function ComboCard({
             {combo.name}
           </h3>
           <span className="text-sm font-semibold text-primary whitespace-nowrap">
-            from {formatPrice(combo.basePrice)}
+            {t('from')} {formatPrice(combo.basePrice)}
           </span>
         </div>
         {combo.description && (
@@ -430,6 +433,7 @@ const SEARCH_HISTORY_KEY = 'nexus_search_history';
 const MAX_SEARCH_HISTORY = 5;
 
 export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBrowseProps) {
+  const t = useT();
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [detailItem, setDetailItem] = useState<PublicMenuItem | null>(null);
   const [selectedCombo, setSelectedCombo] = useState<ComboDeal | null>(null);
@@ -450,12 +454,12 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
     if (!tableNumber || waiterCooldown) return;
     callWaiter.mutate({ tableNumber, callType: 'assistance' }, {
       onSuccess: () => {
-        toast('success', 'Waiter notified!');
+        toast('success', t('Waiter notified!'));
         setWaiterCooldown(true);
         setTimeout(() => setWaiterCooldown(false), 30_000);
       },
       onError: () => {
-        toast('error', 'Could not call waiter. Please try again.');
+        toast('error', t('Could not call waiter. Please try again.'));
       },
     });
   }, [tableNumber, waiterCooldown, callWaiter, toast]);
@@ -464,12 +468,12 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
     if (!tableNumber || billCooldown) return;
     callWaiter.mutate({ tableNumber, callType: 'bill' }, {
       onSuccess: () => {
-        toast('success', 'Bill requested! A waiter will bring it shortly.');
+        toast('success', t('Bill requested! A waiter will bring it shortly.'));
         setBillCooldown(true);
         setTimeout(() => setBillCooldown(false), 30_000);
       },
       onError: () => {
-        toast('error', 'Could not request bill. Please try again.');
+        toast('error', t('Could not request bill. Please try again.'));
       },
     });
   }, [tableNumber, billCooldown, callWaiter, toast]);
@@ -694,10 +698,10 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
       <div className="p-4">
         <EmptyState
           icon={UtensilsCrossed}
-          title="Unable to load menu"
-          description="Something went wrong loading the menu. Please try again."
+          title={t('Unable to load menu')}
+          description={t('Something went wrong loading the menu. Please try again.')}
           action={{
-            label: 'Retry',
+            label: t('Retry'),
             onClick: () => window.location.reload(),
           }}
         />
@@ -710,8 +714,8 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
       <div className="p-4">
         <EmptyState
           icon={UtensilsCrossed}
-          title="Menu not available"
-          description="This restaurant hasn't added any items to their menu yet."
+          title={t('Menu not available')}
+          description={t("This restaurant hasn't added any items to their menu yet.")}
         />
       </div>
     );
@@ -732,7 +736,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
         {/* Table number chip */}
         {tableNumber && (
           <span className="shrink-0 px-2 py-1 rounded-full bg-bg-muted text-xs font-semibold text-text-secondary inline-block mb-3">
-            Table {tableNumber}
+            {t('Table')} {tableNumber}
           </span>
         )}
 
@@ -748,7 +752,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
           ) : (
             <Sun className="h-4 w-4" />
           )}
-          <span>{theme === 'light' ? 'Dark Mode' : 'Light Mode'}</span>
+          <span>{theme === 'light' ? t('Dark Mode') : t('Light Mode')}</span>
         </button>
 
         {/* Always-visible search on desktop */}
@@ -758,7 +762,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search menu..."
+            placeholder={t('Search menu...')}
             className="w-full text-base pl-10 pr-10 py-3 h-12 rounded-lg border border-border bg-bg text-text placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-primary"
           />
           {searchQuery && (
@@ -766,7 +770,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
               type="button"
               onClick={() => setSearchQuery('')}
               className="absolute right-2 top-1/2 -translate-y-1/2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-bg-muted text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              aria-label="Clear search"
+              aria-label={t('Clear search')}
             >
               <X className="h-4 w-4" />
             </button>
@@ -787,7 +791,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
               ].join(' ')}
             >
               <AlertTriangle className="h-3.5 w-3.5" />
-              Allergen Filter
+              {t('Allergen Filter')}
               {hiddenAllergens.size > 0 && (
                 <span className="ml-auto text-xs font-bold">{hiddenAllergens.size}</span>
               )}
@@ -818,7 +822,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                     onClick={() => setHiddenAllergens(new Set())}
                     className="ml-auto text-xs text-primary hover:text-primary-hover font-medium min-h-[44px] min-w-[44px] flex items-center justify-center"
                   >
-                    Clear All
+                    {t('Clear All')}
                   </button>
                 )}
               </div>
@@ -851,7 +855,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
         {/* Featured items — horizontal scroll on mobile, grid on desktop */}
         {featuredItems.length > 0 && (
           <div className="px-4 pt-3 pb-1">
-            <h2 className="text-sm font-bold text-text mb-2">Popular</h2>
+            <h2 className="text-sm font-bold text-text mb-2">{t('Popular')}</h2>
             <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 lg:grid lg:grid-cols-4 lg:overflow-visible">
               {featuredItems.map((item) => (
                 <button
@@ -905,7 +909,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search menu..."
+                    placeholder={t('Search menu...')}
                     autoFocus
                     className="w-full bg-transparent text-base text-text placeholder:text-text-tertiary outline-none pr-10 py-2"
                   />
@@ -914,7 +918,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                       type="button"
                       onClick={() => setSearchQuery('')}
                       className="absolute right-0 top-1/2 -translate-y-1/2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-bg-muted text-text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                      aria-label="Clear search"
+                      aria-label={t('Clear search')}
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -925,20 +929,20 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                   onClick={() => setSearchOpen(false)}
                   className="shrink-0 text-base font-medium text-primary hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-2 py-1"
                 >
-                  Done
+                  {t('Done')}
                 </button>
               </div>
               {/* Recent searches */}
               {!searchQuery.trim() && searchHistory.length > 0 && (
                 <div className="px-4 py-2 border-t border-border bg-bg-surface">
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-xs font-medium text-text-secondary">Recent Searches</p>
+                    <p className="text-xs font-medium text-text-secondary">{t('Recent Searches')}</p>
                     <button
                       type="button"
                       onClick={clearSearchHistory}
                       className="text-xs text-primary hover:text-primary-hover font-medium min-h-[44px] min-w-[44px] flex items-center justify-center"
                     >
-                      Clear
+                      {t('Clear')}
                     </button>
                   </div>
                   <div className="flex flex-col gap-1">
@@ -983,7 +987,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                 type="button"
                 onClick={() => setSearchOpen(true)}
                 className="shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-bg-muted text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                aria-label="Search menu"
+                aria-label={t('Search menu')}
               >
                 <Search className="h-5 w-5" />
               </button>
@@ -1023,7 +1027,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
               </button>
               {tableNumber && (
                 <span className="shrink-0 px-2 py-1 rounded-full bg-bg-muted text-xs font-semibold text-text-secondary">
-                  Table {tableNumber}
+                  {t('Table')} {tableNumber}
                 </span>
               )}
             </div>
@@ -1033,7 +1037,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
             <div className="px-4 py-2 border-t border-border bg-bg-surface lg:hidden">
               <div className="flex items-center justify-between mb-1.5">
                 <p className="text-xs font-medium text-text-secondary">
-                  Avoid allergens:
+                  {t('Avoid allergens:')}
                 </p>
                 {hiddenAllergens.size > 0 && (
                   <button
@@ -1041,7 +1045,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                     onClick={() => setHiddenAllergens(new Set())}
                     className="text-xs text-primary hover:text-primary-hover font-medium min-h-[44px] min-w-[44px] flex items-center justify-center"
                   >
-                    Clear All
+                    {t('Clear All')}
                   </button>
                 )}
               </div>
@@ -1087,9 +1091,9 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                 return (
                   <EmptyState
                     icon={Search}
-                    title="No results"
-                    description={`Nothing matched "${searchQuery}"`}
-                    action={{ label: 'Clear search', onClick: () => { setSearchQuery(''); setSearchOpen(false); } }}
+                    title={t('No results')}
+                    description={`${t('Nothing matched')} "${searchQuery}"`}
+                    action={{ label: t('Clear search'), onClick: () => { setSearchQuery(''); setSearchOpen(false); } }}
                   />
                 );
               }
@@ -1134,10 +1138,10 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
           {activeCombos.length > 0 && (
             <div className="scroll-mt-24">
               <h2 className="text-base font-bold text-text mb-2 px-1">
-                Combo Deals
+                {t('Combo Deals')}
               </h2>
               <p className="text-xs text-text-secondary mb-3 px-1">
-                Save with our meal bundles
+                {t('Save with our meal bundles')}
               </p>
               <div className="flex flex-col gap-2">
                 {activeCombos.map((combo) => (
@@ -1177,7 +1181,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
           type="button"
           onClick={scrollToTop}
           className="fixed bottom-20 right-4 lg:bottom-4 lg:right-8 z-30 min-h-[48px] min-w-[48px] h-14 w-14 flex items-center justify-center rounded-full bg-primary text-text-inverse shadow-lg hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-          aria-label="Back to top"
+          aria-label={t('Back to top')}
         >
           <ArrowUp className="h-6 w-6" />
         </button>
@@ -1197,11 +1201,11 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                 ? 'bg-bg-muted text-text-tertiary cursor-not-allowed'
                 : 'bg-success text-text-inverse hover:opacity-90 active:scale-[0.97]',
             ].join(' ')}
-            aria-label="Request bill"
+            aria-label={t('Request bill')}
           >
             <Receipt className="h-5 w-5 shrink-0" />
             <span className="text-sm font-semibold whitespace-nowrap">
-              {billCooldown ? 'Requested!' : 'Request Bill'}
+              {billCooldown ? t('Requested!') : t('Request Bill')}
             </span>
           </button>
 
@@ -1216,11 +1220,11 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                 ? 'bg-bg-muted text-text-tertiary cursor-not-allowed'
                 : 'bg-warning text-text-inverse hover:opacity-90 active:scale-[0.97]',
             ].join(' ')}
-            aria-label="Call waiter"
+            aria-label={t('Call waiter')}
           >
             <BellRing className="h-5 w-5 shrink-0" />
             <span className="text-sm font-semibold whitespace-nowrap">
-              {waiterCooldown ? 'Called!' : 'Call Waiter'}
+              {waiterCooldown ? t('Called!') : t('Call Waiter')}
             </span>
           </button>
         </div>

@@ -275,6 +275,25 @@ export const feedback = sqliteTable('feedback', {
   index('idx_feedback_tenant').on(table.tenantId, table.createdAt),
 ]);
 
+// --- Content Translations (i18n) ---
+
+export const contentTranslations = sqliteTable('content_translations', {
+  id: text('id').primaryKey().$defaultFn(() => nanoid()),
+  tenantId: text('tenant_id').notNull().references(() => tenants.id),
+  entityType: text('entity_type').notNull(), // 'menu_item', 'menu_category', 'modifier_group', etc.
+  entityId: text('entity_id').notNull(),
+  locale: text('locale').notNull(), // 'zh', 'ja', 'ko', 'fr', etc.
+  field: text('field').notNull(), // 'name', 'description'
+  value: text('value').notNull(),
+  createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
+  updatedAt: text('updated_at').notNull().$defaultFn(() => new Date().toISOString()),
+}, (table) => [
+  uniqueIndex('idx_ct_lookup').on(table.tenantId, table.entityType, table.entityId, table.locale, table.field),
+  index('idx_ct_tenant_locale').on(table.tenantId, table.locale),
+]);
+
+export type ContentTranslation = typeof contentTranslations.$inferSelect;
+
 // --- Order Payments (Split Payment) ---
 
 export const orderPayments = sqliteTable('order_payments', {

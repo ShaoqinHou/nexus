@@ -19,6 +19,7 @@ import { ORDER_STATUSES, MODIFIABLE_ORDER_STATUSES } from '@nexus/shared';
 import type { OrderStatus } from '@nexus/shared';
 import { apiClient } from '@web/lib/api';
 import { formatPrice } from '@web/lib/format';
+import { useT } from '@web/lib/i18n';
 import { Button, Badge } from '@web/components/ui';
 import { StatusBadge } from '@web/components/patterns';
 import { useToast } from '@web/platform/ToastProvider';
@@ -65,6 +66,7 @@ function getStatusIndex(status: OrderStatus): number {
 }
 
 function StatusTimeline({ currentStatus }: { currentStatus: OrderStatus }) {
+  const t = useT();
   const currentIndex = getStatusIndex(currentStatus);
   const isCancelled = currentStatus === 'cancelled';
 
@@ -117,7 +119,7 @@ function StatusTimeline({ currentStatus }: { currentStatus: OrderStatus }) {
                       : 'text-text-tertiary',
                 ].join(' ')}
               >
-                {TIMELINE_LABELS[status]}
+                {t(TIMELINE_LABELS[status])}
               </span>
             </div>
           );
@@ -171,7 +173,7 @@ function StatusTimeline({ currentStatus }: { currentStatus: OrderStatus }) {
                       : 'text-text-tertiary',
                 ].join(' ')}
               >
-                {TIMELINE_LABELS[status]}
+                {t(TIMELINE_LABELS[status])}
               </span>
             </div>
           );
@@ -211,6 +213,7 @@ function FeedbackSection({
   orderId: string;
   tableNumber: string;
 }) {
+  const t = useT();
   const { toast } = useToast();
   const submitFeedback = useSubmitFeedback(tenantSlug);
   const [submitted, setSubmitted] = useState<{ rating: number; comment?: string } | null>(
@@ -228,10 +231,10 @@ function FeedbackSection({
         onSuccess: () => {
           saveFeedback(orderId, rating, comment.trim() || undefined);
           setSubmitted({ rating, comment: comment.trim() || undefined });
-          toast('success', 'Thank you for your feedback!');
+          toast('success', t('Thank you for your feedback!'));
         },
         onError: () => {
-          toast('error', 'Could not submit feedback. Please try again.');
+          toast('error', t('Could not submit feedback. Please try again.'));
         },
       },
     );
@@ -240,7 +243,7 @@ function FeedbackSection({
   if (submitted) {
     return (
       <div className="rounded-lg border border-border bg-bg-elevated px-4 py-4 text-center">
-        <p className="text-sm font-semibold text-text mb-2">Thanks for your feedback!</p>
+        <p className="text-sm font-semibold text-text mb-2">{t('Thanks for your feedback!')}</p>
         <div className="flex items-center justify-center gap-1">
           {[1, 2, 3, 4, 5].map((star) => (
             <Star
@@ -261,7 +264,7 @@ function FeedbackSection({
   return (
     <div className="rounded-lg border border-border bg-bg-elevated px-4 py-4">
       <h3 className="text-sm font-semibold text-text text-center mb-3">
-        How was your meal?
+        {t('How was your meal?')}
       </h3>
 
       {/* Star rating */}
@@ -293,7 +296,7 @@ function FeedbackSection({
         value={comment}
         onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setComment(e.target.value)}
         rows={2}
-        placeholder="Tell us about your experience..."
+        placeholder={t('Tell us about your experience...')}
         className="w-full rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text placeholder:text-text-tertiary resize-none focus:outline-none focus:ring-1 focus:ring-primary mb-3"
       />
 
@@ -305,7 +308,7 @@ function FeedbackSection({
         disabled={rating === 0 || submitFeedback.isPending}
         loading={submitFeedback.isPending}
       >
-        Submit Feedback
+        {t('Submit Feedback')}
       </Button>
     </div>
   );
@@ -322,6 +325,7 @@ function EditableItemNotes({
   initialNotes: string | null;
   tenantSlug: string;
 }) {
+  const t = useT();
   const [notes, setNotes] = useState(initialNotes ?? '');
   const [saved, setSaved] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -382,12 +386,12 @@ function EditableItemNotes({
           className="flex items-center gap-1 text-xs text-text-tertiary hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary rounded px-1 py-0.5"
         >
           <Pencil className="h-3 w-3" />
-          {notes ? notes : 'Add note'}
+          {notes ? notes : t('Add note')}
         </button>
         {saved && (
           <span className="flex items-center gap-0.5 text-xs text-success">
             <Check className="h-3 w-3" />
-            Saved
+            {t('Saved')}
           </span>
         )}
       </div>
@@ -403,7 +407,7 @@ function EditableItemNotes({
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNotes(e.target.value)}
         onBlur={save}
         onKeyDown={handleKeyDown}
-        placeholder="Add a note..."
+        placeholder={t('Add a note...')}
         maxLength={500}
         className="flex-1 text-xs border border-border rounded px-2 py-1 bg-bg text-text placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-primary"
       />
@@ -423,6 +427,7 @@ export function OrderConfirmation({
   taxRate,
   taxInclusive,
 }: OrderConfirmationProps) {
+  const t = useT();
   const { toast } = useToast();
   const cancelItems = useRequestItemCancellation(tenantSlug);
   const { tenant } = useTenant();
@@ -432,7 +437,7 @@ export function OrderConfirmation({
     if (phone) {
       window.location.href = `tel:${phone}`;
     } else {
-      toast('error', 'Contact information not available');
+      toast('error', t('Contact information not available'));
     }
   }, [tenant, toast]);
 
@@ -460,10 +465,10 @@ export function OrderConfirmation({
       { orderId, orderItemIds: [itemId] },
       {
         onSuccess: () => {
-          toast('success', `Cancellation requested for "${itemName}"`);
+          toast('success', `${t('Cancellation requested for')} "${itemName}"`);
         },
         onError: (err: Error) => {
-          toast('error', err.message || 'Failed to request cancellation');
+          toast('error', err.message || t('Failed to request cancellation'));
         },
       },
     );
@@ -481,11 +486,11 @@ export function OrderConfirmation({
     return (
       <div className="p-4 text-center">
         <p className="text-text-secondary text-sm mb-4">
-          Unable to load order details.
+          {t('Unable to load order details.')}
         </p>
         <Button variant="secondary" onClick={onBackToMenu}>
           <ArrowLeft className="h-4 w-4" />
-          Back to Menu
+          {t('Back to Menu')}
         </Button>
       </div>
     );
@@ -509,27 +514,27 @@ export function OrderConfirmation({
           </div>
         )}
         <h2 className="text-xl font-bold text-text">
-          {isCancelled ? 'Order Cancelled' : 'Order Placed!'}
+          {isCancelled ? t('Order Cancelled') : t('Order Placed!')}
         </h2>
         <p className="text-sm text-text-secondary mt-1">
           {isCancelled
-            ? 'Your order has been cancelled.'
+            ? t('Your order has been cancelled.')
             : isDelivered
-              ? 'Your order has been delivered. Enjoy!'
-              : 'Your order is being processed.'}
+              ? t('Your order has been delivered. Enjoy!')
+              : t('Your order is being processed.')}
         </p>
       </div>
 
       {/* Order info */}
       <div className="flex items-center justify-between px-4 py-3 rounded-lg bg-bg-muted">
         <div>
-          <p className="text-xs text-text-secondary">Order</p>
+          <p className="text-xs text-text-secondary">{t('Order')}</p>
           <p className="text-sm font-semibold text-text">
             #{order.id.slice(-6).toUpperCase()}
           </p>
         </div>
         <div className="text-right">
-          <p className="text-xs text-text-secondary">Table</p>
+          <p className="text-xs text-text-secondary">{t('Table')}</p>
           <p className="text-sm font-semibold text-text">{order.tableNumber}</p>
         </div>
         <div>
@@ -551,7 +556,7 @@ export function OrderConfirmation({
           className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-border bg-bg-elevated hover:bg-bg-muted transition-colors text-text font-medium min-h-[48px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
           <Phone className="h-5 w-5" />
-          Contact Restaurant
+          {t('Contact Restaurant')}
         </button>
       )}
 
@@ -570,14 +575,14 @@ export function OrderConfirmation({
           onClick={() => onAddItems(orderId)}
         >
           <Plus className="h-4 w-4" />
-          Add Items to Order
+          {t('Add Items to Order')}
         </Button>
       )}
 
       {/* Order items */}
       <div className="rounded-lg border border-border bg-bg-elevated overflow-hidden">
         <div className="px-4 py-3 border-b border-border">
-          <h3 className="text-sm font-semibold text-text">Order Items</h3>
+          <h3 className="text-sm font-semibold text-text">{t('Order Items')}</h3>
         </div>
         <div className="divide-y divide-border">
           {order.items.map((item) => {

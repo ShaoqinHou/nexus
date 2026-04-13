@@ -6,6 +6,7 @@ import { streamSSE } from 'hono/streaming';
 import { eq, and } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import jwt from 'jsonwebtoken';
+import { translate } from '../../lib/translate.js';
 import { authMiddleware, JWT_SECRET } from '../../middleware/auth.js';
 import { sessionMiddleware } from '../../middleware/session.js';
 import { customerSessions, staff, ORDER_STATUSES, PROMOTION_TYPES, ORDER_ITEM_STATUSES, PAYMENT_STATUSES, PAYMENT_METHODS, TABLE_STATUSES, WAITER_CALL_TYPES } from '../../db/schema.js';
@@ -75,6 +76,11 @@ import {
   addPayment,
   getOrderPayments,
   removePayment,
+  setTranslation,
+  getTranslations,
+  getTranslationsForLocale,
+  autoTranslateEntity,
+  translateForKitchen,
 } from './service.js';
 
 // --- Validation Schemas ---
@@ -239,6 +245,18 @@ const addPaymentSchema = z.object({
   paidBy: z.string().max(100).optional(),
 });
 
+// --- Translation Schemas ---
+
+const translateSchema = z.object({
+  text: z.string().min(1, 'Text is required'),
+  targetLocale: z.string().min(2, 'Target locale is required'),
+  context: z.string().optional(),
+});
+
+const translateBatchSchema = z.object({
+  targetLocale: z.string().min(2, 'Target locale is required'),
+});
+
 // --- Order Modification Schemas ---
 
 const addItemsSchema = z.object({
@@ -337,14 +355,27 @@ export function staffOrderingRoutes(db: DrizzleDB) {
     return c.json({ data: categories });
   });
 
-  router.post('/categories', zValidator('json', createCategorySchema), (c) => {
+  router.post('/categories', zValidator('json', createCategorySchema), async (c) => {
     const tenantId = c.var.tenantId;
     const body = c.req.valid('json');
     const category = createCategory(db, tenantId, body);
+
+    // Auto-translate category
+    try {
+      const fields: Record<string, string> = {};
+      if (category.name) fields.name = category.name;
+      if (category.description) fields.description = category.description;
+      if (Object.keys(fields).length > 0) {
+        await autoTranslateEntity(db, tenantId, 'menu_category', category.id, fields, 'menu category');
+      }
+    } catch (err) {
+      console.error('Auto-translate failed for category:', err instanceof Error ? err.message : err);
+    }
+
     return c.json({ data: category }, 201);
   });
 
-  router.put('/categories/:id', zValidator('json', updateCategorySchema), (c) => {
+  router.put('/categories/:id', zValidator('json', updateCategorySchema), async (c) => {
     const tenantId = c.var.tenantId;
     const categoryId = c.req.param('id');
     const body = c.req.valid('json');
@@ -352,6 +383,19 @@ export function staffOrderingRoutes(db: DrizzleDB) {
     if (!category) {
       return c.json({ error: 'Category not found' }, 404);
     }
+
+    // Auto-translate if name or description changed
+    try {
+      const fields: Record<string, string> = {};
+      if (body.name && category.name) fields.name = category.name;
+      if (body.description !== undefined && category.description) fields.description = category.description;
+      if (Object.keys(fields).length > 0) {
+        await autoTranslateEntity(db, tenantId, 'menu_category', category.id, fields, 'menu category');
+      }
+    } catch (err) {
+      console.error('Auto-translate failed for category:', err instanceof Error ? err.message : err);
+    }
+
     return c.json({ data: category });
   });
 
@@ -374,17 +418,30 @@ export function staffOrderingRoutes(db: DrizzleDB) {
     return c.json({ data: items });
   });
 
-  router.post('/items', zValidator('json', createMenuItemSchema), (c) => {
+  router.post('/items', zValidator('json', createMenuItemSchema), async (c) => {
     const tenantId = c.var.tenantId;
     const body = c.req.valid('json');
     const result = createMenuItem(db, tenantId, body);
     if ('error' in result) {
       return c.json({ error: result.error }, 404);
     }
+
+    // Auto-translate (fire-and-forget — don't block response)
+    try {
+      const fields: Record<string, string> = {};
+      if (result.data.name) fields.name = result.data.name;
+      if (result.data.description) fields.description = result.data.description;
+      if (Object.keys(fields).length > 0) {
+        await autoTranslateEntity(db, tenantId, 'menu_item', result.data.id, fields, 'menu item');
+      }
+    } catch (err) {
+      console.error('Auto-translate failed for menu item:', err instanceof Error ? err.message : err);
+    }
+
     return c.json({ data: result.data }, 201);
   });
 
-  router.put('/items/:id', zValidator('json', updateMenuItemSchema), (c) => {
+  router.put('/items/:id', zValidator('json', updateMenuItemSchema), async (c) => {
     const tenantId = c.var.tenantId;
     const itemId = c.req.param('id');
     const body = c.req.valid('json');
@@ -392,6 +449,19 @@ export function staffOrderingRoutes(db: DrizzleDB) {
     if ('error' in result) {
       return c.json({ error: result.error }, 404);
     }
+
+    // Auto-translate if name or description changed
+    try {
+      const fields: Record<string, string> = {};
+      if (body.name && result.data.name) fields.name = result.data.name;
+      if (body.description !== undefined && result.data.description) fields.description = result.data.description;
+      if (Object.keys(fields).length > 0) {
+        await autoTranslateEntity(db, tenantId, 'menu_item', result.data.id, fields, 'menu item');
+      }
+    } catch (err) {
+      console.error('Auto-translate failed for menu item:', err instanceof Error ? err.message : err);
+    }
+
     return c.json({ data: result.data });
   });
 
@@ -1013,6 +1083,69 @@ export function staffOrderingRoutes(db: DrizzleDB) {
     return c.json({ data: result });
   });
 
+  // --- Translation (staff) ---
+
+  // On-demand single text translation (any staff)
+  router.post('/translate', zValidator('json', translateSchema), async (c) => {
+    const body = c.req.valid('json');
+    try {
+      const translation = await translate({
+        text: body.text,
+        targetLocale: body.targetLocale,
+        context: body.context || 'restaurant menu content',
+      });
+      return c.json({ data: { translation } });
+    } catch (error) {
+      console.error('Translation failed:', error instanceof Error ? error.message : error);
+      return c.json({ error: 'Translation failed' }, 500);
+    }
+  });
+
+  // Batch translate all menu items/categories for a locale (owner/manager only)
+  router.post('/translate/batch', zValidator('json', translateBatchSchema), async (c) => {
+    const tenantId = c.var.tenantId;
+    const user = c.var.user;
+    if (user.role !== 'owner' && user.role !== 'manager') {
+      return c.json({ error: 'Only owner or manager can batch translate' }, 403);
+    }
+
+    const { targetLocale } = c.req.valid('json');
+    let translatedCount = 0;
+
+    try {
+      // Translate all active categories
+      const categories = getCategories(db, tenantId);
+      for (const category of categories) {
+        const fields: Record<string, string> = {};
+        if (category.name) fields.name = category.name;
+        if (category.description) fields.description = category.description;
+
+        if (Object.keys(fields).length > 0) {
+          await autoTranslateEntity(db, tenantId, 'menu_category', category.id, fields, 'menu category');
+          translatedCount++;
+        }
+      }
+
+      // Translate all active menu items
+      const items = getMenuItems(db, tenantId);
+      for (const item of items) {
+        const fields: Record<string, string> = {};
+        if (item.name) fields.name = item.name;
+        if (item.description) fields.description = item.description;
+
+        if (Object.keys(fields).length > 0) {
+          await autoTranslateEntity(db, tenantId, 'menu_item', item.id, fields, 'menu item');
+          translatedCount++;
+        }
+      }
+
+      return c.json({ data: { count: translatedCount } });
+    } catch (error) {
+      console.error('Batch translation failed:', error instanceof Error ? error.message : error);
+      return c.json({ error: 'Batch translation failed' }, 500);
+    }
+  });
+
   // --- Waiter Calls (staff: read + acknowledge) ---
 
   router.get('/waiter-calls', (c) => {
@@ -1140,7 +1273,21 @@ export function customerOrderingRoutes(db: DrizzleDB) {
   // Public menu — no session required
   router.get('/menu', (c) => {
     const tenantId = c.var.tenantId;
-    const menu = getPublicMenu(db, tenantId);
+
+    // Determine locale from query param or Accept-Language header
+    let locale = c.req.query('lang');
+    if (!locale) {
+      const acceptLang = c.req.header('Accept-Language');
+      if (acceptLang) {
+        // Parse primary language from Accept-Language (e.g., "zh-CN,zh;q=0.9,en;q=0.8" -> "zh")
+        const primary = acceptLang.split(',')[0]?.trim().split('-')[0]?.trim();
+        if (primary && primary.length >= 2) {
+          locale = primary;
+        }
+      }
+    }
+
+    const menu = getPublicMenu(db, tenantId, locale);
     return c.json({ data: menu });
   });
 
@@ -1178,7 +1325,7 @@ export function customerOrderingRoutes(db: DrizzleDB) {
   });
 
   // Place order — creates session if needed
-  router.post('/orders', zValidator('json', placeOrderSchema), (c) => {
+  router.post('/orders', zValidator('json', placeOrderSchema), async (c) => {
     const tenantId = c.var.tenantId;
     const body = c.req.valid('json');
 
@@ -1248,7 +1395,7 @@ export function customerOrderingRoutes(db: DrizzleDB) {
       });
     }
 
-    const result = createOrder(db, tenantId, {
+    const result = await createOrder(db, tenantId, {
       tableNumber: body.tableNumber,
       sessionId,
       notes: body.notes,

@@ -8,3 +8,4 @@ export { Select } from './Select';
 export { ImageUpload } from './ImageUpload';
 export { ToastContainer, type ToastData } from './Toast';
 export { TourOverlay } from './TourOverlay';
+export { LanguagePicker } from './LanguagePicker';

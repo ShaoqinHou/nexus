@@ -234,6 +234,19 @@ function createTestDb() {
       paid_by TEXT,
       created_at TEXT NOT NULL
     );
+
+    CREATE TABLE content_translations (
+      id TEXT PRIMARY KEY,
+      tenant_id TEXT NOT NULL REFERENCES tenants(id),
+      entity_type TEXT NOT NULL,
+      entity_id TEXT NOT NULL,
+      locale TEXT NOT NULL,
+      field TEXT NOT NULL,
+      value TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE UNIQUE INDEX idx_ct_lookup ON content_translations(tenant_id, entity_type, entity_id, locale, field);
   `);
 
   return drizzle(sqlite, { schema });

@@ -3,6 +3,7 @@ import { menuCategories, menuItems } from '../../../db/schema.js';
 import type { DrizzleDB } from '../../../db/client.js';
 import { getItemModifierGroups } from './modifiers.js';
 import { getPublicCombos } from './combos.js';
+import { getTranslationsForLocale } from './translations.js';
 
 // --- Menu Item Service ---
 
@@ -154,7 +155,12 @@ export function deleteMenuItem(db: DrizzleDB, tenantId: string, itemId: string) 
 
 // --- Public Menu (Customer) ---
 
-export function getPublicMenu(db: DrizzleDB, tenantId: string) {
+export function getPublicMenu(db: DrizzleDB, tenantId: string, locale?: string) {
+  // Load translations for the requested locale (single query for all entities)
+  const translations = locale && locale !== 'en'
+    ? getTranslationsForLocale(db, tenantId, locale)
+    : null;
+
   const categories = db
     .select()
     .from(menuCategories)
@@ -168,6 +174,16 @@ export function getPublicMenu(db: DrizzleDB, tenantId: string) {
     .all();
 
   const menuByCategory = categories.map((category) => {
+    // Apply category translations if available
+    const catTranslations = translations?.menu_category?.[category.id];
+    const translatedCategory = catTranslations
+      ? {
+          ...category,
+          name: catTranslations.name || category.name,
+          description: catTranslations.description || category.description,
+        }
+      : category;
+
     const items = db
       .select()
       .from(menuItems)
@@ -184,10 +200,21 @@ export function getPublicMenu(db: DrizzleDB, tenantId: string) {
 
     const itemsWithModifiers = items.map((item) => {
       const itemModifierGroups = getItemModifierGroups(db, tenantId, item.id);
-      return { ...item, modifierGroups: itemModifierGroups };
+
+      // Apply item translations if available
+      const itemTranslations = translations?.menu_item?.[item.id];
+      const translatedItem = itemTranslations
+        ? {
+            ...item,
+            name: itemTranslations.name || item.name,
+            description: itemTranslations.description || item.description,
+          }
+        : item;
+
+      return { ...translatedItem, modifierGroups: itemModifierGroups };
     });
 
-    return { category, items: itemsWithModifiers };
+    return { category: translatedCategory, items: itemsWithModifiers };
   });
 
   // Include combo deals
@@ -206,7 +233,18 @@ export function getPublicMenu(db: DrizzleDB, tenantId: string) {
       )
     )
     .orderBy(menuItems.sortOrder)
-    .all();
+    .all()
+    .map((item) => {
+      // Apply translations to featured items too
+      const itemTranslations = translations?.menu_item?.[item.id];
+      return itemTranslations
+        ? {
+            ...item,
+            name: itemTranslations.name || item.name,
+            description: itemTranslations.description || item.description,
+          }
+        : item;
+    });
 
   return { categories: menuByCategory, combos, featured };
 }

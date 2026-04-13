@@ -3,7 +3,8 @@ import { useSearch } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { AlertCircle, QrCode, Clock, ClipboardList, Plus, Eye } from 'lucide-react';
 import { apiClient } from '@web/lib/api';
-import { Button } from '@web/components/ui';
+import { Button, LanguagePicker } from '@web/components/ui';
+import { LocaleProvider } from '@web/platform/LocaleProvider';
 import { CartProvider } from '@web/apps/ordering/customer/CartProvider';
 import { MenuBrowse } from '@web/apps/ordering/customer/MenuBrowse';
 import { CartSheet } from '@web/apps/ordering/customer/CartSheet';
@@ -253,19 +254,29 @@ function CustomerAppInner({ tenantSlug, tableNumber }: CustomerAppInnerProps) {
       <div className={['flex-1 min-w-0', isClosed || addToOrderId ? 'mt-10' : ''].join(' ')}>
         {/* Recent orders from localStorage */}
         {recentOrders.length > 0 && !addToOrderId && (
-          <div className="px-4 py-2 border-b border-border bg-bg-surface">
-            <p className="text-xs text-text-secondary mb-1">Your recent orders</p>
-            <div className="flex gap-2">
-              {recentOrders.map((o) => (
-                <button
-                  key={o.id}
-                  onClick={() => setView({ type: 'confirmation', orderId: o.id })}
-                  className="text-xs px-3 py-1 rounded-full bg-primary/10 text-primary font-medium"
-                >
-                  #{o.id.slice(-6).toUpperCase()}
-                </button>
-              ))}
+          <div className="px-4 py-2 border-b border-border bg-bg-surface flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs text-text-secondary mb-1">Your recent orders</p>
+              <div className="flex gap-2">
+                {recentOrders.map((o) => (
+                  <button
+                    key={o.id}
+                    onClick={() => setView({ type: 'confirmation', orderId: o.id })}
+                    className="text-xs px-3 py-1 rounded-full bg-primary/10 text-primary font-medium"
+                  >
+                    #{o.id.slice(-6).toUpperCase()}
+                  </button>
+                ))}
+              </div>
             </div>
+            <LanguagePicker />
+          </div>
+        )}
+
+        {/* Language picker when no recent orders */}
+        {(recentOrders.length === 0 || addToOrderId) && (
+          <div className="px-4 py-2 border-b border-border bg-bg-surface flex justify-end">
+            <LanguagePicker />
           </div>
         )}
 
@@ -336,7 +347,9 @@ export function CustomerApp({ tenantSlug }: CustomerAppProps) {
 
   return (
     <CartProvider tenantSlug={tenantSlug} tableNumber={tableNumber}>
-      <CustomerAppInner tenantSlug={tenantSlug} tableNumber={tableNumber} />
+      <LocaleProvider>
+        <CustomerAppInner tenantSlug={tenantSlug} tableNumber={tableNumber} />
+      </LocaleProvider>
     </CartProvider>
   );
 }

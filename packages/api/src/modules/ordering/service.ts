@@ -10,3 +10,4 @@ export * from './services/orders.js';
 export * from './services/analytics.js';
 export * from './services/tables.js';
 export * from './services/feedback.js';
+export * from './services/translations.js';

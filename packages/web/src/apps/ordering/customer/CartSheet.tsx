@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { formatPrice } from '@web/lib/format';
 import { Button, Badge } from '@web/components/ui';
+import { useT } from '@web/lib/i18n';
 import { useCart } from '@web/apps/ordering/customer/CartProvider';
 import { useCartOrder } from '@web/apps/ordering/customer/useCartOrder';
 import type { Order } from '@web/apps/ordering/types';
@@ -36,6 +37,7 @@ export function CartSheet({
   taxInclusive,
   taxLabel,
 }: CartSheetProps) {
+  const t = useT();
   const {
     items,
     notes,
@@ -121,13 +123,13 @@ export function CartSheet({
             <div className="flex items-center justify-between px-4 py-4 border-b border-border">
               <div className="flex items-center gap-3">
                 <ShoppingCart className="h-5 w-5 text-text-secondary" />
-                <span className="text-sm font-semibold text-text">Your Cart</span>
+                <span className="text-sm font-semibold text-text">{t('Your Cart')}</span>
               </div>
               <button
                 type="button"
                 onClick={closeSheet}
                 className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-bg-muted transition-colors text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                aria-label="Close cart"
+                aria-label={t('Close cart')}
               >
                 <X className="h-5 w-5" />
               </button>
@@ -137,9 +139,9 @@ export function CartSheet({
             <div className="flex-1 overflow-y-auto px-4 py-8 min-h-0">
               <div className="text-center">
                 <ShoppingCart className="h-12 w-12 text-text-tertiary mx-auto mb-3" />
-                <h3 className="text-base font-semibold text-text mb-1">Your cart is empty</h3>
+                <h3 className="text-base font-semibold text-text mb-1">{t('Your cart is empty')}</h3>
                 <p className="text-sm text-text-secondary">
-                  Add items from the menu to get started
+                  {t('Add items from the menu to get started')}
                 </p>
               </div>
             </div>
@@ -183,7 +185,7 @@ export function CartSheet({
                 </span>
               </div>
               <span className="text-sm font-semibold text-text">
-                {isOpen ? 'Your Cart' : 'View Cart'}
+                {isOpen ? t('Your Cart') : t('View Cart')}
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -208,7 +210,7 @@ export function CartSheet({
                   type="button"
                   onClick={closeSheet}
                   className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-bg-muted transition-colors text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                  aria-label="Close cart"
+                  aria-label={t('Close cart')}
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -240,7 +242,7 @@ export function CartSheet({
                             {item.name}
                           </h4>
                           <p className="text-xs text-text-secondary">
-                            {formatPrice(item.price)} each
+                            {formatPrice(item.price)} {t('each')}
                           </p>
                           {/* Combo slot selections */}
                           {isCombo && item.comboSelections && item.comboSelections.length > 0 && (
@@ -351,7 +353,7 @@ export function CartSheet({
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                               updateItemNotes(index, e.target.value)
                             }
-                            placeholder="Special requests..."
+                            placeholder={t('Special requests...')}
                             className="w-full text-sm h-12 px-3 rounded border border-border bg-bg text-text placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-primary"
                           />
                           {(item.notes ?? '').length > 400 && (
@@ -366,7 +368,7 @@ export function CartSheet({
                 {/* Order notes */}
                 <div className="pb-2">
                   <label className="text-xs font-medium text-text-secondary block mb-1">
-                    Order Notes
+                    {t('Order Notes')}
                   </label>
                   <div className="relative">
                     <textarea
@@ -375,7 +377,7 @@ export function CartSheet({
                       onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                         setNotes(e.target.value)
                       }
-                      placeholder="Any special requests for your order..."
+                      placeholder={t('Any special requests for your order...')}
                       rows={2}
                       className="w-full text-sm h-12 px-3 py-2 rounded-lg border border-border bg-bg text-text placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-primary resize-none"
                     />
@@ -407,7 +409,7 @@ export function CartSheet({
                         type="button"
                         onClick={handleRemovePromo}
                         className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded text-text-tertiary hover:text-danger transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                        aria-label="Remove promo code"
+                        aria-label={t('Remove promo code')}
                       >
                         <X className="h-4 w-4" />
                       </button>
@@ -429,7 +431,7 @@ export function CartSheet({
                               handleApplyPromo();
                             }
                           }}
-                          placeholder="Promo code"
+                          placeholder={t('Promo code')}
                           className="w-full text-sm h-12 pl-10 pr-3 rounded-lg border border-border bg-bg text-text placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-primary"
                         />
                       </div>
@@ -440,7 +442,7 @@ export function CartSheet({
                         loading={validatePromo.isPending}
                         disabled={!promoInput.trim()}
                       >
-                        Apply
+                        {t('Apply')}
                       </Button>
                     </div>
                   )}
@@ -483,7 +485,7 @@ export function CartSheet({
                       <>
                         {showSubtotal && (
                           <div className="flex items-center justify-between">
-                            <span className="text-sm text-text-secondary">Subtotal</span>
+                            <span className="text-sm text-text-secondary">{t('Subtotal')}</span>
                             <span className="text-sm text-text">
                               {formatPrice(totalPrice)}
                             </span>
@@ -491,7 +493,7 @@ export function CartSheet({
                         )}
                         {appliedPromo && (
                           <div className="flex items-center justify-between">
-                            <span className="text-sm text-success">Discount</span>
+                            <span className="text-sm text-success">{t('Discount')}</span>
                             <span className="text-sm font-medium text-success">
                               -{formatPrice(discountAmount)}
                             </span>
@@ -500,7 +502,7 @@ export function CartSheet({
                         {hasTax && !taxInclusive && (
                           <div className="flex items-center justify-between">
                             <span className="text-sm text-text-secondary">
-                              Est. {effectiveLabel} ({effectiveRate}%)
+                              {t('Est.')} {effectiveLabel} ({effectiveRate}%)
                             </span>
                             <span className="text-sm text-text">
                               {formatPrice(estimatedTax)}
@@ -508,7 +510,7 @@ export function CartSheet({
                           </div>
                         )}
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-text-secondary">Total</span>
+                          <span className="text-sm text-text-secondary">{t('Total')}</span>
                           <span className="text-lg font-bold text-text">
                             {formatPrice(displayTotal)}
                           </span>
@@ -516,7 +518,7 @@ export function CartSheet({
                         {hasTax && taxInclusive && (
                           <div className="flex items-center justify-between">
                             <span className="text-xs text-text-tertiary">
-                              Incl. {effectiveLabel} ({effectiveRate}%)
+                              {t('Incl.')} {effectiveLabel} ({effectiveRate}%)
                             </span>
                             <span className="text-xs text-text-tertiary">
                               {formatPrice(estimatedTax)}
@@ -537,7 +539,7 @@ export function CartSheet({
                   loading={placeOrderMutation.isPending}
                   disabled={items.length === 0}
                 >
-                  {addToOrderId ? 'Add to Order' : 'Place Order'}
+                  {addToOrderId ? t('Add to Order') : t('Place Order')}
                 </Button>
               </div>
             </>

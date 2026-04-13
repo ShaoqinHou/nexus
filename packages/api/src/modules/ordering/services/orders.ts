@@ -19,6 +19,7 @@ import type { DrizzleDB } from '../../../db/client.js';
 import type { OrderStatus, PaymentMethod, OrderPayment } from '../../../db/schema.js';
 import { validatePromoCode, applyPromotion } from './promotions.js';
 import { upsertTableStatus } from './tables.js';
+import { translateForKitchen } from './translations.js';
 
 // --- Order Service ---
 
@@ -61,7 +62,7 @@ interface CreateOrderData {
   promoCode?: string;
 }
 
-export function createOrder(
+export async function createOrder(
   db: DrizzleDB,
   tenantId: string,
   data: CreateOrderData
@@ -457,6 +458,30 @@ export function createOrder(
 
   // Auto-update table status to 'occupied' on new order
   upsertTableStatus(db, tenantId, data.tableNumber, 'occupied');
+
+  // Auto-translate order notes for kitchen (fire-and-forget — don't block order creation)
+  try {
+    const notesToTranslate: string[] = [];
+    if (data.notes) notesToTranslate.push(`Order note: ${data.notes}`);
+    for (const item of createdItems) {
+      if (item.notes) notesToTranslate.push(`Item "${item.name}": ${item.notes}`);
+    }
+
+    if (notesToTranslate.length > 0) {
+      const combined = notesToTranslate.join('\n');
+      const translated = await translateForKitchen(db, tenantId, combined, 'customer order note for kitchen staff');
+      // Only store if translation actually changed the text
+      if (translated !== combined) {
+        db.update(orders)
+          .set({ staffNotes: translated, updatedAt: new Date().toISOString() })
+          .where(eq(orders.id, order.id))
+          .run();
+      }
+    }
+  } catch (err) {
+    console.error('Order note translation failed:', err instanceof Error ? err.message : err);
+    // Don't fail the order — kitchen can still see the original notes
+  }
 
   return { data: { ...order, items: createdItems } };
 }

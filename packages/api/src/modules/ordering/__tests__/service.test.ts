@@ -263,6 +263,19 @@ function createTestDb() {
       paid_by TEXT,
       created_at TEXT NOT NULL
     );
+
+    CREATE TABLE content_translations (
+      id TEXT PRIMARY KEY,
+      tenant_id TEXT NOT NULL REFERENCES tenants(id),
+      entity_type TEXT NOT NULL,
+      entity_id TEXT NOT NULL,
+      locale TEXT NOT NULL,
+      field TEXT NOT NULL,
+      value TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE UNIQUE INDEX idx_ct_lookup ON content_translations(tenant_id, entity_type, entity_id, locale, field);
   `);
 
   return drizzle(sqlite, { schema });
@@ -293,7 +306,7 @@ describe('Menu Categories', () => {
     tenantId = tenant.id;
   });
 
-  it('creates a category and returns it with all fields', () => {
+  it('creates a category and returns it with all fields', async () => {
     const category = createCategory(db, tenantId, {
       name: 'Mains',
       description: 'Main courses',
@@ -310,7 +323,7 @@ describe('Menu Categories', () => {
     expect(category.updatedAt).toEqual(expect.any(String));
   });
 
-  it('lists only active categories for the given tenant', () => {
+  it('lists only active categories for the given tenant', async () => {
     createCategory(db, tenantId, { name: 'Mains' });
     createCategory(db, tenantId, { name: 'Drinks' });
     const toDelete = createCategory(db, tenantId, { name: 'Old' });
@@ -323,7 +336,7 @@ describe('Menu Categories', () => {
     );
   });
 
-  it('updates a category name and description', () => {
+  it('updates a category name and description', async () => {
     const original = createCategory(db, tenantId, {
       name: 'Mains',
       description: 'Old desc',
@@ -341,7 +354,7 @@ describe('Menu Categories', () => {
     expect(updated!.updatedAt).toEqual(expect.any(String));
   });
 
-  it('soft deletes a category (sets isActive=0)', () => {
+  it('soft deletes a category (sets isActive=0)', async () => {
     const category = createCategory(db, tenantId, { name: 'ToDelete' });
     const deleted = deleteCategory(db, tenantId, category.id);
 
@@ -353,7 +366,7 @@ describe('Menu Categories', () => {
     expect(categories.find((c) => c.id === category.id)).toBeUndefined();
   });
 
-  it('returns categories sorted by sortOrder', () => {
+  it('returns categories sorted by sortOrder', async () => {
     const c1 = createCategory(db, tenantId, { name: 'Desserts' });
     const c2 = createCategory(db, tenantId, { name: 'Starters' });
     const c3 = createCategory(db, tenantId, { name: 'Mains' });
@@ -388,7 +401,7 @@ describe('Menu Items', () => {
     categoryId = category.id;
   });
 
-  it('creates an item with valid category', () => {
+  it('creates an item with valid category', async () => {
     const result = createMenuItem(db, tenantId, {
       categoryId,
       name: 'Burger',
@@ -407,7 +420,7 @@ describe('Menu Items', () => {
     expect(item.isActive).toBe(1);
   });
 
-  it('returns error when creating item with invalid categoryId', () => {
+  it('returns error when creating item with invalid categoryId', async () => {
     const result = createMenuItem(db, tenantId, {
       categoryId: 'nonexistent-id',
       name: 'Burger',
@@ -417,7 +430,7 @@ describe('Menu Items', () => {
     expect(result).toHaveProperty('error', 'Category not found');
   });
 
-  it('returns error when creating item with other tenant category', () => {
+  it('returns error when creating item with other tenant category', async () => {
     const otherTenant = createTestTenant(db, 'other-tenant');
     const otherCategory = createCategory(db, otherTenant.id, {
       name: 'Other Mains',
@@ -432,7 +445,7 @@ describe('Menu Items', () => {
     expect(result).toHaveProperty('error', 'Category not found');
   });
 
-  it('lists items filtered by categoryId', () => {
+  it('lists items filtered by categoryId', async () => {
     const drinks = createCategory(db, tenantId, { name: 'Drinks' });
     createMenuItem(db, tenantId, { categoryId, name: 'Burger', price: 15 });
     createMenuItem(db, tenantId, { categoryId, name: 'Steak', price: 30 });
@@ -453,7 +466,7 @@ describe('Menu Items', () => {
     expect(drinkItems[0].name).toBe('Cola');
   });
 
-  it('soft deletes an item', () => {
+  it('soft deletes an item', async () => {
     const result = createMenuItem(db, tenantId, {
       categoryId,
       name: 'Burger',
@@ -469,7 +482,7 @@ describe('Menu Items', () => {
     expect(items.find((i) => i.id === item.id)).toBeUndefined();
   });
 
-  it('updates item fields including price', () => {
+  it('updates item fields including price', async () => {
     const result = createMenuItem(db, tenantId, {
       categoryId,
       name: 'Burger',
@@ -505,7 +518,7 @@ describe('Public Menu', () => {
     tenantId = tenant.id;
   });
 
-  it('returns only active categories with available items', () => {
+  it('returns only active categories with available items', async () => {
     const cat = createCategory(db, tenantId, { name: 'Mains' });
     createMenuItem(db, tenantId, {
       categoryId: cat.id,
@@ -524,7 +537,7 @@ describe('Public Menu', () => {
     expect(menu[0].items).toHaveLength(2);
   });
 
-  it('excludes inactive categories', () => {
+  it('excludes inactive categories', async () => {
     const active = createCategory(db, tenantId, { name: 'Active' });
     const inactive = createCategory(db, tenantId, { name: 'Inactive' });
     createMenuItem(db, tenantId, {
@@ -544,7 +557,7 @@ describe('Public Menu', () => {
     expect(menu2[0].category.name).toBe('Active');
   });
 
-  it('excludes unavailable items (isAvailable=0)', () => {
+  it('excludes unavailable items (isAvailable=0)', async () => {
     const cat = createCategory(db, tenantId, { name: 'Mains' });
     const burgerResult = createMenuItem(db, tenantId, {
       categoryId: cat.id,
@@ -566,7 +579,7 @@ describe('Public Menu', () => {
     expect(menu3[0].items[0].name).toBe('Steak');
   });
 
-  it('returns empty for tenant with no menu', () => {
+  it('returns empty for tenant with no menu', async () => {
     const { categories: menu4 } = getPublicMenu(db, tenantId);
     expect(menu4).toHaveLength(0);
   });
@@ -602,8 +615,8 @@ describe('Orders', () => {
     itemB = (resultB as { data: schema.MenuItem }).data;
   });
 
-  it('creates order with valid items, snapshots name+price, calculates total', () => {
-    const result = createOrder(db, tenantId, {
+  it('creates order with valid items, snapshots name+price, calculates total', async () => {
+    const result = await createOrder(db,tenantId, {
       tableNumber: '5',
       items: [
         { menuItemId: itemA.id, quantity: 2 },
@@ -628,8 +641,8 @@ describe('Orders', () => {
     expect(friesItem.quantity).toBe(1);
   });
 
-  it('returns error for empty items array', () => {
-    const result = createOrder(db, tenantId, {
+  it('returns error for empty items array', async () => {
+    const result = await createOrder(db,tenantId, {
       tableNumber: '1',
       items: [],
     });
@@ -640,8 +653,8 @@ describe('Orders', () => {
     );
   });
 
-  it('returns error for invalid menu item ID', () => {
-    const result = createOrder(db, tenantId, {
+  it('returns error for invalid menu item ID', async () => {
+    const result = await createOrder(db,tenantId, {
       tableNumber: '1',
       items: [{ menuItemId: 'nonexistent', quantity: 1 }],
     });
@@ -650,10 +663,10 @@ describe('Orders', () => {
     expect((result as { error: string }).error).toContain('nonexistent');
   });
 
-  it('returns error for unavailable menu item', () => {
+  it('returns error for unavailable menu item', async () => {
     updateMenuItem(db, tenantId, itemA.id, { isAvailable: 0 });
 
-    const result = createOrder(db, tenantId, {
+    const result = await createOrder(db,tenantId, {
       tableNumber: '1',
       items: [{ menuItemId: itemA.id, quantity: 1 }],
     });
@@ -662,8 +675,8 @@ describe('Orders', () => {
     expect((result as { error: string }).error).toContain(itemA.id);
   });
 
-  it('calculates total correctly with multiple items and quantities', () => {
-    const result = createOrder(db, tenantId, {
+  it('calculates total correctly with multiple items and quantities', async () => {
+    const result = await createOrder(db,tenantId, {
       tableNumber: '3',
       items: [
         { menuItemId: itemA.id, quantity: 3 }, // 12.50 * 3 = 37.50
@@ -675,7 +688,7 @@ describe('Orders', () => {
     expect(order.total).toBe(53.5);
   });
 
-  it('rounds total to 2 decimal places', () => {
+  it('rounds total to 2 decimal places', async () => {
     // Create an item with a price that causes floating point issues
     const cat = createCategory(db, tenantId, { name: 'Special' });
     const result = createMenuItem(db, tenantId, {
@@ -685,7 +698,7 @@ describe('Orders', () => {
     });
     const trickyItem = (result as { data: schema.MenuItem }).data;
 
-    const orderResult = createOrder(db, tenantId, {
+    const orderResult = await createOrder(db,tenantId, {
       tableNumber: '1',
       items: [
         { menuItemId: trickyItem.id, quantity: 3 }, // 0.1 * 3 = 0.30 (not 0.30000000000000004)
@@ -696,8 +709,8 @@ describe('Orders', () => {
     expect(order.total).toBe(0.3);
   });
 
-  it('updates order status and returns order with items', () => {
-    const createResult = createOrder(db, tenantId, {
+  it('updates order status and returns order with items', async () => {
+    const createResult = await createOrder(db,tenantId, {
       tableNumber: '5',
       items: [{ menuItemId: itemA.id, quantity: 1 }],
     });
@@ -709,22 +722,22 @@ describe('Orders', () => {
     expect(updated!.items).toHaveLength(1);
   });
 
-  it('returns undefined for non-existent order', () => {
+  it('returns undefined for non-existent order', async () => {
     const result = getOrder(db, tenantId, 'nonexistent-order-id');
     expect(result).toBeUndefined();
   });
 
-  it('lists orders sorted by createdAt desc', () => {
+  it('lists orders sorted by createdAt desc', async () => {
     // Create orders with small time gaps to ensure ordering
-    createOrder(db, tenantId, {
+    await createOrder(db,tenantId, {
       tableNumber: '1',
       items: [{ menuItemId: itemA.id, quantity: 1 }],
     });
-    createOrder(db, tenantId, {
+    await createOrder(db,tenantId, {
       tableNumber: '2',
       items: [{ menuItemId: itemB.id, quantity: 1 }],
     });
-    createOrder(db, tenantId, {
+    await createOrder(db,tenantId, {
       tableNumber: '3',
       items: [{ menuItemId: itemA.id, quantity: 1 }],
     });
@@ -742,12 +755,12 @@ describe('Orders', () => {
     }
   });
 
-  it('filters orders by status', () => {
-    const r1 = createOrder(db, tenantId, {
+  it('filters orders by status', async () => {
+    const r1 = await createOrder(db,tenantId, {
       tableNumber: '1',
       items: [{ menuItemId: itemA.id, quantity: 1 }],
     });
-    createOrder(db, tenantId, {
+    await createOrder(db,tenantId, {
       tableNumber: '2',
       items: [{ menuItemId: itemB.id, quantity: 1 }],
     });
@@ -764,16 +777,16 @@ describe('Orders', () => {
     expect(pendingResult.data[0].status).toBe('pending');
   });
 
-  it('filters orders by tableNumber', () => {
-    createOrder(db, tenantId, {
+  it('filters orders by tableNumber', async () => {
+    await createOrder(db,tenantId, {
       tableNumber: '5',
       items: [{ menuItemId: itemA.id, quantity: 1 }],
     });
-    createOrder(db, tenantId, {
+    await createOrder(db,tenantId, {
       tableNumber: '5',
       items: [{ menuItemId: itemB.id, quantity: 1 }],
     });
-    createOrder(db, tenantId, {
+    await createOrder(db,tenantId, {
       tableNumber: '10',
       items: [{ menuItemId: itemA.id, quantity: 1 }],
     });
@@ -787,10 +800,10 @@ describe('Orders', () => {
     expect(table10.total).toBe(1);
   });
 
-  it('paginates orders — page 2 returns different results than page 1', () => {
+  it('paginates orders — page 2 returns different results than page 1', async () => {
     // Create 4 orders
     for (let i = 1; i <= 4; i++) {
-      createOrder(db, tenantId, {
+      await createOrder(db,tenantId, {
         tableNumber: String(i),
         items: [{ menuItemId: itemA.id, quantity: 1 }],
       });
@@ -814,8 +827,8 @@ describe('Orders', () => {
     }
   });
 
-  it('paginates orders — beyond last page returns empty data', () => {
-    createOrder(db, tenantId, {
+  it('paginates orders — beyond last page returns empty data', async () => {
+    await createOrder(db,tenantId, {
       tableNumber: '1',
       items: [{ menuItemId: itemA.id, quantity: 1 }],
     });
@@ -844,7 +857,7 @@ describe('Tenant Isolation', () => {
     tenantBId = tenantB.id;
   });
 
-  it('getCategories for tenant A does not return tenant B categories', () => {
+  it('getCategories for tenant A does not return tenant B categories', async () => {
     createCategory(db, tenantAId, { name: 'A Mains' });
     createCategory(db, tenantBId, { name: 'B Mains' });
 
@@ -857,7 +870,7 @@ describe('Tenant Isolation', () => {
     expect(bCats[0].name).toBe('B Mains');
   });
 
-  it('getMenuItems for tenant A does not return tenant B items', () => {
+  it('getMenuItems for tenant A does not return tenant B items', async () => {
     const catA = createCategory(db, tenantAId, { name: 'A Mains' });
     const catB = createCategory(db, tenantBId, { name: 'B Mains' });
     createMenuItem(db, tenantAId, {
@@ -880,7 +893,7 @@ describe('Tenant Isolation', () => {
     expect(bItems[0].name).toBe('B Burger');
   });
 
-  it('getOrders for tenant A does not return tenant B orders', () => {
+  it('getOrders for tenant A does not return tenant B orders', async () => {
     const catA = createCategory(db, tenantAId, { name: 'A Mains' });
     const catB = createCategory(db, tenantBId, { name: 'B Mains' });
     const itemAResult = createMenuItem(db, tenantAId, {
@@ -896,11 +909,11 @@ describe('Tenant Isolation', () => {
     const itemAData = (itemAResult as { data: schema.MenuItem }).data;
     const itemBData = (itemBResult as { data: schema.MenuItem }).data;
 
-    createOrder(db, tenantAId, {
+    await createOrder(db,tenantAId, {
       tableNumber: '1',
       items: [{ menuItemId: itemAData.id, quantity: 1 }],
     });
-    createOrder(db, tenantBId, {
+    await createOrder(db,tenantBId, {
       tableNumber: '2',
       items: [{ menuItemId: itemBData.id, quantity: 1 }],
     });
@@ -914,7 +927,7 @@ describe('Tenant Isolation', () => {
     expect(bOrders.data[0].tableNumber).toBe('2');
   });
 
-  it('createMenuItem with tenant A ID and tenant B category returns error', () => {
+  it('createMenuItem with tenant A ID and tenant B category returns error', async () => {
     const catB = createCategory(db, tenantBId, { name: 'B Mains' });
 
     const result = createMenuItem(db, tenantAId, {
@@ -926,7 +939,7 @@ describe('Tenant Isolation', () => {
     expect(result).toHaveProperty('error', 'Category not found');
   });
 
-  it('updateOrderStatus for tenant A cannot update tenant B order', () => {
+  it('updateOrderStatus for tenant A cannot update tenant B order', async () => {
     const catB = createCategory(db, tenantBId, { name: 'B Mains' });
     const itemBResult = createMenuItem(db, tenantBId, {
       categoryId: catB.id,
@@ -935,7 +948,7 @@ describe('Tenant Isolation', () => {
     });
     const itemBData = (itemBResult as { data: schema.MenuItem }).data;
 
-    const orderResult = createOrder(db, tenantBId, {
+    const orderResult = await createOrder(db,tenantBId, {
       tableNumber: '1',
       items: [{ menuItemId: itemBData.id, quantity: 1 }],
     });
@@ -951,7 +964,7 @@ describe('Tenant Isolation', () => {
     expect(order!.status).toBe('pending');
   });
 
-  it('getPublicMenu for tenant A does not include tenant B data', () => {
+  it('getPublicMenu for tenant A does not include tenant B data', async () => {
     const catA = createCategory(db, tenantAId, { name: 'A Mains' });
     const catB = createCategory(db, tenantBId, { name: 'B Mains' });
     createMenuItem(db, tenantAId, {
@@ -978,7 +991,7 @@ describe('Tenant Isolation', () => {
     expect(menuB[0].items[0].name).toBe('B Burger');
   });
 
-  it('modifier groups for tenant A not visible to tenant B', () => {
+  it('modifier groups for tenant A not visible to tenant B', async () => {
     createModifierGroup(db, tenantAId, { name: 'A Sizes' });
     createModifierGroup(db, tenantBId, { name: 'B Sizes' });
 
@@ -991,7 +1004,7 @@ describe('Tenant Isolation', () => {
     expect(bGroups[0].name).toBe('B Sizes');
   });
 
-  it('promotions for tenant A not visible to tenant B', () => {
+  it('promotions for tenant A not visible to tenant B', async () => {
     createPromotion(db, tenantAId, {
       name: 'A Promo',
       type: 'percentage',
@@ -1014,7 +1027,7 @@ describe('Tenant Isolation', () => {
     expect(bPromos[0].name).toBe('B Promo');
   });
 
-  it('combo deals for tenant A not visible to tenant B', () => {
+  it('combo deals for tenant A not visible to tenant B', async () => {
     const catA = createCategory(db, tenantAId, { name: 'A Mains' });
     const catB = createCategory(db, tenantBId, { name: 'B Mains' });
     const itemAResult = createMenuItem(db, tenantAId, {
@@ -1078,7 +1091,7 @@ describe('Modifier Groups', () => {
     categoryId = category.id;
   });
 
-  it('creates a modifier group and returns it', () => {
+  it('creates a modifier group and returns it', async () => {
     const group = createModifierGroup(db, tenantId, {
       name: 'Size',
       minSelections: 1,
@@ -1095,7 +1108,7 @@ describe('Modifier Groups', () => {
     expect(group.createdAt).toEqual(expect.any(String));
   });
 
-  it('lists only active groups for the tenant', () => {
+  it('lists only active groups for the tenant', async () => {
     createModifierGroup(db, tenantId, { name: 'Size' });
     createModifierGroup(db, tenantId, { name: 'Extras' });
     const toDelete = createModifierGroup(db, tenantId, { name: 'Old' });
@@ -1108,7 +1121,7 @@ describe('Modifier Groups', () => {
     );
   });
 
-  it('creates modifier options with price deltas', () => {
+  it('creates modifier options with price deltas', async () => {
     const group = createModifierGroup(db, tenantId, { name: 'Size' });
 
     const smallResult = createModifierOption(db, tenantId, {
@@ -1137,7 +1150,7 @@ describe('Modifier Groups', () => {
     expect(options).toHaveLength(2);
   });
 
-  it('soft deletes a modifier group', () => {
+  it('soft deletes a modifier group', async () => {
     const group = createModifierGroup(db, tenantId, { name: 'ToDelete' });
     const deleted = deleteModifierGroup(db, tenantId, group.id);
 
@@ -1148,7 +1161,7 @@ describe('Modifier Groups', () => {
     expect(groups.find((g) => g.id === group.id)).toBeUndefined();
   });
 
-  it('links modifier groups to menu items via setItemModifierGroups', () => {
+  it('links modifier groups to menu items via setItemModifierGroups', async () => {
     const itemResult = createMenuItem(db, tenantId, {
       categoryId,
       name: 'Burger',
@@ -1169,7 +1182,7 @@ describe('Modifier Groups', () => {
     expect(linked).toHaveLength(2);
   });
 
-  it('getItemModifierGroups returns correct groups for an item', () => {
+  it('getItemModifierGroups returns correct groups for an item', async () => {
     const itemResult = createMenuItem(db, tenantId, {
       categoryId,
       name: 'Burger',
@@ -1200,7 +1213,7 @@ describe('Modifier Groups', () => {
     );
   });
 
-  it('getPublicMenu includes modifier groups on items', () => {
+  it('getPublicMenu includes modifier groups on items', async () => {
     const itemResult = createMenuItem(db, tenantId, {
       categoryId,
       name: 'Burger',
@@ -1263,7 +1276,7 @@ describe('Promotions', () => {
     itemB = (resultB as { data: schema.MenuItem }).data;
   });
 
-  it('creates a promotion (percentage type)', () => {
+  it('creates a promotion (percentage type)', async () => {
     const promo = createPromotion(db, tenantId, {
       name: '20% Off',
       type: 'percentage',
@@ -1281,7 +1294,7 @@ describe('Promotions', () => {
     expect(promo.currentUses).toBe(0);
   });
 
-  it('creates a promotion (fixed_amount type)', () => {
+  it('creates a promotion (fixed_amount type)', async () => {
     const promo = createPromotion(db, tenantId, {
       name: '$5 Off',
       type: 'fixed_amount',
@@ -1293,7 +1306,7 @@ describe('Promotions', () => {
     expect(promo.discountValue).toBe(5);
   });
 
-  it('lists active promotions for a tenant', () => {
+  it('lists active promotions for a tenant', async () => {
     createPromotion(db, tenantId, {
       name: 'Promo A',
       type: 'percentage',
@@ -1314,7 +1327,7 @@ describe('Promotions', () => {
     );
   });
 
-  it('soft deletes a promotion', () => {
+  it('soft deletes a promotion', async () => {
     const promo = createPromotion(db, tenantId, {
       name: 'ToDelete',
       type: 'percentage',
@@ -1330,7 +1343,7 @@ describe('Promotions', () => {
     expect(promos.find((p) => p.id === promo.id)).toBeUndefined();
   });
 
-  it('creates a promo code for a promotion', () => {
+  it('creates a promo code for a promotion', async () => {
     const promo = createPromotion(db, tenantId, {
       name: 'Summer Sale',
       type: 'percentage',
@@ -1356,7 +1369,7 @@ describe('Promotions', () => {
     expect(codes).toHaveLength(1);
   });
 
-  it('validates a valid promo code', () => {
+  it('validates a valid promo code', async () => {
     const promo = createPromotion(db, tenantId, {
       name: 'Active Promo',
       type: 'percentage',
@@ -1376,7 +1389,7 @@ describe('Promotions', () => {
     expect(data.promoCode.code).toBe('VALID10');
   });
 
-  it('rejects expired promo code (promotion past end date)', () => {
+  it('rejects expired promo code (promotion past end date)', async () => {
     const promo = createPromotion(db, tenantId, {
       name: 'Expired Promo',
       type: 'percentage',
@@ -1394,7 +1407,7 @@ describe('Promotions', () => {
     expect((result as { error: string }).error).toContain('expired');
   });
 
-  it('rejects promo code at usage limit', () => {
+  it('rejects promo code at usage limit', async () => {
     const promo = createPromotion(db, tenantId, {
       name: 'Limited Promo',
       type: 'percentage',
@@ -1419,7 +1432,7 @@ describe('Promotions', () => {
     expect((result as { error: string }).error).toContain('usage limit');
   });
 
-  it('applies percentage discount correctly', () => {
+  it('applies percentage discount correctly', async () => {
     const promo = createPromotion(db, tenantId, {
       name: '20% Off',
       type: 'percentage',
@@ -1431,7 +1444,7 @@ describe('Promotions', () => {
     expect(discount).toBe(10.0); // 20% of 50
   });
 
-  it('applies fixed discount correctly (capped at order total)', () => {
+  it('applies fixed discount correctly (capped at order total)', async () => {
     const promo = createPromotion(db, tenantId, {
       name: '$100 Off',
       type: 'fixed_amount',
@@ -1444,7 +1457,7 @@ describe('Promotions', () => {
     expect(discount).toBe(33.0); // capped at order total
   });
 
-  it('createOrder with valid promo code applies discount', () => {
+  it('createOrder with valid promo code applies discount', async () => {
     const promo = createPromotion(db, tenantId, {
       name: '10% Off',
       type: 'percentage',
@@ -1457,7 +1470,7 @@ describe('Promotions', () => {
       code: 'SAVE10',
     });
 
-    const result = createOrder(db, tenantId, {
+    const result = await createOrder(db,tenantId, {
       tableNumber: '5',
       items: [
         { menuItemId: itemA.id, quantity: 2 }, // 12.50 * 2 = 25.00
@@ -1473,7 +1486,7 @@ describe('Promotions', () => {
     expect(order.total).toBe(29.7);
   });
 
-  it('promo code usage count increments after order', () => {
+  it('promo code usage count increments after order', async () => {
     const promo = createPromotion(db, tenantId, {
       name: 'Track Usage',
       type: 'percentage',
@@ -1488,7 +1501,7 @@ describe('Promotions', () => {
     const promoCode = (codeResult as { data: schema.PromoCode }).data;
 
     // Place an order with the promo code
-    createOrder(db, tenantId, {
+    await createOrder(db,tenantId, {
       tableNumber: '1',
       items: [{ menuItemId: itemA.id, quantity: 1 }],
       promoCode: 'TRACK',
@@ -1543,7 +1556,7 @@ describe('Combo Deals', () => {
     colaItem = (colaResult as { data: schema.MenuItem }).data;
   });
 
-  it('creates a combo deal with slots and options', () => {
+  it('creates a combo deal with slots and options', async () => {
     const result = createComboDeal(db, tenantId, {
       name: 'Lunch Combo',
       description: 'Burger + Side + Drink',
@@ -1572,7 +1585,7 @@ describe('Combo Deals', () => {
     expect(deal.slots).toHaveLength(3);
   });
 
-  it('lists active combos with nested slots and options', () => {
+  it('lists active combos with nested slots and options', async () => {
     createComboDeal(db, tenantId, {
       name: 'Combo A',
       basePrice: 15,
@@ -1607,7 +1620,7 @@ describe('Combo Deals', () => {
     expect(comboB!.slots[0].options).toHaveLength(1);
   });
 
-  it('soft deletes a combo', () => {
+  it('soft deletes a combo', async () => {
     const result = createComboDeal(db, tenantId, {
       name: 'ToDelete',
       basePrice: 10,
@@ -1628,7 +1641,7 @@ describe('Combo Deals', () => {
     expect(combos.find((c) => c.id === deal.id)).toBeUndefined();
   });
 
-  it('getPublicCombos returns combos with item details', () => {
+  it('getPublicCombos returns combos with item details', async () => {
     createComboDeal(db, tenantId, {
       name: 'Public Combo',
       basePrice: 18,
@@ -1660,7 +1673,7 @@ describe('Combo Deals', () => {
     expect(mainSlot!.options[0].menuItemPrice).toBe(15);
   });
 
-  it('createOrder with combo items calculates correct total (basePrice + priceModifiers)', () => {
+  it('createOrder with combo items calculates correct total (basePrice + priceModifiers)', async () => {
     const comboResult = createComboDeal(db, tenantId, {
       name: 'Lunch Special',
       basePrice: 18,
@@ -1691,7 +1704,7 @@ describe('Combo Deals', () => {
     const sideSlot = combo.slots.find((s) => s.name === 'Side')!;
     const drinkSlot = combo.slots.find((s) => s.name === 'Drink')!;
 
-    const orderResult = createOrder(db, tenantId, {
+    const orderResult = await createOrder(db,tenantId, {
       tableNumber: '3',
       items: [],
       comboItems: [
@@ -1730,8 +1743,8 @@ describe('Order Modifications', () => {
     return (result as { data: schema.MenuItem }).data;
   }
 
-  function placeTestOrder(items: Array<{ menuItemId: string; quantity: number }>) {
-    const result = createOrder(db, tenantId, {
+  async function placeTestOrder(items: Array<{ menuItemId: string; quantity: number }>) {
+    const result = await createOrder(db,tenantId, {
       tableNumber: '1',
       items,
     });
@@ -1747,11 +1760,11 @@ describe('Order Modifications', () => {
   });
 
   describe('addItemsToOrder', () => {
-    it('adds items to an existing pending order and updates total', () => {
+    it('adds items to an existing pending order and updates total', async () => {
       const burger = createTestItem('Burger', 15);
       const fries = createTestItem('Fries', 5);
 
-      const order = placeTestOrder([{ menuItemId: burger.id, quantity: 1 }]);
+      const order = await placeTestOrder([{ menuItemId: burger.id, quantity: 1 }]);
       expect(order.total).toBe(15);
       expect(order.items).toHaveLength(1);
 
@@ -1765,11 +1778,11 @@ describe('Order Modifications', () => {
       expect(updated.total).toBe(25); // 15 + 5*2
     });
 
-    it('rejects adding items to a delivered order', () => {
+    it('rejects adding items to a delivered order', async () => {
       const burger = createTestItem('Burger', 15);
       const fries = createTestItem('Fries', 5);
 
-      const order = placeTestOrder([{ menuItemId: burger.id, quantity: 1 }]);
+      const order = await placeTestOrder([{ menuItemId: burger.id, quantity: 1 }]);
       updateOrderStatus(db, tenantId, order.id, 'delivered');
 
       const result = addItemsToOrder(db, tenantId, order.id, [
@@ -1779,11 +1792,11 @@ describe('Order Modifications', () => {
       expect(result).toHaveProperty('error');
     });
 
-    it('rejects adding items to a cancelled order', () => {
+    it('rejects adding items to a cancelled order', async () => {
       const burger = createTestItem('Burger', 15);
       const fries = createTestItem('Fries', 5);
 
-      const order = placeTestOrder([{ menuItemId: burger.id, quantity: 1 }]);
+      const order = await placeTestOrder([{ menuItemId: burger.id, quantity: 1 }]);
       updateOrderStatus(db, tenantId, order.id, 'cancelled');
 
       const result = addItemsToOrder(db, tenantId, order.id, [
@@ -1793,11 +1806,11 @@ describe('Order Modifications', () => {
       expect(result).toHaveProperty('error');
     });
 
-    it('allows adding items to a confirmed order', () => {
+    it('allows adding items to a confirmed order', async () => {
       const burger = createTestItem('Burger', 15);
       const fries = createTestItem('Fries', 5);
 
-      const order = placeTestOrder([{ menuItemId: burger.id, quantity: 1 }]);
+      const order = await placeTestOrder([{ menuItemId: burger.id, quantity: 1 }]);
       updateOrderStatus(db, tenantId, order.id, 'confirmed');
 
       const result = addItemsToOrder(db, tenantId, order.id, [
@@ -1809,9 +1822,9 @@ describe('Order Modifications', () => {
       expect(updated.total).toBe(20);
     });
 
-    it('rejects adding unavailable items', () => {
+    it('rejects adding unavailable items', async () => {
       const burger = createTestItem('Burger', 15);
-      const order = placeTestOrder([{ menuItemId: burger.id, quantity: 1 }]);
+      const order = await placeTestOrder([{ menuItemId: burger.id, quantity: 1 }]);
 
       // Mark burger as unavailable
       updateMenuItem(db, tenantId, burger.id, { isAvailable: 0 });
@@ -1823,11 +1836,11 @@ describe('Order Modifications', () => {
       expect(result).toHaveProperty('error');
     });
 
-    it('rejects when order does not belong to tenant', () => {
+    it('rejects when order does not belong to tenant', async () => {
       const otherTenant = createTestTenant(db, 'other-tenant');
       const burger = createTestItem('Burger', 15);
 
-      const order = placeTestOrder([{ menuItemId: burger.id, quantity: 1 }]);
+      const order = await placeTestOrder([{ menuItemId: burger.id, quantity: 1 }]);
 
       const result = addItemsToOrder(db, otherTenant.id, order.id, [
         { menuItemId: burger.id, quantity: 1 },
@@ -1838,11 +1851,11 @@ describe('Order Modifications', () => {
   });
 
   describe('requestItemCancellation', () => {
-    it('marks items as cancel_requested', () => {
+    it('marks items as cancel_requested', async () => {
       const burger = createTestItem('Burger', 15);
       const fries = createTestItem('Fries', 5);
 
-      const order = placeTestOrder([
+      const order = await placeTestOrder([
         { menuItemId: burger.id, quantity: 1 },
         { menuItemId: fries.id, quantity: 1 },
       ]);
@@ -1860,9 +1873,9 @@ describe('Order Modifications', () => {
       expect(otherItem?.status).toBe('active');
     });
 
-    it('rejects cancellation for non-active items', () => {
+    it('rejects cancellation for non-active items', async () => {
       const burger = createTestItem('Burger', 15);
-      const order = placeTestOrder([{ menuItemId: burger.id, quantity: 1 }]);
+      const order = await placeTestOrder([{ menuItemId: burger.id, quantity: 1 }]);
 
       // Request once
       requestItemCancellation(db, tenantId, order.id, [order.items[0].id]);
@@ -1872,9 +1885,9 @@ describe('Order Modifications', () => {
       expect(result).toHaveProperty('error');
     });
 
-    it('rejects cancellation for delivered orders', () => {
+    it('rejects cancellation for delivered orders', async () => {
       const burger = createTestItem('Burger', 15);
-      const order = placeTestOrder([{ menuItemId: burger.id, quantity: 1 }]);
+      const order = await placeTestOrder([{ menuItemId: burger.id, quantity: 1 }]);
 
       updateOrderStatus(db, tenantId, order.id, 'delivered');
 
@@ -1884,11 +1897,11 @@ describe('Order Modifications', () => {
   });
 
   describe('handleCancellationRequest', () => {
-    it('approves cancellation and recalculates total', () => {
+    it('approves cancellation and recalculates total', async () => {
       const burger = createTestItem('Burger', 15);
       const fries = createTestItem('Fries', 5);
 
-      const order = placeTestOrder([
+      const order = await placeTestOrder([
         { menuItemId: burger.id, quantity: 1 },
         { menuItemId: fries.id, quantity: 2 },
       ]);
@@ -1910,9 +1923,9 @@ describe('Order Modifications', () => {
       expect(updated.total).toBe(10);
     });
 
-    it('rejects cancellation and keeps item active', () => {
+    it('rejects cancellation and keeps item active', async () => {
       const burger = createTestItem('Burger', 15);
-      const order = placeTestOrder([{ menuItemId: burger.id, quantity: 1 }]);
+      const order = await placeTestOrder([{ menuItemId: burger.id, quantity: 1 }]);
 
       requestItemCancellation(db, tenantId, order.id, [order.items[0].id]);
 
@@ -1926,19 +1939,19 @@ describe('Order Modifications', () => {
       expect(updated.total).toBe(15); // unchanged
     });
 
-    it('rejects handling for items not in cancel_requested state', () => {
+    it('rejects handling for items not in cancel_requested state', async () => {
       const burger = createTestItem('Burger', 15);
-      const order = placeTestOrder([{ menuItemId: burger.id, quantity: 1 }]);
+      const order = await placeTestOrder([{ menuItemId: burger.id, quantity: 1 }]);
 
       // Try to handle without a cancellation request
       const result = handleCancellationRequest(db, tenantId, order.id, order.items[0].id, 'approve');
       expect(result).toHaveProperty('error');
     });
 
-    it('prevents cross-tenant cancellation handling', () => {
+    it('prevents cross-tenant cancellation handling', async () => {
       const otherTenant = createTestTenant(db, 'other-tenant');
       const burger = createTestItem('Burger', 15);
-      const order = placeTestOrder([{ menuItemId: burger.id, quantity: 1 }]);
+      const order = await placeTestOrder([{ menuItemId: burger.id, quantity: 1 }]);
 
       requestItemCancellation(db, tenantId, order.id, [order.items[0].id]);
 
@@ -1969,11 +1982,11 @@ describe('Tax Calculation', () => {
       .run();
   }
 
-  function placeOrder(
+  async function placeOrder(
     items: Array<{ menuItemId: string; quantity: number }>,
     promoCode?: string,
   ) {
-    const result = createOrder(db, tenantId, {
+    const result = await createOrder(db,tenantId, {
       tableNumber: '1',
       items,
       ...(promoCode ? { promoCode } : {}),
@@ -1989,23 +2002,23 @@ describe('Tax Calculation', () => {
     categoryId = category.id;
   });
 
-  it('applies 10% exclusive tax: taxAmount = subtotal * 0.10, total = subtotal + taxAmount', () => {
+  it('applies 10% exclusive tax: taxAmount = subtotal * 0.10, total = subtotal + taxAmount', async () => {
     setTaxSettings(tenantId, 10, false);
     const item = createTestItem('Steak', 100);
 
-    const order = placeOrder([{ menuItemId: item.id, quantity: 1 }]);
+    const order = await placeOrder([{ menuItemId: item.id, quantity: 1 }]);
 
     // subtotal = 100.00, tax = 100 * 10% = 10.00, total = 110.00
     expect(order.taxAmount).toBe(10.0);
     expect(order.total).toBe(110.0);
   });
 
-  it('applies 15% inclusive tax: taxAmount extracted from price-inclusive total, total unchanged', () => {
+  it('applies 15% inclusive tax: taxAmount extracted from price-inclusive total, total unchanged', async () => {
     setTaxSettings(tenantId, 15, true);
     // Item price is $23.00 — tax is already baked in
     const item = createTestItem('GST Burger', 23);
 
-    const order = placeOrder([{ menuItemId: item.id, quantity: 1 }]);
+    const order = await placeOrder([{ menuItemId: item.id, quantity: 1 }]);
 
     // subtotal = 23.00
     // taxAmount = 23.00 - (23.00 / 1.15) = 23.00 - 20.00 = 3.00
@@ -2014,39 +2027,39 @@ describe('Tax Calculation', () => {
     expect(order.total).toBe(23.0);
   });
 
-  it('applies 0% tax: taxAmount = 0, total = subtotal', () => {
+  it('applies 0% tax: taxAmount = 0, total = subtotal', async () => {
     setTaxSettings(tenantId, 0, false);
     const item = createTestItem('Burger', 12.5);
 
-    const order = placeOrder([{ menuItemId: item.id, quantity: 2 }]);
+    const order = await placeOrder([{ menuItemId: item.id, quantity: 2 }]);
 
     // subtotal = 25.00, no tax
     expect(order.taxAmount).toBe(0);
     expect(order.total).toBe(25.0);
   });
 
-  it('no tax configured: taxAmount = 0 (default settings)', () => {
+  it('no tax configured: taxAmount = 0 (default settings)', async () => {
     // tenant settings stays as default '{}' — no taxRate set
     const item = createTestItem('Chips', 8);
 
-    const order = placeOrder([{ menuItemId: item.id, quantity: 1 }]);
+    const order = await placeOrder([{ menuItemId: item.id, quantity: 1 }]);
 
     expect(order.taxAmount).toBe(0);
     expect(order.total).toBe(8.0);
   });
 
-  it('rounds taxAmount to 2 decimal places (e.g. $10.99 * 10% = $1.10 not $1.099)', () => {
+  it('rounds taxAmount to 2 decimal places (e.g. $10.99 * 10% = $1.10 not $1.099)', async () => {
     setTaxSettings(tenantId, 10, false);
     const item = createTestItem('Special', 10.99);
 
-    const order = placeOrder([{ menuItemId: item.id, quantity: 1 }]);
+    const order = await placeOrder([{ menuItemId: item.id, quantity: 1 }]);
 
     // subtotal = 10.99, tax = 10.99 * 0.10 = 1.099 → rounded to 1.10
     expect(order.taxAmount).toBe(1.10);
     expect(order.total).toBe(12.09);
   });
 
-  it('applies discount before tax: tax is calculated on (subtotal - discount)', () => {
+  it('applies discount before tax: tax is calculated on (subtotal - discount)', async () => {
     setTaxSettings(tenantId, 10, false);
 
     // Set up a 10-off promotion + promo code
@@ -2068,7 +2081,7 @@ describe('Tax Calculation', () => {
 
     const item = createTestItem('Pasta', 50);
 
-    const result = createOrder(db, tenantId, {
+    const result = await createOrder(db,tenantId, {
       tableNumber: '1',
       items: [{ menuItemId: item.id, quantity: 1 }],
       promoCode: 'TAX10',
@@ -2083,7 +2096,7 @@ describe('Tax Calculation', () => {
     expect(order.total).toBe(44.0);
   });
 
-  it('tenant A taxRate does not affect tenant B order (tenant isolation)', () => {
+  it('tenant A taxRate does not affect tenant B order (tenant isolation)', async () => {
     // Tenant A: 20% tax
     setTaxSettings(tenantId, 20, false);
 
@@ -2092,7 +2105,7 @@ describe('Tax Calculation', () => {
     const catB = createCategory(db, tenantB.id, { name: 'Food' });
     const itemB = (createMenuItem(db, tenantB.id, { categoryId: catB.id, name: 'Soup', price: 10 }) as { data: schema.MenuItem }).data;
 
-    const resultB = createOrder(db, tenantB.id, {
+    const resultB = await createOrder(db,tenantB.id, {
       tableNumber: '2',
       items: [{ menuItemId: itemB.id, quantity: 1 }],
     });
@@ -2103,12 +2116,12 @@ describe('Tax Calculation', () => {
     expect(orderB.total).toBe(10.0);
   });
 
-  it('multi-item order sums correctly with exclusive tax', () => {
+  it('multi-item order sums correctly with exclusive tax', async () => {
     setTaxSettings(tenantId, 10, false);
     const burger = createTestItem('Burger', 12.5);
     const fries = createTestItem('Fries', 8.0);
 
-    const order = placeOrder([
+    const order = await placeOrder([
       { menuItemId: burger.id, quantity: 2 }, // 12.50 * 2 = 25.00
       { menuItemId: fries.id, quantity: 1 },  // 8.00  * 1 = 8.00
     ]);
@@ -2139,7 +2152,7 @@ describe('Allergen Management', () => {
     categoryId = category.id;
   });
 
-  it('menu item created with allergens stores the comma-separated string', () => {
+  it('menu item created with allergens stores the comma-separated string', async () => {
     const result = createMenuItem(db, tenantId, {
       categoryId,
       name: 'Pasta',
@@ -2153,7 +2166,7 @@ describe('Allergen Management', () => {
     expect(item.allergens).toBe('gluten,dairy');
   });
 
-  it('getPublicMenu returns allergens as a string that can be split into an array', () => {
+  it('getPublicMenu returns allergens as a string that can be split into an array', async () => {
     const result = createMenuItem(db, tenantId, {
       categoryId,
       name: 'Cheesy Burger',
@@ -2173,7 +2186,7 @@ describe('Allergen Management', () => {
     expect(allergensArray).toEqual(['gluten', 'dairy', 'eggs']);
   });
 
-  it('getPublicMenu item with no allergens returns null from the DB', () => {
+  it('getPublicMenu item with no allergens returns null from the DB', async () => {
     createMenuItem(db, tenantId, {
       categoryId,
       name: 'Plain Rice',
@@ -2188,7 +2201,7 @@ describe('Allergen Management', () => {
     expect(publicItem.allergens).toBeNull();
   });
 
-  it('updateMenuItem can set allergens on an existing item', () => {
+  it('updateMenuItem can set allergens on an existing item', async () => {
     const result = createMenuItem(db, tenantId, {
       categoryId,
       name: 'Soy Noodles',
@@ -2205,7 +2218,7 @@ describe('Allergen Management', () => {
     expect(updated.allergens).toBe('soy,gluten');
   });
 
-  it('allergens are tenant-isolated — tenant B cannot see tenant A allergen data', () => {
+  it('allergens are tenant-isolated — tenant B cannot see tenant A allergen data', async () => {
     const tenantB = createTestTenant(db, 'tenant-b');
     const catB = createCategory(db, tenantB.id, { name: 'B Mains' });
 
@@ -2272,12 +2285,12 @@ describe('Analytics Service', () => {
     itemB = (resultB as { data: schema.MenuItem }).data;
   });
 
-  it('getDailyRevenue returns an array with date, revenue, orderCount, and avgOrderValue fields', () => {
-    createOrder(db, tenantId, {
+  it('getDailyRevenue returns an array with date, revenue, orderCount, and avgOrderValue fields', async () => {
+    await createOrder(db,tenantId, {
       tableNumber: '1',
       items: [{ menuItemId: itemA.id, quantity: 1 }],
     });
-    createOrder(db, tenantId, {
+    await createOrder(db,tenantId, {
       tableNumber: '2',
       items: [{ menuItemId: itemB.id, quantity: 2 }],
     });
@@ -2300,18 +2313,18 @@ describe('Analytics Service', () => {
     expect(today.avgOrderValue).toBe(12.5);
   });
 
-  it('getDailyRevenue returns empty array when tenant has no orders', () => {
+  it('getDailyRevenue returns empty array when tenant has no orders', async () => {
     const result = getDailyRevenue(db, tenantId, 30);
     expect(result).toEqual([]);
   });
 
-  it('getTopItems returns items sorted by revenue descending', () => {
+  it('getTopItems returns items sorted by revenue descending', async () => {
     // Place: 3× Burger ($15 each = $45), 5× Fries ($5 each = $25)
-    createOrder(db, tenantId, {
+    await createOrder(db,tenantId, {
       tableNumber: '1',
       items: [{ menuItemId: itemA.id, quantity: 3 }],
     });
-    createOrder(db, tenantId, {
+    await createOrder(db,tenantId, {
       tableNumber: '2',
       items: [{ menuItemId: itemB.id, quantity: 5 }],
     });
@@ -2339,17 +2352,17 @@ describe('Analytics Service', () => {
     expect(topItems[1].revenue).toBe(25);
   });
 
-  it('getTopItems returns empty array when tenant has no orders', () => {
+  it('getTopItems returns empty array when tenant has no orders', async () => {
     const result = getTopItems(db, tenantId, 10);
     expect(result).toEqual([]);
   });
 
-  it('getOrderStats returns today/week/month/allTime with revenue and count', () => {
-    createOrder(db, tenantId, {
+  it('getOrderStats returns today/week/month/allTime with revenue and count', async () => {
+    await createOrder(db,tenantId, {
       tableNumber: '1',
       items: [{ menuItemId: itemA.id, quantity: 1 }],
     });
-    createOrder(db, tenantId, {
+    await createOrder(db,tenantId, {
       tableNumber: '2',
       items: [{ menuItemId: itemB.id, quantity: 2 }],
     });
@@ -2375,12 +2388,12 @@ describe('Analytics Service', () => {
     expect(stats.allTime.revenue).toBe(25);
   });
 
-  it('getStatusBreakdown returns a record keyed by status', () => {
-    const r1 = createOrder(db, tenantId, {
+  it('getStatusBreakdown returns a record keyed by status', async () => {
+    const r1 = await createOrder(db,tenantId, {
       tableNumber: '1',
       items: [{ menuItemId: itemA.id, quantity: 1 }],
     });
-    const r2 = createOrder(db, tenantId, {
+    const r2 = await createOrder(db,tenantId, {
       tableNumber: '2',
       items: [{ menuItemId: itemB.id, quantity: 1 }],
     });
@@ -2398,7 +2411,7 @@ describe('Analytics Service', () => {
     expect(breakdown['confirmed']).toBe(1);
   });
 
-  it('analytics only returns data for the requesting tenant', () => {
+  it('analytics only returns data for the requesting tenant', async () => {
     const tenantB = createTestTenant(db, 'tenant-b');
     const catB = createCategory(db, tenantB.id, { name: 'B Mains' });
     const itemBResult = createMenuItem(db, tenantB.id, {
@@ -2409,12 +2422,12 @@ describe('Analytics Service', () => {
     const itemBData = (itemBResult as { data: schema.MenuItem }).data;
 
     // Tenant A: 1 order for $15
-    createOrder(db, tenantId, {
+    await createOrder(db,tenantId, {
       tableNumber: '1',
       items: [{ menuItemId: itemA.id, quantity: 1 }],
     });
     // Tenant B: 1 order for $20
-    createOrder(db, tenantB.id, {
+    await createOrder(db,tenantB.id, {
       tableNumber: '2',
       items: [{ menuItemId: itemBData.id, quantity: 1 }],
     });
