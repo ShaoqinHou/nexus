@@ -13,6 +13,7 @@ import {
 } from '@web/components/ui';
 import { ConfirmButton, EmptyState } from '@web/components/patterns';
 import { formatPriceDelta } from '@web/lib/format';
+import { useT } from '@web/lib/i18n';
 import { useTenant } from '@web/platform/tenant/TenantProvider';
 import { useToast } from '@web/platform/ToastProvider';
 import {
@@ -64,6 +65,7 @@ function GroupDialog({
   }, [initial]);
 
   const isEdit = !!initial;
+  const t = useT();
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -86,11 +88,11 @@ function GroupDialog({
     <Dialog
       open={open}
       onClose={handleClose}
-      title={isEdit ? 'Edit Modifier Group' : 'Add Modifier Group'}
+      title={isEdit ? t('Edit Modifier Group') : t('Add Modifier Group')}
       footer={
         <>
           <Button variant="secondary" onClick={handleClose} disabled={loading} className="min-h-[48px]">
-            Cancel
+            {t('Cancel')}
           </Button>
           <Button
             type="submit"
@@ -99,36 +101,36 @@ function GroupDialog({
             disabled={!name.trim()}
             className="min-h-[48px]"
           >
-            {isEdit ? 'Save' : 'Add'}
+            {isEdit ? t('Save') : t('Add')}
           </Button>
         </>
       }
     >
       <form id="group-form" onSubmit={handleSubmit} className="space-y-4">
         <Input
-          label="Name"
+          label={t('Name')}
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="e.g. Size, Toppings, Spice Level"
+          placeholder={t('e.g. Size, Toppings, Spice Level')}
           required
           autoFocus
         />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
-            label="Min Selections"
+            label={t('Min Selections')}
             type="number"
             min="0"
             value={minSelections}
             onChange={(e) => setMinSelections(e.target.value)}
-            helperText="0 = optional"
+            helperText={t('0 = optional')}
           />
           <Input
-            label="Max Selections"
+            label={t('Max Selections')}
             type="number"
             min="1"
             value={maxSelections}
             onChange={(e) => setMaxSelections(e.target.value)}
-            helperText="1 = single choice"
+            helperText={t('1 = single choice')}
           />
         </div>
       </form>
@@ -170,6 +172,7 @@ function OptionDialog({
   }, [initial]);
 
   const isEdit = !!initial;
+  const t = useT();
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -188,11 +191,11 @@ function OptionDialog({
     <Dialog
       open={open}
       onClose={handleClose}
-      title={isEdit ? 'Edit Option' : 'Add Option'}
+      title={isEdit ? t('Edit Option') : t('Add Option')}
       footer={
         <>
           <Button variant="secondary" onClick={handleClose} disabled={loading} className="min-h-[48px]">
-            Cancel
+            {t('Cancel')}
           </Button>
           <Button
             type="submit"
@@ -201,32 +204,32 @@ function OptionDialog({
             disabled={!name.trim()}
             className="min-h-[48px]"
           >
-            {isEdit ? 'Save' : 'Add'}
+            {isEdit ? t('Save') : t('Add')}
           </Button>
         </>
       }
     >
       <form id="option-form" onSubmit={handleSubmit} className="space-y-4">
         <Input
-          label="Name"
+          label={t('Name')}
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="e.g. Large, Extra Cheese"
+          placeholder={t('e.g. Large, Extra Cheese')}
           required
           autoFocus
         />
         <Input
-          label="Price Delta"
+          label={t('Price Delta')}
           type="number"
           step="0.01"
           value={priceDelta}
           onChange={(e) => setPriceDelta(e.target.value)}
-          helperText="Extra charge (e.g. 2.50). Use 0 for no extra cost."
+          helperText={t('Extra charge (e.g. 2.50). Use 0 for no extra cost.')}
         />
         <Toggle
           checked={isDefault}
           onChange={setIsDefault}
-          label="Default selection"
+          label={t('Default selection')}
         />
       </form>
     </Dialog>
@@ -237,12 +240,12 @@ function OptionDialog({
 // Group selection description
 // ---------------------------------------------------------------------------
 
-function selectionLabel(min: number, max: number): string {
-  if (min === 0 && max === 1) return 'Optional, pick up to 1';
-  if (min === 0) return `Optional, up to ${max}`;
-  if (min === 1 && max === 1) return 'Required, pick 1';
-  if (min === max) return `Required, pick exactly ${min}`;
-  return `Required ${min}–${max}`;
+function selectionLabel(min: number, max: number, t: (key: string) => string): string {
+  if (min === 0 && max === 1) return t('Optional, pick up to 1');
+  if (min === 0) return `${t('Optional')}, ${t('up to')} ${max}`;
+  if (min === 1 && max === 1) return t('Required, pick 1');
+  if (min === max) return `${t('Required')}, ${t('pick exactly')} ${min}`;
+  return `${t('Required')} ${min}–${max}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -264,22 +267,24 @@ function GroupList({
   onEdit: (group: ModifierGroup) => void;
   onDelete: (id: string) => void;
 }) {
+  const t = useT();
+
   return (
     <Card className="h-full flex flex-col">
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Modifier Groups</CardTitle>
+        <CardTitle>{t('Modifier Groups')}</CardTitle>
         <Button size="sm" onClick={onAdd}>
           <Plus className="h-4 w-4" />
-          Add
+          {t('Add')}
         </Button>
       </CardHeader>
       <CardContent className="flex-1 overflow-y-auto p-0">
         {groups.length === 0 ? (
           <EmptyState
             icon={Layers}
-            title="No modifier groups"
-            description="Create your first modifier group (e.g. Size, Toppings)."
-            action={{ label: 'Add Group', onClick: onAdd }}
+            title={t('No modifier groups')}
+            description={t('Create your first modifier group (e.g. Size, Toppings).')}
+            action={{ label: t('Add Group'), onClick: onAdd }}
           />
         ) : (
           <ul className="divide-y divide-border">
@@ -307,14 +312,14 @@ function GroupList({
                       {group.name}
                     </p>
                     <p className="text-xs text-text-secondary">
-                      {selectionLabel(group.minSelections, group.maxSelections)}
+                      {selectionLabel(group.minSelections, group.maxSelections, t)}
                     </p>
                   </div>
 
                   <div className="flex items-center gap-1 shrink-0 ml-2">
                     {group.minSelections > 0 && (
                       <Badge variant="warning" className="mr-1">
-                        Required
+                        {t('Required')}
                       </Badge>
                     )}
                     <button
@@ -332,10 +337,10 @@ function GroupList({
                       variant="ghost"
                       size="sm"
                       onConfirm={() => onDelete(group.id)}
-                      confirmText="Delete?"
+                      confirmText={t('Delete?')}
                       className="min-h-[44px] min-w-[44px] !p-1 text-text-tertiary hover:text-danger"
                     >
-                      <span className="text-xs">Del</span>
+                      <span className="text-xs">{t('Del')}</span>
                     </ConfirmButton>
                   </div>
                 </div>
@@ -361,6 +366,7 @@ function OptionCard({
   onEdit: (option: ModifierOption) => void;
   onDelete: (id: string) => void;
 }) {
+  const t = useT();
   const priceDeltaLabel =
     option.priceDelta === 0
       ? '$0.00'
@@ -375,7 +381,7 @@ function OptionCard({
               {option.name}
             </p>
             {option.isDefault === 1 && (
-              <Badge variant="info">Default</Badge>
+              <Badge variant="info">{t('Default')}</Badge>
             )}
           </div>
           <p className="text-xs text-text-secondary mt-0.5">
@@ -392,16 +398,16 @@ function OptionCard({
             className="min-h-[44px]"
           >
             <Pencil className="h-3.5 w-3.5" />
-            Edit
+            {t('Edit')}
           </Button>
           <ConfirmButton
             variant="ghost"
             size="sm"
             onConfirm={() => onDelete(option.id)}
-            confirmText="Delete?"
+            confirmText={t('Delete?')}
             className="min-h-[44px]"
           >
-            Delete
+            {t('Delete')}
           </ConfirmButton>
         </div>
       </CardContent>
@@ -416,6 +422,7 @@ function OptionCard({
 export function ModifierManager() {
   const { tenantSlug } = useTenant();
   const { toast } = useToast();
+  const t = useT();
 
   // Data
   const groupsQuery = useModifierGroups(tenantSlug);
@@ -471,10 +478,10 @@ export function ModifierManager() {
         {
           onSuccess: () => {
             setGroupDialogOpen(false);
-            toast('success', 'Modifier group updated');
+            toast('success', t('Modifier group updated'));
           },
           onError: (err: Error) => {
-            toast('error', err.message || 'Failed to update modifier group');
+            toast('error', err.message || t('Failed to update modifier group'));
           },
         },
       );
@@ -482,10 +489,10 @@ export function ModifierManager() {
       createGroup.mutate(payload, {
         onSuccess: () => {
           setGroupDialogOpen(false);
-          toast('success', 'Modifier group created');
+          toast('success', t('Modifier group created'));
         },
         onError: (err: Error) => {
-          toast('error', err.message || 'Failed to create modifier group');
+          toast('error', err.message || t('Failed to create modifier group'));
         },
       });
     }
@@ -497,10 +504,10 @@ export function ModifierManager() {
         if (selectedGroupId === id) {
           setSelectedGroupId(null);
         }
-        toast('success', 'Modifier group deleted');
+        toast('success', t('Modifier group deleted'));
       },
       onError: (err: Error) => {
-        toast('error', err.message || 'Failed to delete modifier group');
+        toast('error', err.message || t('Failed to delete modifier group'));
       },
     });
   };
@@ -529,10 +536,10 @@ export function ModifierManager() {
         {
           onSuccess: () => {
             setOptionDialogOpen(false);
-            toast('success', 'Option updated');
+            toast('success', t('Option updated'));
           },
           onError: (err: Error) => {
-            toast('error', err.message || 'Failed to update option');
+            toast('error', err.message || t('Failed to update option'));
           },
         },
       );
@@ -547,10 +554,10 @@ export function ModifierManager() {
         {
           onSuccess: () => {
             setOptionDialogOpen(false);
-            toast('success', 'Option added');
+            toast('success', t('Option added'));
           },
           onError: (err: Error) => {
-            toast('error', err.message || 'Failed to add option');
+            toast('error', err.message || t('Failed to add option'));
           },
         },
       );
@@ -560,10 +567,10 @@ export function ModifierManager() {
   const handleDeleteOption = (id: string) => {
     deleteOption.mutate(id, {
       onSuccess: () => {
-        toast('success', 'Option deleted');
+        toast('success', t('Option deleted'));
       },
       onError: (err: Error) => {
-        toast('error', err.message || 'Failed to delete option');
+        toast('error', err.message || t('Failed to delete option'));
       },
     });
   };
@@ -571,9 +578,9 @@ export function ModifierManager() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-2xl font-bold text-text">Modifier Management</h1>
+        <h1 className="text-2xl font-bold text-text">{t('Modifier Management')}</h1>
         <p className="text-sm text-text-secondary mt-1">
-          Set default modifier groups and prices here. Individual items can override prices in Menu &rarr; item &rarr; Modifiers.
+          {t('Set default modifier groups and prices here. Individual items can override prices in Menu > item > Modifiers.')}
         </p>
       </div>
 
@@ -596,13 +603,13 @@ export function ModifierManager() {
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>
                 {selectedGroup
-                  ? `${selectedGroup.name} Options`
-                  : 'Options'}
+                  ? `${selectedGroup.name} ${t('Options')}`
+                  : t('Options')}
               </CardTitle>
               {activeGroupId && (
                 <Button size="sm" onClick={handleAddOption}>
                   <Plus className="h-4 w-4" />
-                  Add Option
+                  {t('Add Option')}
                 </Button>
               )}
             </CardHeader>
@@ -610,15 +617,15 @@ export function ModifierManager() {
               {!activeGroupId ? (
                 <EmptyState
                   icon={Settings2}
-                  title="No group selected"
-                  description="Select a modifier group from the left panel to see its options, or create one first."
+                  title={t('No group selected')}
+                  description={t('Select a modifier group from the left panel to see its options, or create one first.')}
                 />
               ) : options.length === 0 ? (
                 <EmptyState
                   icon={Layers}
-                  title="No options yet"
-                  description="Add options to this modifier group."
-                  action={{ label: 'Add Option', onClick: handleAddOption }}
+                  title={t('No options yet')}
+                  description={t('Add options to this modifier group.')}
+                  action={{ label: t('Add Option'), onClick: handleAddOption }}
                 />
               ) : (
                 <div className="space-y-3">

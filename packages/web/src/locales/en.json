@@ -684,5 +684,6 @@
   "Option added": "Option added",
   "Failed to add option": "Failed to add option",
   "Option deleted": "Option deleted",
-  "Failed to delete option": "Failed to delete option"
+  "Failed to delete option": "Failed to delete option",
+  "OFF": "OFF"
 }

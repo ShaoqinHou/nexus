@@ -684,5 +684,6 @@
   "Option added": "オプションを追加しました",
   "Failed to add option": "オプションの追加に失敗しました",
   "Option deleted": "オプションを削除しました",
-  "Failed to delete option": "オプションの削除に失敗しました"
+  "Failed to delete option": "オプションの削除に失敗しました",
+  "OFF": "OFF"
 }

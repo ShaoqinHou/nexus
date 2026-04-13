@@ -684,5 +684,6 @@
   "Option added": "选项已添加",
   "Failed to add option": "添加选项失败",
   "Option deleted": "选项已删除",
-  "Failed to delete option": "删除选项失败"
+  "Failed to delete option": "删除选项失败",
+  "OFF": "折扣"
 }

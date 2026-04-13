@@ -616,10 +616,10 @@ export function ComboManager() {
         {
           onSuccess: () => {
             setDialogOpen(false);
-            toast('success', 'Combo deal updated');
+            toast('success', t('Combo deal updated'));
           },
           onError: (err: Error) => {
-            toast('error', err.message || 'Failed to update combo deal');
+            toast('error', err.message || t('Failed to update combo deal'));
           },
         },
       );
@@ -644,10 +644,10 @@ export function ComboManager() {
         {
           onSuccess: () => {
             setDialogOpen(false);
-            toast('success', 'Combo deal created');
+            toast('success', t('Combo deal created'));
           },
           onError: (err: Error) => {
-            toast('error', err.message || 'Failed to create combo deal');
+            toast('error', err.message || t('Failed to create combo deal'));
           },
         },
       );
@@ -657,10 +657,10 @@ export function ComboManager() {
   const handleDelete = (id: string) => {
     deleteCombo.mutate(id, {
       onSuccess: () => {
-        toast('success', 'Combo deal deleted');
+        toast('success', t('Combo deal deleted'));
       },
       onError: (err: Error) => {
-        toast('error', err.message || 'Failed to delete combo deal');
+        toast('error', err.message || t('Failed to delete combo deal'));
       },
     });
   };
@@ -672,11 +672,11 @@ export function ComboManager() {
         onSuccess: () => {
           toast(
             'success',
-            combo.isActive === 1 ? 'Combo deal deactivated' : 'Combo deal activated',
+            combo.isActive === 1 ? t('Combo deal deactivated') : t('Combo deal activated'),
           );
         },
         onError: (err: Error) => {
-          toast('error', err.message || 'Failed to update combo deal');
+          toast('error', err.message || t('Failed to update combo deal'));
         },
       },
     );
@@ -706,10 +706,10 @@ export function ComboManager() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-text">Combo Deals</h1>
+        <h1 className="text-2xl font-bold text-text">{t('Combo Deals')}</h1>
         <Button onClick={handleAdd} className="min-h-[48px]">
           <Plus className="h-4 w-4" />
-          Create Combo
+          {t('Create Combo')}
         </Button>
       </div>
 
@@ -718,9 +718,9 @@ export function ComboManager() {
           <CardContent>
             <EmptyState
               icon={Package}
-              title="No combo deals"
-              description="Create your first combo deal to offer meal bundles to customers."
-              action={{ label: 'Create Combo', onClick: handleAdd }}
+              title={t('No combo deals')}
+              description={t('Create your first combo deal to offer meal bundles to customers.')}
+              action={{ label: t('Create Combo'), onClick: handleAdd }}
             />
           </CardContent>
         </Card>

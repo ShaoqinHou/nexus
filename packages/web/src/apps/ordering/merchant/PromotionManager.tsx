@@ -42,11 +42,11 @@ import type { Promotion, PromoCode } from '../types';
 // Helpers
 // ---------------------------------------------------------------------------
 
-function formatDiscount(type: Promotion['type'], value: number): string {
+function formatDiscount(type: Promotion['type'], value: number, t: (key: string) => string): string {
   if (type === 'percentage') {
-    return `${value}% OFF`;
+    return `${value}% ${t('OFF')}`;
   }
-  return `${formatPrice(value)} OFF`;
+  return `${formatPrice(value)} ${t('OFF')}`;
 }
 
 function isExpired(promo: Promotion): boolean {
@@ -464,7 +464,7 @@ function PromotionCard({
             )}
           </div>
           <span className="text-base font-bold text-primary shrink-0">
-            {formatDiscount(promo.type, promo.discountValue)}
+            {formatDiscount(promo.type, promo.discountValue, t)}
           </span>
         </div>
 

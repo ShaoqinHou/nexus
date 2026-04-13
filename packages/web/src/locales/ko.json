@@ -684,5 +684,6 @@
   "Option added": "옵션이 추가되었습니다",
   "Failed to add option": "옵션 추가 실패",
   "Option deleted": "옵션이 삭제되었습니다",
-  "Failed to delete option": "옵션 삭제 실패"
+  "Failed to delete option": "옵션 삭제 실패",
+  "OFF": "할인"
 }
