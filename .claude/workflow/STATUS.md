@@ -1,10 +1,10 @@
 # Project Status
 
 ## Current State
-- **Phase:** Production v2 — restaurant operations complete
-- **Last verified:** 2026-04-12
+- **Phase:** Production v2 — restaurant operations + i18n
+- **Last verified:** 2026-04-13
 - **Live at:** https://cv.rehou.games/nexus/
-- **Commits:** 110+ | **Lines:** ~61,000 | **Tests:** 203 (181 API + 22 web) + 15 Playwright E2E
+- **Commits:** 115+ | **Lines:** ~64,000 | **Tests:** 203 (181 API + 22 web) + 15 Playwright E2E
 
 ## Features
 
@@ -70,6 +70,14 @@
 - [x] Customer editable item notes on existing orders
 - [x] Waiter call banner: bill requests (green) vs assistance (amber)
 - [x] DB backup cron (daily 3am on server)
+- [x] Multi-language i18n (5 locales: en/zh/ja/ko/fr)
+- [x] GLM translation service (z.ai API for menu content + notes)
+- [x] Auto-translate menu items on save
+- [x] Customer language picker
+- [x] Locale-aware public menu API (?lang=zh)
+- [x] Order notes auto-translated for kitchen staff
+- [x] content_translations DB table for dynamic content
+- [x] 89 customer-facing strings wrapped in t() calls
 
 ### Quality
 - [x] 203 unit/integration tests (181 API + 22 web)
