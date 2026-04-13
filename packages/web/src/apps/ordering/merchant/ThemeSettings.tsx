@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Palette, Check, RotateCcw, Save, Eye, Clock, Monitor, Smartphone, Receipt } from 'lucide-react';
+import { Palette, Check, RotateCcw, Save, Eye, Clock, Monitor, Smartphone, Receipt, Globe } from 'lucide-react';
 import {
   Button,
   Card,
@@ -93,6 +93,7 @@ interface FormState {
   taxRate: string;
   taxInclusive: boolean;
   taxLabel: string;
+  supportedLocales: string[];
 }
 
 function settingsToFormState(settings: TenantThemeSettings | undefined): FormState {
@@ -108,6 +109,7 @@ function settingsToFormState(settings: TenantThemeSettings | undefined): FormSta
     taxRate: settings?.taxRate?.toString() ?? '',
     taxInclusive: settings?.taxInclusive ?? true,
     taxLabel: settings?.taxLabel ?? '',
+    supportedLocales: (settings as Record<string, unknown>)?.supportedLocales as string[] ?? ['en'],
   };
 }
 
@@ -125,7 +127,8 @@ function formStateToSettings(form: FormState): Partial<TenantThemeSettings> {
     taxRate: !isNaN(taxRate) && taxRate > 0 ? taxRate : undefined,
     taxInclusive: form.taxInclusive,
     taxLabel: form.taxLabel || undefined,
-  };
+    supportedLocales: form.supportedLocales.length > 0 ? form.supportedLocales : ['en'],
+  } as Partial<TenantThemeSettings>;
 }
 
 // --- Preset Card ---
@@ -970,6 +973,77 @@ export function ThemeSettings() {
                   Discard
                 </Button>
               )}
+              <Button
+                variant="primary"
+                size="md"
+                onClick={handleSave}
+                loading={updateMutation.isPending}
+                disabled={!isDirty}
+              >
+                <Save className="h-4 w-4" />
+                Save Changes
+              </Button>
+            </CardFooter>
+          </Card>
+
+          {/* Language Settings */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Globe className="h-5 w-5 text-primary" />
+                <CardTitle>Languages</CardTitle>
+              </div>
+              <p className="text-sm text-text-secondary mt-1">
+                Enable languages for your customer menu. Menu items are auto-translated when saved.
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {([
+                  { code: 'en', label: 'English', flag: '🇬🇧', description: 'Default language' },
+                  { code: 'zh', label: '中文 (Chinese)', flag: '🇨🇳', description: 'Simplified Chinese' },
+                  { code: 'ja', label: '日本語 (Japanese)', flag: '🇯🇵', description: 'Japanese' },
+                  { code: 'ko', label: '한국어 (Korean)', flag: '🇰🇷', description: 'Korean' },
+                  { code: 'fr', label: 'Français (French)', flag: '🇫🇷', description: 'French' },
+                ] as const).map((lang) => {
+                  const isEnabled = form.supportedLocales.includes(lang.code);
+                  const isDefault = lang.code === 'en';
+                  return (
+                    <label
+                      key={lang.code}
+                      className={[
+                        'flex items-center gap-3 p-3 rounded-lg border transition-colors cursor-pointer',
+                        isEnabled ? 'border-primary/30 bg-primary/5' : 'border-border hover:border-border-strong',
+                        isDefault ? 'opacity-75 cursor-default' : '',
+                      ].join(' ')}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isEnabled}
+                        disabled={isDefault}
+                        onChange={() => {
+                          if (isDefault) return;
+                          const next = isEnabled
+                            ? form.supportedLocales.filter((l) => l !== lang.code)
+                            : [...form.supportedLocales, lang.code];
+                          updateField('supportedLocales', next);
+                        }}
+                        className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                      />
+                      <span className="text-lg">{lang.flag}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-text">{lang.label}</p>
+                        <p className="text-xs text-text-tertiary">{lang.description}{isDefault ? ' (always enabled)' : ''}</p>
+                      </div>
+                      {isEnabled && !isDefault && (
+                        <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">Active</span>
+                      )}
+                    </label>
+                  );
+                })}
+              </div>
+            </CardContent>
+            <CardFooter>
               <Button
                 variant="primary"
                 size="md"
