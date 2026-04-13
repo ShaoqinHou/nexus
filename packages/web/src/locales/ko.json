@@ -509,5 +509,8 @@
   "Sign In": "로그인",
   "Create Restaurant": "레스토랑 만들기",
   "Don't have an account? Register": "계정이 없으신가요? 등록하기",
-  "Already have an account? Sign in": "이미 계정이 있으신가요? 로그인"
+  "Already have an account? Sign in": "이미 계정이 있으신가요? 로그인",
+  "Refreshing...": "새로고침 중...",
+  "Release to refresh": "놓으면 새로고침",
+  "Pull to refresh": "당겨서 새로고침"
 }

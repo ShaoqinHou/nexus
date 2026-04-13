@@ -509,5 +509,8 @@
   "Sign In": "Se connecter",
   "Create Restaurant": "Créer le restaurant",
   "Don't have an account? Register": "Pas de compte ? S'inscrire",
-  "Already have an account? Sign in": "Déjà un compte ? Se connecter"
+  "Already have an account? Sign in": "Déjà un compte ? Se connecter",
+  "Refreshing...": "Actualisation...",
+  "Release to refresh": "Relâcher pour actualiser",
+  "Pull to refresh": "Tirer pour actualiser"
 }

@@ -509,5 +509,8 @@
   "Sign In": "登录",
   "Create Restaurant": "创建餐厅",
   "Don't have an account? Register": "没有账户？注册",
-  "Already have an account? Sign in": "已有账户？登录"
+  "Already have an account? Sign in": "已有账户？登录",
+  "Refreshing...": "刷新中...",
+  "Release to refresh": "释放刷新",
+  "Pull to refresh": "下拉刷新"
 }

@@ -1,4 +1,5 @@
 import { Loader2 } from 'lucide-react';
+import { useT } from '@web/lib/i18n';
 
 interface PullToRefreshIndicatorProps {
   pullDistance: number;
@@ -14,6 +15,7 @@ export function PullToRefreshIndicator({
   const progress = Math.min(pullDistance / threshold, 1);
   const rotation = progress * 360;
 
+  const t = useT();
   if (pullDistance === 0 && !isRefreshing) return null;
 
   return (
@@ -29,17 +31,17 @@ export function PullToRefreshIndicator({
         {isRefreshing ? (
           <>
             <Loader2 className="h-5 w-5 text-primary animate-spin" />
-            <span className="text-sm font-medium text-text">Refreshing...</span>
+            <span className="text-sm font-medium text-text">{t('Refreshing...')}</span>
           </>
         ) : pullDistance >= threshold ? (
           <>
             <Loader2 className="h-5 w-5 text-primary" style={{ transform: `rotate(${rotation}deg)` }} />
-            <span className="text-sm font-medium text-text">Release to refresh</span>
+            <span className="text-sm font-medium text-text">{t('Release to refresh')}</span>
           </>
         ) : (
           <>
             <Loader2 className="h-5 w-5 text-text-tertiary" style={{ transform: `rotate(${rotation}deg)` }} />
-            <span className="text-sm font-medium text-text-tertiary">Pull to refresh</span>
+            <span className="text-sm font-medium text-text-tertiary">{t('Pull to refresh')}</span>
           </>
         )}
       </div>

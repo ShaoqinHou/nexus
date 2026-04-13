@@ -509,5 +509,8 @@
   "Sign In": "Sign In",
   "Create Restaurant": "Create Restaurant",
   "Don't have an account? Register": "Don't have an account? Register",
-  "Already have an account? Sign in": "Already have an account? Sign in"
+  "Already have an account? Sign in": "Already have an account? Sign in",
+  "Refreshing...": "Refreshing...",
+  "Release to refresh": "Release to refresh",
+  "Pull to refresh": "Pull to refresh"
 }

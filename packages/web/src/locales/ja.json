@@ -509,5 +509,8 @@
   "Sign In": "ログイン",
   "Create Restaurant": "レストランを作成",
   "Don't have an account? Register": "アカウントをお持ちでない方はこちら",
-  "Already have an account? Sign in": "アカウントをお持ちの方はこちら"
+  "Already have an account? Sign in": "アカウントをお持ちの方はこちら",
+  "Refreshing...": "更新中...",
+  "Release to refresh": "リリースして更新",
+  "Pull to refresh": "引っ張って更新"
 }
