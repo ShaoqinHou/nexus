@@ -163,12 +163,23 @@ const tenantCatchAllRoute = createRoute({
 });
 
 // --- Kitchen Display route (full-screen, no PlatformShell) ---
+function KitchenLocaleShell() {
+  const { tenant } = useTenant();
+  const settings = tenant?.settings ? (typeof tenant.settings === 'string' ? JSON.parse(tenant.settings) : tenant.settings) : {};
+  const primaryLocale = SUPPORTED_LOCALES.includes(settings?.primaryLocale as Locale) ? settings.primaryLocale as Locale : undefined;
+  return (
+    <LocaleProvider defaultLocale={primaryLocale}>
+      <KitchenDisplay />
+    </LocaleProvider>
+  );
+}
+
 function KitchenLayout() {
   const { tenantSlug } = kitchenRoute.useParams();
   return (
     <AuthGuard tenantSlug={tenantSlug}>
       <TenantProvider tenantSlug={tenantSlug}>
-        <KitchenDisplay />
+        <KitchenLocaleShell />
       </TenantProvider>
     </AuthGuard>
   );
