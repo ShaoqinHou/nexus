@@ -1320,8 +1320,24 @@ export function customerOrderingRoutes(db: DrizzleDB) {
   });
 
   // Validate promo code — public, no session required
-  // TODO: Add rate limiting to prevent promo code brute force
+  // Rate limiting: max 5 attempts per IP per minute
+  const promoAttempts = new Map<string, { count: number; resetAt: number }>();
   router.post('/validate-promo', zValidator('json', validatePromoCodeSchema), (c) => {
+    const ip = c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || 'unknown';
+    const now = Date.now();
+    const entry = promoAttempts.get(ip);
+    if (entry && now < entry.resetAt) {
+      if (entry.count >= 5) {
+        return c.json({ error: 'Too many attempts. Please try again in a minute.' }, 429);
+      }
+      entry.count++;
+    } else {
+      promoAttempts.set(ip, { count: 1, resetAt: now + 60_000 });
+    }
+    // Cleanup old entries every 100 requests
+    if (promoAttempts.size > 100) {
+      for (const [k, v] of promoAttempts) { if (now > v.resetAt) promoAttempts.delete(k); }
+    }
     const tenantId = c.var.tenantId;
     const { code } = c.req.valid('json');
     const result = validatePromoCode(db, tenantId, code);
