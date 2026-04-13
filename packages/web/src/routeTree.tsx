@@ -5,7 +5,7 @@ import {
   redirect,
   Outlet,
 } from '@tanstack/react-router';
-import { LoginPage } from '@web/platform/auth/LoginPage';
+import { lazy, Suspense } from 'react';
 import { PlatformShell } from '@web/platform/layout/PlatformShell';
 import { CustomerShell } from '@web/platform/layout/CustomerShell';
 import { TenantProvider, useTenant } from '@web/platform/tenant/TenantProvider';
@@ -13,18 +13,26 @@ import { TourProvider } from '@web/platform/TourProvider';
 import { AuthGuard } from '@web/platform/auth/AuthGuard';
 import { LocaleProvider } from '@web/platform/LocaleProvider';
 import { SUPPORTED_LOCALES, type Locale } from '@web/lib/i18n';
-import { MenuManagement } from '@web/apps/ordering/merchant/MenuManagement';
-import { ModifierManager } from '@web/apps/ordering/merchant/ModifierManager';
-import { OrderDashboard } from '@web/apps/ordering/merchant/OrderDashboard';
-import { PromotionManager } from '@web/apps/ordering/merchant/PromotionManager';
-import { QRCodes } from '@web/apps/ordering/merchant/QRCodes';
-import { ComboManager } from '@web/apps/ordering/merchant/ComboManager';
-import { ThemeSettings } from '@web/apps/ordering/merchant/ThemeSettings';
-import { KitchenDisplay } from '@web/apps/ordering/merchant/KitchenDisplay';
-import { Analytics } from '@web/apps/ordering/merchant/Analytics';
-import { StaffManagement } from '@web/apps/ordering/merchant/StaffManagement';
-import { CustomerApp } from '@web/apps/ordering/customer/CustomerApp';
-import { TenantPicker } from '@web/platform/auth/TenantPicker';
+
+// Lazy-loaded page components — each becomes its own chunk
+const LoginPage = lazy(() => import('@web/platform/auth/LoginPage').then(m => ({ default: m.LoginPage })));
+const MenuManagement = lazy(() => import('@web/apps/ordering/merchant/MenuManagement').then(m => ({ default: m.MenuManagement })));
+const ModifierManager = lazy(() => import('@web/apps/ordering/merchant/ModifierManager').then(m => ({ default: m.ModifierManager })));
+const OrderDashboard = lazy(() => import('@web/apps/ordering/merchant/OrderDashboard').then(m => ({ default: m.OrderDashboard })));
+const PromotionManager = lazy(() => import('@web/apps/ordering/merchant/PromotionManager').then(m => ({ default: m.PromotionManager })));
+const QRCodes = lazy(() => import('@web/apps/ordering/merchant/QRCodes').then(m => ({ default: m.QRCodes })));
+const ComboManager = lazy(() => import('@web/apps/ordering/merchant/ComboManager').then(m => ({ default: m.ComboManager })));
+const ThemeSettings = lazy(() => import('@web/apps/ordering/merchant/ThemeSettings').then(m => ({ default: m.ThemeSettings })));
+const KitchenDisplay = lazy(() => import('@web/apps/ordering/merchant/KitchenDisplay').then(m => ({ default: m.KitchenDisplay })));
+const Analytics = lazy(() => import('@web/apps/ordering/merchant/Analytics').then(m => ({ default: m.Analytics })));
+const StaffManagement = lazy(() => import('@web/apps/ordering/merchant/StaffManagement').then(m => ({ default: m.StaffManagement })));
+const CustomerApp = lazy(() => import('@web/apps/ordering/customer/CustomerApp').then(m => ({ default: m.CustomerApp })));
+const TenantPicker = lazy(() => import('@web/platform/auth/TenantPicker').then(m => ({ default: m.TenantPicker })));
+
+// Suspense wrapper for lazy-loaded route components
+function SuspenseWrap({ children }: { children: React.ReactNode }) {
+  return <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>}>{children}</Suspense>;
+}
 
 // Register mini-app modules (triggers side-effect registration)
 import '@web/apps/ordering/index';
@@ -38,7 +46,7 @@ const rootRoute = createRootRoute({
 function LoginPageWithLocale() {
   return (
     <LocaleProvider>
-      <LoginPage />
+      <SuspenseWrap><LoginPage /></SuspenseWrap>
     </LocaleProvider>
   );
 }
@@ -105,62 +113,62 @@ const tenantIndexRoute = createRoute({
 const orderingMenuRoute = createRoute({
   getParentRoute: () => tenantRoute,
   path: '/ordering/menu',
-  component: MenuManagement,
+  component: () => <SuspenseWrap><MenuManagement /></SuspenseWrap>,
 });
 
 const orderingOrdersRoute = createRoute({
   getParentRoute: () => tenantRoute,
   path: '/ordering/orders',
-  component: OrderDashboard,
+  component: () => <SuspenseWrap><OrderDashboard /></SuspenseWrap>,
 });
 
 const orderingModifiersRoute = createRoute({
   getParentRoute: () => tenantRoute,
   path: '/ordering/modifiers',
-  component: ModifierManager,
+  component: () => <SuspenseWrap><ModifierManager /></SuspenseWrap>,
 });
 
 const orderingPromotionsRoute = createRoute({
   getParentRoute: () => tenantRoute,
   path: '/ordering/promotions',
-  component: PromotionManager,
+  component: () => <SuspenseWrap><PromotionManager /></SuspenseWrap>,
 });
 
 const orderingCombosRoute = createRoute({
   getParentRoute: () => tenantRoute,
   path: '/ordering/combos',
-  component: ComboManager,
+  component: () => <SuspenseWrap><ComboManager /></SuspenseWrap>,
 });
 
 const orderingQRRoute = createRoute({
   getParentRoute: () => tenantRoute,
   path: '/ordering/qr',
-  component: QRCodes,
+  component: () => <SuspenseWrap><QRCodes /></SuspenseWrap>,
 });
 
 const orderingSettingsRoute = createRoute({
   getParentRoute: () => tenantRoute,
   path: '/ordering/settings',
-  component: ThemeSettings,
+  component: () => <SuspenseWrap><ThemeSettings /></SuspenseWrap>,
 });
 
 const orderingAnalyticsRoute = createRoute({
   getParentRoute: () => tenantRoute,
   path: '/ordering/analytics',
-  component: Analytics,
+  component: () => <SuspenseWrap><Analytics /></SuspenseWrap>,
 });
 
 const orderingStaffRoute = createRoute({
   getParentRoute: () => tenantRoute,
   path: '/ordering/staff',
-  component: StaffManagement,
+  component: () => <SuspenseWrap><StaffManagement /></SuspenseWrap>,
 });
 
 // Restaurant switcher route
 const restaurantsRoute = createRoute({
   getParentRoute: () => tenantRoute,
   path: '/restaurants',
-  component: TenantPicker,
+  component: () => <SuspenseWrap><TenantPicker /></SuspenseWrap>,
 });
 
 // Staff tenant catch-all for unknown module routes
@@ -177,7 +185,7 @@ function KitchenLocaleShell() {
   const primaryLocale = SUPPORTED_LOCALES.includes(settings?.primaryLocale as Locale) ? settings.primaryLocale as Locale : undefined;
   return (
     <LocaleProvider defaultLocale={primaryLocale}>
-      <KitchenDisplay />
+      <SuspenseWrap><KitchenDisplay /></SuspenseWrap>
     </LocaleProvider>
   );
 }
