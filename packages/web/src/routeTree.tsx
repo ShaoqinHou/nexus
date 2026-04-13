@@ -37,9 +37,19 @@ function SuspenseWrap({ children }: { children: React.ReactNode }) {
 // Register mini-app modules (triggers side-effect registration)
 import '@web/apps/ordering/index';
 
-// Root route
+import { ErrorBoundary } from '@web/components/patterns/ErrorBoundary';
+
+// Root route — wrapped with ErrorBoundary to catch render crashes
+function RootLayout() {
+  return (
+    <ErrorBoundary>
+      <Outlet />
+    </ErrorBoundary>
+  );
+}
+
 const rootRoute = createRootRoute({
-  component: Outlet,
+  component: RootLayout,
 });
 
 // Login route — wrapped with LocaleProvider for i18n (uses browser detection, no tenant default)
