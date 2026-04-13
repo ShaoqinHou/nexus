@@ -1,12 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Palette, Check, RotateCcw, Save, Eye, Clock, Monitor, Smartphone, Receipt, Globe, Store, Timer, Settings2 } from 'lucide-react';
+import { Palette, Check, RotateCcw, Save, Eye, Clock, Monitor, Smartphone, Receipt, Globe, Store, Timer, Settings2, ChevronDown, ChevronUp } from 'lucide-react';
 import {
   Button,
   Card,
   CardHeader,
   CardTitle,
   CardContent,
-  CardFooter,
   Input,
   Select,
   Toggle,
@@ -28,6 +27,24 @@ import {
   useTenantSettings,
   useUpdateTenantSettings,
 } from '../hooks/useTenantSettings';
+import { apiClient } from '@web/lib/api';
+
+// --- Locale english names (for toast messages) ---
+const LOCALE_ENGLISH_NAMES: Record<string, string> = {
+  zh: 'Chinese',
+  ja: 'Japanese',
+  ko: 'Korean',
+  fr: 'French',
+};
+
+// --- Language config for the settings UI ---
+const LANGUAGE_CONFIG = [
+  { code: 'en', label: 'English', flag: '\u{1F1EC}\u{1F1E7}', description: 'Default language' },
+  { code: 'zh', label: '\u4E2D\u6587 (Chinese)', flag: '\u{1F1E8}\u{1F1F3}', description: 'Simplified Chinese' },
+  { code: 'ja', label: '\u65E5\u672C\u8A9E (Japanese)', flag: '\u{1F1EF}\u{1F1F5}', description: 'Japanese' },
+  { code: 'ko', label: '\uD55C\uAD6D\uC5B4 (Korean)', flag: '\u{1F1F0}\u{1F1F7}', description: 'Korean' },
+  { code: 'fr', label: 'Fran\u00E7ais (French)', flag: '\u{1F1EB}\u{1F1F7}', description: 'French' },
+] as const;
 
 // --- Font options (safe web + Google Fonts from presets) ---
 const FONT_OPTIONS = [
@@ -519,7 +536,9 @@ export function ThemeSettings() {
   const [form, setForm] = useState<FormState>(() => settingsToFormState(undefined));
   const [isDirty, setIsDirty] = useState(false);
   const [previewMode, setPreviewMode] = useState<PreviewMode>('desktop');
+  const [hoursExpanded, setHoursExpanded] = useState(false);
   const savedRef = useRef<FormState | null>(null);
+  const savedLocalesRef = useRef<string[]>(['en']);
 
   // Initialize form from fetched settings
   useEffect(() => {
@@ -527,6 +546,7 @@ export function ThemeSettings() {
       const initial = settingsToFormState(savedSettings);
       setForm(initial);
       savedRef.current = initial;
+      savedLocalesRef.current = [...initial.supportedLocales];
       setIsDirty(false);
     }
   }, [savedSettings]);
@@ -587,18 +607,39 @@ export function ThemeSettings() {
       return;
     }
 
+    // Capture locales before save to detect newly added ones
+    const previousLocales = [...savedLocalesRef.current];
+
     const settings = formStateToSettings(form);
     updateMutation.mutate(settings, {
       onSuccess: () => {
-        toast('success', 'Theme settings saved');
+        toast('success', 'Settings saved');
         savedRef.current = { ...form };
+        savedLocalesRef.current = [...form.supportedLocales];
         setIsDirty(false);
+
+        // Auto-translate for any newly added locales
+        const newLocales = form.supportedLocales.filter(
+          (locale) => locale !== 'en' && !previousLocales.includes(locale),
+        );
+        for (const locale of newLocales) {
+          const langName = LOCALE_ENGLISH_NAMES[locale] ?? locale;
+          toast('info', `Translating menu to ${langName}...`);
+          apiClient
+            .post(`/t/${tenantSlug}/ordering/translate/batch`, { targetLocale: locale })
+            .then(() => {
+              toast('success', `Menu translated to ${langName}!`);
+            })
+            .catch(() => {
+              toast('error', `Translation to ${langName} failed \u2014 you can retry from the Languages section`);
+            });
+        }
       },
       onError: (err) => {
         toast('error', err instanceof Error ? err.message : 'Failed to save settings');
       },
     });
-  }, [form, updateMutation, toast]);
+  }, [form, updateMutation, toast, tenantSlug]);
 
   if (isLoading) {
     return (
@@ -621,24 +662,12 @@ export function ThemeSettings() {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          {isDirty && (
-            <Button variant="ghost" size="sm" onClick={handleReset}>
-              <RotateCcw className="h-4 w-4" />
-              Reset
-            </Button>
-          )}
-          <Button
-            variant="primary"
-            size="md"
-            onClick={handleSave}
-            loading={updateMutation.isPending}
-            disabled={!isDirty}
-          >
-            <Save className="h-4 w-4" />
-            Save Changes
+        {isDirty && (
+          <Button variant="ghost" size="sm" onClick={handleReset}>
+            <RotateCcw className="h-4 w-4" />
+            Reset
           </Button>
-        </div>
+        )}
       </div>
 
       {/* Main grid: settings + preview */}
@@ -652,75 +681,105 @@ export function ThemeSettings() {
             <h2 className="text-lg font-bold text-text">Restaurant</h2>
           </div>
 
-          {/* Operating Hours */}
+          {/* Operating Hours (collapsible) */}
           <Card>
             <CardHeader>
-              <div className="flex items-center gap-2">
-                <Clock className="h-5 w-5 text-primary" />
-                <CardTitle>Operating Hours</CardTitle>
-              </div>
+              <button
+                type="button"
+                onClick={() => setHoursExpanded((prev) => !prev)}
+                className="flex items-center justify-between w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md"
+              >
+                <div className="flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-primary" />
+                  <CardTitle>Operating Hours</CardTitle>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-text-secondary">
+                    {(() => {
+                      const openDays = form.operatingHours
+                        .map((d, i) => ({ ...d, name: DAY_NAMES[i]?.slice(0, 3) }))
+                        .filter((d) => d.isOpen);
+                      if (openDays.length === 0) return 'Closed all days';
+                      if (openDays.length === 7) {
+                        const allSame = openDays.every(
+                          (d) => d.open === openDays[0].open && d.close === openDays[0].close,
+                        );
+                        if (allSame) return `Open daily ${openDays[0].open}\u2013${openDays[0].close}`;
+                      }
+                      return `Open ${openDays.length} day${openDays.length > 1 ? 's' : ''}`;
+                    })()}
+                  </span>
+                  {hoursExpanded ? (
+                    <ChevronUp className="h-4 w-4 text-text-tertiary" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-text-tertiary" />
+                  )}
+                </div>
+              </button>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <p className="text-sm text-text-secondary">
-                Set your opening hours. Days marked as closed will show a "closed" indicator to customers.
-              </p>
-              <div className="space-y-2">
-                {form.operatingHours.map((day, dayIndex) => (
-                  <div
-                    key={dayIndex}
-                    className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 p-3 rounded-lg border border-border bg-bg-surface"
-                  >
-                    {/* Day name */}
-                    <span className="text-sm font-medium text-text w-24 shrink-0">
-                      {DAY_NAMES[dayIndex]}
-                    </span>
+            {hoursExpanded && (
+              <CardContent className="space-y-3">
+                <p className="text-sm text-text-secondary">
+                  Set your opening hours. Days marked as closed will show a "closed" indicator to customers.
+                </p>
+                <div className="space-y-2">
+                  {form.operatingHours.map((day, dayIndex) => (
+                    <div
+                      key={dayIndex}
+                      className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 p-3 rounded-lg border border-border bg-bg-surface"
+                    >
+                      {/* Day name */}
+                      <span className="text-sm font-medium text-text w-24 shrink-0">
+                        {DAY_NAMES[dayIndex]}
+                      </span>
 
-                    {/* Open toggle */}
-                    <Toggle
-                      checked={day.isOpen}
-                      label={day.isOpen ? 'Open' : 'Closed'}
-                      onChange={(checked) => {
-                        const updated = [...form.operatingHours];
-                        updated[dayIndex] = { ...updated[dayIndex], isOpen: checked };
-                        updateField('operatingHours', updated);
-                      }}
-                    />
+                      {/* Open toggle */}
+                      <Toggle
+                        checked={day.isOpen}
+                        label={day.isOpen ? 'Open' : 'Closed'}
+                        onChange={(checked) => {
+                          const updated = [...form.operatingHours];
+                          updated[dayIndex] = { ...updated[dayIndex], isOpen: checked };
+                          updateField('operatingHours', updated);
+                        }}
+                      />
 
-                    {/* Time inputs */}
-                    {day.isOpen && (
-                      <div className="flex flex-col gap-1 flex-1">
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="time"
-                            value={day.open}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                              const updated = [...form.operatingHours];
-                              updated[dayIndex] = { ...updated[dayIndex], open: e.target.value };
-                              updateField('operatingHours', updated);
-                            }}
-                            className="rounded-md border border-border px-2 py-1.5 text-sm text-text bg-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                          />
-                          <span className="text-xs text-text-tertiary">to</span>
-                          <input
-                            type="time"
-                            value={day.close}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                              const updated = [...form.operatingHours];
-                              updated[dayIndex] = { ...updated[dayIndex], close: e.target.value };
-                              updateField('operatingHours', updated);
-                            }}
-                            className="rounded-md border border-border px-2 py-1.5 text-sm text-text bg-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                          />
+                      {/* Time inputs */}
+                      {day.isOpen && (
+                        <div className="flex flex-col gap-1 flex-1">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="time"
+                              value={day.open}
+                              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                const updated = [...form.operatingHours];
+                                updated[dayIndex] = { ...updated[dayIndex], open: e.target.value };
+                                updateField('operatingHours', updated);
+                              }}
+                              className="rounded-md border border-border px-2 py-1.5 text-sm text-text bg-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                            />
+                            <span className="text-xs text-text-tertiary">to</span>
+                            <input
+                              type="time"
+                              value={day.close}
+                              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                const updated = [...form.operatingHours];
+                                updated[dayIndex] = { ...updated[dayIndex], close: e.target.value };
+                                updateField('operatingHours', updated);
+                              }}
+                              className="rounded-md border border-border px-2 py-1.5 text-sm text-text bg-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                            />
+                          </div>
+                          {day.open >= day.close && (
+                            <p className="text-xs text-danger mt-1">Close time must be after open time</p>
+                          )}
                         </div>
-                        {day.open >= day.close && (
-                          <p className="text-xs text-danger mt-1">Close time must be after open time</p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            )}
           </Card>
 
           {/* Last Order Time */}
@@ -767,51 +826,52 @@ export function ThemeSettings() {
                 <CardTitle>Languages</CardTitle>
               </div>
               <p className="text-sm text-text-secondary mt-1">
-                Enable languages for your customer menu. Menu items are auto-translated when saved.
+                Enable languages for your customer menu. Menu items will be translated automatically when you save.
               </p>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {([
-                  { code: 'en', label: 'English', flag: '\u{1F1EC}\u{1F1E7}', description: 'Default language' },
-                  { code: 'zh', label: '\u4E2D\u6587 (Chinese)', flag: '\u{1F1E8}\u{1F1F3}', description: 'Simplified Chinese' },
-                  { code: 'ja', label: '\u65E5\u672C\u8A9E (Japanese)', flag: '\u{1F1EF}\u{1F1F5}', description: 'Japanese' },
-                  { code: 'ko', label: '\uD55C\uAD6D\uC5B4 (Korean)', flag: '\u{1F1F0}\u{1F1F7}', description: 'Korean' },
-                  { code: 'fr', label: 'Fran\u00E7ais (French)', flag: '\u{1F1EB}\u{1F1F7}', description: 'French' },
-                ] as const).map((lang) => {
+                {LANGUAGE_CONFIG.map((lang) => {
                   const isEnabled = form.supportedLocales.includes(lang.code);
                   const isDefault = lang.code === 'en';
+                  const isNewlyEnabled = isEnabled && !isDefault && !savedLocalesRef.current.includes(lang.code);
                   return (
-                    <label
+                    <div
                       key={lang.code}
                       className={[
-                        'flex items-center gap-3 p-3 rounded-lg border transition-colors cursor-pointer',
-                        isEnabled ? 'border-primary/30 bg-primary/5' : 'border-border hover:border-border-strong',
-                        isDefault ? 'opacity-75 cursor-default' : '',
+                        'flex items-center gap-3 p-3 rounded-lg border transition-colors',
+                        isEnabled ? 'border-primary/30 bg-primary/5' : 'border-border',
                       ].join(' ')}
                     >
-                      <input
-                        type="checkbox"
-                        checked={isEnabled}
-                        disabled={isDefault}
-                        onChange={() => {
-                          if (isDefault) return;
-                          const next = isEnabled
-                            ? form.supportedLocales.filter((l) => l !== lang.code)
-                            : [...form.supportedLocales, lang.code];
-                          updateField('supportedLocales', next);
-                        }}
-                        className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
-                      />
                       <span className="text-lg">{lang.flag}</span>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-text">{lang.label}</p>
-                        <p className="text-xs text-text-tertiary">{lang.description}{isDefault ? ' (always enabled)' : ''}</p>
+                        <p className="text-xs text-text-tertiary">
+                          {lang.description}{isDefault ? ' (always enabled)' : ''}
+                        </p>
+                        {isNewlyEnabled && (
+                          <p className="text-xs text-primary mt-1">
+                            Menu items will be translated automatically on save
+                          </p>
+                        )}
                       </div>
-                      {isEnabled && !isDefault && (
-                        <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">Active</span>
-                      )}
-                    </label>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-xs text-text-secondary">
+                          {isDefault ? 'Always on' : isEnabled ? 'Enabled' : 'Disabled'}
+                        </span>
+                        <Toggle
+                          checked={isEnabled}
+                          disabled={isDefault}
+                          onChange={() => {
+                            if (isDefault) return;
+                            const next = isEnabled
+                              ? form.supportedLocales.filter((l) => l !== lang.code)
+                              : [...form.supportedLocales, lang.code];
+                            updateField('supportedLocales', next);
+                          }}
+                        />
+                      </div>
+                    </div>
                   );
                 })}
               </div>
@@ -1041,24 +1101,6 @@ export function ThemeSettings() {
                 aspectRatio="3:1"
               />
             </CardContent>
-            <CardFooter className="justify-end gap-2">
-              {isDirty && (
-                <Button variant="ghost" size="sm" onClick={handleReset}>
-                  <RotateCcw className="h-4 w-4" />
-                  Discard
-                </Button>
-              )}
-              <Button
-                variant="primary"
-                size="md"
-                onClick={handleSave}
-                loading={updateMutation.isPending}
-                disabled={!isDirty}
-              >
-                <Save className="h-4 w-4" />
-                Save Changes
-              </Button>
-            </CardFooter>
           </Card>
 
         </div>
@@ -1070,6 +1112,26 @@ export function ThemeSettings() {
           </div>
         </div>
       </div>
+
+      {/* Bottom padding so content is not hidden behind sticky bar */}
+      {isDirty && <div className="h-16" />}
+
+      {/* Sticky save bar */}
+      {isDirty && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-bg-surface border-t border-border px-6 py-3 flex items-center justify-between shadow-lg">
+          <p className="text-sm text-text-secondary">You have unsaved changes</p>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={handleReset}>
+              <RotateCcw className="h-4 w-4" />
+              Discard
+            </Button>
+            <Button variant="primary" onClick={handleSave} loading={updateMutation.isPending}>
+              <Save className="h-4 w-4" />
+              Save Changes
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
