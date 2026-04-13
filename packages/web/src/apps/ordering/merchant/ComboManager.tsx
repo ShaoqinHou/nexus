@@ -13,6 +13,7 @@ import {
 } from '@web/components/ui';
 import { ConfirmButton, EmptyState } from '@web/components/patterns';
 import { formatPrice } from '@web/lib/format';
+import { useT } from '@web/lib/i18n';
 import { useTenant } from '@web/platform/tenant/TenantProvider';
 import { useToast } from '@web/platform/ToastProvider';
 import { useMenuItems } from '../hooks/useMenu';
@@ -83,6 +84,7 @@ function ItemPicker({
   onAdd: (item: MenuItem) => void;
 }) {
   const [search, setSearch] = useState('');
+  const t = useT();
 
   const filtered = allItems.filter(
     (item) =>
@@ -93,14 +95,14 @@ function ItemPicker({
   return (
     <div className="space-y-2">
       <Input
-        placeholder="Search menu items..."
+        placeholder={t('Search menu items...')}
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
       <div className="max-h-32 overflow-y-auto space-y-1 border border-border rounded-md p-1">
         {filtered.length === 0 ? (
           <p className="text-xs text-text-tertiary p-2 text-center">
-            {search ? 'No matching items' : 'No items available'}
+            {search ? t('No matching items') : t('No items available')}
           </p>
         ) : (
           filtered.map((item) => (
@@ -145,6 +147,7 @@ function SlotEditor({
   canRemove: boolean;
 }) {
   const selectedItemIds = new Set(slot.options.map((o) => o.menuItemId));
+  const t = useT();
 
   const handleAddOption = useCallback(
     (item: MenuItem) => {
@@ -189,14 +192,14 @@ function SlotEditor({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <GripVertical className="h-4 w-4 text-text-tertiary" />
-          <h4 className="text-sm font-semibold text-text">Slot {index + 1}</h4>
+          <h4 className="text-sm font-semibold text-text">{t('Slot')} {index + 1}</h4>
         </div>
         {canRemove && (
           <button
             type="button"
             onClick={() => onRemove(index)}
             className="min-h-[44px] min-w-[44px] p-2 rounded text-text-tertiary hover:text-danger hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-            aria-label="Remove slot"
+            aria-label={t('Remove slot')}
           >
             <Trash2 className="h-4 w-4" />
           </button>
@@ -204,8 +207,8 @@ function SlotEditor({
       </div>
 
       <Input
-        label="Slot Name"
-        placeholder="e.g. Choose your Main"
+        label={t('Slot Name')}
+        placeholder={t('e.g. Choose your Main')}
         value={slot.name}
         onChange={(e) => onChange(index, { ...slot, name: e.target.value })}
         required
@@ -213,7 +216,7 @@ function SlotEditor({
 
       <div className="grid grid-cols-2 gap-3">
         <Input
-          label="Min Selections"
+          label={t('Min Selections')}
           type="number"
           min="0"
           value={slot.minSelections}
@@ -222,7 +225,7 @@ function SlotEditor({
           }
         />
         <Input
-          label="Max Selections"
+          label={t('Max Selections')}
           type="number"
           min="1"
           value={slot.maxSelections}
@@ -236,7 +239,7 @@ function SlotEditor({
       {slot.options.length > 0 && (
         <div className="space-y-2">
           <label className="text-xs font-medium text-text-secondary">
-            Options
+            {t('Options')}
           </label>
           {slot.options.map((opt, optIdx) => (
             <div
@@ -269,7 +272,7 @@ function SlotEditor({
                     }
                     className="h-3.5 w-3.5 rounded border-border text-primary focus:ring-primary"
                   />
-                  <span>Default</span>
+                  <span>{t('Default')}</span>
                 </label>
                 <button
                   type="button"
@@ -288,7 +291,7 @@ function SlotEditor({
       {/* Add items to slot */}
       <div>
         <label className="text-xs font-medium text-text-secondary block mb-1.5">
-          Add Menu Items
+          {t('Add Menu Items')}
         </label>
         <ItemPicker
           allItems={allItems}
@@ -320,6 +323,7 @@ function ComboDialog({
   allItems: MenuItem[];
 }) {
   const [form, setForm] = useState<ComboFormData>(initial ?? emptyForm());
+  const t = useT();
 
   useEffect(() => {
     setForm(initial ?? emptyForm());
@@ -370,11 +374,11 @@ function ComboDialog({
     <Dialog
       open={open}
       onClose={handleClose}
-      title={isEdit ? 'Edit Combo Deal' : 'Create Combo Deal'}
+      title={isEdit ? t('Edit Combo Deal') : t('Create Combo Deal')}
       footer={
         <>
           <Button variant="secondary" onClick={handleClose} disabled={loading} className="min-h-[48px]">
-            Cancel
+            {t('Cancel')}
           </Button>
           <Button
             type="submit"
@@ -383,7 +387,7 @@ function ComboDialog({
             disabled={!form.name.trim() || !form.basePrice || !hasValidSlots}
             className="min-h-[48px]"
           >
-            {isEdit ? 'Save' : 'Create'}
+            {isEdit ? t('Save') : t('Create')}
           </Button>
         </>
       }
@@ -395,23 +399,23 @@ function ComboDialog({
       >
         {/* Basic info */}
         <Input
-          label="Combo Name"
+          label={t('Combo Name')}
           value={form.name}
           onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-          placeholder="e.g. Classic Meal Deal"
+          placeholder={t('e.g. Classic Meal Deal')}
           required
           autoFocus
         />
         <Input
-          label="Description"
+          label={t('Description')}
           value={form.description}
           onChange={(e) =>
             setForm((prev) => ({ ...prev, description: e.target.value }))
           }
-          placeholder="Optional description"
+          placeholder={t('Optional description')}
         />
         <Input
-          label="Base Price"
+          label={t('Base Price')}
           type="number"
           step="0.01"
           min="0"
@@ -423,7 +427,7 @@ function ComboDialog({
           required
         />
         <Input
-          label="Image URL"
+          label={t('Image URL')}
           value={form.imageUrl}
           onChange={(e) =>
             setForm((prev) => ({ ...prev, imageUrl: e.target.value }))
@@ -434,10 +438,10 @@ function ComboDialog({
         {/* Slots section */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-text">Slots</h3>
+            <h3 className="text-sm font-semibold text-text">{t('Slots')}</h3>
             <Button variant="secondary" size="sm" onClick={handleAddSlot} className="min-h-[48px]">
               <Plus className="h-3.5 w-3.5" />
-              Add Slot
+              {t('Add Slot')}
             </Button>
           </div>
 
@@ -475,6 +479,8 @@ function ComboCard({
   onDelete: (id: string) => void;
   onToggleActive: (combo: ComboDeal) => void;
 }) {
+  const t = useT();
+
   return (
     <Card>
       <CardContent className="flex items-start gap-4">
@@ -509,12 +515,11 @@ function ComboCard({
 
           <div className="flex flex-wrap gap-1.5 mt-1.5">
             <Badge variant="info">
-              {combo.slots.length} slot{combo.slots.length !== 1 ? 's' : ''}
+              {combo.slots.length} {combo.slots.length !== 1 ? t('slots') : t('slot')}
             </Badge>
             {combo.slots.map((slot) => (
               <Badge key={slot.id} variant="default">
-                {slot.name}: {slot.options.length} option
-                {slot.options.length !== 1 ? 's' : ''}
+                {slot.name}: {slot.options.length} {slot.options.length !== 1 ? t('options') : t('option')}
               </Badge>
             ))}
           </div>
@@ -524,7 +529,7 @@ function ComboCard({
               <Toggle
                 checked={combo.isActive === 1}
                 onChange={() => onToggleActive(combo)}
-                label={combo.isActive === 1 ? 'Active' : 'Inactive'}
+                label={combo.isActive === 1 ? t('Active') : t('Inactive')}
               />
             </div>
 
@@ -535,16 +540,16 @@ function ComboCard({
                 onClick={() => onEdit(combo)}
                 className="min-h-[44px]"
               >
-                Edit
+                {t('Edit')}
               </Button>
               <ConfirmButton
                 variant="ghost"
                 size="sm"
                 onConfirm={() => onDelete(combo.id)}
-                confirmText="Delete?"
+                confirmText={t('Delete?')}
                 className="min-h-[44px]"
               >
-                Delete
+                {t('Delete')}
               </ConfirmButton>
             </div>
           </div>
@@ -561,6 +566,7 @@ function ComboCard({
 export function ComboManager() {
   const { tenantSlug } = useTenant();
   const { toast } = useToast();
+  const t = useT();
 
   // Data
   const combosQuery = useCombos(tenantSlug);

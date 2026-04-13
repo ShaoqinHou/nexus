@@ -3,8 +3,10 @@ import QRCode from 'qrcode';
 import { QrCode, Printer } from 'lucide-react';
 import { useTenant } from '@web/platform/tenant/TenantProvider';
 import { Card, CardContent, Input, Button } from '@web/components/ui';
+import { useT } from '@web/lib/i18n';
 
 export function QRCodes() {
+  const t = useT();
   const { tenantSlug } = useTenant();
   const [tableCount, setTableCount] = useState(10);
   const [qrCodes, setQrCodes] = useState<Map<number, string>>(new Map());
@@ -87,16 +89,16 @@ export function QRCodes() {
         <div className="print:hidden">
           <div className="flex flex-col sm:flex-row sm:items-end gap-4">
             <div className="flex-1">
-              <h1 className="text-2xl font-bold text-text">QR Codes</h1>
+              <h1 className="text-2xl font-bold text-text">{t('QR Codes')}</h1>
               <p className="text-sm text-text-secondary mt-1">
-                Generate QR codes for your restaurant tables
+                {t('Generate QR codes for your restaurant tables')}
               </p>
             </div>
 
             <div className="flex items-end gap-3">
               <div className="w-32">
                 <Input
-                  label="Tables"
+                  label={t('Tables')}
                   type="number"
                   min={1}
                   max={100}
@@ -106,7 +108,7 @@ export function QRCodes() {
               </div>
               <Button variant="secondary" onClick={handlePrint} className="min-h-[48px]">
                 <Printer className="h-4 w-4" />
-                Print All
+                {t('Print All')}
               </Button>
             </div>
           </div>
@@ -122,13 +124,13 @@ export function QRCodes() {
               <Card key={tableNum} className="qr-card">
                 <CardContent className="flex flex-col items-center gap-3 py-5">
                   <p className="text-lg font-semibold text-text">
-                    Table {tableNum}
+                    {t('Table')} {tableNum}
                   </p>
 
                   {dataUrl ? (
                     <img
                       src={dataUrl}
-                      alt={`QR code for table ${tableNum}`}
+                      alt={`${t('QR code for table')} ${tableNum}`}
                       className="w-full max-w-[200px] aspect-square"
                     />
                   ) : (

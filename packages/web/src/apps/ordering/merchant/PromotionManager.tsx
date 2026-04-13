@@ -24,6 +24,7 @@ import {
 } from '@web/components/ui';
 import { ConfirmButton, EmptyState } from '@web/components/patterns';
 import { formatDate, formatPrice } from '@web/lib/format';
+import { useT } from '@web/lib/i18n';
 import { useTenant } from '@web/platform/tenant/TenantProvider';
 import { useToast } from '@web/platform/ToastProvider';
 import {
@@ -133,6 +134,7 @@ function PromotionDialog({
   };
 
   const isEdit = !!initial;
+  const t = useT();
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -165,11 +167,11 @@ function PromotionDialog({
     <Dialog
       open={open}
       onClose={handleClose}
-      title={isEdit ? 'Edit Promotion' : 'Add Promotion'}
+      title={isEdit ? t('Edit Promotion') : t('Add Promotion')}
       footer={
         <>
           <Button variant="secondary" onClick={handleClose} disabled={loading}>
-            Cancel
+            {t('Cancel')}
           </Button>
           <Button
             type="submit"
@@ -177,59 +179,59 @@ function PromotionDialog({
             loading={loading}
             disabled={!name.trim() || !discountValue || !startsAt}
           >
-            {isEdit ? 'Save' : 'Create'}
+            {isEdit ? t('Save') : t('Create')}
           </Button>
         </>
       }
     >
       <form id="promotion-form" onSubmit={handleSubmit} className="space-y-4">
         <Input
-          label="Name"
+          label={t('Name')}
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="e.g. Summer Sale 20%"
+          placeholder={t('e.g. Summer Sale 20%')}
           required
           autoFocus
         />
         <Input
-          label="Description"
+          label={t('Description')}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Optional description"
+          placeholder={t('Optional description')}
         />
         <Select
-          label="Discount Type"
+          label={t('Discount Type')}
           options={[
-            { value: 'percentage', label: 'Percentage (%)' },
-            { value: 'fixed_amount', label: 'Fixed Amount ($)' },
+            { value: 'percentage', label: t('Percentage (%)') },
+            { value: 'fixed_amount', label: t('Fixed Amount ($)') },
           ]}
           value={type}
           onChange={(val) => setType(val as 'percentage' | 'fixed_amount')}
         />
         <Input
-          label={type === 'percentage' ? 'Discount (%)' : 'Discount ($)'}
+          label={type === 'percentage' ? t('Discount (%)') : t('Discount ($)')}
           type="number"
           step={type === 'percentage' ? '1' : '0.01'}
           min="0"
           max={type === 'percentage' ? '100' : undefined}
           value={discountValue}
           onChange={(e) => setDiscountValue(e.target.value)}
-          placeholder={type === 'percentage' ? 'e.g. 20' : 'e.g. 5.00'}
+          placeholder={type === 'percentage' ? t('e.g. 20') : t('e.g. 5.00')}
           required
         />
         <Input
-          label="Minimum Order Amount ($)"
+          label={t('Minimum Order Amount ($)')}
           type="number"
           step="0.01"
           min="0"
           value={minOrderAmount}
           onChange={(e) => setMinOrderAmount(e.target.value)}
-          placeholder="Optional"
-          helperText="Leave empty for no minimum"
+          placeholder={t('Optional')}
+          helperText={t('Leave empty for no minimum')}
         />
         <div>
           <label className="block text-sm font-medium text-text mb-1.5">
-            Applicable Categories
+            {t('Applicable Categories')}
           </label>
           {allCategories.length > 0 ? (
             <div className="space-y-1.5 max-h-40 overflow-y-auto rounded-md border border-border p-2">
@@ -249,25 +251,25 @@ function PromotionDialog({
               ))}
             </div>
           ) : (
-            <p className="text-xs text-text-tertiary">No categories found.</p>
+            <p className="text-xs text-text-tertiary">{t('No categories found.')}</p>
           )}
           <p className="text-xs text-text-tertiary mt-1">
-            Leave empty to apply to all items
+            {t('Leave empty to apply to all items')}
           </p>
         </div>
         <Input
-          label="Start Date"
+          label={t('Start Date')}
           type="date"
           value={startsAt}
           onChange={(e) => setStartsAt(e.target.value)}
           required
         />
         <Input
-          label="End Date"
+          label={t('End Date')}
           type="date"
           value={endsAt}
           onChange={(e) => setEndsAt(e.target.value)}
-          helperText="Leave empty for no end date"
+          helperText={t('Leave empty for no end date')}
         />
       </form>
     </Dialog>
@@ -291,6 +293,7 @@ function PromoCodeDialog({
 }) {
   const [code, setCode] = useState('');
   const [usageLimit, setUsageLimit] = useState('');
+  const t = useT();
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -308,11 +311,11 @@ function PromoCodeDialog({
     <Dialog
       open={open}
       onClose={handleClose}
-      title="Add Promo Code"
+      title={t('Add Promo Code')}
       footer={
         <>
           <Button variant="secondary" onClick={handleClose} disabled={loading}>
-            Cancel
+            {t('Cancel')}
           </Button>
           <Button
             type="submit"
@@ -320,29 +323,29 @@ function PromoCodeDialog({
             loading={loading}
             disabled={!code.trim()}
           >
-            Add Code
+            {t('Add Code')}
           </Button>
         </>
       }
     >
       <form id="promo-code-form" onSubmit={handleSubmit} className="space-y-4">
         <Input
-          label="Promo Code"
+          label={t('Promo Code')}
           value={code}
           onChange={(e) => setCode(e.target.value)}
-          placeholder="e.g. SUMMER20"
+          placeholder={t('e.g. SUMMER20')}
           required
           autoFocus
-          helperText="Will be stored in uppercase"
+          helperText={t('Will be stored in uppercase')}
         />
         <Input
-          label="Usage Limit"
+          label={t('Usage Limit')}
           type="number"
           min="1"
           value={usageLimit}
           onChange={(e) => setUsageLimit(e.target.value)}
-          placeholder="Optional"
-          helperText="Leave empty for unlimited uses"
+          placeholder={t('Optional')}
+          helperText={t('Leave empty for unlimited uses')}
         />
       </form>
     </Dialog>
@@ -362,10 +365,12 @@ function PromoCodeList({
   onDelete: (codeId: string) => void;
   deletingId: string | null;
 }) {
+  const t = useT();
+
   if (codes.length === 0) {
     return (
       <p className="text-xs text-text-tertiary py-2">
-        No promo codes yet. Add one to let customers use this promotion.
+        {t('No promo codes yet. Add one to let customers use this promotion.')}
       </p>
     );
   }
@@ -383,17 +388,17 @@ function PromoCodeList({
               {pc.code}
             </span>
             <span className="text-xs text-text-tertiary">
-              {pc.usageCount}/{pc.usageLimit ?? '\u221E'} uses
+              {pc.usageCount}/{pc.usageLimit ?? '\u221E'} {t('uses')}
             </span>
           </div>
           <ConfirmButton
             variant="ghost"
             size="sm"
             onConfirm={() => onDelete(pc.id)}
-            confirmText="Delete?"
+            confirmText={t('Delete?')}
             disabled={deletingId === pc.id}
           >
-            <span className="text-xs">Del</span>
+            <span className="text-xs">{t('Del')}</span>
           </ConfirmButton>
         </div>
       ))}
@@ -426,6 +431,7 @@ function PromotionCard({
   const active = isActive(promo);
   const expired = isExpired(promo);
   const codes = promo.promoCodes ?? [];
+  const t = useT();
 
   return (
     <Card>
@@ -441,14 +447,14 @@ function PromotionCard({
                 ) : (
                   <DollarSign className="h-3 w-3 mr-0.5 inline" />
                 )}
-                {promo.type === 'percentage' ? 'Percentage' : 'Fixed'}
+                {promo.type === 'percentage' ? t('Percentage') : t('Fixed')}
               </Badge>
               {active ? (
-                <Badge variant="success">Active</Badge>
+                <Badge variant="success">{t('Active')}</Badge>
               ) : expired ? (
-                <Badge variant="error">Expired</Badge>
+                <Badge variant="error">{t('Expired')}</Badge>
               ) : (
-                <Badge variant="default">Inactive</Badge>
+                <Badge variant="default">{t('Inactive')}</Badge>
               )}
             </div>
             {promo.description && (
@@ -466,16 +472,16 @@ function PromotionCard({
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 text-xs text-text-secondary">
           <span>
             {formatDate(promo.startsAt)}
-            {promo.endsAt ? ` - ${formatDate(promo.endsAt)}` : ' - No end'}
+            {promo.endsAt ? ` - ${formatDate(promo.endsAt)}` : ` - ${t('No end')}`}
           </span>
           {promo.minOrderAmount != null && promo.minOrderAmount > 0 && (
-            <span>Min: {formatPrice(promo.minOrderAmount)}</span>
+            <span>{t('Min:')} {formatPrice(promo.minOrderAmount)}</span>
           )}
           <span>
             {promo.currentUses}
-            {promo.maxUses != null ? `/${promo.maxUses}` : ''} uses
+            {promo.maxUses != null ? `/${promo.maxUses}` : ''} {t('uses')}
           </span>
-          <span>{codes.length} code{codes.length !== 1 ? 's' : ''}</span>
+          <span>{codes.length} {codes.length !== 1 ? t('codes') : t('code')}</span>
         </div>
 
         {/* Action row */}
@@ -483,7 +489,7 @@ function PromotionCard({
           <Toggle
             checked={promo.isActive === 1}
             onChange={() => onToggleActive(promo)}
-            label={promo.isActive === 1 ? 'Active' : 'Inactive'}
+            label={promo.isActive === 1 ? t('Active') : t('Inactive')}
           />
 
           <div className="flex flex-wrap items-center gap-1">
@@ -494,7 +500,7 @@ function PromotionCard({
               className="min-h-[44px]"
             >
               <Ticket className="h-3.5 w-3.5" />
-              Codes
+              {t('Codes')}
               {expanded ? (
                 <ChevronUp className="h-3 w-3" />
               ) : (
@@ -509,16 +515,16 @@ function PromotionCard({
               className="min-h-[44px]"
             >
               <Pencil className="h-3.5 w-3.5" />
-              Edit
+              {t('Edit')}
             </Button>
             <ConfirmButton
               variant="ghost"
               size="sm"
               onConfirm={() => onDelete(promo.id)}
-              confirmText="Delete?"
+              confirmText={t('Delete?')}
               className="min-h-[44px]"
             >
-              Delete
+              {t('Delete')}
             </ConfirmButton>
           </div>
         </div>
@@ -528,11 +534,11 @@ function PromotionCard({
           <div className="mt-3 pt-3 border-t border-border">
             <div className="flex items-center justify-between mb-2">
               <h4 className="text-xs font-semibold text-text-secondary uppercase tracking-wide">
-                Promo Codes
+                {t('Promo Codes')}
               </h4>
               <Button size="sm" onClick={() => onAddCode(promo.id)}>
                 <Plus className="h-3.5 w-3.5" />
-                Add Code
+                {t('Add Code')}
               </Button>
             </div>
             <PromoCodeList
@@ -554,6 +560,7 @@ function PromotionCard({
 export function PromotionManager() {
   const { tenantSlug } = useTenant();
   const { toast } = useToast();
+  const t = useT();
 
   // Data
   const promotionsQuery = usePromotions(tenantSlug);
@@ -605,10 +612,10 @@ export function PromotionManager() {
         {
           onSuccess: () => {
             setPromoDialogOpen(false);
-            toast('success', 'Promotion updated');
+            toast('success', t('Promotion updated'));
           },
           onError: (err: Error) => {
-            toast('error', err.message || 'Failed to update promotion');
+            toast('error', err.message || t('Failed to update promotion'));
           },
         },
       );
@@ -616,10 +623,10 @@ export function PromotionManager() {
       createPromotion.mutate(payload, {
         onSuccess: () => {
           setPromoDialogOpen(false);
-          toast('success', 'Promotion created');
+          toast('success', t('Promotion created'));
         },
         onError: (err: Error) => {
-          toast('error', err.message || 'Failed to create promotion');
+          toast('error', err.message || t('Failed to create promotion'));
         },
       });
     }
@@ -628,10 +635,10 @@ export function PromotionManager() {
   const handleDeletePromotion = (id: string) => {
     deletePromotion.mutate(id, {
       onSuccess: () => {
-        toast('success', 'Promotion deleted');
+        toast('success', t('Promotion deleted'));
       },
       onError: (err: Error) => {
-        toast('error', err.message || 'Failed to delete promotion');
+        toast('error', err.message || t('Failed to delete promotion'));
       },
     });
   };
@@ -644,12 +651,12 @@ export function PromotionManager() {
           toast(
             'success',
             promo.isActive === 1
-              ? 'Promotion deactivated'
-              : 'Promotion activated',
+              ? t('Promotion deactivated')
+              : t('Promotion activated'),
           );
         },
         onError: (err: Error) => {
-          toast('error', err.message || 'Failed to update promotion');
+          toast('error', err.message || t('Failed to update promotion'));
         },
       },
     );
@@ -675,10 +682,10 @@ export function PromotionManager() {
         onSuccess: () => {
           setCodeDialogOpen(false);
           setCodeDialogPromoId(null);
-          toast('success', 'Promo code created');
+          toast('success', t('Promo code created'));
         },
         onError: (err: Error) => {
-          toast('error', err.message || 'Failed to create promo code');
+          toast('error', err.message || t('Failed to create promo code'));
         },
       },
     );
@@ -689,11 +696,11 @@ export function PromotionManager() {
     deletePromoCode.mutate(codeId, {
       onSuccess: () => {
         setDeletingCodeId(null);
-        toast('success', 'Promo code deleted');
+        toast('success', t('Promo code deleted'));
       },
       onError: (err: Error) => {
         setDeletingCodeId(null);
-        toast('error', err.message || 'Failed to delete promo code');
+        toast('error', err.message || t('Failed to delete promo code'));
       },
     });
   };
@@ -715,24 +722,24 @@ export function PromotionManager() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-text">Promotions</h1>
+        <h1 className="text-2xl font-bold text-text">{t('Promotions')}</h1>
         <Button onClick={handleAddPromotion} className="min-h-[48px]">
           <Plus className="h-4 w-4" />
-          Add Promotion
+          {t('Add Promotion')}
         </Button>
       </div>
 
       {/* Promotion list */}
       {promotionsQuery.isLoading ? (
         <div className="flex items-center justify-center py-12">
-          <p className="text-sm text-text-secondary">Loading promotions...</p>
+          <p className="text-sm text-text-secondary">{t('Loading promotions...')}</p>
         </div>
       ) : promotions.length === 0 ? (
         <EmptyState
           icon={Tag}
-          title="No promotions"
-          description="Create your first promotion to offer discounts to customers."
-          action={{ label: 'Add Promotion', onClick: handleAddPromotion }}
+          title={t('No promotions')}
+          description={t('Create your first promotion to offer discounts to customers.')}
+          action={{ label: t('Add Promotion'), onClick: handleAddPromotion }}
         />
       ) : (
         <div className="space-y-3">

@@ -3,8 +3,10 @@ import { useNavigate } from '@tanstack/react-router';
 import { Building2, Plus } from 'lucide-react';
 import { useAuth, type TenantAccess } from '@web/platform/auth/AuthProvider';
 import { Badge, Button } from '@web/components/ui';
+import { useT } from '@web/lib/i18n';
 
 export function TenantPicker() {
+  const t = useT();
   const { tenants, switchTenant, user, logout } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -26,7 +28,7 @@ export function TenantPicker() {
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError('Failed to switch restaurant');
+        setError(t('Failed to switch restaurant'));
       }
     } finally {
       setLoading(false);
@@ -41,10 +43,10 @@ export function TenantPicker() {
   if (tenants.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-4">
-        <p className="text-text-secondary">No restaurants found</p>
+        <p className="text-text-secondary">{t('No restaurants found')}</p>
         <Button variant="primary" onClick={handleAddRestaurant}>
           <Plus className="h-4 w-4" />
-          Create Restaurant
+          {t('Create Restaurant')}
         </Button>
       </div>
     );
@@ -53,9 +55,9 @@ export function TenantPicker() {
   return (
     <div className="max-w-lg mx-auto">
       <div className="mb-6">
-        <h1 className="text-xl font-bold text-text">Your Restaurants</h1>
+        <h1 className="text-xl font-bold text-text">{t('Your Restaurants')}</h1>
         <p className="text-sm text-text-secondary mt-1">
-          Switch between restaurants you manage
+          {t('Switch between restaurants you manage')}
         </p>
       </div>
 
@@ -94,10 +96,10 @@ export function TenantPicker() {
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 {isCurrent && (
-                  <Badge variant="info">current</Badge>
+                  <Badge variant="info">{t('current')}</Badge>
                 )}
                 <Badge variant={tenant.role === 'owner' ? 'success' : 'default'}>
-                  {tenant.role}
+                  {t(tenant.role.charAt(0).toUpperCase() + tenant.role.slice(1))}
                 </Badge>
               </div>
             </button>
@@ -108,7 +110,7 @@ export function TenantPicker() {
       <div className="mt-6 pt-4 border-t border-border">
         <Button variant="secondary" onClick={handleAddRestaurant}>
           <Plus className="h-4 w-4" />
-          Add New Restaurant
+          {t('Add New Restaurant')}
         </Button>
       </div>
     </div>
