@@ -9,12 +9,25 @@ const LOCALE_FLAGS: Record<Locale, string> = {
   fr: '🇫🇷',
 };
 
+interface LanguagePickerProps {
+  /** If provided, only show these locales. If omitted, show all supported locales. */
+  availableLocales?: Locale[];
+}
+
 /**
  * Compact language picker for the customer menu header.
  * Renders a small select dropdown with flag + label.
+ * Hidden automatically when only one language is available.
  */
-export function LanguagePicker() {
+export function LanguagePicker({ availableLocales }: LanguagePickerProps) {
   const { locale, setLocale } = useLocale();
+
+  const locales = availableLocales
+    ? SUPPORTED_LOCALES.filter((l) => availableLocales.includes(l))
+    : SUPPORTED_LOCALES;
+
+  // Hide picker when only one language is available
+  if (locales.length <= 1) return null;
 
   return (
     <div className="relative inline-flex items-center">
@@ -25,7 +38,7 @@ export function LanguagePicker() {
         className="appearance-none bg-bg-surface text-text text-xs font-medium border border-border rounded-full pl-7 pr-6 py-1.5 min-h-[32px] cursor-pointer hover:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-colors"
         aria-label="Select language"
       >
-        {SUPPORTED_LOCALES.map((loc) => (
+        {locales.map((loc) => (
           <option key={loc} value={loc}>
             {LOCALE_FLAGS[loc]} {LOCALE_LABELS[loc]}
           </option>

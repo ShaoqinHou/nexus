@@ -31,6 +31,7 @@ import { apiClient } from '@web/lib/api';
 
 // --- Locale english names (for toast messages) ---
 const LOCALE_ENGLISH_NAMES: Record<string, string> = {
+  en: 'English',
   zh: 'Chinese',
   ja: 'Japanese',
   ko: 'Korean',
@@ -111,10 +112,15 @@ interface FormState {
   taxRate: string;
   taxInclusive: boolean;
   taxLabel: string;
+  primaryLocale: string;
   supportedLocales: string[];
 }
 
 function settingsToFormState(settings: TenantThemeSettings | undefined): FormState {
+  const primary = settings?.primaryLocale ?? 'en';
+  // supportedLocales in form state = additional languages only (excludes primary)
+  const rawLocales = settings?.supportedLocales as string[] | undefined;
+  const additionalLocales = (rawLocales ?? []).filter((l) => l !== primary);
   return {
     preset: settings?.preset ?? '',
     brandColor: settings?.brandColor ?? '#2563eb',
@@ -128,7 +134,8 @@ function settingsToFormState(settings: TenantThemeSettings | undefined): FormSta
     taxRate: settings?.taxRate?.toString() ?? '',
     taxInclusive: settings?.taxInclusive ?? true,
     taxLabel: settings?.taxLabel ?? '',
-    supportedLocales: (settings as Record<string, unknown>)?.supportedLocales as string[] ?? ['en'],
+    primaryLocale: primary,
+    supportedLocales: additionalLocales,
   };
 }
 
@@ -148,7 +155,8 @@ function formStateToSettings(form: FormState): Partial<TenantThemeSettings> {
     taxRate: !isNaN(taxRate) && taxRate > 0 ? taxRate : undefined,
     taxInclusive: form.taxInclusive,
     taxLabel: form.taxLabel || undefined,
-    supportedLocales: form.supportedLocales.length > 0 ? form.supportedLocales : ['en'],
+    primaryLocale: form.primaryLocale,
+    supportedLocales: form.supportedLocales.length > 0 ? form.supportedLocales : undefined,
   } as Partial<TenantThemeSettings>;
 }
 
@@ -618,9 +626,9 @@ export function ThemeSettings() {
         savedLocalesRef.current = [...form.supportedLocales];
         setIsDirty(false);
 
-        // Auto-translate for any newly added locales
+        // Auto-translate for any newly added additional locales
         const newLocales = form.supportedLocales.filter(
-          (locale) => locale !== 'en' && !previousLocales.includes(locale),
+          (locale) => !previousLocales.includes(locale),
         );
         for (const locale of newLocales) {
           const langName = LOCALE_ENGLISH_NAMES[locale] ?? locale;
@@ -826,54 +834,79 @@ export function ThemeSettings() {
                 <CardTitle>Languages</CardTitle>
               </div>
               <p className="text-sm text-text-secondary mt-1">
-                Enable languages for your customer menu. Menu items will be translated automatically when you save.
+                Set your restaurant's primary language and optional translations for foreign customers.
               </p>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {LANGUAGE_CONFIG.map((lang) => {
-                  const isEnabled = form.supportedLocales.includes(lang.code);
-                  const isDefault = lang.code === 'en';
-                  const isNewlyEnabled = isEnabled && !isDefault && !savedLocalesRef.current.includes(lang.code);
-                  return (
-                    <div
-                      key={lang.code}
-                      className={[
-                        'flex items-center gap-3 p-3 rounded-lg border transition-colors',
-                        isEnabled ? 'border-primary/30 bg-primary/5' : 'border-border',
-                      ].join(' ')}
-                    >
-                      <span className="text-lg">{lang.flag}</span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-text">{lang.label}</p>
-                        <p className="text-xs text-text-tertiary">
-                          {lang.description}{isDefault ? ' (always enabled)' : ''}
-                        </p>
-                        {isNewlyEnabled && (
-                          <p className="text-xs text-primary mt-1">
-                            Menu items will be translated automatically on save
-                          </p>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-xs text-text-secondary">
-                          {isDefault ? 'Always on' : isEnabled ? 'Enabled' : 'Disabled'}
-                        </span>
-                        <Toggle
-                          checked={isEnabled}
-                          disabled={isDefault}
-                          onChange={() => {
-                            if (isDefault) return;
-                            const next = isEnabled
-                              ? form.supportedLocales.filter((l) => l !== lang.code)
-                              : [...form.supportedLocales, lang.code];
-                            updateField('supportedLocales', next);
-                          }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
+              <div className="space-y-6">
+                {/* Primary Language */}
+                <div>
+                  <Select
+                    label="Primary Language"
+                    value={form.primaryLocale}
+                    onChange={(value) => {
+                      // Remove new primary from additional locales if it was there
+                      const nextAdditional = form.supportedLocales.filter((l) => l !== value);
+                      updateField('primaryLocale', value);
+                      updateField('supportedLocales', nextAdditional);
+                    }}
+                    options={LANGUAGE_CONFIG.map((lang) => ({
+                      value: lang.code,
+                      label: `${lang.flag} ${lang.label}`,
+                    }))}
+                  />
+                  <p className="text-xs text-text-tertiary mt-1.5">
+                    This is the language you write menu items in. Customers see this by default.
+                  </p>
+                </div>
+
+                {/* Additional Languages */}
+                <div>
+                  <p className="text-sm font-medium text-text mb-1.5">Additional Languages</p>
+                  <p className="text-xs text-text-tertiary mb-3">
+                    Menu items will be auto-translated to these languages. Customers can switch via the language picker.
+                  </p>
+                  <div className="space-y-3">
+                    {LANGUAGE_CONFIG.filter((lang) => lang.code !== form.primaryLocale).map((lang) => {
+                      const isEnabled = form.supportedLocales.includes(lang.code);
+                      const isNewlyEnabled = isEnabled && !savedLocalesRef.current.includes(lang.code);
+                      return (
+                        <div
+                          key={lang.code}
+                          className={[
+                            'flex items-center gap-3 p-3 rounded-lg border transition-colors',
+                            isEnabled ? 'border-primary/30 bg-primary/5' : 'border-border',
+                          ].join(' ')}
+                        >
+                          <span className="text-lg">{lang.flag}</span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-text">{lang.label}</p>
+                            <p className="text-xs text-text-tertiary">{lang.description}</p>
+                            {isNewlyEnabled && (
+                              <p className="text-xs text-primary mt-1">
+                                Menu items will be translated automatically on save
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-xs text-text-secondary">
+                              {isEnabled ? 'Enabled' : 'Disabled'}
+                            </span>
+                            <Toggle
+                              checked={isEnabled}
+                              onChange={() => {
+                                const next = isEnabled
+                                  ? form.supportedLocales.filter((l) => l !== lang.code)
+                                  : [...form.supportedLocales, lang.code];
+                                updateField('supportedLocales', next);
+                              }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>

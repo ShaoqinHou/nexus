@@ -191,7 +191,7 @@ export async function translateBatch(
 ): Promise<Map<string, string>> {
   const results = new Map<string, string>();
 
-  if (!process.env.ZAI_API_KEY || targetLocale === 'en' || items.length === 0) {
+  if (!process.env.ZAI_API_KEY || items.length === 0) {
     for (const item of items) results.set(item.key, item.text);
     return results;
   }

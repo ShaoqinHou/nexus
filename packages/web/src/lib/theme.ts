@@ -140,6 +140,8 @@ export interface TenantThemeSettings {
   taxInclusive?: boolean; // true = prices already include tax
   taxLabel?: string;      // e.g. "GST", "VAT", "Tax"
   contactPhone?: string;  // Restaurant contact phone number
+  primaryLocale?: string;    // Restaurant's primary language (e.g. 'en', 'zh') — customers see this by default
+  supportedLocales?: string[]; // Additional languages for customer translation
 }
 
 /** Subtract minutes from a "HH:MM" time string */

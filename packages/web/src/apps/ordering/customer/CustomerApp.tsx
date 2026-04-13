@@ -15,6 +15,8 @@ import { useTour, isTourCompleted } from '@web/platform/TourProvider';
 import { isOpenNow, isOrderingOpen } from '@web/lib/theme';
 import type { TenantThemeSettings } from '@web/lib/theme';
 import type { Order } from '@web/apps/ordering/types';
+import type { Locale } from '@web/lib/i18n';
+import { SUPPORTED_LOCALES } from '@web/lib/i18n';
 import { orderingKeys } from '@web/apps/ordering/hooks/keys';
 import { customerOnboardingSteps, CUSTOMER_TOUR_ID } from '@web/apps/ordering/tours/customerTour';
 
@@ -46,11 +48,12 @@ function loadRecentOrders(tenantSlug: string, tableNumber: string): OrderHistory
 interface CustomerAppInnerProps {
   tenantSlug: string;
   tableNumber: string;
+  availableLocales: Locale[];
 }
 
 const ACTIVE_ORDER_STATUSES = ['pending', 'confirmed', 'preparing', 'ready'];
 
-function CustomerAppInner({ tenantSlug, tableNumber }: CustomerAppInnerProps) {
+function CustomerAppInner({ tenantSlug, tableNumber, availableLocales }: CustomerAppInnerProps) {
   const [view, setView] = useState<CustomerView>({ type: 'menu' });
   const [joinDecision, setJoinDecision] = useState<null | 'join' | 'new'>(null);
   const { tenant } = useTenant();
@@ -283,14 +286,14 @@ function CustomerAppInner({ tenantSlug, tableNumber }: CustomerAppInnerProps) {
                 ))}
               </div>
             </div>
-            <LanguagePicker />
+            <LanguagePicker availableLocales={availableLocales} />
           </div>
         )}
 
         {/* Language picker when no recent orders */}
         {(recentOrders.length === 0 || addToOrderId) && (
           <div className="px-4 py-2 border-b border-border bg-bg-surface flex justify-end">
-            <LanguagePicker />
+            <LanguagePicker availableLocales={availableLocales} />
           </div>
         )}
 
@@ -339,6 +342,7 @@ interface CustomerAppProps {
 export function CustomerApp({ tenantSlug }: CustomerAppProps) {
   const search = useSearch({ strict: false }) as Record<string, unknown>;
   const tableNumber = search.table != null ? String(search.table) : '';
+  const { tenant } = useTenant();
 
   if (!tableNumber) {
     return (
@@ -359,10 +363,22 @@ export function CustomerApp({ tenantSlug }: CustomerAppProps) {
     );
   }
 
+  // Read locale config from tenant settings
+  const tenantSettings = (tenant?.settings ?? {}) as TenantThemeSettings;
+  const primaryLocale = (tenantSettings.primaryLocale ?? 'en') as Locale;
+  const validPrimary = SUPPORTED_LOCALES.includes(primaryLocale) ? primaryLocale : 'en';
+  const additionalLocales = ((tenantSettings.supportedLocales ?? []) as string[])
+    .filter((l): l is Locale => SUPPORTED_LOCALES.includes(l as Locale));
+  const availableLocales: Locale[] = [validPrimary, ...additionalLocales.filter((l) => l !== validPrimary)];
+
   return (
     <CartProvider tenantSlug={tenantSlug} tableNumber={tableNumber}>
-      <LocaleProvider>
-        <CustomerAppInner tenantSlug={tenantSlug} tableNumber={tableNumber} />
+      <LocaleProvider defaultLocale={validPrimary}>
+        <CustomerAppInner
+          tenantSlug={tenantSlug}
+          tableNumber={tableNumber}
+          availableLocales={availableLocales}
+        />
       </LocaleProvider>
     </CartProvider>
   );

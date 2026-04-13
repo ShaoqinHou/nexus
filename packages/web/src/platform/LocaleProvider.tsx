@@ -10,10 +10,14 @@ import {
 
 interface LocaleProviderProps {
   children: ReactNode;
+  /** Restaurant's primary language — used as default instead of browser detection */
+  defaultLocale?: Locale;
 }
 
-export function LocaleProvider({ children }: LocaleProviderProps) {
-  const [locale, setLocaleState] = useState<Locale>(detectLocale);
+export function LocaleProvider({ children, defaultLocale }: LocaleProviderProps) {
+  const [locale, setLocaleState] = useState<Locale>(
+    () => defaultLocale ?? detectLocale(),
+  );
   const [translations, setTranslations] = useState<Record<string, string>>({});
 
   const setLocale = useCallback((newLocale: Locale) => {

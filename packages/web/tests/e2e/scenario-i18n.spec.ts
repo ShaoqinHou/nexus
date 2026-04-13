@@ -74,7 +74,8 @@ test.describe('Multi-Language i18n — E2E', () => {
       headers: { 'Authorization': `Bearer ${token}` },
     })).json();
     const currentSettings = JSON.parse(tenantRes.data?.settings || '{}');
-    currentSettings.supportedLocales = ['en', 'zh', 'ja'];
+    currentSettings.primaryLocale = 'en';
+    currentSettings.supportedLocales = ['zh', 'ja'];
 
     // Update tenant settings
     await fetch(`${API}/api/platform/tenants/demo`, {

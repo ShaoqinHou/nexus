@@ -123,17 +123,33 @@ export function getTranslationsForLocale(
 }
 
 /**
- * Read the tenant's supportedLocales from settings.
- * Returns an array of locale codes, defaults to ['en'].
+ * Read the tenant's primary locale from settings.
+ * Defaults to 'en'.
+ */
+export function getTenantPrimaryLocale(db: DrizzleDB, tenantId: string): string {
+  const tenant = db.select().from(tenants).where(eq(tenants.id, tenantId)).get();
+  if (!tenant?.settings) return 'en';
+  try {
+    const settings = JSON.parse(tenant.settings) as { primaryLocale?: string };
+    return settings.primaryLocale ?? 'en';
+  } catch {
+    return 'en';
+  }
+}
+
+/**
+ * Read the tenant's additional (translated) locales from settings.
+ * These are the languages customers can switch to beyond the primary.
+ * Returns an array of locale codes, defaults to empty.
  */
 function getTenantLocales(db: DrizzleDB, tenantId: string): string[] {
   const tenant = db.select().from(tenants).where(eq(tenants.id, tenantId)).get();
-  if (!tenant?.settings) return ['en'];
+  if (!tenant?.settings) return [];
   try {
     const settings = JSON.parse(tenant.settings) as { supportedLocales?: string[] };
-    return settings.supportedLocales ?? ['en'];
+    return settings.supportedLocales ?? [];
   } catch {
-    return ['en'];
+    return [];
   }
 }
 
@@ -153,9 +169,9 @@ export function getKitchenLocale(db: DrizzleDB, tenantId: string): string {
 }
 
 /**
- * Auto-translate an entity's fields to all configured locales.
+ * Auto-translate an entity's fields to all configured additional locales.
  * Uses the batch API for efficiency when there are multiple fields.
- * Skips the source locale (defaults to 'en').
+ * Source locale defaults to the tenant's primary language.
  */
 export async function autoTranslateEntity(
   db: DrizzleDB,
@@ -164,10 +180,11 @@ export async function autoTranslateEntity(
   entityId: string,
   fields: Record<string, string>,
   context: string,
-  sourceLocale = 'en',
+  sourceLocale?: string,
 ): Promise<void> {
+  const resolvedSource = sourceLocale ?? getTenantPrimaryLocale(db, tenantId);
   const locales = getTenantLocales(db, tenantId);
-  const targetLocales = locales.filter((l) => l !== sourceLocale);
+  const targetLocales = locales.filter((l) => l !== resolvedSource);
 
   if (targetLocales.length === 0) return;
 
@@ -183,7 +200,7 @@ export async function autoTranslateEntity(
         text,
         targetLocale: locale,
         context: `${context} ${field}`,
-        sourceLocale,
+        sourceLocale: resolvedSource,
       });
       setTranslation(db, tenantId, entityType, entityId, locale, field, translated);
     } else {
@@ -212,13 +229,14 @@ export async function translateForKitchen(
   context: string,
   sourceLocale?: string,
 ): Promise<string> {
+  const resolvedSource = sourceLocale ?? getTenantPrimaryLocale(db, tenantId);
   const kitchenLocale = getKitchenLocale(db, tenantId);
-  if (kitchenLocale === (sourceLocale || 'en')) return text;
+  if (kitchenLocale === resolvedSource) return text;
 
   return translate({
     text,
     targetLocale: kitchenLocale,
     context,
-    sourceLocale,
+    sourceLocale: resolvedSource,
   });
 }
