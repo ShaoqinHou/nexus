@@ -155,7 +155,7 @@ function subtractMinutes(time: string, minutes: number): string {
 }
 
 /** Check if restaurant is currently open based on operating hours */
-export function isOpenNow(hours?: OperatingHoursEntry[]): { open: boolean; nextChange?: string } {
+export function isOpenNow(hours?: OperatingHoursEntry[]): { open: boolean; nextChange?: string; nextChangeTime?: string } {
   if (!hours || hours.length === 0) return { open: true }; // No hours set = always open
 
   const now = new Date();
@@ -169,6 +169,7 @@ export function isOpenNow(hours?: OperatingHoursEntry[]): { open: boolean; nextC
   return {
     open: isOpen,
     nextChange: isOpen ? `Closes at ${todayHours.close}` : `Opens at ${todayHours.open}`,
+    nextChangeTime: isOpen ? todayHours.close : todayHours.open,
   };
 }
 

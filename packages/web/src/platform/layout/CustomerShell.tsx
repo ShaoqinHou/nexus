@@ -80,7 +80,7 @@ function RestaurantHero({
               <span className={`h-2 w-2 rounded-full ${status.open ? 'bg-success' : 'bg-danger'}`} />
               <span className="text-xs text-text-secondary">
                 {status.open ? t('Open') : t('Closed')}
-                {status.nextChange && ` · ${status.nextChange}`}
+                {status.nextChangeTime && ` · ${status.open ? t('Closes at') : t('Opens at')} ${status.nextChangeTime}`}
               </span>
             </div>
           );
