@@ -34,11 +34,19 @@ const rootRoute = createRootRoute({
   component: Outlet,
 });
 
-// Login route
+// Login route — wrapped with LocaleProvider for i18n (uses browser detection, no tenant default)
+function LoginPageWithLocale() {
+  return (
+    <LocaleProvider>
+      <LoginPage />
+    </LocaleProvider>
+  );
+}
+
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/login',
-  component: LoginPage,
+  component: LoginPageWithLocale,
 });
 
 // Index route — redirect to login

@@ -493,5 +493,21 @@
   "Click Theme to brand your restaurant.": "テーマをクリックしてブランドをカスタマイズ。",
   "Click to generate QR codes for your tables.": "テーブル用のQRコードを生成。",
   "Closes at": "閉店",
-  "Opens at": "開店"
+  "Opens at": "開店",
+  "Choose Restaurant": "レストランを選択",
+  "You have access to": "アクセス可能:",
+  "restaurants": "件のレストラン",
+  "Back to login": "ログインに戻る",
+  "Sign in to your account": "アカウントにログイン",
+  "Create a new restaurant": "新しいレストランを作成",
+  "Restaurant Name": "レストラン名",
+  "My Restaurant": "マイレストラン",
+  "Restaurant ID": "レストランID",
+  "Lowercase letters, numbers, and hyphens only": "小文字、数字、ハイフンのみ",
+  "Email": "メールアドレス",
+  "Password": "パスワード",
+  "Sign In": "ログイン",
+  "Create Restaurant": "レストランを作成",
+  "Don't have an account? Register": "アカウントをお持ちでない方はこちら",
+  "Already have an account? Sign in": "アカウントをお持ちの方はこちら"
 }

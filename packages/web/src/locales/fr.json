@@ -493,5 +493,21 @@
   "Click Theme to brand your restaurant.": "Cliquez sur Thème pour personnaliser votre marque.",
   "Click to generate QR codes for your tables.": "Cliquez pour générer les QR codes pour vos tables.",
   "Closes at": "Ferme à",
-  "Opens at": "Ouvre à"
+  "Opens at": "Ouvre à",
+  "Choose Restaurant": "Choisir un restaurant",
+  "You have access to": "Vous avez accès à",
+  "restaurants": "restaurants",
+  "Back to login": "Retour à la connexion",
+  "Sign in to your account": "Connectez-vous à votre compte",
+  "Create a new restaurant": "Créer un nouveau restaurant",
+  "Restaurant Name": "Nom du restaurant",
+  "My Restaurant": "Mon restaurant",
+  "Restaurant ID": "ID du restaurant",
+  "Lowercase letters, numbers, and hyphens only": "Lettres minuscules, chiffres et tirets uniquement",
+  "Email": "E-mail",
+  "Password": "Mot de passe",
+  "Sign In": "Se connecter",
+  "Create Restaurant": "Créer le restaurant",
+  "Don't have an account? Register": "Pas de compte ? S'inscrire",
+  "Already have an account? Sign in": "Déjà un compte ? Se connecter"
 }

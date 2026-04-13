@@ -493,5 +493,21 @@
   "Click Theme to brand your restaurant.": "点击主题来定制餐厅的品牌风格。",
   "Click to generate QR codes for your tables.": "点击为您的餐桌生成二维码。",
   "Closes at": "关店时间",
-  "Opens at": "开店时间"
+  "Opens at": "开店时间",
+  "Choose Restaurant": "选择餐厅",
+  "You have access to": "您可以访问",
+  "restaurants": "家餐厅",
+  "Back to login": "返回登录",
+  "Sign in to your account": "登录您的账户",
+  "Create a new restaurant": "创建新餐厅",
+  "Restaurant Name": "餐厅名称",
+  "My Restaurant": "我的餐厅",
+  "Restaurant ID": "餐厅ID",
+  "Lowercase letters, numbers, and hyphens only": "仅限小写字母、数字和连字符",
+  "Email": "电子邮箱",
+  "Password": "密码",
+  "Sign In": "登录",
+  "Create Restaurant": "创建餐厅",
+  "Don't have an account? Register": "没有账户？注册",
+  "Already have an account? Sign in": "已有账户？登录"
 }

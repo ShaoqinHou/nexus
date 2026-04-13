@@ -493,5 +493,21 @@
   "Click Theme to brand your restaurant.": "Click Theme to brand your restaurant.",
   "Click to generate QR codes for your tables.": "Click to generate QR codes for your tables.",
   "Closes at": "Closes at",
-  "Opens at": "Opens at"
+  "Opens at": "Opens at",
+  "Choose Restaurant": "Choose Restaurant",
+  "You have access to": "You have access to",
+  "restaurants": "restaurants",
+  "Back to login": "Back to login",
+  "Sign in to your account": "Sign in to your account",
+  "Create a new restaurant": "Create a new restaurant",
+  "Restaurant Name": "Restaurant Name",
+  "My Restaurant": "My Restaurant",
+  "Restaurant ID": "Restaurant ID",
+  "Lowercase letters, numbers, and hyphens only": "Lowercase letters, numbers, and hyphens only",
+  "Email": "Email",
+  "Password": "Password",
+  "Sign In": "Sign In",
+  "Create Restaurant": "Create Restaurant",
+  "Don't have an account? Register": "Don't have an account? Register",
+  "Already have an account? Sign in": "Already have an account? Sign in"
 }

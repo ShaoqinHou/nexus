@@ -1,10 +1,12 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useAuth, type TenantAccess } from '@web/platform/auth/AuthProvider';
-import { Button, Input, Badge } from '@web/components/ui';
+import { Button, Input, Badge, LanguagePicker } from '@web/components/ui';
 import { Building2, ArrowLeft } from 'lucide-react';
+import { useT } from '@web/lib/i18n';
 
 export function LoginPage() {
+  const t = useT();
   const { login, register, fetchMyTenants } = useAuth();
   const navigate = useNavigate();
   const [mode, setMode] = useState<'login' | 'register'>('login');
@@ -93,9 +95,9 @@ export function LoginPage() {
       <div className="min-h-screen flex items-center justify-center bg-bg p-4">
         <div className="w-full max-w-sm">
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-text">Choose Restaurant</h1>
+            <h1 className="text-2xl font-bold text-text">{t('Choose Restaurant')}</h1>
             <p className="text-sm text-text-secondary mt-1">
-              You have access to {tenantList.length} restaurants
+              {t('You have access to')} {tenantList.length} {t('restaurants')}
             </p>
           </div>
 
@@ -138,7 +140,7 @@ export function LoginPage() {
                 className="flex items-center gap-2 px-3 py-2 min-h-[44px] text-sm text-text-secondary hover:text-text hover:bg-bg-muted rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]"
               >
                 <ArrowLeft className="h-4 w-4" />
-                Back to login
+                {t('Back to login')}
               </button>
             </div>
           </div>
@@ -148,14 +150,17 @@ export function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-bg p-4">
+    <div className="min-h-screen flex items-center justify-center bg-bg p-4 relative">
+      <div className="absolute top-4 right-4">
+        <LanguagePicker />
+      </div>
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-text">Nexus</h1>
           <p className="text-sm text-text-secondary mt-1">
             {mode === 'login'
-              ? 'Sign in to your account'
-              : 'Create a new restaurant'}
+              ? t('Sign in to your account')
+              : t('Create a new restaurant')}
           </p>
         </div>
 
@@ -172,25 +177,25 @@ export function LoginPage() {
           {mode === 'register' && (
             <>
               <Input
-                label="Restaurant Name"
-                placeholder="My Restaurant"
+                label={t('Restaurant Name')}
+                placeholder={t('My Restaurant')}
                 value={tenantName}
                 onChange={(e) => setTenantName(e.target.value)}
                 required
               />
               <Input
-                label="Restaurant ID"
+                label={t('Restaurant ID')}
                 placeholder="my-restaurant"
                 value={tenantSlug}
                 onChange={(e) => setTenantSlug(e.target.value)}
-                helperText="Lowercase letters, numbers, and hyphens only"
+                helperText={t('Lowercase letters, numbers, and hyphens only')}
                 required
               />
             </>
           )}
 
           <Input
-            label="Email"
+            label={t('Email')}
             type="email"
             placeholder="demo@example.com"
             value={email}
@@ -198,7 +203,7 @@ export function LoginPage() {
           />
 
           <Input
-            label="Password"
+            label={t('Password')}
             type="password"
             placeholder="password123"
             value={password}
@@ -211,7 +216,7 @@ export function LoginPage() {
             className="w-full"
             loading={loading}
           >
-            {mode === 'login' ? 'Sign In' : 'Create Restaurant'}
+            {mode === 'login' ? t('Sign In') : t('Create Restaurant')}
           </Button>
 
           <div className="text-center">
@@ -224,8 +229,8 @@ export function LoginPage() {
               className="px-3 py-2 min-h-[44px] text-sm text-primary hover:text-primary-hover hover:bg-primary-light rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]"
             >
               {mode === 'login'
-                ? "Don't have an account? Register"
-                : 'Already have an account? Sign in'}
+                ? t("Don't have an account? Register")
+                : t('Already have an account? Sign in')}
             </button>
           </div>
         </form>

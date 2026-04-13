@@ -493,5 +493,21 @@
   "Click Theme to brand your restaurant.": "테마를 클릭하여 브랜드를 커스터마이즈하세요.",
   "Click to generate QR codes for your tables.": "테이블용 QR 코드를 생성하세요.",
   "Closes at": "마감",
-  "Opens at": "오픈"
+  "Opens at": "오픈",
+  "Choose Restaurant": "레스토랑 선택",
+  "You have access to": "접근 가능한 레스토랑:",
+  "restaurants": "개",
+  "Back to login": "로그인으로 돌아가기",
+  "Sign in to your account": "계정에 로그인",
+  "Create a new restaurant": "새 레스토랑 만들기",
+  "Restaurant Name": "레스토랑 이름",
+  "My Restaurant": "내 레스토랑",
+  "Restaurant ID": "레스토랑 ID",
+  "Lowercase letters, numbers, and hyphens only": "소문자, 숫자, 하이픈만 사용",
+  "Email": "이메일",
+  "Password": "비밀번호",
+  "Sign In": "로그인",
+  "Create Restaurant": "레스토랑 만들기",
+  "Don't have an account? Register": "계정이 없으신가요? 등록하기",
+  "Already have an account? Sign in": "이미 계정이 있으신가요? 로그인"
 }
