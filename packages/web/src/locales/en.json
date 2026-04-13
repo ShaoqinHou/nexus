@@ -461,5 +461,8 @@
   "Got it": "Got it",
   "Skip tour": "Skip tour",
   "Click the highlighted element to continue": "Click the highlighted element to continue",
-  "Type in the highlighted field, then press Next": "Type in the highlighted field, then press Next"
+  "Type in the highlighted field, then press Next": "Type in the highlighted field, then press Next",
+  "Replace": "Replace",
+  "Remove": "Remove",
+  "Items": "Items"
 }

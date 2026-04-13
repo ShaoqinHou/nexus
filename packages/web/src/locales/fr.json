@@ -461,5 +461,8 @@
   "Got it": "Compris",
   "Skip tour": "Passer la visite",
   "Click the highlighted element to continue": "Cliquez sur l'élément en surbrillance pour continuer",
-  "Type in the highlighted field, then press Next": "Saisissez dans le champ en surbrillance, puis appuyez sur Suivant"
+  "Type in the highlighted field, then press Next": "Saisissez dans le champ en surbrillance, puis appuyez sur Suivant",
+  "Replace": "Remplacer",
+  "Remove": "Supprimer",
+  "Items": "Articles"
 }

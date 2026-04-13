@@ -461,5 +461,8 @@
   "Got it": "알겠습니다",
   "Skip tour": "건너뛰기",
   "Click the highlighted element to continue": "강조된 요소를 클릭하여 계속하세요",
-  "Type in the highlighted field, then press Next": "강조된 필드에 입력한 후 다음을 클릭하세요"
+  "Type in the highlighted field, then press Next": "강조된 필드에 입력한 후 다음을 클릭하세요",
+  "Replace": "교체",
+  "Remove": "삭제",
+  "Items": "항목"
 }

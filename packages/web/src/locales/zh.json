@@ -461,5 +461,8 @@
   "Got it": "知道了",
   "Skip tour": "跳过引导",
   "Click the highlighted element to continue": "点击高亮的元素继续",
-  "Type in the highlighted field, then press Next": "在高亮的输入框中输入，然后点击下一步"
+  "Type in the highlighted field, then press Next": "在高亮的输入框中输入，然后点击下一步",
+  "Replace": "替换",
+  "Remove": "移除",
+  "Items": "菜品"
 }

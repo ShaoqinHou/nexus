@@ -461,5 +461,8 @@
   "Got it": "了解",
   "Skip tour": "スキップ",
   "Click the highlighted element to continue": "ハイライトされた要素をクリックして続行",
-  "Type in the highlighted field, then press Next": "ハイライトされたフィールドに入力し、次へをクリック"
+  "Type in the highlighted field, then press Next": "ハイライトされたフィールドに入力し、次へをクリック",
+  "Replace": "置換",
+  "Remove": "削除",
+  "Items": "商品"
 }

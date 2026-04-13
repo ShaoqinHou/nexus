@@ -1224,7 +1224,7 @@ export function MenuManagement() {
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>
                 {selectedCategory
-                  ? `${selectedCategory.name} Items`
+                  ? `${selectedCategory.name} ${t('Items')}`
                   : t('Menu Items')}
               </CardTitle>
               {activeCategoryId && (

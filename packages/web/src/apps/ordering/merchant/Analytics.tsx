@@ -397,9 +397,9 @@ async function downloadOrdersCsv(
 
 const DATE_RANGE_PRESETS = [7, 30, 90, 365] as const;
 
-function DateRangeLabel(days: number): string {
-  if (days === 365) return 'All';
-  return `${days}d`;
+function DateRangeLabel(days: number, t: (k: string) => string): string {
+  if (days === 365) return t('All Time');
+  return `${days}${t('d')}`;
 }
 
 type AnalyticsTab = 'overview' | 'daily-summary' | 'feedback';
@@ -550,7 +550,7 @@ export function Analytics() {
                   : 'bg-bg-muted text-text-secondary hover:bg-bg-surface',
               ].join(' ')}
             >
-              {DateRangeLabel(d)}
+              {DateRangeLabel(d, t)}
             </button>
           ))}
         </div>
