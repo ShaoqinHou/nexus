@@ -12,7 +12,7 @@ import { useTheme } from '@web/platform/theme/ThemeProvider';
 import { usePullToRefresh } from '@web/lib/hooks/usePullToRefresh';
 import { useCallWaiter } from '@web/apps/ordering/hooks/useTables';
 import { useToast } from '@web/platform/ToastProvider';
-import { useT } from '@web/lib/i18n';
+import { useT, useLocale } from '@web/lib/i18n';
 import type { MenuCategory, MenuItem, ModifierGroup, ComboDeal } from '@web/apps/ordering/types';
 import type { DietaryTag } from '@web/apps/ordering/types';
 import { ALLERGENS } from '@web/apps/ordering/types';
@@ -434,6 +434,7 @@ const MAX_SEARCH_HISTORY = 5;
 
 export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBrowseProps) {
   const t = useT();
+  const { locale } = useLocale();
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [detailItem, setDetailItem] = useState<PublicMenuItem | null>(null);
   const [selectedCombo, setSelectedCombo] = useState<ComboDeal | null>(null);
@@ -537,10 +538,10 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
     error,
     refetch,
   } = useQuery({
-    queryKey: ['ordering', 'public-menu', tenantSlug],
+    queryKey: ['ordering', 'public-menu', tenantSlug, locale],
     queryFn: () =>
       apiClient.get<{ data: PublicMenuResponse | PublicMenuCategory[] }>(
-        `/order/${tenantSlug}/ordering/menu`,
+        `/order/${tenantSlug}/ordering/menu?lang=${locale}`,
       ),
     select: (res) => {
       const payload = res.data;

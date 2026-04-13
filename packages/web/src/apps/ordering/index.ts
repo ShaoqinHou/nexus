@@ -1,5 +1,5 @@
 import { registerApp } from '@web/platform/registry';
-import { UtensilsCrossed, LayoutDashboard, BookOpen, QrCode, Settings2, Tag, Package, Palette, ChefHat, BarChart3, Users } from 'lucide-react';
+import { UtensilsCrossed, LayoutDashboard, BookOpen, QrCode, Settings2, Tag, Package, ChefHat, BarChart3, Users } from 'lucide-react';
 import { staffOnboardingSteps, STAFF_TOUR_ID } from './tours/staffTour';
 import { cleanupStaffTourData } from './tours/cleanup';
 
@@ -18,7 +18,7 @@ registerApp({
     { label: 'QR Codes', path: '/qr', icon: QrCode },
     { label: 'Analytics', path: '/analytics', icon: BarChart3 },
     { label: 'Staff', path: '/staff', icon: Users },
-    { label: 'Theme', path: '/settings', icon: Palette },
+    { label: 'Settings', path: '/settings', icon: Settings2 },
   ],
   merchantRoutes: [],
   customerRoutes: [],

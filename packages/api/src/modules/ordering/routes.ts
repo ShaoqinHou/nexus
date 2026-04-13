@@ -1344,6 +1344,19 @@ export function customerOrderingRoutes(db: DrizzleDB) {
         if (!todayHours || time < todayHours.open || time >= todayHours.close) {
           return c.json({ error: 'Restaurant is currently closed' }, 400);
         }
+
+        // Check last-order cutoff
+        const lastOrderMinutes = typeof settings.lastOrderMinutesBefore === 'number' ? settings.lastOrderMinutesBefore : 0;
+        if (lastOrderMinutes > 0 && todayHours) {
+          const [closeH, closeM] = todayHours.close.split(':').map(Number);
+          const totalMins = closeH * 60 + closeM - lastOrderMinutes;
+          const cutoffH = Math.floor(Math.max(0, totalMins) / 60);
+          const cutoffM = Math.max(0, totalMins) % 60;
+          const cutoff = `${String(cutoffH).padStart(2, '0')}:${String(cutoffM).padStart(2, '0')}`;
+          if (time >= cutoff) {
+            return c.json({ error: `Last orders have been taken for today. Kitchen closes at ${cutoff}.` }, 400);
+          }
+        }
       }
     } catch {
       // If settings parsing fails, allow the order (don't block on config errors)

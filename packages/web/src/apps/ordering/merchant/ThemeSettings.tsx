@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Palette, Check, RotateCcw, Save, Eye, Clock, Monitor, Smartphone, Receipt, Globe } from 'lucide-react';
+import { Palette, Check, RotateCcw, Save, Eye, Clock, Monitor, Smartphone, Receipt, Globe, Store, Timer, Settings2 } from 'lucide-react';
 import {
   Button,
   Card,
@@ -90,6 +90,7 @@ interface FormState {
   logoUrl: string;
   coverImageUrl: string;
   operatingHours: DayHoursState[];
+  lastOrderMinutesBefore: string;
   taxRate: string;
   taxInclusive: boolean;
   taxLabel: string;
@@ -106,6 +107,7 @@ function settingsToFormState(settings: TenantThemeSettings | undefined): FormSta
     logoUrl: settings?.logoUrl ?? '',
     coverImageUrl: settings?.coverImageUrl ?? '',
     operatingHours: hoursEntriesToState(settings?.operatingHours),
+    lastOrderMinutesBefore: settings?.lastOrderMinutesBefore?.toString() ?? '',
     taxRate: settings?.taxRate?.toString() ?? '',
     taxInclusive: settings?.taxInclusive ?? true,
     taxLabel: settings?.taxLabel ?? '',
@@ -115,6 +117,7 @@ function settingsToFormState(settings: TenantThemeSettings | undefined): FormSta
 
 function formStateToSettings(form: FormState): Partial<TenantThemeSettings> {
   const taxRate = parseFloat(form.taxRate);
+  const lastOrderMinutes = parseInt(form.lastOrderMinutesBefore, 10);
   return {
     preset: form.preset || undefined,
     brandColor: form.brandColor,
@@ -124,6 +127,7 @@ function formStateToSettings(form: FormState): Partial<TenantThemeSettings> {
     logoUrl: form.logoUrl || undefined,
     coverImageUrl: form.coverImageUrl || undefined,
     operatingHours: stateToHoursEntries(form.operatingHours),
+    lastOrderMinutesBefore: !isNaN(lastOrderMinutes) && lastOrderMinutes > 0 ? lastOrderMinutes : undefined,
     taxRate: !isNaN(taxRate) && taxRate > 0 ? taxRate : undefined,
     taxInclusive: form.taxInclusive,
     taxLabel: form.taxLabel || undefined,
@@ -609,11 +613,11 @@ export function ThemeSettings() {
       {/* Page header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-3">
-          <Palette className="h-6 w-6 text-primary" />
+          <Settings2 className="h-6 w-6 text-primary" />
           <div>
-            <h1 className="text-xl font-bold text-text">Theme Settings</h1>
+            <h1 className="text-xl font-bold text-text">Settings</h1>
             <p className="text-sm text-text-secondary">
-              Customize how {tenant?.name ?? 'your restaurant'} looks to customers
+              Configure {tenant?.name ?? 'your restaurant'} settings and appearance
             </p>
           </div>
         </div>
@@ -641,6 +645,222 @@ export function ThemeSettings() {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Left: settings form */}
         <div className="lg:col-span-3 space-y-6">
+
+          {/* ═══════════ RESTAURANT SECTION ═══════════ */}
+          <div className="flex items-center gap-2">
+            <Store className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-bold text-text">Restaurant</h2>
+          </div>
+
+          {/* Operating Hours */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-primary" />
+                <CardTitle>Operating Hours</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-text-secondary">
+                Set your opening hours. Days marked as closed will show a "closed" indicator to customers.
+              </p>
+              <div className="space-y-2">
+                {form.operatingHours.map((day, dayIndex) => (
+                  <div
+                    key={dayIndex}
+                    className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 p-3 rounded-lg border border-border bg-bg-surface"
+                  >
+                    {/* Day name */}
+                    <span className="text-sm font-medium text-text w-24 shrink-0">
+                      {DAY_NAMES[dayIndex]}
+                    </span>
+
+                    {/* Open toggle */}
+                    <Toggle
+                      checked={day.isOpen}
+                      label={day.isOpen ? 'Open' : 'Closed'}
+                      onChange={(checked) => {
+                        const updated = [...form.operatingHours];
+                        updated[dayIndex] = { ...updated[dayIndex], isOpen: checked };
+                        updateField('operatingHours', updated);
+                      }}
+                    />
+
+                    {/* Time inputs */}
+                    {day.isOpen && (
+                      <div className="flex flex-col gap-1 flex-1">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="time"
+                            value={day.open}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                              const updated = [...form.operatingHours];
+                              updated[dayIndex] = { ...updated[dayIndex], open: e.target.value };
+                              updateField('operatingHours', updated);
+                            }}
+                            className="rounded-md border border-border px-2 py-1.5 text-sm text-text bg-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                          />
+                          <span className="text-xs text-text-tertiary">to</span>
+                          <input
+                            type="time"
+                            value={day.close}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                              const updated = [...form.operatingHours];
+                              updated[dayIndex] = { ...updated[dayIndex], close: e.target.value };
+                              updateField('operatingHours', updated);
+                            }}
+                            className="rounded-md border border-border px-2 py-1.5 text-sm text-text bg-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                          />
+                        </div>
+                        {day.open >= day.close && (
+                          <p className="text-xs text-danger mt-1">Close time must be after open time</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Last Order Time */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Timer className="h-5 w-5 text-primary" />
+                <CardTitle>Last Order Cutoff</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-text-secondary">
+                Stop accepting orders a set number of minutes before closing time. Leave empty or 0 for no restriction.
+              </p>
+              <Input
+                label="Minutes before closing"
+                type="number"
+                min="0"
+                max="120"
+                step="5"
+                value={form.lastOrderMinutesBefore}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField('lastOrderMinutesBefore', e.target.value)}
+                placeholder="e.g. 30"
+              />
+              {parseInt(form.lastOrderMinutesBefore, 10) > 0 && (
+                <p className="text-xs text-text-tertiary">
+                  Example: if you close at 22:00, last orders will be accepted until{' '}
+                  {(() => {
+                    const mins = parseInt(form.lastOrderMinutesBefore, 10);
+                    const h = Math.floor((22 * 60 - mins) / 60);
+                    const m = (22 * 60 - mins) % 60;
+                    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+                  })()}
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Language Settings */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Globe className="h-5 w-5 text-primary" />
+                <CardTitle>Languages</CardTitle>
+              </div>
+              <p className="text-sm text-text-secondary mt-1">
+                Enable languages for your customer menu. Menu items are auto-translated when saved.
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {([
+                  { code: 'en', label: 'English', flag: '\u{1F1EC}\u{1F1E7}', description: 'Default language' },
+                  { code: 'zh', label: '\u4E2D\u6587 (Chinese)', flag: '\u{1F1E8}\u{1F1F3}', description: 'Simplified Chinese' },
+                  { code: 'ja', label: '\u65E5\u672C\u8A9E (Japanese)', flag: '\u{1F1EF}\u{1F1F5}', description: 'Japanese' },
+                  { code: 'ko', label: '\uD55C\uAD6D\uC5B4 (Korean)', flag: '\u{1F1F0}\u{1F1F7}', description: 'Korean' },
+                  { code: 'fr', label: 'Fran\u00E7ais (French)', flag: '\u{1F1EB}\u{1F1F7}', description: 'French' },
+                ] as const).map((lang) => {
+                  const isEnabled = form.supportedLocales.includes(lang.code);
+                  const isDefault = lang.code === 'en';
+                  return (
+                    <label
+                      key={lang.code}
+                      className={[
+                        'flex items-center gap-3 p-3 rounded-lg border transition-colors cursor-pointer',
+                        isEnabled ? 'border-primary/30 bg-primary/5' : 'border-border hover:border-border-strong',
+                        isDefault ? 'opacity-75 cursor-default' : '',
+                      ].join(' ')}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isEnabled}
+                        disabled={isDefault}
+                        onChange={() => {
+                          if (isDefault) return;
+                          const next = isEnabled
+                            ? form.supportedLocales.filter((l) => l !== lang.code)
+                            : [...form.supportedLocales, lang.code];
+                          updateField('supportedLocales', next);
+                        }}
+                        className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                      />
+                      <span className="text-lg">{lang.flag}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-text">{lang.label}</p>
+                        <p className="text-xs text-text-tertiary">{lang.description}{isDefault ? ' (always enabled)' : ''}</p>
+                      </div>
+                      {isEnabled && !isDefault && (
+                        <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">Active</span>
+                      )}
+                    </label>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* ═══════════ TAX SECTION ═══════════ */}
+          <div className="flex items-center gap-2 pt-2">
+            <Receipt className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-bold text-text">Tax</h2>
+          </div>
+
+          <Card>
+            <CardContent className="space-y-4 pt-6">
+              <p className="text-sm text-text-secondary">
+                Configure tax calculation for orders. Leave rate empty or 0 for no tax.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Input
+                  label="Tax Rate (%)"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="100"
+                  value={form.taxRate}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField('taxRate', e.target.value)}
+                  placeholder="e.g. 15"
+                />
+                <Input
+                  label="Tax Label"
+                  value={form.taxLabel}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField('taxLabel', e.target.value)}
+                  placeholder="e.g. GST, VAT, Tax"
+                />
+              </div>
+              <Toggle
+                checked={form.taxInclusive}
+                label={form.taxInclusive ? 'Tax inclusive (prices already include tax)' : 'Tax exclusive (tax added on top of prices)'}
+                onChange={(checked) => updateField('taxInclusive', checked)}
+              />
+            </CardContent>
+          </Card>
+
+          {/* ═══════════ THEME SECTION ═══════════ */}
+          <div className="flex items-center gap-2 pt-2">
+            <Palette className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-bold text-text">Theme</h2>
+          </div>
+
           {/* Preset picker */}
           <Card>
             <CardHeader>
@@ -841,221 +1061,6 @@ export function ThemeSettings() {
             </CardFooter>
           </Card>
 
-          {/* Tax Settings */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Receipt className="h-5 w-5 text-primary" />
-                <CardTitle>Tax</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-text-secondary">
-                Configure tax calculation for orders. Leave rate empty or 0 for no tax.
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Input
-                  label="Tax Rate (%)"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max="100"
-                  value={form.taxRate}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField('taxRate', e.target.value)}
-                  placeholder="e.g. 15"
-                />
-                <Input
-                  label="Tax Label"
-                  value={form.taxLabel}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField('taxLabel', e.target.value)}
-                  placeholder="e.g. GST, VAT, Tax"
-                />
-              </div>
-              <Toggle
-                checked={form.taxInclusive}
-                label={form.taxInclusive ? 'Tax inclusive (prices already include tax)' : 'Tax exclusive (tax added on top of prices)'}
-                onChange={(checked) => updateField('taxInclusive', checked)}
-              />
-            </CardContent>
-            <CardFooter className="justify-end gap-2">
-              {isDirty && (
-                <Button variant="ghost" size="sm" onClick={handleReset}>
-                  <RotateCcw className="h-4 w-4" />
-                  Discard
-                </Button>
-              )}
-              <Button
-                variant="primary"
-                size="md"
-                onClick={handleSave}
-                loading={updateMutation.isPending}
-                disabled={!isDirty}
-              >
-                <Save className="h-4 w-4" />
-                Save Changes
-              </Button>
-            </CardFooter>
-          </Card>
-
-          {/* Operating Hours */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Clock className="h-5 w-5 text-primary" />
-                <CardTitle>Operating Hours</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <p className="text-sm text-text-secondary">
-                Set your opening hours. Days marked as closed will show a "closed" indicator to customers.
-              </p>
-              <div className="space-y-2">
-                {form.operatingHours.map((day, dayIndex) => (
-                  <div
-                    key={dayIndex}
-                    className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 p-3 rounded-lg border border-border bg-bg-surface"
-                  >
-                    {/* Day name */}
-                    <span className="text-sm font-medium text-text w-24 shrink-0">
-                      {DAY_NAMES[dayIndex]}
-                    </span>
-
-                    {/* Open toggle */}
-                    <Toggle
-                      checked={day.isOpen}
-                      label={day.isOpen ? 'Open' : 'Closed'}
-                      onChange={(checked) => {
-                        const updated = [...form.operatingHours];
-                        updated[dayIndex] = { ...updated[dayIndex], isOpen: checked };
-                        updateField('operatingHours', updated);
-                      }}
-                    />
-
-                    {/* Time inputs */}
-                    {day.isOpen && (
-                      <div className="flex flex-col gap-1 flex-1">
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="time"
-                            value={day.open}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                              const updated = [...form.operatingHours];
-                              updated[dayIndex] = { ...updated[dayIndex], open: e.target.value };
-                              updateField('operatingHours', updated);
-                            }}
-                            className="rounded-md border border-border px-2 py-1.5 text-sm text-text bg-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                          />
-                          <span className="text-xs text-text-tertiary">to</span>
-                          <input
-                            type="time"
-                            value={day.close}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                              const updated = [...form.operatingHours];
-                              updated[dayIndex] = { ...updated[dayIndex], close: e.target.value };
-                              updateField('operatingHours', updated);
-                            }}
-                            className="rounded-md border border-border px-2 py-1.5 text-sm text-text bg-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                          />
-                        </div>
-                        {day.open >= day.close && (
-                          <p className="text-xs text-danger mt-1">Close time must be after open time</p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-            <CardFooter className="justify-end gap-2">
-              {isDirty && (
-                <Button variant="ghost" size="sm" onClick={handleReset}>
-                  <RotateCcw className="h-4 w-4" />
-                  Discard
-                </Button>
-              )}
-              <Button
-                variant="primary"
-                size="md"
-                onClick={handleSave}
-                loading={updateMutation.isPending}
-                disabled={!isDirty}
-              >
-                <Save className="h-4 w-4" />
-                Save Changes
-              </Button>
-            </CardFooter>
-          </Card>
-
-          {/* Language Settings */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Globe className="h-5 w-5 text-primary" />
-                <CardTitle>Languages</CardTitle>
-              </div>
-              <p className="text-sm text-text-secondary mt-1">
-                Enable languages for your customer menu. Menu items are auto-translated when saved.
-              </p>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {([
-                  { code: 'en', label: 'English', flag: '🇬🇧', description: 'Default language' },
-                  { code: 'zh', label: '中文 (Chinese)', flag: '🇨🇳', description: 'Simplified Chinese' },
-                  { code: 'ja', label: '日本語 (Japanese)', flag: '🇯🇵', description: 'Japanese' },
-                  { code: 'ko', label: '한국어 (Korean)', flag: '🇰🇷', description: 'Korean' },
-                  { code: 'fr', label: 'Français (French)', flag: '🇫🇷', description: 'French' },
-                ] as const).map((lang) => {
-                  const isEnabled = form.supportedLocales.includes(lang.code);
-                  const isDefault = lang.code === 'en';
-                  return (
-                    <label
-                      key={lang.code}
-                      className={[
-                        'flex items-center gap-3 p-3 rounded-lg border transition-colors cursor-pointer',
-                        isEnabled ? 'border-primary/30 bg-primary/5' : 'border-border hover:border-border-strong',
-                        isDefault ? 'opacity-75 cursor-default' : '',
-                      ].join(' ')}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isEnabled}
-                        disabled={isDefault}
-                        onChange={() => {
-                          if (isDefault) return;
-                          const next = isEnabled
-                            ? form.supportedLocales.filter((l) => l !== lang.code)
-                            : [...form.supportedLocales, lang.code];
-                          updateField('supportedLocales', next);
-                        }}
-                        className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
-                      />
-                      <span className="text-lg">{lang.flag}</span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-text">{lang.label}</p>
-                        <p className="text-xs text-text-tertiary">{lang.description}{isDefault ? ' (always enabled)' : ''}</p>
-                      </div>
-                      {isEnabled && !isDefault && (
-                        <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">Active</span>
-                      )}
-                    </label>
-                  );
-                })}
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button
-                variant="primary"
-                size="md"
-                onClick={handleSave}
-                loading={updateMutation.isPending}
-                disabled={!isDirty}
-              >
-                <Save className="h-4 w-4" />
-                Save Changes
-              </Button>
-            </CardFooter>
-          </Card>
         </div>
 
         {/* Right: live preview */}

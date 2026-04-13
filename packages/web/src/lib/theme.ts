@@ -135,10 +135,21 @@ export interface TenantThemeSettings {
   borderRadius?: 'sharp' | 'rounded' | 'pill';
   surfaceStyle?: 'flat' | 'subtle' | 'elevated';
   operatingHours?: OperatingHoursEntry[];
+  lastOrderMinutesBefore?: number; // Stop accepting orders X min before closing (0 = no restriction)
   taxRate?: number;       // e.g. 15 for 15% GST
   taxInclusive?: boolean; // true = prices already include tax
   taxLabel?: string;      // e.g. "GST", "VAT", "Tax"
   contactPhone?: string;  // Restaurant contact phone number
+}
+
+/** Subtract minutes from a "HH:MM" time string */
+function subtractMinutes(time: string, minutes: number): string {
+  const [h, m] = time.split(':').map(Number);
+  const total = h * 60 + m - minutes;
+  if (total < 0) return '00:00';
+  const hh = Math.floor(total / 60);
+  const mm = total % 60;
+  return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
 }
 
 /** Check if restaurant is currently open based on operating hours */
@@ -157,6 +168,40 @@ export function isOpenNow(hours?: OperatingHoursEntry[]): { open: boolean; nextC
     open: isOpen,
     nextChange: isOpen ? `Closes at ${todayHours.close}` : `Opens at ${todayHours.open}`,
   };
+}
+
+/** Check if ordering is currently accepted (accounts for lastOrderMinutesBefore cutoff) */
+export function isOrderingOpen(
+  hours?: OperatingHoursEntry[],
+  lastOrderMinutesBefore?: number,
+): { open: boolean; orderingClosed: boolean; kitchenClosesAt?: string; nextChange?: string } {
+  const status = isOpenNow(hours);
+  if (!status.open) return { open: false, orderingClosed: false, nextChange: status.nextChange };
+
+  // Restaurant is open — check last-order cutoff
+  if (!lastOrderMinutesBefore || lastOrderMinutesBefore <= 0 || !hours || hours.length === 0) {
+    return { open: true, orderingClosed: false, nextChange: status.nextChange };
+  }
+
+  const now = new Date();
+  const day = now.getDay();
+  const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+  const todayHours = hours.find((h) => h.day === day);
+  if (!todayHours) return { open: true, orderingClosed: false, nextChange: status.nextChange };
+
+  const cutoff = subtractMinutes(todayHours.close, lastOrderMinutesBefore);
+
+  if (time >= cutoff) {
+    return {
+      open: true,
+      orderingClosed: true,
+      kitchenClosesAt: cutoff,
+      nextChange: status.nextChange,
+    };
+  }
+
+  return { open: true, orderingClosed: false, kitchenClosesAt: cutoff, nextChange: status.nextChange };
 }
 
 const RADIUS_MAP: Record<string, Record<string, string>> = {

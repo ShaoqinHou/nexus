@@ -12,7 +12,7 @@ import { CartSidebar } from '@web/apps/ordering/customer/CartSidebar';
 import { OrderConfirmation } from '@web/apps/ordering/customer/OrderConfirmation';
 import { useTenant } from '@web/platform/tenant/TenantProvider';
 import { useTour, isTourCompleted } from '@web/platform/TourProvider';
-import { isOpenNow } from '@web/lib/theme';
+import { isOpenNow, isOrderingOpen } from '@web/lib/theme';
 import type { TenantThemeSettings } from '@web/lib/theme';
 import type { Order } from '@web/apps/ordering/types';
 import { orderingKeys } from '@web/apps/ordering/hooks/keys';
@@ -68,6 +68,8 @@ function CustomerAppInner({ tenantSlug, tableNumber }: CustomerAppInnerProps) {
 
   const openStatus = isOpenNow(settings.operatingHours);
   const isClosed = !openStatus.open;
+  const orderingStatus = isOrderingOpen(settings.operatingHours, settings.lastOrderMinutesBefore);
+  const isOrderingCutoff = orderingStatus.orderingClosed && !isClosed;
 
   // Auto-show customer tour on first visit
   useEffect(() => {
@@ -232,6 +234,18 @@ function CustomerAppInner({ tenantSlug, tableNumber }: CustomerAppInnerProps) {
         </div>
       )}
 
+      {/* Last-order cutoff banner */}
+      {isOrderingCutoff && !addToOrderId && (
+        <div className="fixed top-0 left-0 right-0 z-30 bg-warning-light border-b border-warning/20">
+          <div className="max-w-3xl lg:max-w-7xl mx-auto flex items-center gap-2 px-4 py-2.5">
+            <Clock className="h-4 w-4 text-warning shrink-0" />
+            <p className="text-sm text-warning font-medium">
+              Last orders have been taken for today. Kitchen closed for new orders at {orderingStatus.kitchenClosesAt}.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Adding-to-order banner */}
       {addToOrderId && (
         <div className="fixed top-0 left-0 right-0 z-30 bg-primary-light border-b border-primary/20">
@@ -251,7 +265,7 @@ function CustomerAppInner({ tenantSlug, tableNumber }: CustomerAppInnerProps) {
       )}
 
       {/* Center: Menu content (includes its own desktop category rail on the left) */}
-      <div className={['flex-1 min-w-0', isClosed || addToOrderId ? 'mt-10' : ''].join(' ')}>
+      <div className={['flex-1 min-w-0', isClosed || isOrderingCutoff || addToOrderId ? 'mt-10' : ''].join(' ')}>
         {/* Recent orders from localStorage */}
         {recentOrders.length > 0 && !addToOrderId && (
           <div className="px-4 py-2 border-b border-border bg-bg-surface flex items-center justify-between gap-3">
@@ -280,10 +294,10 @@ function CustomerAppInner({ tenantSlug, tableNumber }: CustomerAppInnerProps) {
           </div>
         )}
 
-        <MenuBrowse tenantSlug={tenantSlug} tableNumber={tableNumber} disabled={isClosed} />
+        <MenuBrowse tenantSlug={tenantSlug} tableNumber={tableNumber} disabled={isClosed || isOrderingCutoff} />
 
-        {/* Mobile/tablet: bottom sheet cart + spacer — hidden when closed */}
-        {!isClosed && (
+        {/* Mobile/tablet: bottom sheet cart + spacer — hidden when closed or ordering cutoff */}
+        {!isClosed && !isOrderingCutoff && (
           <div className="lg:hidden">
             <CartSheet
               tenantSlug={tenantSlug}
@@ -300,8 +314,8 @@ function CustomerAppInner({ tenantSlug, tableNumber }: CustomerAppInnerProps) {
         )}
       </div>
 
-      {/* Right: Desktop persistent cart sidebar — hidden when closed */}
-      {!isClosed && (
+      {/* Right: Desktop persistent cart sidebar — hidden when closed or ordering cutoff */}
+      {!isClosed && !isOrderingCutoff && (
         <aside className="hidden lg:block w-[340px] shrink-0 sticky top-0 h-screen overflow-y-auto border-l border-border bg-bg">
           <CartSidebar
             tenantSlug={tenantSlug}
