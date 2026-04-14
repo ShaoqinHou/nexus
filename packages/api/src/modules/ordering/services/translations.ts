@@ -8,6 +8,11 @@ import type { DrizzleDB } from '../../../db/client.js';
 
 /**
  * Store (upsert) a single translation for an entity field.
+ *
+ * - source='auto' (default): will NOT overwrite an existing row whose source='manual'.
+ *   This preserves human-entered overrides during automatic re-translation.
+ * - source='manual': always writes through, overwriting previous value and marking the
+ *   row as manual.
  */
 export function setTranslation(
   db: DrizzleDB,
@@ -17,6 +22,7 @@ export function setTranslation(
   locale: string,
   field: string,
   value: string,
+  source: 'auto' | 'manual' = 'auto',
 ) {
   const now = new Date().toISOString();
 
@@ -36,9 +42,14 @@ export function setTranslation(
     .get();
 
   if (existing) {
+    // Auto translations MUST NOT clobber a manual override.
+    if (source === 'auto' && existing.source === 'manual') {
+      return existing;
+    }
+
     return db
       .update(contentTranslations)
-      .set({ value, updatedAt: now })
+      .set({ value, source, updatedAt: now })
       .where(eq(contentTranslations.id, existing.id))
       .returning()
       .get();
@@ -54,11 +65,97 @@ export function setTranslation(
       locale,
       field,
       value,
+      source,
       createdAt: now,
       updatedAt: now,
     })
     .returning()
     .get();
+}
+
+/**
+ * Get ALL translation rows for an entity (across all locales/fields), with full metadata
+ * including the `source` flag. Used by the merchant translation editor.
+ */
+export function getEntityTranslations(
+  db: DrizzleDB,
+  tenantId: string,
+  entityType: string,
+  entityId: string,
+): Array<{ locale: string; field: string; value: string; source: 'auto' | 'manual' }> {
+  const rows = db
+    .select()
+    .from(contentTranslations)
+    .where(
+      and(
+        eq(contentTranslations.tenantId, tenantId),
+        eq(contentTranslations.entityType, entityType),
+        eq(contentTranslations.entityId, entityId),
+      ),
+    )
+    .all();
+
+  return rows.map((r) => ({
+    locale: r.locale,
+    field: r.field,
+    value: r.value,
+    source: (r.source ?? 'auto') as 'auto' | 'manual',
+  }));
+}
+
+/**
+ * Delete a specific translation row (entity/locale/field). Returns true if a row was
+ * deleted. Used to reset a manual override back to auto — the caller is responsible for
+ * re-running autoTranslateEntity to regenerate the auto value.
+ */
+export function deleteTranslation(
+  db: DrizzleDB,
+  tenantId: string,
+  entityType: string,
+  entityId: string,
+  locale: string,
+  field: string,
+): boolean {
+  const result = db
+    .delete(contentTranslations)
+    .where(
+      and(
+        eq(contentTranslations.tenantId, tenantId),
+        eq(contentTranslations.entityType, entityType),
+        eq(contentTranslations.entityId, entityId),
+        eq(contentTranslations.locale, locale),
+        eq(contentTranslations.field, field),
+      ),
+    )
+    .run();
+  return (result.changes ?? 0) > 0;
+}
+
+/**
+ * Delete all translations for an entity in a specific locale (or all locales if omitted).
+ * When `preserveManual` is true, rows with source='manual' are kept intact.
+ */
+export function deleteEntityTranslations(
+  db: DrizzleDB,
+  tenantId: string,
+  entityType: string,
+  entityId: string,
+  locale?: string,
+  preserveManual = true,
+): number {
+  const conditions = [
+    eq(contentTranslations.tenantId, tenantId),
+    eq(contentTranslations.entityType, entityType),
+    eq(contentTranslations.entityId, entityId),
+  ];
+  if (locale) conditions.push(eq(contentTranslations.locale, locale));
+  if (preserveManual) conditions.push(eq(contentTranslations.source, 'auto'));
+
+  const result = db
+    .delete(contentTranslations)
+    .where(and(...conditions))
+    .run();
+  return result.changes ?? 0;
 }
 
 /**
@@ -142,7 +239,7 @@ export function getTenantPrimaryLocale(db: DrizzleDB, tenantId: string): string 
  * These are the languages customers can switch to beyond the primary.
  * Returns an array of locale codes, defaults to empty.
  */
-function getTenantLocales(db: DrizzleDB, tenantId: string): string[] {
+export function getTenantLocales(db: DrizzleDB, tenantId: string): string[] {
   const tenant = db.select().from(tenants).where(eq(tenants.id, tenantId)).get();
   if (!tenant?.settings) return [];
   try {
@@ -202,7 +299,7 @@ export async function autoTranslateEntity(
         context: `${context} ${field}`,
         sourceLocale: resolvedSource,
       });
-      setTranslation(db, tenantId, entityType, entityId, locale, field, translated);
+      setTranslation(db, tenantId, entityType, entityId, locale, field, translated, 'auto');
     } else {
       // Multiple fields — use batch translate
       const items = nonEmptyFields.map(([field, text]) => ({
@@ -212,7 +309,7 @@ export async function autoTranslateEntity(
       }));
       const translations = await translateBatch(items, locale, resolvedSource);
       for (const [field, translated] of translations) {
-        setTranslation(db, tenantId, entityType, entityId, locale, field, translated);
+        setTranslation(db, tenantId, entityType, entityId, locale, field, translated, 'auto');
       }
     }
   }

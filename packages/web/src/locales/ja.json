@@ -101,6 +101,10 @@
   "Switch to dark mode": "ダークモードに切替",
   "items": "品",
   "item": "品",
+  "modifier": "オプション",
+  "modifiers": "オプション",
+  "Used by": "使用先",
+  "Unused — no items use this group": "未使用 — このグループを使用する商品はありません",
   "Orders": "注文管理",
   "Auto-refreshes every 10s": "10秒ごとに自動更新",
   "Status": "ステータス",
@@ -727,5 +731,13 @@
   "Allergen filter": "アレルゲン除外",
   "filtered": "件除外中",
   "Add note for": "にメモを追加",
-  "from cart": "をカートから削除"
+  "from cart": "をカートから削除",
+  "Translations": "翻訳",
+  "Manual": "手動",
+  "AI": "AI",
+  "Regenerate all from source": "ソース言語からすべての翻訳を再生成",
+  "Reset to AI translation": "AI翻訳にリセット",
+  "Save translation": "翻訳を保存",
+  "Source": "ソース",
+  "No translation yet": "翻訳がまだありません"
 }

@@ -101,6 +101,10 @@
   "Switch to dark mode": "Switch to dark mode",
   "items": "items",
   "item": "item",
+  "modifier": "modifier",
+  "modifiers": "modifiers",
+  "Used by": "Used by",
+  "Unused — no items use this group": "Unused — no items use this group",
   "Orders": "Orders",
   "Auto-refreshes every 10s": "Auto-refreshes every 10s",
   "Status": "Status",
@@ -727,5 +731,13 @@
   "Allergen filter": "Allergen filter",
   "filtered": "filtered",
   "Add note for": "Add note for",
-  "from cart": "from cart"
+  "from cart": "from cart",
+  "Translations": "Translations",
+  "Manual": "Manual",
+  "AI": "AI",
+  "Regenerate all from source": "Regenerate all from source",
+  "Reset to AI translation": "Reset to AI translation",
+  "Save translation": "Save translation",
+  "Source": "Source",
+  "No translation yet": "No translation yet"
 }

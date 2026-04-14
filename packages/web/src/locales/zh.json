@@ -101,6 +101,10 @@
   "Switch to dark mode": "切换到深色模式",
   "items": "件",
   "item": "件",
+  "modifier": "选项",
+  "modifiers": "选项",
+  "Used by": "用于",
+  "Unused — no items use this group": "未使用 — 暂无菜品使用此组",
   "Orders": "订单管理",
   "Auto-refreshes every 10s": "每10秒自动刷新",
   "Status": "状态",
@@ -727,5 +731,13 @@
   "Allergen filter": "过敏原筛选",
   "filtered": "已筛选",
   "Add note for": "为...添加备注",
-  "from cart": "从购物车移除"
+  "from cart": "从购物车移除",
+  "Translations": "翻译",
+  "Manual": "手动",
+  "AI": "AI",
+  "Regenerate all from source": "从源语言重新生成所有翻译",
+  "Reset to AI translation": "重置为AI翻译",
+  "Save translation": "保存翻译",
+  "Source": "源语言",
+  "No translation yet": "暂无翻译"
 }

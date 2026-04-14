@@ -79,9 +79,13 @@ import {
   setTranslation,
   getTranslations,
   getTranslationsForLocale,
+  getEntityTranslations,
+  deleteTranslation,
+  deleteEntityTranslations,
   autoTranslateEntity,
   translateForKitchen,
   getTenantPrimaryLocale,
+  getTenantLocales,
 } from './service.js';
 
 // --- Validation Schemas ---
@@ -1168,7 +1172,7 @@ export function staffOrderingRoutes(db: DrizzleDB) {
       for (const item of batchItems) {
         const translated = results.get(item.key);
         if (translated && translated !== item.text) {
-          setTranslation(db, tenantId, item.entityType, item.entityId, targetLocale, item.field, translated);
+          setTranslation(db, tenantId, item.entityType, item.entityId, targetLocale, item.field, translated, 'auto');
           translatedCount++;
         }
       }
@@ -1179,6 +1183,157 @@ export function staffOrderingRoutes(db: DrizzleDB) {
       return c.json({ error: 'Batch translation failed' }, 500);
     }
   });
+
+  // --- Menu item translations (manual override support) ---
+
+  // GET all translations for a menu item (locale + field + value + source)
+  router.get('/menu/items/:id/translations', (c) => {
+    const tenantId = c.var.tenantId;
+    const itemId = c.req.param('id');
+
+    // Verify item belongs to this tenant
+    const items = getMenuItems(db, tenantId);
+    const item = items.find((i) => i.id === itemId);
+    if (!item) {
+      return c.json({ error: 'Item not found' }, 404);
+    }
+
+    const translations = getEntityTranslations(db, tenantId, 'menu_item', itemId);
+    return c.json({ data: { translations } });
+  });
+
+  // PUT — upsert a manual translation for a specific (locale, field)
+  router.put(
+    '/menu/items/:id/translations/:locale/:field',
+    zValidator('json', z.object({ value: z.string().min(1, 'Value is required') })),
+    (c) => {
+      const tenantId = c.var.tenantId;
+      const user = c.var.user;
+      if (user.role !== 'owner' && user.role !== 'manager') {
+        return c.json({ error: 'Only owner or manager can edit translations' }, 403);
+      }
+
+      const itemId = c.req.param('id');
+      const locale = c.req.param('locale');
+      const field = c.req.param('field');
+      const { value } = c.req.valid('json');
+
+      if (field !== 'name' && field !== 'description') {
+        return c.json({ error: "Field must be 'name' or 'description'" }, 400);
+      }
+
+      // Verify item belongs to this tenant
+      const items = getMenuItems(db, tenantId);
+      const item = items.find((i) => i.id === itemId);
+      if (!item) {
+        return c.json({ error: 'Item not found' }, 404);
+      }
+
+      setTranslation(db, tenantId, 'menu_item', itemId, locale, field, value, 'manual');
+      return c.json({
+        data: { translation: { locale, field, value, source: 'manual' as const } },
+      });
+    },
+  );
+
+  // DELETE — revert a manual translation back to auto. Triggers fire-and-forget
+  // re-translation from the source value.
+  router.delete('/menu/items/:id/translations/:locale/:field', async (c) => {
+    const tenantId = c.var.tenantId;
+    const user = c.var.user;
+    if (user.role !== 'owner' && user.role !== 'manager') {
+      return c.json({ error: 'Only owner or manager can edit translations' }, 403);
+    }
+
+    const itemId = c.req.param('id');
+    const locale = c.req.param('locale');
+    const field = c.req.param('field');
+
+    if (field !== 'name' && field !== 'description') {
+      return c.json({ error: "Field must be 'name' or 'description'" }, 400);
+    }
+
+    const items = getMenuItems(db, tenantId);
+    const item = items.find((i) => i.id === itemId);
+    if (!item) {
+      return c.json({ error: 'Item not found' }, 404);
+    }
+
+    deleteTranslation(db, tenantId, 'menu_item', itemId, locale, field);
+
+    // Fire-and-forget regeneration from the source fields.
+    try {
+      const fields: Record<string, string> = {};
+      if (item.name) fields.name = item.name;
+      if (item.description) fields.description = item.description;
+      if (Object.keys(fields).length > 0) {
+        autoTranslateEntity(db, tenantId, 'menu_item', itemId, fields, 'menu item').catch(
+          (err) => console.error('Auto-translate (reset) failed:', err instanceof Error ? err.message : err),
+        );
+      }
+    } catch (err) {
+      console.error('Auto-translate (reset) setup failed:', err instanceof Error ? err.message : err);
+    }
+
+    return c.json({ data: { deleted: true } });
+  });
+
+  // POST — regenerate all auto translations for this item. Optionally restrict to
+  // specific locales and/or force overwrite of manual overrides.
+  router.post(
+    '/menu/items/:id/translations/regenerate',
+    zValidator(
+      'json',
+      z.object({
+        locales: z.array(z.string()).optional(),
+        forceAll: z.boolean().optional(),
+      }).default({}),
+    ),
+    async (c) => {
+      const tenantId = c.var.tenantId;
+      const user = c.var.user;
+      if (user.role !== 'owner' && user.role !== 'manager') {
+        return c.json({ error: 'Only owner or manager can regenerate translations' }, 403);
+      }
+
+      const itemId = c.req.param('id');
+      const body = c.req.valid('json') as { locales?: string[]; forceAll?: boolean };
+
+      const items = getMenuItems(db, tenantId);
+      const item = items.find((i) => i.id === itemId);
+      if (!item) {
+        return c.json({ error: 'Item not found' }, 404);
+      }
+
+      const primaryLocale = getTenantPrimaryLocale(db, tenantId);
+      const allLocales = getTenantLocales(db, tenantId);
+      const targetLocales = (body.locales && body.locales.length > 0 ? body.locales : allLocales)
+        .filter((l) => l !== primaryLocale);
+
+      // Clear existing auto translations (preserving manual unless forceAll is set)
+      for (const locale of targetLocales) {
+        deleteEntityTranslations(db, tenantId, 'menu_item', itemId, locale, !body.forceAll);
+      }
+
+      const fields: Record<string, string> = {};
+      if (item.name) fields.name = item.name;
+      if (item.description) fields.description = item.description;
+
+      if (Object.keys(fields).length > 0 && targetLocales.length > 0) {
+        try {
+          // Run sequentially per locale — autoTranslateEntity already iterates all
+          // tenant locales; we use it directly but with a short-circuit when filtered.
+          await autoTranslateEntity(db, tenantId, 'menu_item', itemId, fields, 'menu item');
+        } catch (err) {
+          console.error('Regenerate translations failed:', err instanceof Error ? err.message : err);
+          return c.json({ error: 'Translation regeneration failed' }, 500);
+        }
+      }
+
+      const translations = getEntityTranslations(db, tenantId, 'menu_item', itemId);
+      return c.json({ data: { translations } });
+    },
+  );
 
   // --- Waiter Calls (staff: read + acknowledge) ---
 

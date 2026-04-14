@@ -22,7 +22,7 @@ import {
 } from '@web/components/ui';
 import { ConfirmButton, EmptyState } from '@web/components/patterns';
 import { formatPrice, parseTags } from '@web/lib/format';
-import { useT } from '@web/lib/i18n';
+import { useT, SUPPORTED_LOCALES, LOCALE_LABELS, type Locale } from '@web/lib/i18n';
 import { TOUR_MARKER } from '../tours/cleanup';
 import { useTenant } from '@web/platform/tenant/TenantProvider';
 import { useToast } from '@web/platform/ToastProvider';
@@ -37,6 +37,13 @@ import {
   useDeleteMenuItem,
   useToggleSoldOut,
 } from '../hooks/useMenu';
+import {
+  useItemTranslations,
+  useSetManualTranslation,
+  useResetTranslation,
+  useRegenerateTranslations,
+  type ItemTranslation,
+} from '../hooks/useTranslations';
 import {
   useModifierGroups,
   useItemModifierGroups,
@@ -168,6 +175,241 @@ interface ItemFormData {
   allergens: string;
 }
 
+// ---------------------------------------------------------------------------
+// Translation field — inline editor for a single (locale, field) translation
+// ---------------------------------------------------------------------------
+
+function TranslationField({
+  itemId,
+  locale,
+  field,
+  label,
+  sourceValue,
+  translations,
+  tenantSlug,
+}: {
+  itemId: string;
+  locale: string;
+  field: 'name' | 'description';
+  label: string;
+  sourceValue: string;
+  translations: ItemTranslation[] | undefined;
+  tenantSlug: string;
+}) {
+  const t = useT();
+  const { toast } = useToast();
+  const setManual = useSetManualTranslation(tenantSlug);
+  const resetAuto = useResetTranslation(tenantSlug);
+
+  const current = translations?.find((tr) => tr.locale === locale && tr.field === field);
+  const currentValue = current?.value ?? '';
+  const source = current?.source ?? 'auto';
+
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(currentValue);
+
+  useEffect(() => {
+    setDraft(currentValue);
+  }, [currentValue, editing]);
+
+  const handleSave = () => {
+    const trimmed = draft.trim();
+    if (!trimmed) return;
+    setManual.mutate(
+      { itemId, locale, field, value: trimmed },
+      {
+        onSuccess: () => {
+          setEditing(false);
+          toast('success', t('Save translation'));
+        },
+        onError: (err) => {
+          toast('error', err instanceof Error ? err.message : String(err));
+        },
+      },
+    );
+  };
+
+  const handleReset = () => {
+    resetAuto.mutate(
+      { itemId, locale, field },
+      {
+        onSuccess: () => {
+          toast('success', t('Reset to AI translation'));
+        },
+        onError: (err) => {
+          toast('error', err instanceof Error ? err.message : String(err));
+        },
+      },
+    );
+  };
+
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-xs font-medium text-text-secondary">{label}</span>
+        <Badge variant={source === 'manual' ? 'info' : 'default'}>
+          {source === 'manual' ? t('Manual') : t('AI')}
+        </Badge>
+      </div>
+      {sourceValue && (
+        <p className="text-xs text-text-tertiary italic">
+          {t('Source')}: {sourceValue}
+        </p>
+      )}
+      {editing ? (
+        <div className="space-y-1">
+          <Input
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder={sourceValue}
+          />
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              onClick={handleSave}
+              loading={setManual.isPending}
+              disabled={!draft.trim()}
+            >
+              {t('Save translation')}
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                setEditing(false);
+                setDraft(currentValue);
+              }}
+            >
+              {t('Cancel')}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-sm text-text">
+            {currentValue || <span className="italic text-text-tertiary">{t('No translation yet')}</span>}
+          </span>
+          <div className="flex gap-1">
+            <Button size="sm" variant="ghost" onClick={() => setEditing(true)}>
+              {t('Edit')}
+            </Button>
+            {source === 'manual' && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={handleReset}
+                loading={resetAuto.isPending}
+              >
+                {t('Reset to AI translation')}
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Translations section (inside ItemDialog) — shows all additional locales
+// ---------------------------------------------------------------------------
+
+function ItemTranslationsSection({
+  itemId,
+  tenantSlug,
+  sourceName,
+  sourceDescription,
+}: {
+  itemId: string;
+  tenantSlug: string;
+  sourceName: string;
+  sourceDescription: string;
+}) {
+  const t = useT();
+  const { toast } = useToast();
+  const primaryLocale = useTenantPrimaryLocale() ?? 'en';
+  const { tenant } = useTenant();
+  const tenantSettings = tenant?.settings
+    ? typeof tenant.settings === 'string'
+      ? (() => {
+          try {
+            return JSON.parse(tenant.settings as unknown as string);
+          } catch {
+            return {};
+          }
+        })()
+      : (tenant.settings as Record<string, unknown>)
+    : {};
+  const additionalLocales = ((tenantSettings as { supportedLocales?: string[] })
+    .supportedLocales ?? []) as string[];
+  const localesToShow = additionalLocales.filter(
+    (l): l is Locale =>
+      l !== primaryLocale && (SUPPORTED_LOCALES as readonly string[]).includes(l),
+  );
+
+  const { data: translations } = useItemTranslations(tenantSlug, itemId);
+  const regenerate = useRegenerateTranslations(tenantSlug);
+
+  const handleRegenerate = () => {
+    regenerate.mutate(
+      { itemId },
+      {
+        onSuccess: () => toast('success', t('Regenerate all from source')),
+        onError: (err) => toast('error', err instanceof Error ? err.message : String(err)),
+      },
+    );
+  };
+
+  if (localesToShow.length === 0) {
+    return null;
+  }
+
+  return (
+    <details className="mt-4 border-t border-border pt-3">
+      <summary className="cursor-pointer text-sm font-medium text-text">
+        {t('Translations')}
+      </summary>
+      <div className="mt-3 space-y-3">
+        {localesToShow.map((locale) => (
+          <div key={locale} className="border border-border rounded p-2 space-y-3">
+            <div className="text-xs font-medium text-text">
+              {LOCALE_LABELS[locale]}
+            </div>
+            <TranslationField
+              itemId={itemId}
+              locale={locale}
+              field="name"
+              label={t('Name')}
+              sourceValue={sourceName}
+              translations={translations}
+              tenantSlug={tenantSlug}
+            />
+            {sourceDescription && (
+              <TranslationField
+                itemId={itemId}
+                locale={locale}
+                field="description"
+                label={t('Description')}
+                sourceValue={sourceDescription}
+                translations={translations}
+                tenantSlug={tenantSlug}
+              />
+            )}
+          </div>
+        ))}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleRegenerate}
+          loading={regenerate.isPending}
+        >
+          {t('Regenerate all from source')}
+        </Button>
+      </div>
+    </details>
+  );
+}
+
 function ItemDialog({
   open,
   onClose,
@@ -175,6 +417,7 @@ function ItemDialog({
   initial,
   loading,
   tenantSlug,
+  itemId,
 }: {
   open: boolean;
   onClose: () => void;
@@ -182,6 +425,7 @@ function ItemDialog({
   initial?: ItemFormData;
   loading: boolean;
   tenantSlug: string;
+  itemId?: string;
 }) {
   const t = useT();
   const primaryLocale = useTenantPrimaryLocale();
@@ -368,6 +612,14 @@ function ItemDialog({
             })}
           </div>
         </div>
+        {itemId && (
+          <ItemTranslationsSection
+            itemId={itemId}
+            tenantSlug={tenantSlug}
+            sourceName={name}
+            sourceDescription={description}
+          />
+        )}
       </form>
     </Dialog>
   );
@@ -864,6 +1116,16 @@ function MenuItemCard({
             </div>
           )}
 
+          {item.modifierGroupIds && item.modifierGroupIds.length > 0 && (
+            <div className="flex items-center gap-1 text-xs text-text-secondary mt-1.5">
+              <Settings2 className="h-3 w-3" />
+              <span>
+                {item.modifierGroupIds.length}{' '}
+                {t(item.modifierGroupIds.length !== 1 ? 'modifiers' : 'modifier')}
+              </span>
+            </div>
+          )}
+
           <div className="flex items-center justify-between mt-3">
             <div className="flex items-center gap-3">
               <Toggle
@@ -1320,6 +1582,7 @@ export function MenuManagement() {
         onClose={() => setItemDialogOpen(false)}
         onSubmit={handleItemSubmit}
         tenantSlug={tenantSlug}
+        itemId={editingItem?.id}
         initial={
           editingItem
             ? {

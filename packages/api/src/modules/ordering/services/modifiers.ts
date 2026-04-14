@@ -22,6 +22,41 @@ export function getModifierGroups(db: DrizzleDB, tenantId: string) {
     .orderBy(modifierGroups.sortOrder)
     .all();
 
+  if (groups.length === 0) return [];
+
+  const groupIds = groups.map((g) => g.id);
+
+  // Reverse lookup: which menu items use each group. Single join query
+  // scoped to this tenant via menuItems.tenantId.
+  const usageRows = db
+    .select({
+      modifierGroupId: menuItemModifierGroups.modifierGroupId,
+      menuItemId: menuItemModifierGroups.menuItemId,
+      menuItemName: menuItems.name,
+      isActive: menuItems.isActive,
+    })
+    .from(menuItemModifierGroups)
+    .innerJoin(menuItems, eq(menuItems.id, menuItemModifierGroups.menuItemId))
+    .where(
+      and(
+        inArray(menuItemModifierGroups.modifierGroupId, groupIds),
+        eq(menuItems.tenantId, tenantId),
+        eq(menuItems.isActive, 1)
+      )
+    )
+    .all();
+
+  const usageByGroup = new Map<string, { id: string; name: string }[]>();
+  for (const row of usageRows) {
+    const arr = usageByGroup.get(row.modifierGroupId);
+    const entry = { id: row.menuItemId, name: row.menuItemName };
+    if (arr) {
+      arr.push(entry);
+    } else {
+      usageByGroup.set(row.modifierGroupId, [entry]);
+    }
+  }
+
   return groups.map((group) => {
     const options = db
       .select()
@@ -35,7 +70,14 @@ export function getModifierGroups(db: DrizzleDB, tenantId: string) {
       .orderBy(modifierOptions.sortOrder)
       .all();
 
-    return { ...group, options };
+    const usedByItems = usageByGroup.get(group.id) ?? [];
+
+    return {
+      ...group,
+      options,
+      usageCount: usedByItems.length,
+      usedByItems,
+    };
   });
 }
 

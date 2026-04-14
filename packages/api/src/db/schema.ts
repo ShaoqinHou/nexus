@@ -285,6 +285,7 @@ export const contentTranslations = sqliteTable('content_translations', {
   locale: text('locale').notNull(), // 'zh', 'ja', 'ko', 'fr', etc.
   field: text('field').notNull(), // 'name', 'description'
   value: text('value').notNull(),
+  source: text('source', { enum: ['auto', 'manual'] }).notNull().default('auto'),
   createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
   updatedAt: text('updated_at').notNull().$defaultFn(() => new Date().toISOString()),
 }, (table) => [

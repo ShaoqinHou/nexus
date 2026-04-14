@@ -314,6 +314,29 @@ function GroupList({
                     <p className="text-xs text-text-secondary">
                       {selectionLabel(group.minSelections, group.maxSelections, t)}
                     </p>
+                    <div className="text-xs text-text-secondary mt-2">
+                      {(group.usageCount ?? 0) === 0 ? (
+                        <span className="text-warning">
+                          {t('Unused — no items use this group')}
+                        </span>
+                      ) : (
+                        <details
+                          className="cursor-pointer"
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e: React.KeyboardEvent) => e.stopPropagation()}
+                        >
+                          <summary>
+                            {t('Used by')} {group.usageCount}{' '}
+                            {t((group.usageCount ?? 0) !== 1 ? 'items' : 'item')}
+                          </summary>
+                          <ul className="mt-1 ml-3 list-disc">
+                            {group.usedByItems?.map((usedItem) => (
+                              <li key={usedItem.id}>{usedItem.name}</li>
+                            ))}
+                          </ul>
+                        </details>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-1 shrink-0 ml-2">

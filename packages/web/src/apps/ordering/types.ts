@@ -39,6 +39,8 @@ export interface MenuItem {
   createdAt: string;
   updatedAt: string;
   modifierGroups?: ModifierGroup[];
+  /** IDs of modifier groups attached to this item (staff listing). */
+  modifierGroupIds?: string[];
 }
 
 export interface ModifierGroup {
@@ -50,6 +52,10 @@ export interface ModifierGroup {
   sortOrder: number;
   isActive: number;
   options: ModifierOption[];
+  /** Number of menu items using this group (staff listing). */
+  usageCount?: number;
+  /** Menu items that reference this group (staff listing). */
+  usedByItems?: { id: string; name: string }[];
 }
 
 export interface ModifierOption {

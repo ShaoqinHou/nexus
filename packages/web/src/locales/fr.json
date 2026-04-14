@@ -101,6 +101,10 @@
   "Switch to dark mode": "Mode sombre",
   "items": "articles",
   "item": "article",
+  "modifier": "option",
+  "modifiers": "options",
+  "Used by": "Utilisé par",
+  "Unused — no items use this group": "Inutilisé — aucun article n'utilise ce groupe",
   "Orders": "Commandes",
   "Auto-refreshes every 10s": "Actualisation automatique toutes les 10s",
   "Status": "Statut",
@@ -733,5 +737,13 @@
   "中文": "中文",
   "日本語": "日本語",
   "한국어": "한국어",
-  "Français": "Français"
+  "Français": "Français",
+  "Translations": "Traductions",
+  "Manual": "Manuel",
+  "AI": "IA",
+  "Regenerate all from source": "Régénérer tout depuis la source",
+  "Reset to AI translation": "Réinitialiser à la traduction IA",
+  "Save translation": "Enregistrer la traduction",
+  "Source": "Source",
+  "No translation yet": "Aucune traduction"
 }

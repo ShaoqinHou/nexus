@@ -1,5 +1,10 @@
-import { eq, and } from 'drizzle-orm';
-import { menuCategories, menuItems } from '../../../db/schema.js';
+import { eq, and, inArray } from 'drizzle-orm';
+import {
+  menuCategories,
+  menuItems,
+  menuItemModifierGroups,
+  modifierGroups,
+} from '../../../db/schema.js';
 import type { DrizzleDB } from '../../../db/client.js';
 import { getItemModifierGroups } from './modifiers.js';
 import { getPublicCombos } from './combos.js';
@@ -16,12 +21,56 @@ export function getMenuItems(db: DrizzleDB, tenantId: string, categoryId?: strin
     conditions.push(eq(menuItems.categoryId, categoryId));
   }
 
-  return db
+  const items = db
     .select()
     .from(menuItems)
     .where(and(...conditions))
     .orderBy(menuItems.sortOrder)
     .all();
+
+  if (items.length === 0) {
+    return items.map((item) => ({ ...item, modifierGroupIds: [] as string[] }));
+  }
+
+  // Single query: fetch all modifier-group links for this tenant's items.
+  // The junction table has no tenant_id, so we scope via inner-join on
+  // modifierGroups (which has tenantId) to guarantee isolation.
+  const itemIds = items.map((i) => i.id);
+  const links = db
+    .select({
+      menuItemId: menuItemModifierGroups.menuItemId,
+      modifierGroupId: menuItemModifierGroups.modifierGroupId,
+      sortOrder: menuItemModifierGroups.sortOrder,
+    })
+    .from(menuItemModifierGroups)
+    .innerJoin(
+      modifierGroups,
+      eq(modifierGroups.id, menuItemModifierGroups.modifierGroupId)
+    )
+    .where(
+      and(
+        inArray(menuItemModifierGroups.menuItemId, itemIds),
+        eq(modifierGroups.tenantId, tenantId),
+        eq(modifierGroups.isActive, 1)
+      )
+    )
+    .orderBy(menuItemModifierGroups.sortOrder)
+    .all();
+
+  const byItem = new Map<string, string[]>();
+  for (const link of links) {
+    const arr = byItem.get(link.menuItemId);
+    if (arr) {
+      arr.push(link.modifierGroupId);
+    } else {
+      byItem.set(link.menuItemId, [link.modifierGroupId]);
+    }
+  }
+
+  return items.map((item) => ({
+    ...item,
+    modifierGroupIds: byItem.get(item.id) ?? [],
+  }));
 }
 
 export function createMenuItem(

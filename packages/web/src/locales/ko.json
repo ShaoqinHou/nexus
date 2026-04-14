@@ -101,6 +101,10 @@
   "Switch to dark mode": "다크 모드로 전환",
   "items": "개",
   "item": "개",
+  "modifier": "옵션",
+  "modifiers": "옵션",
+  "Used by": "사용됨",
+  "Unused — no items use this group": "미사용 — 이 그룹을 사용하는 항목이 없습니다",
   "Orders": "주문 관리",
   "Auto-refreshes every 10s": "10초마다 자동 새로고침",
   "Status": "상태",
@@ -733,5 +737,13 @@
   "中文": "中文",
   "日本語": "日本語",
   "한국어": "한국어",
-  "Français": "Français"
+  "Français": "Français",
+  "Translations": "번역",
+  "Manual": "수동",
+  "AI": "AI",
+  "Regenerate all from source": "원본 언어에서 모든 번역 다시 생성",
+  "Reset to AI translation": "AI 번역으로 재설정",
+  "Save translation": "번역 저장",
+  "Source": "원본",
+  "No translation yet": "아직 번역 없음"
 }
