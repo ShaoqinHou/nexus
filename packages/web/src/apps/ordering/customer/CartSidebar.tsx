@@ -282,7 +282,7 @@ export function CartSidebar({
                 type="button"
                 onClick={handleRemovePromo}
                 className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded text-text-tertiary hover:text-danger hover:bg-danger/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                aria-label="Remove promo code"
+                aria-label={t('Remove promo code')}
               >
                 <X className="h-4 w-4" />
               </button>

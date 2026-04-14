@@ -43,7 +43,7 @@ export function LoginPage() {
       const tenants = await fetchMyTenants(em, pw);
 
       if (tenants.length === 0) {
-        setError('No restaurants found for this account');
+        setError(t('No restaurants found for this account'));
       } else if (tenants.length === 1) {
         // Single tenant: auto-login directly
         await login(em, pw, tenants[0].slug);
@@ -58,7 +58,7 @@ export function LoginPage() {
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError('An unexpected error occurred');
+        setError(t('An unexpected error occurred'));
       }
     } finally {
       setLoading(false);
@@ -75,7 +75,7 @@ export function LoginPage() {
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError('An unexpected error occurred');
+        setError(t('An unexpected error occurred'));
       }
     } finally {
       setLoading(false);

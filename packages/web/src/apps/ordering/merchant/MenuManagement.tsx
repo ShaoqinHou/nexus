@@ -45,6 +45,24 @@ import {
 import type { MenuCategory, MenuItem, CategoryStation } from '../types';
 import { DIETARY_TAGS, ALLERGENS } from '../types';
 
+// Language labels for source-language hint in edit dialogs
+const PRIMARY_LOCALE_LABELS: Record<string, string> = {
+  en: 'English',
+  zh: '\u4E2D\u6587',
+  ja: '\u65E5\u672C\u8A9E',
+  ko: '\uD55C\uAD6D\uC5B4',
+  fr: 'Fran\u00E7ais',
+};
+
+function useTenantPrimaryLocale(): string | undefined {
+  const { tenant } = useTenant();
+  if (!tenant?.settings) return undefined;
+  const settings = typeof tenant.settings === 'string'
+    ? (() => { try { return JSON.parse(tenant.settings as unknown as string); } catch { return {}; } })()
+    : tenant.settings;
+  return (settings as { primaryLocale?: string })?.primaryLocale;
+}
+
 // ---------------------------------------------------------------------------
 // Category form dialog
 // ---------------------------------------------------------------------------
@@ -166,6 +184,7 @@ function ItemDialog({
   tenantSlug: string;
 }) {
   const t = useT();
+  const primaryLocale = useTenantPrimaryLocale();
   const [name, setName] = useState(initial?.name ?? '');
   const [description, setDescription] = useState(initial?.description ?? '');
   const [price, setPrice] = useState(initial?.price ?? '');
@@ -260,12 +279,17 @@ function ItemDialog({
       }
     >
       <form id="item-form" onSubmit={handleSubmit} className="space-y-4">
+        {primaryLocale && primaryLocale !== 'en' && (
+          <p className="text-xs text-text-secondary">
+            {t('Enter in your primary language')} ({t(PRIMARY_LOCALE_LABELS[primaryLocale] ?? primaryLocale)})
+          </p>
+        )}
         <Input
           data-tour="item-name-input"
           label={t('Name')}
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="e.g. Margherita Pizza"
+          placeholder={t('e.g. Margherita Pizza')}
           required
           autoFocus
         />
@@ -449,7 +473,7 @@ function CategoryList({
                         onStationChange(cat.id, e.target.value as CategoryStation);
                       }}
                       className="mt-1 h-7 text-[11px] px-1.5 rounded border border-border bg-bg text-text-secondary appearance-none cursor-pointer hover:border-border-strong transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
-                      aria-label={`Station for ${cat.name}`}
+                      aria-label={`${t('Station for')} ${cat.name}`}
                     >
                       {STATION_OPTIONS.map((opt) => (
                         <option key={opt.value} value={opt.value}>
@@ -468,7 +492,7 @@ function CategoryList({
                       }}
                       disabled={idx === 0}
                       className="min-h-[44px] min-w-[44px] p-2 sm:p-1 rounded text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors disabled:opacity-30 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                      aria-label={`Move ${cat.name} up`}
+                      aria-label={`${t('Move')} ${cat.name} ${t('up')}`}
                     >
                       <ChevronUp className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
                     </button>
@@ -480,7 +504,7 @@ function CategoryList({
                       }}
                       disabled={idx === categories.length - 1}
                       className="min-h-[44px] min-w-[44px] p-2 sm:p-1 rounded text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors disabled:opacity-30 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                      aria-label={`Move ${cat.name} down`}
+                      aria-label={`${t('Move')} ${cat.name} ${t('down')}`}
                     >
                       <ChevronDown className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
                     </button>
@@ -491,7 +515,7 @@ function CategoryList({
                         onEdit(cat);
                       }}
                       className="min-h-[44px] min-w-[44px] p-2 sm:p-1 rounded text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                      aria-label={`Edit ${cat.name}`}
+                      aria-label={`${t('Edit')} ${cat.name}`}
                     >
                       <Pencil className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
                     </button>
@@ -501,12 +525,12 @@ function CategoryList({
                       onConfirm={() => onDelete(cat.id)}
                       confirmText={
                         (itemCountByCategory[cat.id] ?? 0) > 0
-                          ? `Delete ${cat.name}? (${itemCountByCategory[cat.id]} item${itemCountByCategory[cat.id] === 1 ? '' : 's'} will be hidden)`
-                          : 'Delete?'
+                          ? `${t('Delete')} ${cat.name}? (${itemCountByCategory[cat.id]} ${t(itemCountByCategory[cat.id] === 1 ? 'item' : 'items')} ${t('will be hidden')})`
+                          : t('Delete?')
                       }
                       className="min-h-[44px] min-w-[44px] !p-1 text-text-tertiary hover:text-danger"
                     >
-                      <span className="text-xs">Del</span>
+                      <span className="text-xs">{t('Del')}</span>
                     </ConfirmButton>
                   </div>
                 </div>
@@ -664,7 +688,7 @@ function ItemModifiersDialog({
     <Dialog
       open={open}
       onClose={onClose}
-      title={`Modifiers for ${item.name}`}
+      title={`${t('Modifiers for')} ${item.name}`}
       footer={
         <>
           <Button variant="secondary" onClick={onClose}>
@@ -876,7 +900,7 @@ function MenuItemCard({
                 onClick={() => onMove(item.id, 'up')}
                 disabled={isFirst}
                 className="min-h-[44px] min-w-[44px] p-1.5 rounded text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors disabled:opacity-30 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                aria-label={`Move ${item.name} up`}
+                aria-label={`${t('Move')} ${item.name} ${t('up')}`}
               >
                 <ChevronUp className="h-3.5 w-3.5" />
               </button>
@@ -885,7 +909,7 @@ function MenuItemCard({
                 onClick={() => onMove(item.id, 'down')}
                 disabled={isLast}
                 className="min-h-[44px] min-w-[44px] p-1.5 rounded text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors disabled:opacity-30 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                aria-label={`Move ${item.name} down`}
+                aria-label={`${t('Move')} ${item.name} ${t('down')}`}
               >
                 <ChevronDown className="h-3.5 w-3.5" />
               </button>
@@ -893,7 +917,7 @@ function MenuItemCard({
                 variant="ghost"
                 size="sm"
                 onClick={() => onManageModifiers(item)}
-                aria-label={`Manage modifiers for ${item.name}`}
+                aria-label={`${t('Manage modifiers for')} ${item.name}`}
                 className="min-h-[44px]"
               >
                 <Settings2 className="h-3.5 w-3.5" />
@@ -903,7 +927,7 @@ function MenuItemCard({
                 variant="ghost"
                 size="sm"
                 onClick={() => onEdit(item)}
-                aria-label={`Edit ${item.name}`}
+                aria-label={`${t('Edit')} ${item.name}`}
                 className="min-h-[44px]"
               >
                 <Pencil className="h-3.5 w-3.5" />
@@ -1141,10 +1165,10 @@ export function MenuManagement() {
       { id: catId, station },
       {
         onSuccess: () => {
-          toast('success', `Station updated to ${station === 'all' ? 'All' : station.charAt(0).toUpperCase() + station.slice(1)}`);
+          toast('success', `${t('Station updated to')} ${station === 'all' ? t('All') : t(station.charAt(0).toUpperCase() + station.slice(1))}`);
         },
         onError: (err: Error) => {
-          toast('error', err.message || 'Failed to update station');
+          toast('error', err.message || t('Failed to update station'));
         },
       },
     );
@@ -1166,11 +1190,11 @@ export function MenuManagement() {
 
     updateCategory.mutate(
       { id: sorted[idx].id, sortOrder: newCurrent },
-      { onError: (err: Error) => toast('error', err.message || 'Failed to reorder') },
+      { onError: (err: Error) => toast('error', err.message || t('Failed to reorder')) },
     );
     updateCategory.mutate(
       { id: sorted[swapIdx].id, sortOrder: newAdjacent },
-      { onError: (err: Error) => toast('error', err.message || 'Failed to reorder') },
+      { onError: (err: Error) => toast('error', err.message || t('Failed to reorder')) },
     );
   };
 
@@ -1187,11 +1211,11 @@ export function MenuManagement() {
 
     updateItem.mutate(
       { id: sorted[idx].id, sortOrder: newCurrent },
-      { onError: (err: Error) => toast('error', err.message || 'Failed to reorder') },
+      { onError: (err: Error) => toast('error', err.message || t('Failed to reorder')) },
     );
     updateItem.mutate(
       { id: sorted[swapIdx].id, sortOrder: newAdjacent },
-      { onError: (err: Error) => toast('error', err.message || 'Failed to reorder') },
+      { onError: (err: Error) => toast('error', err.message || t('Failed to reorder')) },
     );
   };
 

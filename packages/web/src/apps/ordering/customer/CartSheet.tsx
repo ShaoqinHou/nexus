@@ -294,7 +294,7 @@ export function CartSheet({
                               updateQuantity(index, item.quantity - 1)
                             }
                             className="h-12 w-12 flex items-center justify-center rounded-full border border-border text-text-secondary hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                            aria-label={`Decrease ${item.name} quantity`}
+                            aria-label={`${t('Decrease')} ${item.name} ${t('quantity')}`}
                           >
                             <Minus className="h-4 w-4" />
                           </button>
@@ -307,7 +307,7 @@ export function CartSheet({
                               updateQuantity(index, item.quantity + 1)
                             }
                             className="h-12 w-12 flex items-center justify-center rounded-full bg-primary text-text-inverse hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                            aria-label={`Increase ${item.name} quantity`}
+                            aria-label={`${t('Increase')} ${item.name} ${t('quantity')}`}
                           >
                             <Plus className="h-4 w-4" />
                           </button>
@@ -328,7 +328,7 @@ export function CartSheet({
                                 ? 'text-primary'
                                 : 'text-text-tertiary hover:text-text-secondary',
                             ].join(' ')}
-                            aria-label={`Add note for ${item.name}`}
+                            aria-label={`${t('Add note for')} ${item.name}`}
                           >
                             <MessageSquare className="h-5 w-5" />
                           </button>
@@ -336,7 +336,7 @@ export function CartSheet({
                             type="button"
                             onClick={() => removeItem(index)}
                             className="min-h-[48px] min-w-[48px] flex items-center justify-center rounded text-text-tertiary hover:text-danger transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                            aria-label={`Remove ${item.name} from cart`}
+                            aria-label={`${t('Remove')} ${item.name} ${t('from cart')}`}
                           >
                             <Trash2 className="h-5 w-5" />
                           </button>

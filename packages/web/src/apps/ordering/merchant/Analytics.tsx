@@ -818,7 +818,7 @@ function FeedbackSection({ tenantSlug }: { tenantSlug: string }) {
                       <p className="text-sm text-text">{fb.comment}</p>
                     )}
                     <p className="text-xs text-text-tertiary mt-1">
-                      Table {fb.tableNumber} · {new Date(fb.createdAt).toLocaleDateString()}
+                      {t('Table')} {fb.tableNumber} · {new Date(fb.createdAt).toLocaleDateString()}
                     </p>
                   </div>
                 </div>

@@ -814,7 +814,7 @@ export function ThemeSettings() {
                 step="5"
                 value={form.lastOrderMinutesBefore}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField('lastOrderMinutesBefore', e.target.value)}
-                placeholder="e.g. 30"
+                placeholder={t('e.g. 30')}
               />
               {parseInt(form.lastOrderMinutesBefore, 10) > 0 && (
                 <p className="text-xs text-text-tertiary">

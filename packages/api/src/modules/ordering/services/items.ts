@@ -3,7 +3,7 @@ import { menuCategories, menuItems } from '../../../db/schema.js';
 import type { DrizzleDB } from '../../../db/client.js';
 import { getItemModifierGroups } from './modifiers.js';
 import { getPublicCombos } from './combos.js';
-import { getTranslationsForLocale } from './translations.js';
+import { getTranslationsForLocale, getTenantPrimaryLocale } from './translations.js';
 
 // --- Menu Item Service ---
 
@@ -157,7 +157,8 @@ export function deleteMenuItem(db: DrizzleDB, tenantId: string, itemId: string) 
 
 export function getPublicMenu(db: DrizzleDB, tenantId: string, locale?: string) {
   // Load translations for the requested locale (single query for all entities)
-  const translations = locale && locale !== 'en'
+  const primaryLocale = getTenantPrimaryLocale(db, tenantId);
+  const translations = locale && locale !== primaryLocale
     ? getTranslationsForLocale(db, tenantId, locale)
     : null;
 

@@ -188,6 +188,7 @@ export async function translate(options: TranslateOptions): Promise<string> {
 export async function translateBatch(
   items: { key: string; text: string; context: string }[],
   targetLocale: string,
+  sourceLocale?: string,
 ): Promise<Map<string, string>> {
   const results = new Map<string, string>();
 
@@ -196,7 +197,15 @@ export async function translateBatch(
     return results;
   }
 
+  if (sourceLocale && sourceLocale === targetLocale) {
+    for (const item of items) results.set(item.key, item.text);
+    return results;
+  }
+
   const numbered = items.map((item, i) => `${i + 1}. [${item.context}] ${item.text}`).join('\n');
+  const directionPrefix = sourceLocale
+    ? `Translate each line from ${sourceLocale} to ${targetLocale}.`
+    : `Translate each line to ${targetLocale}.`;
 
   try {
     const client = getClient();
@@ -207,7 +216,7 @@ export async function translateBatch(
       max_tokens: Math.min(items.length * 100, 4000),
       messages: [{
         role: 'user',
-        content: `Translate each line to ${targetLocale}. Keep the numbering. Return ONLY the translations, one per line, matching the numbering.\n\n${numbered}`,
+        content: `${directionPrefix} Keep the numbering. Return ONLY the translations, one per line, matching the numbering.\n\n${numbered}`,
       }],
     });
 

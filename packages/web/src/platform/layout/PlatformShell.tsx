@@ -241,8 +241,8 @@ export function PlatformShell() {
                   startTour(firstTour.steps, firstTour.id, onEnd);
                 }}
                 className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.95]"
-                aria-label="Start guided tour"
-                title={firstTour.label}
+                aria-label={t('Start guided tour')}
+                title={t(firstTour.label)}
               >
                 <HelpCircle className="h-5 w-5" />
               </button>

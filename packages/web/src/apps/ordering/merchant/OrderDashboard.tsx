@@ -76,9 +76,10 @@ function elapsedMinutes(isoString: string): number {
 }
 
 function ElapsedBadge({ createdAt }: { createdAt: string }) {
+  const t = useT();
   const mins = elapsedMinutes(createdAt);
   const hrs = Math.floor(mins / 60);
-  const label = hrs > 0 ? `${hrs}h ${mins % 60}m` : `${mins}m`;
+  const label = hrs > 0 ? `${hrs}${t('h')} ${mins % 60}${t('m')}` : `${mins}${t('m')}`;
 
   if (mins >= 15) {
     return (
@@ -234,7 +235,7 @@ function WaiterCallBanner({ tenantSlug }: { tenantSlug: string }) {
           <div className="flex items-center gap-2">
             <Receipt className="h-4 w-4 text-success shrink-0" />
             <span className="text-sm font-semibold text-success">
-              {billCalls.length} {t('bill request')}{billCalls.length !== 1 ? 's' : ''}
+              {billCalls.length} {t(billCalls.length !== 1 ? 'bill requests' : 'bill request')}
             </span>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -258,7 +259,7 @@ function WaiterCallBanner({ tenantSlug }: { tenantSlug: string }) {
           <div className="flex items-center gap-2">
             <Bell className="h-4 w-4 text-warning shrink-0" />
             <span className="text-sm font-semibold text-warning">
-              {assistCalls.length} {t('waiter call')}{assistCalls.length !== 1 ? 's' : ''} {t('pending')}
+              {assistCalls.length} {t(assistCalls.length !== 1 ? 'waiter calls' : 'waiter call')} {t('pending')}
             </span>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -536,7 +537,7 @@ function DiscountOverridePopover({
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 className="w-full mt-0.5 text-sm border border-border rounded-md px-2 py-1.5 bg-bg text-text resize-none focus:outline-none focus:ring-1 focus:ring-primary"
-                placeholder="Birthday comp..."
+                placeholder={t('Birthday comp...')}
               />
             </div>
             <Button
@@ -723,7 +724,7 @@ function SplitPaymentPanel({
                 value={paidBy}
                 onChange={(e) => setPaidBy(e.target.value)}
                 className="w-full mt-0.5 text-sm border border-border rounded-md px-2 py-1.5 bg-bg text-text focus:outline-none focus:ring-1 focus:ring-primary"
-                placeholder="Person 1"
+                placeholder={t('Person 1')}
               />
             </div>
           </div>
@@ -813,10 +814,10 @@ function OrderCard({
             </div>
             <div className="min-w-0">
               <p className="text-sm font-medium text-text">
-                Table {order.tableNumber}
+                {t('Table')} {order.tableNumber}
               </p>
               <p className="text-xs text-text-secondary">
-                {order.items.length} item{order.items.length !== 1 ? 's' : ''}
+                {order.items.length} {t(order.items.length !== 1 ? 'items' : 'item')}
               </p>
             </div>
           </div>
@@ -825,7 +826,7 @@ function OrderCard({
             {cancelRequestCount > 0 && (
               <Badge variant="warning">
                 <AlertTriangle className="h-3 w-3 mr-1" />
-                {cancelRequestCount} cancel req
+                {cancelRequestCount} {t('cancel req')}
               </Badge>
             )}
             <div className="text-right">
@@ -953,7 +954,7 @@ function OrderCard({
                           <Badge variant="warning">{t('Cancel Requested')}</Badge>
                         )}
                         {isItemCancelled && (
-                          <Badge variant="error">Cancelled</Badge>
+                          <Badge variant="error">{t('Cancelled')}</Badge>
                         )}
                       </td>
                     </tr>

@@ -107,6 +107,7 @@ When a task is complex enough to warrant it, use the Agent tool to spawn paralle
 ## Deploy to Production
 
 1. Build: `cd packages/web && MSYS_NO_PATHCONV=1 npx vite build --base /nexus/`
+   ⚠️  Must run FROM packages/web/ directory — `npm run build` at root does NOT set --base and produces broken /assets/ paths
 2. SSH: `ssh -i ~/.ssh/DIOkii root@134.199.148.87`
 3. Pull latest: `cd /root/monoWeb/nexus && git pull`
 4. Copy static: `rsync -av --delete packages/web/dist/ root@134.199.148.87:/var/www/cv.rehou.games/nexus/`

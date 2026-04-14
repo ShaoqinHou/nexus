@@ -210,7 +210,7 @@ export async function autoTranslateEntity(
         text,
         context: `${context} ${field}`,
       }));
-      const translations = await translateBatch(items, locale);
+      const translations = await translateBatch(items, locale, resolvedSource);
       for (const [field, translated] of translations) {
         setTranslation(db, tenantId, entityType, entityId, locale, field, translated);
       }

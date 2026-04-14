@@ -222,7 +222,7 @@ const MenuItemCard = memo(function MenuItemCard({
             size="sm"
             onClick={handleAdd}
             className="min-h-[48px] min-w-[48px] !p-0 active:scale-[0.97] transition-transform"
-            aria-label={`Add ${item.name} to cart`}
+            aria-label={`${t('Add')} ${item.name} ${t('to cart')}`}
             {...(tourTarget ? { 'data-tour': tourTarget } : {})}
           >
             <Plus className="h-5 w-5" />
@@ -233,7 +233,7 @@ const MenuItemCard = memo(function MenuItemCard({
               type="button"
               onClick={handleDecrement}
               className="h-12 w-12 flex items-center justify-center rounded-full border border-border text-text-secondary hover:bg-bg-muted active:scale-[0.92] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-              aria-label={`Decrease ${item.name} quantity`}
+              aria-label={`${t('Decrease')} ${item.name} ${t('quantity')}`}
             >
               <Minus className="h-4 w-4" />
             </button>
@@ -244,7 +244,7 @@ const MenuItemCard = memo(function MenuItemCard({
               type="button"
               onClick={handleAdd}
               className="h-12 w-12 flex items-center justify-center rounded-full bg-primary text-text-inverse hover:bg-primary-hover active:scale-[0.92] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-              aria-label={`Increase ${item.name} quantity`}
+              aria-label={`${t('Increase')} ${item.name} ${t('quantity')}`}
             >
               <Plus className="h-4 w-4" />
             </button>
@@ -748,7 +748,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
           type="button"
           onClick={toggleTheme}
           className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-text-secondary hover:bg-bg-muted transition-colors mb-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-          aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+          aria-label={theme === 'light' ? t('Switch to dark mode') : t('Switch to light mode')}
         >
           {theme === 'light' ? (
             <Moon className="h-4 w-4" />
@@ -1005,7 +1005,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                       ? 'text-danger bg-danger-light relative'
                       : 'text-text-secondary hover:bg-bg-muted',
                   ].join(' ')}
-                  aria-label={`Allergen filter${hiddenAllergens.size > 0 ? ` (${hiddenAllergens.size} filtered)` : ''}`}
+                  aria-label={`${t('Allergen filter')}${hiddenAllergens.size > 0 ? ` (${hiddenAllergens.size} ${t('filtered')})` : ''}`}
                 >
                   <AlertTriangle className="h-5 w-5" />
                   {hiddenAllergens.size > 0 && (
@@ -1020,7 +1020,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                 type="button"
                 onClick={toggleTheme}
                 className="shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-bg-muted text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+                aria-label={theme === 'light' ? t('Switch to dark mode') : t('Switch to light mode')}
               >
                 {theme === 'light' ? (
                   <Moon className="h-5 w-5" />

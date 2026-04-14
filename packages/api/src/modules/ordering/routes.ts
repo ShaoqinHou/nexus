@@ -81,6 +81,7 @@ import {
   getTranslationsForLocale,
   autoTranslateEntity,
   translateForKitchen,
+  getTenantPrimaryLocale,
 } from './service.js';
 
 // --- Validation Schemas ---
@@ -1087,12 +1088,15 @@ export function staffOrderingRoutes(db: DrizzleDB) {
 
   // On-demand single text translation (any staff)
   router.post('/translate', zValidator('json', translateSchema), async (c) => {
+    const tenantId = c.var.tenantId;
     const body = c.req.valid('json');
+    const sourceLocale = getTenantPrimaryLocale(db, tenantId);
     try {
       const translation = await translate({
         text: body.text,
         targetLocale: body.targetLocale,
         context: body.context || 'restaurant menu content',
+        sourceLocale,
       });
       return c.json({ data: { translation } });
     } catch (error) {
@@ -1110,6 +1114,7 @@ export function staffOrderingRoutes(db: DrizzleDB) {
     }
 
     const { targetLocale } = c.req.valid('json');
+    const sourceLocale = getTenantPrimaryLocale(db, tenantId);
     let translatedCount = 0;
 
     try {
@@ -1156,6 +1161,7 @@ export function staffOrderingRoutes(db: DrizzleDB) {
       const results = await translateBatch(
         batchItems.map((b) => ({ key: b.key, text: b.text, context: b.context })),
         targetLocale,
+        sourceLocale,
       );
 
       // Store results

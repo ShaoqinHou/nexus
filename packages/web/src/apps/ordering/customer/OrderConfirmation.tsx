@@ -277,7 +277,7 @@ function FeedbackSection({
             onMouseEnter={() => setHoveredStar(star)}
             onMouseLeave={() => setHoveredStar(0)}
             className="min-h-[48px] min-w-[48px] flex items-center justify-center rounded-full hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            aria-label={`Rate ${star} star${star !== 1 ? 's' : ''}`}
+            aria-label={`${t('Rate')} ${star} ${t(star !== 1 ? 'stars' : 'star')}`}
           >
             <Star
               className={[
