@@ -26,6 +26,7 @@ const ThemeSettings = lazy(() => import('@web/apps/ordering/merchant/ThemeSettin
 const KitchenDisplay = lazy(() => import('@web/apps/ordering/merchant/KitchenDisplay').then(m => ({ default: m.KitchenDisplay })));
 const Analytics = lazy(() => import('@web/apps/ordering/merchant/Analytics').then(m => ({ default: m.Analytics })));
 const StaffManagement = lazy(() => import('@web/apps/ordering/merchant/StaffManagement').then(m => ({ default: m.StaffManagement })));
+const TranslationsDashboard = lazy(() => import('@web/apps/ordering/merchant/TranslationsDashboard').then(m => ({ default: m.TranslationsDashboard })));
 const CustomerApp = lazy(() => import('@web/apps/ordering/customer/CustomerApp').then(m => ({ default: m.CustomerApp })));
 const TenantPicker = lazy(() => import('@web/platform/auth/TenantPicker').then(m => ({ default: m.TenantPicker })));
 
@@ -177,6 +178,12 @@ const orderingStaffRoute = createRoute({
   component: () => <SuspenseWrap><StaffManagement /></SuspenseWrap>,
 });
 
+const orderingTranslationsRoute = createRoute({
+  getParentRoute: () => tenantRoute,
+  path: '/ordering/translations',
+  component: () => <SuspenseWrap><TranslationsDashboard /></SuspenseWrap>,
+});
+
 // Restaurant switcher route
 const restaurantsRoute = createRoute({
   getParentRoute: () => tenantRoute,
@@ -290,6 +297,7 @@ const routeTree = rootRoute.addChildren([
     orderingSettingsRoute,
     orderingAnalyticsRoute,
     orderingStaffRoute,
+    orderingTranslationsRoute,
     tenantCatchAllRoute,
   ]),
   customerRoute.addChildren([customerIndexRoute, customerCatchAllRoute]),

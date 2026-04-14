@@ -294,7 +294,17 @@ export function deleteModifierOption(db: DrizzleDB, tenantId: string, optionId: 
 
 // --- Item-Modifier Group Links ---
 
-export function getItemModifierGroups(db: DrizzleDB, tenantId: string, menuItemId: string) {
+/**
+ * Optional `translations` map (entityType -> entityId -> field -> value) is the
+ * same shape returned by getTranslationsForLocale. When provided, modifier group
+ * names and option names are swapped with their localized values where present.
+ */
+export function getItemModifierGroups(
+  db: DrizzleDB,
+  tenantId: string,
+  menuItemId: string,
+  translations?: Record<string, Record<string, Record<string, string>>> | null,
+) {
   // Get linked group IDs for this menu item
   const links = db
     .select()
@@ -341,12 +351,17 @@ export function getItemModifierGroups(db: DrizzleDB, tenantId: string, menuItemI
         )
         .orderBy(modifierOptions.sortOrder)
         .all()
-        .map((option) => ({
-          ...option,
-          priceDelta: overrides?.[option.id]?.priceDelta ?? option.priceDelta,
-        }));
+        .map((option) => {
+          const optName = translations?.modifier_option?.[option.id]?.name;
+          return {
+            ...option,
+            name: optName || option.name,
+            priceDelta: overrides?.[option.id]?.priceDelta ?? option.priceDelta,
+          };
+        });
 
-      return { ...group, options };
+      const groupName = translations?.modifier_group?.[group.id]?.name;
+      return { ...group, name: groupName || group.name, options };
     })
     .filter((g): g is NonNullable<typeof g> => g !== null);
 }

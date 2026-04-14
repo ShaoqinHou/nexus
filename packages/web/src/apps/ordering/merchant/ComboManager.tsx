@@ -23,6 +23,7 @@ import {
   useUpdateComboDeal,
   useDeleteComboDeal,
 } from '../hooks/useCombos';
+import { EntityTranslationsSection } from '../components/EntityTranslationsSection';
 import type { ComboDeal, MenuItem } from '../types';
 
 // ---------------------------------------------------------------------------
@@ -314,6 +315,8 @@ function ComboDialog({
   initial,
   loading,
   allItems,
+  tenantSlug,
+  comboId,
 }: {
   open: boolean;
   onClose: () => void;
@@ -321,6 +324,8 @@ function ComboDialog({
   initial?: ComboFormData;
   loading: boolean;
   allItems: MenuItem[];
+  tenantSlug: string;
+  comboId?: string;
 }) {
   const [form, setForm] = useState<ComboFormData>(initial ?? emptyForm());
   const t = useT();
@@ -457,6 +462,18 @@ function ComboDialog({
             />
           ))}
         </div>
+
+        {comboId && (
+          <EntityTranslationsSection
+            entityType="combo_deal"
+            entityId={comboId}
+            tenantSlug={tenantSlug}
+            fields={[
+              { name: 'name', label: t('Name'), sourceValue: form.name },
+              { name: 'description', label: t('Description'), sourceValue: form.description },
+            ]}
+          />
+        )}
       </form>
     </Dialog>
   );
@@ -747,6 +764,8 @@ export function ComboManager() {
         initial={editFormData}
         loading={createCombo.isPending || updateCombo.isPending}
         allItems={allItems}
+        tenantSlug={tenantSlug}
+        comboId={editingCombo?.id}
       />
     </div>
   );

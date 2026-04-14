@@ -80,12 +80,16 @@ function CategoryDialog({
   onSubmit,
   initial,
   loading,
+  tenantSlug,
+  categoryId,
 }: {
   open: boolean;
   onClose: () => void;
   onSubmit: (data: CategoryFormData) => void;
   initial?: CategoryFormData;
   loading: boolean;
+  tenantSlug: string;
+  categoryId?: string;
 }) {
   const t = useT();
   const [name, setName] = useState(initial?.name ?? '');
@@ -152,6 +156,17 @@ function CategoryDialog({
           placeholder={t('Optional description')}
           data-tour="category-description-input"
         />
+        {categoryId && (
+          <EntityTranslationsSection
+            entityType="menu_category"
+            entityId={categoryId}
+            tenantSlug={tenantSlug}
+            fields={[
+              { name: 'name', label: t('Name'), sourceValue: name },
+              { name: 'description', label: t('Description'), sourceValue: description },
+            ]}
+          />
+        )}
       </form>
     </Dialog>
   );
@@ -898,7 +913,7 @@ function MenuItemCard({
               />
               {isSoldOut ? (
                 <div className="flex items-center gap-1.5">
-                  <Badge variant="error">SOLD OUT</Badge>
+                  <Badge variant="error">{t('SOLD OUT')}</Badge>
                   <button
                     type="button"
                     onClick={() => onToggleSoldOut(item)}
@@ -1350,6 +1365,8 @@ export function MenuManagement() {
         open={categoryDialogOpen}
         onClose={() => setCategoryDialogOpen(false)}
         onSubmit={handleCategorySubmit}
+        tenantSlug={tenantSlug}
+        categoryId={editingCategory?.id}
         initial={
           editingCategory
             ? {

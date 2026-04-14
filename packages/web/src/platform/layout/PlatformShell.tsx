@@ -143,7 +143,7 @@ export function PlatformShell() {
               { label: 'Operations', items: navItems.filter((i) => ['/orders', '/kitchen'].some((p) => i.path.includes(p))) },
               { label: 'Menu', items: navItems.filter((i) => ['/menu', '/combos', '/modifiers'].some((p) => i.path.includes(p))) },
               { label: 'Marketing', items: navItems.filter((i) => ['/promotions', '/qr'].some((p) => i.path.includes(p))) },
-              { label: 'Management', items: navItems.filter((i) => ['/analytics', '/staff', '/settings'].some((p) => i.path.includes(p))) },
+              { label: 'Management', items: navItems.filter((i) => ['/analytics', '/staff', '/settings', '/translations'].some((p) => i.path.includes(p))) },
             ];
             // Collect any items not matched by the groups above
             const grouped = new Set(navGroups.flatMap((g) => g.items.map((i) => i.path)));

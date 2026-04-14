@@ -26,6 +26,7 @@ import {
   useUpdateModifierOption,
   useDeleteModifierOption,
 } from '../hooks/useModifiers';
+import { EntityTranslationsSection } from '../components/EntityTranslationsSection';
 import type { ModifierGroup, ModifierOption } from '../types';
 
 // ---------------------------------------------------------------------------
@@ -44,12 +45,16 @@ function GroupDialog({
   onSubmit,
   initial,
   loading,
+  tenantSlug,
+  groupId,
 }: {
   open: boolean;
   onClose: () => void;
   onSubmit: (data: GroupFormData) => void;
   initial?: GroupFormData;
   loading: boolean;
+  tenantSlug: string;
+  groupId?: string;
 }) {
   const [name, setName] = useState(initial?.name ?? '');
   const [minSelections, setMinSelections] = useState(
@@ -134,6 +139,14 @@ function GroupDialog({
             helperText={t('1 = single choice')}
           />
         </div>
+        {groupId && (
+          <EntityTranslationsSection
+            entityType="modifier_group"
+            entityId={groupId}
+            tenantSlug={tenantSlug}
+            fields={[{ name: 'name', label: t('Name'), sourceValue: name }]}
+          />
+        )}
       </form>
     </Dialog>
   );
@@ -155,12 +168,16 @@ function OptionDialog({
   onSubmit,
   initial,
   loading,
+  tenantSlug,
+  optionId,
 }: {
   open: boolean;
   onClose: () => void;
   onSubmit: (data: OptionFormData) => void;
   initial?: OptionFormData;
   loading: boolean;
+  tenantSlug: string;
+  optionId?: string;
 }) {
   const [name, setName] = useState(initial?.name ?? '');
   const [priceDelta, setPriceDelta] = useState(initial?.priceDelta ?? '0');
@@ -232,6 +249,14 @@ function OptionDialog({
           onChange={setIsDefault}
           label={t('Default selection')}
         />
+        {optionId && (
+          <EntityTranslationsSection
+            entityType="modifier_option"
+            entityId={optionId}
+            tenantSlug={tenantSlug}
+            fields={[{ name: 'name', label: t('Name'), sourceValue: name }]}
+          />
+        )}
       </form>
     </Dialog>
   );
@@ -696,6 +721,8 @@ export function ModifierManager() {
         open={groupDialogOpen}
         onClose={() => setGroupDialogOpen(false)}
         onSubmit={handleGroupSubmit}
+        tenantSlug={tenantSlug}
+        groupId={editingGroup?.id}
         initial={
           editingGroup
             ? {
@@ -714,6 +741,8 @@ export function ModifierManager() {
         open={optionDialogOpen}
         onClose={() => setOptionDialogOpen(false)}
         onSubmit={handleOptionSubmit}
+        tenantSlug={tenantSlug}
+        optionId={editingOption?.id}
         initial={
           editingOption
             ? {

@@ -249,7 +249,7 @@ export function getPublicMenu(db: DrizzleDB, tenantId: string, locale?: string) 
       .all();
 
     const itemsWithModifiers = items.map((item) => {
-      const itemModifierGroups = getItemModifierGroups(db, tenantId, item.id);
+      const itemModifierGroups = getItemModifierGroups(db, tenantId, item.id, translations);
 
       // Apply item translations if available
       const itemTranslations = translations?.menu_item?.[item.id];
@@ -267,8 +267,8 @@ export function getPublicMenu(db: DrizzleDB, tenantId: string, locale?: string) 
     return { category: translatedCategory, items: itemsWithModifiers };
   });
 
-  // Include combo deals
-  const combos = getPublicCombos(db, tenantId);
+  // Include combo deals (translated where available)
+  const combos = getPublicCombos(db, tenantId, translations);
 
   // Include featured items
   const featured = db

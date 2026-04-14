@@ -340,7 +340,16 @@ export function deleteComboDeal(db: DrizzleDB, tenantId: string, comboId: string
     .get();
 }
 
-export function getPublicCombos(db: DrizzleDB, tenantId: string) {
+/**
+ * Optional `translations` map applies translations to combo deal name/description,
+ * combo slot name, and the embedded menu item names/descriptions and modifier
+ * groups/options. Pass the result of getTranslationsForLocale.
+ */
+export function getPublicCombos(
+  db: DrizzleDB,
+  tenantId: string,
+  translations?: Record<string, Record<string, Record<string, string>>> | null,
+) {
   const deals = db
     .select()
     .from(comboDeals)
@@ -383,16 +392,35 @@ export function getPublicCombos(db: DrizzleDB, tenantId: string) {
 
       // Attach modifier groups for each slot option's referenced menu item
       const optionsWithModifiers = options.map((option) => {
-        const modifierGroupsList = getItemModifierGroups(db, tenantId, option.menuItemId);
+        const modifierGroupsList = getItemModifierGroups(
+          db,
+          tenantId,
+          option.menuItemId,
+          translations,
+        );
+        const itemTrans = translations?.menu_item?.[option.menuItemId];
         return {
           ...option,
+          menuItemName: itemTrans?.name || option.menuItemName,
+          menuItemDescription: itemTrans?.description || option.menuItemDescription,
           modifierGroups: modifierGroupsList.length > 0 ? modifierGroupsList : undefined,
         };
       });
 
-      return { ...slot, options: optionsWithModifiers };
+      const slotTrans = translations?.combo_slot?.[slot.id];
+      return {
+        ...slot,
+        name: slotTrans?.name || slot.name,
+        options: optionsWithModifiers,
+      };
     });
 
-    return { ...deal, slots: slotsWithOptions };
+    const dealTrans = translations?.combo_deal?.[deal.id];
+    return {
+      ...deal,
+      name: dealTrans?.name || deal.name,
+      description: dealTrans?.description || deal.description,
+      slots: slotsWithOptions,
+    };
   });
 }

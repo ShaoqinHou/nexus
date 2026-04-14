@@ -36,6 +36,7 @@ import {
   useDeletePromoCode,
 } from '../hooks/usePromotions';
 import { useCategories } from '../hooks/useMenu';
+import { EntityTranslationsSection } from '../components/EntityTranslationsSection';
 import type { Promotion, PromoCode } from '../types';
 
 // ---------------------------------------------------------------------------
@@ -84,6 +85,7 @@ function PromotionDialog({
   initial,
   loading,
   tenantSlug,
+  promotionId,
 }: {
   open: boolean;
   onClose: () => void;
@@ -91,6 +93,7 @@ function PromotionDialog({
   initial?: PromotionFormData;
   loading: boolean;
   tenantSlug: string;
+  promotionId?: string;
 }) {
   const [name, setName] = useState(initial?.name ?? '');
   const [description, setDescription] = useState(initial?.description ?? '');
@@ -271,6 +274,17 @@ function PromotionDialog({
           onChange={(e) => setEndsAt(e.target.value)}
           helperText={t('Leave empty for no end date')}
         />
+        {promotionId && (
+          <EntityTranslationsSection
+            entityType="promotion"
+            entityId={promotionId}
+            tenantSlug={tenantSlug}
+            fields={[
+              { name: 'name', label: t('Name'), sourceValue: name },
+              { name: 'description', label: t('Description'), sourceValue: description },
+            ]}
+          />
+        )}
       </form>
     </Dialog>
   );
@@ -767,6 +781,7 @@ export function PromotionManager() {
         initial={editInitial}
         loading={createPromotion.isPending || updatePromotion.isPending}
         tenantSlug={tenantSlug}
+        promotionId={editingPromo?.id}
       />
 
       {/* Promo code dialog */}
