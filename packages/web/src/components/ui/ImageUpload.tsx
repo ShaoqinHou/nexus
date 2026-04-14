@@ -3,6 +3,7 @@ import { Upload, X, Image as ImageIcon, Link as LinkIcon } from 'lucide-react';
 import { Button } from './Button';
 import { Input } from './Input';
 import { apiClient } from '@web/lib/api';
+import { useT } from '@web/lib/i18n';
 
 interface ImageUploadProps {
   value: string | null;
@@ -39,6 +40,7 @@ export function ImageUpload({
   label,
   aspectRatio = '1:1',
 }: ImageUploadProps) {
+  const t = useT();
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -157,7 +159,7 @@ export function ImageUpload({
         capture="environment"
         onChange={handleFileSelect}
         className="hidden"
-        aria-label="Choose image file"
+        aria-label={t('Choose image file')}
       />
 
       {value ? (
@@ -168,7 +170,7 @@ export function ImageUpload({
           >
             <img
               src={value}
-              alt="Uploaded image"
+              alt={t('Uploaded image')}
               className="h-full w-full object-cover"
             />
           </div>

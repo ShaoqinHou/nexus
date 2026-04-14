@@ -350,7 +350,7 @@ function LivePreview({ settings, isDark, previewMode, onPreviewModeChange }: Liv
           {settings.logoUrl ? (
             <img
               src={settings.logoUrl}
-              alt="Logo"
+              alt={t('Logo')}
               className="w-10 h-10 rounded-lg object-cover"
               style={{ borderRadius: radius }}
               onError={(e) => { (e.target as HTMLImageElement).hidden = true; }}
@@ -387,7 +387,7 @@ function LivePreview({ settings, isDark, previewMode, onPreviewModeChange }: Liv
           <div className="h-24 overflow-hidden">
             <img
               src={settings.coverImageUrl}
-              alt="Cover"
+              alt={t('Cover')}
               className="w-full h-full object-cover"
               onError={(e) => { (e.target as HTMLImageElement).parentElement!.hidden = true; }}
             />
@@ -517,7 +517,7 @@ function LivePreview({ settings, isDark, previewMode, onPreviewModeChange }: Liv
           className="px-4 py-3 flex items-center gap-2 border-t"
           style={{ borderColor: borderColor, backgroundColor: surfaceBg }}
         >
-          <span className="text-[10px] font-medium mr-1" style={{ color: secondaryText }}>Palette:</span>
+          <span className="text-[10px] font-medium mr-1" style={{ color: secondaryText }}>{t('Palette')}:</span>
           {[palette.brand, palette.primary, palette.primaryHover, palette.primaryLight].map((color, i) => (
             <div
               key={i}

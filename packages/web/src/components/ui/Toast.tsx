@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { CheckCircle, XCircle, Info, X } from 'lucide-react';
+import { useT } from '@web/lib/i18n';
 
 export interface ToastData {
   id: string;
@@ -25,6 +26,7 @@ const typeClasses: Record<ToastData['type'], string> = {
 };
 
 function ToastItem({ toast, onDismiss }: ToastItemProps) {
+  const t = useT();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -53,7 +55,7 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
         type="button"
         onClick={() => onDismiss(toast.id)}
         className="min-h-[44px] min-w-[44px] p-2 rounded hover:bg-bg-muted/50 transition-colors text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-        aria-label="Dismiss notification"
+        aria-label={t('Dismiss notification')}
       >
         <X className="h-4 w-4" />
       </button>

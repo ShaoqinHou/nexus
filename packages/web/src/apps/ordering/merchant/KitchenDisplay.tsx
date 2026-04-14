@@ -125,6 +125,7 @@ const API_BASE = `${import.meta.env.BASE_URL}api`.replace(/\/\//g, '/');
 const BACKOFF_DELAYS = [3000, 6000, 12000, 24000, 48000, 60000];
 
 function useKitchenSSE(tenantSlug: string, token: string | null) {
+  const t = useT();
   const [orders, setOrders] = useState<Order[]>([]);
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -145,7 +146,7 @@ function useKitchenSSE(tenantSlug: string, token: string | null) {
 
   const connect = useCallback(() => {
     if (!token) {
-      setError('Not authenticated');
+      setError(t('Not authenticated'));
       return;
     }
 

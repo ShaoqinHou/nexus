@@ -450,7 +450,7 @@ function StaffNotesEditor({
           setEditing(true);
         }}
         className="shrink-0 p-1 rounded hover:bg-bg-muted text-text-tertiary hover:text-text transition-colors"
-        title="Edit staff notes"
+        title={t('Edit staff notes')}
       >
         <Pencil className="h-3 w-3" />
       </button>
@@ -669,7 +669,7 @@ function SplitPaymentPanel({
                   onClick={() => handleRemove(p.id)}
                   disabled={removePaymentMutation.isPending}
                   className="shrink-0 p-1 rounded hover:bg-danger/10 text-text-tertiary hover:text-danger transition-colors"
-                  title="Remove payment"
+                  title={t('Remove payment')}
                 >
                   <Trash2 className="h-3 w-3" />
                 </button>

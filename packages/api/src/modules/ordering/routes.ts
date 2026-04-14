@@ -7,6 +7,7 @@ import { eq, and } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import jwt from 'jsonwebtoken';
 import { translate, translateBatch } from '../../lib/translate.js';
+import { translationsRoutes } from './routes/translations.js';
 import { authMiddleware, JWT_SECRET } from '../../middleware/auth.js';
 import { sessionMiddleware } from '../../middleware/session.js';
 import { customerSessions, staff, ORDER_STATUSES, PROMOTION_TYPES, ORDER_ITEM_STATUSES, PAYMENT_STATUSES, PAYMENT_METHODS, TABLE_STATUSES, WAITER_CALL_TYPES } from '../../db/schema.js';
@@ -79,13 +80,9 @@ import {
   setTranslation,
   getTranslations,
   getTranslationsForLocale,
-  getEntityTranslations,
-  deleteTranslation,
-  deleteEntityTranslations,
   autoTranslateEntity,
   translateForKitchen,
   getTenantPrimaryLocale,
-  getTenantLocales,
 } from './service.js';
 
 // --- Validation Schemas ---
@@ -488,14 +485,34 @@ export function staffOrderingRoutes(db: DrizzleDB) {
     return c.json({ data: groups });
   });
 
-  router.post('/modifiers', zValidator('json', createModifierGroupSchema), (c) => {
+  router.post('/modifiers', zValidator('json', createModifierGroupSchema), async (c) => {
     const tenantId = c.var.tenantId;
     const body = c.req.valid('json');
     const group = createModifierGroup(db, tenantId, body);
+
+    // Auto-translate (fire-and-forget)
+    try {
+      if (group.name) {
+        await autoTranslateEntity(
+          db,
+          tenantId,
+          'modifier_group',
+          group.id,
+          { name: group.name },
+          'modifier group',
+        );
+      }
+    } catch (err) {
+      console.error(
+        'Auto-translate failed for modifier group:',
+        err instanceof Error ? err.message : err,
+      );
+    }
+
     return c.json({ data: group }, 201);
   });
 
-  router.put('/modifiers/:id', zValidator('json', updateModifierGroupSchema), (c) => {
+  router.put('/modifiers/:id', zValidator('json', updateModifierGroupSchema), async (c) => {
     const tenantId = c.var.tenantId;
     const groupId = c.req.param('id');
     const body = c.req.valid('json');
@@ -503,6 +520,26 @@ export function staffOrderingRoutes(db: DrizzleDB) {
     if (!group) {
       return c.json({ error: 'Modifier group not found' }, 404);
     }
+
+    // Auto-translate if name changed
+    try {
+      if (body.name && group.name) {
+        await autoTranslateEntity(
+          db,
+          tenantId,
+          'modifier_group',
+          group.id,
+          { name: group.name },
+          'modifier group',
+        );
+      }
+    } catch (err) {
+      console.error(
+        'Auto-translate failed for modifier group:',
+        err instanceof Error ? err.message : err,
+      );
+    }
+
     return c.json({ data: group });
   });
 
@@ -521,7 +558,7 @@ export function staffOrderingRoutes(db: DrizzleDB) {
   router.post(
     '/modifiers/:id/options',
     zValidator('json', createModifierOptionSchema),
-    (c) => {
+    async (c) => {
       const tenantId = c.var.tenantId;
       const groupId = c.req.param('id');
       const body = c.req.valid('json');
@@ -529,6 +566,26 @@ export function staffOrderingRoutes(db: DrizzleDB) {
       if ('error' in result) {
         return c.json({ error: result.error }, 404);
       }
+
+      // Auto-translate (fire-and-forget)
+      try {
+        if (result.data.name) {
+          await autoTranslateEntity(
+            db,
+            tenantId,
+            'modifier_option',
+            result.data.id,
+            { name: result.data.name },
+            'modifier option',
+          );
+        }
+      } catch (err) {
+        console.error(
+          'Auto-translate failed for modifier option:',
+          err instanceof Error ? err.message : err,
+        );
+      }
+
       return c.json({ data: result.data }, 201);
     }
   );
@@ -536,7 +593,7 @@ export function staffOrderingRoutes(db: DrizzleDB) {
   router.put(
     '/modifiers/options/:id',
     zValidator('json', updateModifierOptionSchema),
-    (c) => {
+    async (c) => {
       const tenantId = c.var.tenantId;
       const optionId = c.req.param('id');
       const body = c.req.valid('json');
@@ -544,6 +601,26 @@ export function staffOrderingRoutes(db: DrizzleDB) {
       if ('error' in result) {
         return c.json({ error: result.error }, 404);
       }
+
+      // Auto-translate if name changed
+      try {
+        if (body.name && result.data.name) {
+          await autoTranslateEntity(
+            db,
+            tenantId,
+            'modifier_option',
+            result.data.id,
+            { name: result.data.name },
+            'modifier option',
+          );
+        }
+      } catch (err) {
+        console.error(
+          'Auto-translate failed for modifier option:',
+          err instanceof Error ? err.message : err,
+        );
+      }
+
       return c.json({ data: result.data });
     }
   );
@@ -592,17 +669,40 @@ export function staffOrderingRoutes(db: DrizzleDB) {
     return c.json({ data: combos });
   });
 
-  router.post('/combos', zValidator('json', createComboDealSchema), (c) => {
+  router.post('/combos', zValidator('json', createComboDealSchema), async (c) => {
     const tenantId = c.var.tenantId;
     const body = c.req.valid('json');
     const result = createComboDeal(db, tenantId, body);
     if ('error' in result) {
       return c.json({ error: result.error }, 400);
     }
+
+    // Auto-translate (fire-and-forget). Combo slots are NOT translated in this pass.
+    try {
+      const fields: Record<string, string> = {};
+      if (result.data.name) fields.name = result.data.name;
+      if (result.data.description) fields.description = result.data.description;
+      if (Object.keys(fields).length > 0) {
+        await autoTranslateEntity(
+          db,
+          tenantId,
+          'combo_deal',
+          result.data.id,
+          fields,
+          'combo deal',
+        );
+      }
+    } catch (err) {
+      console.error(
+        'Auto-translate failed for combo deal:',
+        err instanceof Error ? err.message : err,
+      );
+    }
+
     return c.json({ data: result.data }, 201);
   });
 
-  router.put('/combos/:id', zValidator('json', updateComboDealSchema), (c) => {
+  router.put('/combos/:id', zValidator('json', updateComboDealSchema), async (c) => {
     const tenantId = c.var.tenantId;
     const comboId = c.req.param('id');
     const body = c.req.valid('json');
@@ -610,6 +710,30 @@ export function staffOrderingRoutes(db: DrizzleDB) {
     if ('error' in result) {
       return c.json({ error: result.error }, 404);
     }
+
+    // Auto-translate if name or description changed
+    try {
+      const fields: Record<string, string> = {};
+      if (body.name && result.data.name) fields.name = result.data.name;
+      if (body.description !== undefined && result.data.description)
+        fields.description = result.data.description;
+      if (Object.keys(fields).length > 0) {
+        await autoTranslateEntity(
+          db,
+          tenantId,
+          'combo_deal',
+          result.data.id,
+          fields,
+          'combo deal',
+        );
+      }
+    } catch (err) {
+      console.error(
+        'Auto-translate failed for combo deal:',
+        err instanceof Error ? err.message : err,
+      );
+    }
+
     return c.json({ data: result.data });
   });
 
@@ -631,14 +755,30 @@ export function staffOrderingRoutes(db: DrizzleDB) {
     return c.json({ data: promos });
   });
 
-  router.post('/promotions', zValidator('json', createPromotionSchema), (c) => {
+  router.post('/promotions', zValidator('json', createPromotionSchema), async (c) => {
     const tenantId = c.var.tenantId;
     const body = c.req.valid('json');
     const promo = createPromotion(db, tenantId, body);
+
+    // Auto-translate (fire-and-forget)
+    try {
+      const fields: Record<string, string> = {};
+      if (promo.name) fields.name = promo.name;
+      if (promo.description) fields.description = promo.description;
+      if (Object.keys(fields).length > 0) {
+        await autoTranslateEntity(db, tenantId, 'promotion', promo.id, fields, 'promotion');
+      }
+    } catch (err) {
+      console.error(
+        'Auto-translate failed for promotion:',
+        err instanceof Error ? err.message : err,
+      );
+    }
+
     return c.json({ data: promo }, 201);
   });
 
-  router.put('/promotions/:id', zValidator('json', updatePromotionSchema), (c) => {
+  router.put('/promotions/:id', zValidator('json', updatePromotionSchema), async (c) => {
     const tenantId = c.var.tenantId;
     const promoId = c.req.param('id');
     const body = c.req.valid('json');
@@ -646,6 +786,23 @@ export function staffOrderingRoutes(db: DrizzleDB) {
     if (!promo) {
       return c.json({ error: 'Promotion not found' }, 404);
     }
+
+    // Auto-translate if name or description changed
+    try {
+      const fields: Record<string, string> = {};
+      if (body.name && promo.name) fields.name = promo.name;
+      if (body.description !== undefined && promo.description)
+        fields.description = promo.description;
+      if (Object.keys(fields).length > 0) {
+        await autoTranslateEntity(db, tenantId, 'promotion', promo.id, fields, 'promotion');
+      }
+    } catch (err) {
+      console.error(
+        'Auto-translate failed for promotion:',
+        err instanceof Error ? err.message : err,
+      );
+    }
+
     return c.json({ data: promo });
   });
 
@@ -1184,156 +1341,10 @@ export function staffOrderingRoutes(db: DrizzleDB) {
     }
   });
 
-  // --- Menu item translations (manual override support) ---
-
-  // GET all translations for a menu item (locale + field + value + source)
-  router.get('/menu/items/:id/translations', (c) => {
-    const tenantId = c.var.tenantId;
-    const itemId = c.req.param('id');
-
-    // Verify item belongs to this tenant
-    const items = getMenuItems(db, tenantId);
-    const item = items.find((i) => i.id === itemId);
-    if (!item) {
-      return c.json({ error: 'Item not found' }, 404);
-    }
-
-    const translations = getEntityTranslations(db, tenantId, 'menu_item', itemId);
-    return c.json({ data: { translations } });
-  });
-
-  // PUT — upsert a manual translation for a specific (locale, field)
-  router.put(
-    '/menu/items/:id/translations/:locale/:field',
-    zValidator('json', z.object({ value: z.string().min(1, 'Value is required') })),
-    (c) => {
-      const tenantId = c.var.tenantId;
-      const user = c.var.user;
-      if (user.role !== 'owner' && user.role !== 'manager') {
-        return c.json({ error: 'Only owner or manager can edit translations' }, 403);
-      }
-
-      const itemId = c.req.param('id');
-      const locale = c.req.param('locale');
-      const field = c.req.param('field');
-      const { value } = c.req.valid('json');
-
-      if (field !== 'name' && field !== 'description') {
-        return c.json({ error: "Field must be 'name' or 'description'" }, 400);
-      }
-
-      // Verify item belongs to this tenant
-      const items = getMenuItems(db, tenantId);
-      const item = items.find((i) => i.id === itemId);
-      if (!item) {
-        return c.json({ error: 'Item not found' }, 404);
-      }
-
-      setTranslation(db, tenantId, 'menu_item', itemId, locale, field, value, 'manual');
-      return c.json({
-        data: { translation: { locale, field, value, source: 'manual' as const } },
-      });
-    },
-  );
-
-  // DELETE — revert a manual translation back to auto. Triggers fire-and-forget
-  // re-translation from the source value.
-  router.delete('/menu/items/:id/translations/:locale/:field', async (c) => {
-    const tenantId = c.var.tenantId;
-    const user = c.var.user;
-    if (user.role !== 'owner' && user.role !== 'manager') {
-      return c.json({ error: 'Only owner or manager can edit translations' }, 403);
-    }
-
-    const itemId = c.req.param('id');
-    const locale = c.req.param('locale');
-    const field = c.req.param('field');
-
-    if (field !== 'name' && field !== 'description') {
-      return c.json({ error: "Field must be 'name' or 'description'" }, 400);
-    }
-
-    const items = getMenuItems(db, tenantId);
-    const item = items.find((i) => i.id === itemId);
-    if (!item) {
-      return c.json({ error: 'Item not found' }, 404);
-    }
-
-    deleteTranslation(db, tenantId, 'menu_item', itemId, locale, field);
-
-    // Fire-and-forget regeneration from the source fields.
-    try {
-      const fields: Record<string, string> = {};
-      if (item.name) fields.name = item.name;
-      if (item.description) fields.description = item.description;
-      if (Object.keys(fields).length > 0) {
-        autoTranslateEntity(db, tenantId, 'menu_item', itemId, fields, 'menu item').catch(
-          (err) => console.error('Auto-translate (reset) failed:', err instanceof Error ? err.message : err),
-        );
-      }
-    } catch (err) {
-      console.error('Auto-translate (reset) setup failed:', err instanceof Error ? err.message : err);
-    }
-
-    return c.json({ data: { deleted: true } });
-  });
-
-  // POST — regenerate all auto translations for this item. Optionally restrict to
-  // specific locales and/or force overwrite of manual overrides.
-  router.post(
-    '/menu/items/:id/translations/regenerate',
-    zValidator(
-      'json',
-      z.object({
-        locales: z.array(z.string()).optional(),
-        forceAll: z.boolean().optional(),
-      }).default({}),
-    ),
-    async (c) => {
-      const tenantId = c.var.tenantId;
-      const user = c.var.user;
-      if (user.role !== 'owner' && user.role !== 'manager') {
-        return c.json({ error: 'Only owner or manager can regenerate translations' }, 403);
-      }
-
-      const itemId = c.req.param('id');
-      const body = c.req.valid('json') as { locales?: string[]; forceAll?: boolean };
-
-      const items = getMenuItems(db, tenantId);
-      const item = items.find((i) => i.id === itemId);
-      if (!item) {
-        return c.json({ error: 'Item not found' }, 404);
-      }
-
-      const primaryLocale = getTenantPrimaryLocale(db, tenantId);
-      const allLocales = getTenantLocales(db, tenantId);
-      const targetLocales = (body.locales && body.locales.length > 0 ? body.locales : allLocales)
-        .filter((l) => l !== primaryLocale);
-
-      // Clear existing auto translations (preserving manual unless forceAll is set)
-      for (const locale of targetLocales) {
-        deleteEntityTranslations(db, tenantId, 'menu_item', itemId, locale, !body.forceAll);
-      }
-
-      const fields: Record<string, string> = {};
-      if (item.name) fields.name = item.name;
-      if (item.description) fields.description = item.description;
-
-      if (Object.keys(fields).length > 0 && targetLocales.length > 0) {
-        try {
-          // Run sequentially per locale — autoTranslateEntity already iterates all
-          // tenant locales; we use it directly but with a short-circuit when filtered.
-          await autoTranslateEntity(db, tenantId, 'menu_item', itemId, fields, 'menu item');
-        } catch (err) {
-          console.error('Regenerate translations failed:', err instanceof Error ? err.message : err);
-          return c.json({ error: 'Translation regeneration failed' }, 500);
-        }
-      }
-
-      const translations = getEntityTranslations(db, tenantId, 'menu_item', itemId);
-      return c.json({ data: { translations } });
-    },
-  );
+  // --- Generic content translations (mounted sub-router) ---
+  // Handles all entity types: menu_item, menu_category, modifier_group,
+  // modifier_option, promotion, combo_deal, combo_slot. See routes/translations.ts.
+  router.route('/translations', translationsRoutes(db));
 
   // --- Waiter Calls (staff: read + acknowledge) ---
 

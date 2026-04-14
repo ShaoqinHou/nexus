@@ -12,7 +12,7 @@ import { TenantProvider, useTenant } from '@web/platform/tenant/TenantProvider';
 import { TourProvider } from '@web/platform/TourProvider';
 import { AuthGuard } from '@web/platform/auth/AuthGuard';
 import { LocaleProvider } from '@web/platform/LocaleProvider';
-import { SUPPORTED_LOCALES, type Locale } from '@web/lib/i18n';
+import { SUPPORTED_LOCALES, useT, type Locale } from '@web/lib/i18n';
 
 // Lazy-loaded page components — each becomes its own chunk
 const LoginPage = lazy(() => import('@web/platform/auth/LoginPage').then(m => ({ default: m.LoginPage })));
@@ -265,9 +265,10 @@ const customerCatchAllRoute = createRoute({
 
 // Placeholder components
 function TenantNotFound() {
+  const t = useT();
   return (
     <div className="flex items-center justify-center h-64">
-      <p className="text-text-secondary">Page not found</p>
+      <p className="text-text-secondary">{t('Page not found')}</p>
     </div>
   );
 }
