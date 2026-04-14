@@ -90,6 +90,10 @@ export function useSetManualTranslation(tenantSlug: string) {
       queryClient.invalidateQueries({
         queryKey: entityTranslationsKey(vars.entityType, vars.entityId),
       });
+      // Dashboard queries: overview (counts/recent) + drill-down by-type lists.
+      queryClient.invalidateQueries({
+        queryKey: [...orderingKeys.all, 'translations'],
+      });
       for (const key of relatedListKeys(vars.entityType)) {
         queryClient.invalidateQueries({ queryKey: key });
       }
@@ -118,10 +122,48 @@ export function useResetTranslation(tenantSlug: string) {
       queryClient.invalidateQueries({
         queryKey: entityTranslationsKey(vars.entityType, vars.entityId),
       });
+      // Dashboard queries: overview (counts/recent) + drill-down by-type lists.
+      queryClient.invalidateQueries({
+        queryKey: [...orderingKeys.all, 'translations'],
+      });
       for (const key of relatedListKeys(vars.entityType)) {
         queryClient.invalidateQueries({ queryKey: key });
       }
     },
+  });
+}
+
+// --- Fetch all entities of a given type + their translations (paginated) ---
+
+export interface EntityWithTranslations {
+  id: string;
+  name: string;
+  description: string | null;
+  fields: readonly string[];
+  translations: EntityTranslation[];
+}
+
+export interface ByTypeResponse {
+  entities: EntityWithTranslations[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export function useTranslationsByType(
+  tenantSlug: string,
+  entityType: EntityType,
+  page: number,
+  limit: number,
+) {
+  return useQuery({
+    queryKey: [...orderingKeys.all, 'translations', 'by-type', tenantSlug, entityType, page, limit] as const,
+    queryFn: () =>
+      apiClient.get<{ data: ByTypeResponse }>(
+        `/t/${tenantSlug}/ordering/translations/by-type/${entityType}?page=${page}&limit=${limit}`,
+      ),
+    select: (res) => res.data,
+    staleTime: 30000,
   });
 }
 

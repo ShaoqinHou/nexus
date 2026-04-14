@@ -181,6 +181,9 @@ const orderingStaffRoute = createRoute({
 const orderingTranslationsRoute = createRoute({
   getParentRoute: () => tenantRoute,
   path: '/ordering/translations',
+  validateSearch: (search: Record<string, unknown>) => ({
+    tab: typeof search.tab === 'string' ? search.tab : undefined,
+  }),
   component: () => <SuspenseWrap><TranslationsDashboard /></SuspenseWrap>,
 });
 

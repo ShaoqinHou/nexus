@@ -845,6 +845,9 @@ export function ThemeSettings() {
               <div className="space-y-6">
                 {/* Primary Language */}
                 <div>
+                  <p className="text-xs text-text-secondary mb-1.5">
+                    {t('Primary language — the language you enter menu content in. Everything you type will be auto-translated from this language.')}
+                  </p>
                   <Select
                     label={t('Primary Language')}
                     value={form.primaryLocale}
@@ -867,6 +870,9 @@ export function ThemeSettings() {
                 {/* Additional Languages */}
                 <div>
                   <p className="text-sm font-medium text-text mb-1.5">{t('Additional Languages')}</p>
+                  <p className="text-xs text-text-secondary mb-1">
+                    {t('Additional languages — pick which other languages your customers can see. AI will translate all your content into these automatically on save.')}
+                  </p>
                   <p className="text-xs text-text-tertiary mb-3">
                     {t('Menu items will be auto-translated to these languages. Customers can switch via the language picker.')}
                   </p>
@@ -911,6 +917,9 @@ export function ThemeSettings() {
                     })}
                   </div>
                 </div>
+                <p className="text-xs text-text-tertiary italic border-t border-border pt-3">
+                  {t("Changing these settings doesn't re-translate existing content. Use the Translations page to regenerate if needed.")}
+                </p>
               </div>
             </CardContent>
           </Card>

@@ -363,6 +363,212 @@ export function translationsRoutes(db: DrizzleDB) {
     return c.json({ data: { counts, recentEdits } });
   });
 
+  // GET — list all entities of a given type + their translations, paginated.
+  // Used by the dashboard drill-down view so merchants can scan/edit without
+  // opening each item's edit dialog.
+  //
+  // Query params: ?page=1&limit=50
+  // Response: { data: { entities: Array<{ id, name, description?, translations }>, total, page, limit } }
+  router.get(
+    '/by-type/:entityType',
+    zValidator(
+      'query',
+      z.object({
+        page: z.coerce.number().int().min(1).optional().default(1),
+        limit: z.coerce.number().int().min(1).max(200).optional().default(50),
+      }),
+    ),
+    (c) => {
+      const tenantId = c.var.tenantId;
+      const user = c.var.user;
+      if (user.role !== 'owner' && user.role !== 'manager') {
+        return c.json({ error: 'Only owner or manager can view translation dashboard' }, 403);
+      }
+
+      const entityType = c.req.param('entityType');
+      const { page, limit } = c.req.valid('query');
+
+      if (!isSupportedEntityType(entityType)) {
+        return c.json({ error: `Unsupported entity type: ${entityType}` }, 400);
+      }
+
+      const offset = (page - 1) * limit;
+
+      // Load entities of the requested type (scoped to this tenant and active only).
+      let entities: Array<{ id: string; name: string; description?: string | null }> = [];
+      let total = 0;
+
+      switch (entityType) {
+        case 'menu_item': {
+          total = db
+            .select({ c: menuItems.id })
+            .from(menuItems)
+            .where(and(eq(menuItems.tenantId, tenantId), eq(menuItems.isActive, 1)))
+            .all().length;
+          entities = db
+            .select({ id: menuItems.id, name: menuItems.name, description: menuItems.description })
+            .from(menuItems)
+            .where(and(eq(menuItems.tenantId, tenantId), eq(menuItems.isActive, 1)))
+            .orderBy(menuItems.name)
+            .limit(limit)
+            .offset(offset)
+            .all();
+          break;
+        }
+        case 'menu_category': {
+          total = db
+            .select({ c: menuCategories.id })
+            .from(menuCategories)
+            .where(and(eq(menuCategories.tenantId, tenantId), eq(menuCategories.isActive, 1)))
+            .all().length;
+          entities = db
+            .select({ id: menuCategories.id, name: menuCategories.name, description: menuCategories.description })
+            .from(menuCategories)
+            .where(and(eq(menuCategories.tenantId, tenantId), eq(menuCategories.isActive, 1)))
+            .orderBy(menuCategories.name)
+            .limit(limit)
+            .offset(offset)
+            .all();
+          break;
+        }
+        case 'modifier_group': {
+          total = db
+            .select({ c: modifierGroups.id })
+            .from(modifierGroups)
+            .where(and(eq(modifierGroups.tenantId, tenantId), eq(modifierGroups.isActive, 1)))
+            .all().length;
+          entities = db
+            .select({ id: modifierGroups.id, name: modifierGroups.name })
+            .from(modifierGroups)
+            .where(and(eq(modifierGroups.tenantId, tenantId), eq(modifierGroups.isActive, 1)))
+            .orderBy(modifierGroups.name)
+            .limit(limit)
+            .offset(offset)
+            .all();
+          break;
+        }
+        case 'modifier_option': {
+          // modifier_option has no direct tenantId — gate via parent group.
+          const allRows = db
+            .select({ id: modifierOptions.id, name: modifierOptions.name })
+            .from(modifierOptions)
+            .innerJoin(modifierGroups, eq(modifierOptions.groupId, modifierGroups.id))
+            .where(
+              and(
+                eq(modifierGroups.tenantId, tenantId),
+                eq(modifierOptions.isActive, 1),
+                eq(modifierGroups.isActive, 1),
+              ),
+            )
+            .orderBy(modifierOptions.name)
+            .all();
+          total = allRows.length;
+          entities = allRows.slice(offset, offset + limit);
+          break;
+        }
+        case 'promotion': {
+          total = db
+            .select({ c: promotions.id })
+            .from(promotions)
+            .where(and(eq(promotions.tenantId, tenantId), eq(promotions.isActive, 1)))
+            .all().length;
+          entities = db
+            .select({ id: promotions.id, name: promotions.name, description: promotions.description })
+            .from(promotions)
+            .where(and(eq(promotions.tenantId, tenantId), eq(promotions.isActive, 1)))
+            .orderBy(promotions.name)
+            .limit(limit)
+            .offset(offset)
+            .all();
+          break;
+        }
+        case 'combo_deal': {
+          total = db
+            .select({ c: comboDeals.id })
+            .from(comboDeals)
+            .where(and(eq(comboDeals.tenantId, tenantId), eq(comboDeals.isActive, 1)))
+            .all().length;
+          entities = db
+            .select({ id: comboDeals.id, name: comboDeals.name, description: comboDeals.description })
+            .from(comboDeals)
+            .where(and(eq(comboDeals.tenantId, tenantId), eq(comboDeals.isActive, 1)))
+            .orderBy(comboDeals.name)
+            .limit(limit)
+            .offset(offset)
+            .all();
+          break;
+        }
+        case 'combo_slot': {
+          // combo_slot has no direct tenantId — gate via parent deal.
+          const allRows = db
+            .select({ id: comboSlots.id, name: comboSlots.name })
+            .from(comboSlots)
+            .innerJoin(comboDeals, eq(comboSlots.comboDealId, comboDeals.id))
+            .where(
+              and(
+                eq(comboDeals.tenantId, tenantId),
+                eq(comboDeals.isActive, 1),
+              ),
+            )
+            .orderBy(comboSlots.name)
+            .all();
+          total = allRows.length;
+          entities = allRows.slice(offset, offset + limit);
+          break;
+        }
+      }
+
+      // Bulk-load all translations for the returned entities in ONE query.
+      const entityIds = entities.map((e) => e.id);
+      const translationRows = entityIds.length > 0
+        ? db
+            .select()
+            .from(contentTranslations)
+            .where(
+              and(
+                eq(contentTranslations.tenantId, tenantId),
+                eq(contentTranslations.entityType, entityType),
+                inArray(contentTranslations.entityId, entityIds),
+              ),
+            )
+            .all()
+        : [];
+
+      // Group translations by entityId for easy frontend consumption.
+      const translationsByEntity: Record<
+        string,
+        Array<{ locale: string; field: string; value: string; source: 'auto' | 'manual' }>
+      > = {};
+      for (const row of translationRows) {
+        if (!translationsByEntity[row.entityId]) translationsByEntity[row.entityId] = [];
+        translationsByEntity[row.entityId].push({
+          locale: row.locale,
+          field: row.field,
+          value: row.value,
+          source: (row.source ?? 'auto') as 'auto' | 'manual',
+        });
+      }
+
+      const fields = ENTITY_FIELDS[entityType] ?? [];
+      const result = entities.map((e) => ({
+        id: e.id,
+        name: e.name,
+        description: 'description' in e ? e.description ?? null : null,
+        fields: fields as readonly string[],
+        translations: translationsByEntity[e.id] ?? [],
+      }));
+
+      return c.json({
+        data: {
+          entities: result,
+          total,
+          page,
+          limit,
+        },
+      });
+    },
+  );
+
   // GET — list all translations for entity
   router.get('/:entityType/:entityId', (c) => {
     const tenantId = c.var.tenantId;
