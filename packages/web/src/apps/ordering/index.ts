@@ -1,3 +1,4 @@
+// @i18n-consumer-wrapped — nav item labels + tour label wrapped via t() in PlatformShell
 import { registerApp } from '@web/platform/registry';
 import { UtensilsCrossed, LayoutDashboard, BookOpen, QrCode, Settings2, Tag, Package, ChefHat, BarChart3, Users, Languages } from 'lucide-react';
 import { staffOnboardingSteps, STAFF_TOUR_ID } from './tours/staffTour';

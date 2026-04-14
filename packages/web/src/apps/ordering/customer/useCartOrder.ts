@@ -3,6 +3,7 @@ import { useMutation } from '@tanstack/react-query';
 import { apiClient } from '@web/lib/api';
 import { formatPrice } from '@web/lib/format';
 import { useToast } from '@web/platform/ToastProvider';
+import { useT } from '@web/lib/i18n';
 import { useCart } from '@web/apps/ordering/customer/CartProvider';
 import { useValidatePromoCode } from '@web/apps/ordering/hooks/usePromotions';
 import type { Order } from '@web/apps/ordering/types';
@@ -51,6 +52,7 @@ export function useCartOrder(options: UseCartOrderOptions) {
 
   const { items, notes, clearCart, totalPrice } = useCart();
   const { toast } = useToast();
+  const t = useT();
 
   const [editingNotesFor, setEditingNotesFor] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -94,13 +96,13 @@ export function useCartOrder(options: UseCartOrderOptions) {
             : null,
         });
         setPromoError(null);
-        toast('success', 'Promo code applied!');
+        toast('success', t('Promo code applied!'));
       },
       onError: (err: Error) => {
         setPromoError(err.message || 'Invalid promo code');
       },
     });
-  }, [promoInput, validatePromo, totalPrice, toast]);
+  }, [promoInput, validatePromo, totalPrice, toast, t]);
 
   const handleRemovePromo = useCallback(() => {
     setAppliedPromo(null);
@@ -178,11 +180,11 @@ export function useCartOrder(options: UseCartOrderOptions) {
       setPromoInput('');
       setPromoError(null);
       onClose?.();
-      toast('success', addToOrderId ? 'Items added to order!' : 'Order placed successfully!');
+      toast('success', addToOrderId ? t('Items added to order!') : t('Order placed successfully!'));
       onOrderPlaced(order);
     },
     onError: (err) => {
-      setError(err.message || 'Failed to place order. Please try again.');
+      setError(err.message || t('Failed to place order. Please try again.'));
     },
   });
 

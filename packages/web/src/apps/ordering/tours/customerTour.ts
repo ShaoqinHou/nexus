@@ -1,3 +1,4 @@
+// @i18n-consumer-wrapped — strings are wrapped via t() in TourProvider at render time
 import type { TourStep } from '@web/platform/TourProvider';
 
 export const CUSTOMER_TOUR_ID = 'customer-onboarding';

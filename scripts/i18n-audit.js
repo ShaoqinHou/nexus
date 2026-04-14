@@ -241,6 +241,13 @@ function looksLikeEnglishUIText(value) {
 function scanFile(absPath) {
   const violations = [];
   const text = fs.readFileSync(absPath, 'utf8');
+  // File-level suppression: data modules whose strings are wrapped at consumer
+  // sites (tour steps, theme presets, nav items) carry the directive on a top
+  // comment so the static scanner skips their object-property values.
+  // Recognized markers: `// @i18n-consumer-wrapped` or `/* @i18n-consumer-wrapped */`
+  if (text.match(/@i18n-consumer-wrapped/)) {
+    return [];
+  }
   const lines = text.split(/\r?\n/);
   const rel = relPath(absPath);
   const isTsx = absPath.endsWith('.tsx');

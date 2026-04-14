@@ -1,3 +1,4 @@
+// @i18n-consumer-wrapped — preset name/description wrapped via t() at render site (ThemeSettings)
 // --- HSL Utilities ---
 
 function hexToRGB(hex: string): [number, number, number] {
