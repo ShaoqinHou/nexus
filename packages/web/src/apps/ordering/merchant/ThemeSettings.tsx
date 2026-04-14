@@ -200,8 +200,8 @@ function PresetCard({ preset, isActive, onClick }: PresetCardProps) {
         />
       </div>
       <div>
-        <p className="text-sm font-semibold text-text">{preset.name}</p>
-        <p className="text-xs text-text-secondary">{preset.description}</p>
+        <p className="text-sm font-semibold text-text">{t(preset.name)}</p>
+        <p className="text-xs text-text-secondary">{t(preset.description)}</p>
       </div>
       <div className="flex items-center gap-2">
         <span
