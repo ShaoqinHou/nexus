@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(netstat -ano)",
+      "Bash(findstr :5173)",
+      "Bash(findstr :5174)",
+      "Bash(findstr :5175)",
+      "Bash(findstr :5176)",
+      "Bash(findstr :5177)",
+      "Bash(findstr :5178)",
+      "Bash(npm run:*)",
+      "Bash(ssh:*)",
+      "Bash(mkdir -p /c/Users/housh/Documents/monoWeb/nexus/.claude/workflow/archive/mobile-review-2026-04)",
+      "Bash(mkdir -p /c/Users/housh/Documents/monoWeb/nexus/.claude/workflow/design/archive)"
+    ]
+  }
+}

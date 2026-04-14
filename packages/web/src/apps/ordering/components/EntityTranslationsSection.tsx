@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Info } from 'lucide-react';
+import { Info, Languages } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 import { Badge, Button, Input } from '@web/components/ui';
 import { useT, SUPPORTED_LOCALES, LOCALE_LABELS, type Locale } from '@web/lib/i18n';
@@ -242,10 +242,32 @@ export function EntityTranslationsSection({
     return null;
   }
 
+  // Count translations: total needed vs already present (either auto or manual)
+  const translatableFields = fields.filter((f) => f.sourceValue.trim().length > 0);
+  const totalNeeded = localesToShow.length * translatableFields.length;
+  const totalPresent = translations
+    ? translations.filter(
+        (tr) =>
+          localesToShow.includes(tr.locale as Locale) &&
+          translatableFields.some((f) => f.name === tr.field) &&
+          !!tr.value,
+      ).length
+    : 0;
+  const manualCount = translations
+    ? translations.filter((tr) => tr.source === 'manual' && localesToShow.includes(tr.locale as Locale)).length
+    : 0;
+
   return (
-    <details className="mt-4 border-t border-border pt-3">
-      <summary className="cursor-pointer text-sm font-medium text-text">
-        {t('Translations')}
+    <details className="mt-4 rounded-md border border-primary/30 bg-primary-light/20 p-3" open>
+      <summary className="cursor-pointer text-sm font-medium text-text flex items-center gap-2 select-none">
+        <Languages className="h-4 w-4 text-primary" aria-hidden="true" />
+        <span>{t('Translations')}</span>
+        <span className="text-xs text-text-secondary font-normal">
+          · {totalPresent}/{totalNeeded} {t('ready')}
+          {manualCount > 0 && (
+            <> · {manualCount} {t('manual')}</>
+          )}
+        </span>
       </summary>
       <div className="mt-3 space-y-3">
         {/* Inline info banner — explains that translations happen automatically. */}
