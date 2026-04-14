@@ -30,48 +30,54 @@ interface BarChartProps {
 
 function BarChart({ data, height = 200, barColor = 'var(--color-primary)' }: BarChartProps) {
   const maxValue = Math.max(...data.map((d) => d.value), 1);
-  const barWidth = Math.max(Math.floor(100 / data.length), 1);
-  const gap = Math.max(barWidth * 0.1, 1);
+  // Use a proportionally-correct viewBox so bars are sharp without stretching
+  const vbWidth = 600;
+  const barSlot = vbWidth / Math.max(data.length, 1);
+  const gap = Math.max(barSlot * 0.12, 1);
+  // Show ~8 labels max on the x-axis
+  const labelStride = Math.max(1, Math.ceil(data.length / 8));
 
   return (
-    <div className="w-full overflow-x-auto">
-      <svg
-        width="100%"
-        height={height + 30}
-        viewBox={`0 0 ${data.length * barWidth} ${height + 30}`}
-        preserveAspectRatio="none"
-        className="min-w-[300px]"
-      >
-        {data.map((d, i) => {
-          const barHeight = maxValue > 0 ? (d.value / maxValue) * height : 0;
-          return (
-            <g key={i}>
+    <div className="w-full">
+      <div className="w-full overflow-x-auto">
+        <svg
+          width="100%"
+          height={height}
+          viewBox={`0 0 ${vbWidth} ${height}`}
+          preserveAspectRatio="none"
+          className="block"
+        >
+          {data.map((d, i) => {
+            const barHeight = maxValue > 0 ? (d.value / maxValue) * height : 0;
+            return (
               <rect
-                x={i * barWidth + gap / 2}
+                key={i}
+                x={i * barSlot + gap / 2}
                 y={height - barHeight}
-                width={Math.max(barWidth - gap, 1)}
+                width={Math.max(barSlot - gap, 1)}
                 height={barHeight}
                 fill={barColor}
-                rx="2"
+                rx="1.5"
               >
                 <title>{`${d.label}: ${d.value}`}</title>
               </rect>
-              {/* Label (show every Nth to avoid clutter) */}
-              {(data.length <= 12 || i % Math.ceil(data.length / 12) === 0) && (
-                <text
-                  x={i * barWidth + barWidth / 2}
-                  y={height + 16}
-                  textAnchor="middle"
-                  fontSize="8"
-                  fill="var(--color-text-secondary)"
-                >
-                  {d.label}
-                </text>
-              )}
-            </g>
-          );
-        })}
-      </svg>
+            );
+          })}
+        </svg>
+        {/* Labels rendered as HTML so they don't get stretched by preserveAspectRatio=none */}
+        <div className="relative flex w-full mt-1 min-h-[14px] text-[10px] text-text-secondary">
+          {data.map((d, i) => (
+            <div
+              key={i}
+              className="flex-1 text-center overflow-hidden whitespace-nowrap"
+              style={{ minWidth: 0 }}
+              title={d.label}
+            >
+              {i % labelStride === 0 ? d.label : ''}
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
