@@ -1,0 +1,15 @@
+packages/web/src/apps/ordering/merchant/KitchenDisplay.tsx:148:7 — set-error — setError("Not authenticated")
+packages/web/src/apps/ordering/merchant/MenuManagement.tsx:1139:42 — jsx-text — "SOLD OUT"
+packages/web/src/apps/ordering/merchant/OrderDashboard.tsx:453:9 — attribute — title="Edit staff notes"
+packages/web/src/apps/ordering/merchant/OrderDashboard.tsx:672:19 — attribute — title="Remove payment"
+packages/web/src/apps/ordering/merchant/ThemeSettings.tsx:353:15 — attribute — alt="Logo"
+packages/web/src/apps/ordering/merchant/ThemeSettings.tsx:390:15 — attribute — alt="Cover"
+packages/web/src/apps/ordering/merchant/ThemeSettings.tsx:520:91 — jsx-text — "Palette:"
+packages/web/src/components/patterns/ErrorBoundary.tsx:42:60 — jsx-text — "Something went wrong"
+packages/web/src/components/ui/Dialog.tsx:62:13 — attribute — aria-label="Close dialog"
+packages/web/src/components/ui/ImageUpload.tsx:160:9 — attribute — aria-label="Choose image file"
+packages/web/src/components/ui/ImageUpload.tsx:171:15 — attribute — alt="Uploaded image"
+packages/web/src/components/ui/Toast.tsx:56:9 — attribute — aria-label="Dismiss notification"
+packages/web/src/main.tsx:23:3 — throw-error — throw new Error("Root element not found")
+packages/web/src/platform/auth/LoginPage.tsx:159:56 — jsx-text — "Nexus"
+packages/web/src/routeTree.tsx:270:42 — jsx-text — "Page not found"

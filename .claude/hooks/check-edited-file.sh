@@ -121,6 +121,21 @@ if [ -f "$FILE_PATH" ] && ! [[ "$FILE_PATH" =~ __tests__ ]]; then
   done < "$FILE_PATH"
 fi
 
+# Check 8: i18n hardcoded English strings (.tsx in packages/web/src) — runs the static audit
+# and pulls violations matching the edited file. See scripts/i18n-audit.js.
+if [[ "$FILE_PATH" =~ packages/web/src/.*\.tsx$ ]] && [ -f "scripts/i18n-audit.js" ]; then
+  # Run audit and grep for this file. Audit exits 1 if any violations exist anywhere — that's fine,
+  # we only surface lines for the edited file.
+  REL_PATH=$(echo "$FILE_PATH" | sed 's|^.*packages/web/src/|packages/web/src/|')
+  I18N_HITS=$(node scripts/i18n-audit.js 2>/dev/null | grep -F "$REL_PATH" || true)
+  if [ -n "$I18N_HITS" ]; then
+    while IFS= read -r hit; do
+      [ -z "$hit" ] && continue
+      VIOLATIONS="${VIOLATIONS}\n  - i18n: ${hit}"
+    done <<< "$I18N_HITS"
+  fi
+fi
+
 if [ -n "$VIOLATIONS" ]; then
   WORKFLOW_DIR=".claude/workflow"
   ISSUES_FILE="$WORKFLOW_DIR/issues.md"

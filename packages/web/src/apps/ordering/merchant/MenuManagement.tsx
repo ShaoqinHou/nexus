@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useSearch, useNavigate } from '@tanstack/react-router';
 import {
   Plus,
   Pencil,
@@ -1270,6 +1271,29 @@ export function MenuManagement() {
   const [modifierLinkItem, setModifierLinkItem] = useState<MenuItem | null>(
     null,
   );
+
+  // --- Deep-link: open item edit dialog from ?openItem=<id> search param ---
+  const search = useSearch({ strict: false });
+  const openItemId = (search as { openItem?: string } | undefined)?.openItem;
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!openItemId) return;
+    if (allItems.length === 0) return;
+    const target = allItems.find((it) => it.id === openItemId);
+    if (!target) return;
+    // Switch category so the item is in view if user closes the dialog
+    setSelectedCategoryId(target.categoryId);
+    setEditingItem(target);
+    setItemDialogOpen(true);
+    // Clear the search param to avoid re-opening on state changes
+    navigate({
+      to: '/t/$tenantSlug/ordering/menu',
+      params: { tenantSlug },
+      search: { openItem: undefined },
+      replace: true,
+    });
+  }, [openItemId, allItems, navigate, tenantSlug]);
 
   // --- Category handlers ---
 

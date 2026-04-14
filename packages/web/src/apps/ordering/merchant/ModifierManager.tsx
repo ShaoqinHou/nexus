@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Plus, Pencil, Settings2, Layers } from 'lucide-react';
+import { Plus, Pencil, Settings2, Layers, Sparkles } from 'lucide-react';
+import { Link } from '@tanstack/react-router';
 import {
   Button,
   Card,
@@ -259,6 +260,7 @@ function GroupList({
   onAdd,
   onEdit,
   onDelete,
+  tenantSlug,
 }: {
   groups: ModifierGroup[];
   selectedId: string | null;
@@ -266,6 +268,7 @@ function GroupList({
   onAdd: () => void;
   onEdit: (group: ModifierGroup) => void;
   onDelete: (id: string) => void;
+  tenantSlug: string;
 }) {
   const t = useT();
 
@@ -331,7 +334,26 @@ function GroupList({
                           </summary>
                           <ul className="mt-1 ml-3 list-disc">
                             {group.usedByItems?.map((usedItem) => (
-                              <li key={usedItem.id}>{usedItem.name}</li>
+                              <li key={usedItem.id}>
+                                <Link
+                                  to="/t/$tenantSlug/ordering/menu"
+                                  params={{ tenantSlug }}
+                                  search={{ openItem: usedItem.id }}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="text-primary hover:underline"
+                                >
+                                  {usedItem.name}
+                                </Link>
+                                {usedItem.hasPriceOverride && (
+                                  <Badge
+                                    variant="info"
+                                    className="ml-2 inline-flex items-center gap-0.5"
+                                  >
+                                    <Sparkles className="h-3 w-3" />
+                                    {t('Custom price')}
+                                  </Badge>
+                                )}
+                              </li>
                             ))}
                           </ul>
                         </details>
@@ -617,6 +639,7 @@ export function ModifierManager() {
             onAdd={handleAddGroup}
             onEdit={handleEditGroup}
             onDelete={handleDeleteGroup}
+            tenantSlug={tenantSlug}
           />
         </div>
 

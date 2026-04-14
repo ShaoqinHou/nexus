@@ -55,7 +55,7 @@ export interface ModifierGroup {
   /** Number of menu items using this group (staff listing). */
   usageCount?: number;
   /** Menu items that reference this group (staff listing). */
-  usedByItems?: { id: string; name: string }[];
+  usedByItems?: { id: string; name: string; hasPriceOverride?: boolean }[];
 }
 
 export interface ModifierOption {

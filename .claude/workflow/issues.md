@@ -70,3 +70,5 @@
 - [2026-04-13T15:16:52Z] [command_failure] Bash command failed
 - [2026-04-14T03:04:48Z] [command_failure] Bash command failed
 - [2026-04-14T03:10:54Z] [command_failure] Bash command failed
+- [2026-04-14T04:12:32Z] [command_failure] Bash command failed
+- [2026-04-14T04:14:04Z] [import-boundary] \n  - packages/web/src/components/ui/Dialog.tsx:102: Touch target may be below 48px — add min-h-[48px] or h-12 (WARN)\n  - i18n: packages/web/src/components/ui/Dialog.tsx:62:13 — attribute — aria-label="Close dialog"

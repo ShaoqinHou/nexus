@@ -34,6 +34,7 @@ export function getModifierGroups(db: DrizzleDB, tenantId: string) {
       menuItemId: menuItemModifierGroups.menuItemId,
       menuItemName: menuItems.name,
       isActive: menuItems.isActive,
+      priceOverrides: menuItemModifierGroups.priceOverrides,
     })
     .from(menuItemModifierGroups)
     .innerJoin(menuItems, eq(menuItems.id, menuItemModifierGroups.menuItemId))
@@ -46,10 +47,20 @@ export function getModifierGroups(db: DrizzleDB, tenantId: string) {
     )
     .all();
 
-  const usageByGroup = new Map<string, { id: string; name: string }[]>();
+  const usageByGroup = new Map<
+    string,
+    { id: string; name: string; hasPriceOverride: boolean }[]
+  >();
   for (const row of usageRows) {
+    const overrides = row.priceOverrides;
+    const hasPriceOverride =
+      overrides !== null && overrides !== '{}' && overrides !== '';
     const arr = usageByGroup.get(row.modifierGroupId);
-    const entry = { id: row.menuItemId, name: row.menuItemName };
+    const entry = {
+      id: row.menuItemId,
+      name: row.menuItemName,
+      hasPriceOverride,
+    };
     if (arr) {
       arr.push(entry);
     } else {

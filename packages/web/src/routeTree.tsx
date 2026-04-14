@@ -123,6 +123,9 @@ const tenantIndexRoute = createRoute({
 const orderingMenuRoute = createRoute({
   getParentRoute: () => tenantRoute,
   path: '/ordering/menu',
+  validateSearch: (search: Record<string, unknown>) => ({
+    openItem: typeof search.openItem === 'string' ? search.openItem : undefined,
+  }),
   component: () => <SuspenseWrap><MenuManagement /></SuspenseWrap>,
 });
 

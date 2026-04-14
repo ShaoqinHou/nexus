@@ -104,6 +104,7 @@
   "modifier": "オプション",
   "modifiers": "オプション",
   "Used by": "使用先",
+  "Custom price": "カスタム価格",
   "Unused — no items use this group": "未使用 — このグループを使用する商品はありません",
   "Orders": "注文管理",
   "Auto-refreshes every 10s": "10秒ごとに自動更新",
