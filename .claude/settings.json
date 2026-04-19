@@ -11,14 +11,34 @@
         }]
       }
     ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [{
+          "type": "command",
+          "command": "bash .claude/hooks/safe-commit.sh",
+          "timeout": 5000,
+          "statusMessage": "Checking worktree guard..."
+        }]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Edit|Write",
         "hooks": [{
           "type": "command",
-          "command": "bash .claude/hooks/check-edited-file.sh \"$CLAUDE_TOOL_INPUT\"",
+          "command": "bash .claude/hooks/check-edited-file.sh",
           "timeout": 15000,
-          "statusMessage": "Checking import boundaries..."
+          "statusMessage": "Checking code quality..."
+        }]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [{
+          "type": "command",
+          "command": "bash .claude/hooks/commit-review.sh",
+          "timeout": 5000,
+          "statusMessage": "Checking for post-commit review..."
         }]
       }
     ],
@@ -52,6 +72,19 @@
           "statusMessage": "Checking if verification needed..."
         }]
       }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Read(*)",
+      "Glob(*)",
+      "Grep(*)",
+      "Write(*)",
+      "Edit(*)",
+      "Bash(*)",
+      "Agent(*)",
+      "WebFetch(*)",
+      "WebSearch(*)"
     ]
   }
 }

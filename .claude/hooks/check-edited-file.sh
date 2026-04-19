@@ -1,14 +1,29 @@
 #!/bin/bash
-# PostToolUse hook for Edit/Write — checks import boundaries and mobile UX violations
+# PostToolUse hook for Edit/Write — checks import boundaries, design-token drift,
+# mobile-UX violations, and i18n coverage.
+#
+# Claude Code delivers hook payloads via stdin as JSON. The previous
+# version used $1 which was always empty — the entire hook was a silent
+# no-op. Fixed 2026-04-19 during the hex-empires workflow port.
 
-TOOL_INPUT="$1"
+TOOL_INPUT=$(cat 2>/dev/null || echo "")
 
 # Extract file path
 FILE_PATH=""
-if command -v jq &>/dev/null; then
-  FILE_PATH=$(echo "$TOOL_INPUT" | jq -r '.file_path // empty' 2>/dev/null)
-else
-  FILE_PATH=$(node -e "try{console.log(JSON.parse(process.argv[1]).file_path||'')}catch{console.log('')}" "$TOOL_INPUT" 2>/dev/null)
+if command -v node >/dev/null 2>&1; then
+  FILE_PATH=$(printf '%s' "$TOOL_INPUT" | node -e "
+    let d = '';
+    process.stdin.on('data', c => d += c);
+    process.stdin.on('end', () => {
+      try {
+        const x = JSON.parse(d);
+        const ti = (x && x.tool_input) || {};
+        process.stdout.write(String(ti.file_path || x.file_path || ''));
+      } catch (e) {}
+    });
+  " 2>/dev/null || echo "")
+elif command -v jq &>/dev/null; then
+  FILE_PATH=$(echo "$TOOL_INPUT" | jq -r '.tool_input.file_path // .file_path // empty' 2>/dev/null)
 fi
 
 # Only check .ts/.tsx files

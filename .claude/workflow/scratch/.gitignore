@@ -1,0 +1,7 @@
+# Runtime artifacts from the commit-review loop — don't pollute git history.
+# Only README.md and this .gitignore are tracked; review reports / fix logs /
+# driver logs / lockdirs are session-local.
+
+*
+!.gitignore
+!README.md

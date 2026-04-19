@@ -170,7 +170,75 @@ Bug-fix fast-path: skip phases 1-2, write regression test, fix, verify.
 
 Most features need **multiple layers**. "Visible in snapshot" does NOT equal "working".
 
-Key skills: `/verify` (E2E browser check), `/build` (dev commands), `/test` (testing conventions), `/new-module` (scaffold a mini-app), `/consistency-audit` (6-layer codebase audit).
+Key skills: `/verify` (E2E browser check), `/build` (dev commands), `/test` (testing conventions), `/new-module` (scaffold a mini-app), `/consistency-audit` (6-layer codebase audit), `/commit-review` (two-agent review loop).
+
+## Automated Code Review
+
+Every substantive commit is automatically reviewed by a two-agent loop. Ported from hex-empires' pattern — see `.claude/skills/commit-review/SKILL.md` for details.
+
+**How it works:**
+1. On `git commit`, the `commit-review` PostToolUse hook writes the sha to a queue and spawns a background `/commit-review --drain-queue` session.
+2. The orchestrator spawns the **Reviewer** agent (`.claude/agents/reviewer.md`), which audits the diff against `.claude/workflow/design/standards.md` and produces a structured findings report at `.claude/workflow/scratch/review-<sha>.md`.
+3. If the Reviewer's verdict is `FAIL` (any `severity: block` findings), the orchestrator spawns the **Fixer** agent (`.claude/agents/fixer.md`) in an isolated worktree. Fixer addresses BLOCK findings only, commits the repairs on an `auto-fix/*` branch, and writes `.claude/workflow/scratch/fix-log-<sha>.md`.
+4. The orchestrator re-reviews the fix commit. If still failing after 3 iterations, the sha is marked `STALLED` in `.claude/workflow/issues.md` for human resolution.
+
+**Standards source of truth:** `.claude/workflow/design/standards.md` enumerates every rule with a grep-driven detection recipe and a stable ID (e.g. `S-TENANT-ISOLATION`, `S-IMPORT-BOUNDARIES-APPS`). The Reviewer cites these IDs; `standards.md` is authoritative for what "correct" looks like. When you introduce a new rule, add a standard here first.
+
+**Finding IDs are stable:** `F-<8-char-hash>` is `sha256(file + line + standard_id)`. Same violation across iterations → same ID. Lets you track "is this a recurring issue" without fuzzy matching.
+
+**Escape hatches:**
+- `Skip-Review: <reason>` trailer in a commit message → hook skips the review entirely.
+- `// review-override: <reason>` on a line → Reviewer downgrades BLOCK to NOTE for that line.
+- `scratch/review-pause` file present → hook queues but doesn't spawn a driver; reviews accumulate until manual `/commit-review --drain-queue`.
+- `Agent worktree leaks:` drop a `.claude/worktree-sentinel` file with the expected worktree root; the `safe-commit.sh` PreToolUse hook then blocks commits from the wrong toplevel.
+
+**Manual invocation:**
+```
+/commit-review                 # review HEAD
+/commit-review <sha>           # review a specific commit
+/commit-review --drain-queue   # process the background queue manually
+/commit-review --sweep HEAD~10 # review the last 10 commits
+```
+
+## Trap Registry (recurring drift patterns — cite by name in reviews)
+
+| Trap | Fix |
+|------|-----|
+| missing-tenant-filter | Add `eq(<table>.tenantId, tenantId)` to every `.where()` in the service chain |
+| service-reads-hono-context | Service signatures take `(db, tenantId, …)` only. Move `c.req` / `c.var` reads up to `routes.ts` |
+| routes-skip-service-layer | `db.*()` in `routes.ts` is a violation. Move to `service.ts` and call from the route handler |
+| zod-missing-on-mutation | Every POST/PUT/PATCH/DELETE with a body needs `zValidator('json', schema)` before handler |
+| hardcoded-hex-chrome | Raw `#RRGGBB` or `rgba()` in `apps/` or `components/` → replace with token (`var(--color-*)` or semantic Tailwind class) |
+| hardcoded-pixels | `Npx` outside Tailwind arbitrary brackets → use Tailwind spacing scale (`p-4`, `h-12`) |
+| tailwind-color-utility | `bg-gray-900`, `text-red-500` in apps/components → use `bg-bg-surface`, `text-danger` semantic tokens |
+| useeffect-data-fetch | `useEffect(() => fetch(...))` → TanStack Query `useQuery` |
+| inline-query-key | `useQuery({ queryKey: ['menu', tenantId], ... })` → `useQuery({ queryKey: orderingKeys.menu(tenantId), ... })` |
+| mutation-silent | `useMutation` without `onSuccess`/`onError` toast → wire toast feedback |
+| english-jsx-unwrapped | `<p>Place order</p>` → `<p>{t('Place order')}</p>` + add to all 5 locales |
+| localstorage-cart | Customer cart in `localStorage` → must be `sessionStorage` via `CartProvider` |
+| hard-delete-business | `db.delete(menuItems)` on business tables → soft-delete via `is_active = false` |
+| order-item-no-snapshot | Order items referencing menu items by FK only → snapshot name/price/modifiers at order time |
+| cross-app-import | `apps/ordering/` importing from `apps/loyalty/` → extract to `components/patterns/` |
+| cross-module-import | `modules/ordering/` importing from `modules/loyalty/` → extract to `packages/api/src/lib/` |
+| ui-imports-apps | `components/ui/` importing from `apps/` or `platform/` → UI primitives are domain-free |
+| missing-tenant-test | New module without an A-vs-B tenant isolation test → without it, a silent filter drop goes undetected |
+
+## Agent Coordination
+
+| Situation | Action |
+|-----------|--------|
+| Trivial / single-step edit | Do it yourself |
+| Research spanning 5+ files | 1 Explore subagent |
+| Architecture question with multiple valid approaches | 2-3 parallel agents → synthesize yourself |
+| Verifying a specific claim | 1 agent with adversarial framing |
+| Long mechanical work (>20 min) | Delegate to subagent to preserve context |
+| Post-commit review | Automatic via commit-review hook (don't invoke manually unless needed) |
+
+Model selection:
+- **Parent session:** prefer Sonnet. Orchestration (spawning, parsing, cherry-picking) is Sonnet-grade.
+- **Review/Fix subagents:** Sonnet (per their frontmatter).
+- **Design subagents (if added):** Opus — real design judgment earns its keep.
+- Rule of thumb: Opus only when the decision is genuinely hard and the output will be used across several phases.
 
 ## Prerequisites
 
