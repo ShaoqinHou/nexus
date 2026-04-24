@@ -62,7 +62,7 @@ function RestaurantHero({
             className="h-14 w-14 rounded-full border-2 border-bg flex items-center justify-center text-xl font-bold shadow-md"
             style={{
               backgroundColor: brandColor,
-              color: textColorOnBrand(settings.brandColor ?? '#2563eb'),
+              color: textColorOnBrand(settings.brandColor ?? '#2563eb'), // lint-override: fallback seed for contrast calculation — textColorOnBrand() requires a parseable hex string; no CSS variable can substitute
             }}
           >
             {initial}

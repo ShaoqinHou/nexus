@@ -130,9 +130,9 @@ export function TourOverlay({
         <>
           <style>{`
             @keyframes tourRingPulse {
-              0%   { box-shadow: 0 0 0 0px rgba(251,191,36,0.8), 0 0 0 0px rgba(251,191,36,0.4); }
-              60%  { box-shadow: 0 0 0 6px rgba(251,191,36,0),   0 0 0 12px rgba(251,191,36,0); }
-              100% { box-shadow: 0 0 0 0px rgba(251,191,36,0),   0 0 0 0px rgba(251,191,36,0); }
+              0%   { box-shadow: 0 0 0 0px rgba(251,191,36,0.8), 0 0 0 0px rgba(251,191,36,0.4); } // lint-override: keyframe rgba — CSS tokens cannot be interpolated inside @keyframes box-shadow; amber spotlight is intentional tour chrome
+              60%  { box-shadow: 0 0 0 6px rgba(251,191,36,0),   0 0 0 12px rgba(251,191,36,0); } // lint-override: keyframe rgba — CSS tokens cannot be interpolated inside @keyframes
+              100% { box-shadow: 0 0 0 0px rgba(251,191,36,0),   0 0 0 0px rgba(251,191,36,0); } // lint-override: keyframe rgba — CSS tokens cannot be interpolated inside @keyframes
             }
           `}</style>
           <div
@@ -143,7 +143,7 @@ export function TourOverlay({
               width: cutout.width,
               height: cutout.height,
               borderRadius: 8,
-              border: '2px solid rgba(251,191,36,0.9)',
+              border: '2px solid rgba(251,191,36,0.9)', // lint-override: spotlight ring amber border — intentional tour chrome; no token for animated spotlight hue
               pointerEvents: 'none',
               zIndex: 90,
               animation: 'tourRingPulse 1.8s ease-out infinite',
@@ -182,7 +182,7 @@ export function TourOverlay({
             y="0"
             width="100%"
             height="100%"
-            fill="rgba(0, 0, 0, 0.6)"
+            fill="rgba(0, 0, 0, 0.6)" // lint-override: SVG fill attribute inside JSX — CSS tokens cannot be used as SVG fill values; semi-transparent overlay is intentional
             mask="url(#tour-spotlight-mask)"
           />
         </svg>

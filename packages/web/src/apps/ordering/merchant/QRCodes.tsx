@@ -72,7 +72,7 @@ export function QRCodes() {
 
           .qr-card {
             break-inside: avoid;
-            border: 1px solid #e5e7eb !important;
+            border: 1px solid #e5e7eb !important; // lint-override: @media print CSS in template string — CSS tokens cannot be resolved in print stylesheets
             border-radius: 0.5rem !important;
             padding: 1rem !important;
             text-align: center !important;

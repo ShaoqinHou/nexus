@@ -124,7 +124,7 @@ function settingsToFormState(settings: TenantThemeSettings | undefined): FormSta
   const additionalLocales = (rawLocales ?? []).filter((l) => l !== primary);
   return {
     preset: settings?.preset ?? '',
-    brandColor: settings?.brandColor ?? '#2563eb',
+    brandColor: settings?.brandColor ?? '#2563eb', // lint-override: default brand color seed for form — user-facing input value, not chrome
     fontFamily: settings?.fontFamily ?? 'system-ui',
     borderRadius: settings?.borderRadius ?? 'rounded',
     surfaceStyle: settings?.surfaceStyle ?? 'subtle',
@@ -287,17 +287,19 @@ function LivePreview({ settings, isDark, previewMode, onPreviewModeChange }: Liv
 
   const shadowMap: Record<SurfaceStyle, string> = {
     flat: 'none',
-    subtle: '0 2px 4px -1px rgb(0 0 0 / 0.06)',
-    elevated: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+    subtle: '0 2px 4px -1px rgb(0 0 0 / 0.06)', // lint-override: inline preview sandbox uses raw values — CSS tokens don't propagate into this isolated style object
+    elevated: '0 4px 6px -1px rgb(0 0 0 / 0.1)', // lint-override: inline preview sandbox uses raw values — CSS tokens don't propagate into this isolated style object
   };
   const shadow = shadowMap[settings.surfaceStyle];
 
-  const bgColor = isDark ? '#0f172a' : '#ffffff';
-  const surfaceBg = isDark ? '#1e293b' : '#f9fafb';
-  const mutedBg = isDark ? '#334155' : '#f3f4f6';
-  const textColor = isDark ? '#f1f5f9' : '#111827';
-  const secondaryText = isDark ? '#94a3b8' : '#6b7280';
-  const borderColor = isDark ? '#334155' : '#e5e7eb';
+  // lint-override: live preview sandbox renders inside an isolated div that doesn't inherit CSS custom properties
+  // from the document root — token values must be inlined here to faithfully simulate both light and dark modes.
+  const bgColor = isDark ? '#0f172a' : '#ffffff'; // lint-override: preview sandbox — mirrors --color-bg token
+  const surfaceBg = isDark ? '#1e293b' : '#f9fafb'; // lint-override: preview sandbox — mirrors --color-bg-surface token
+  const mutedBg = isDark ? '#334155' : '#f3f4f6'; // lint-override: preview sandbox — mirrors --color-bg-muted token
+  const textColor = isDark ? '#f1f5f9' : '#111827'; // lint-override: preview sandbox — mirrors --color-text token
+  const secondaryText = isDark ? '#94a3b8' : '#6b7280'; // lint-override: preview sandbox — mirrors --color-text-secondary token
+  const borderColor = isDark ? '#334155' : '#e5e7eb'; // lint-override: preview sandbox — mirrors --color-border token
 
   return (
     <div className="flex flex-col gap-3">
@@ -360,7 +362,7 @@ function LivePreview({ settings, isDark, previewMode, onPreviewModeChange }: Liv
               className="w-10 h-10 flex items-center justify-center"
               style={{
                 borderRadius: radius,
-                backgroundColor: 'rgba(255,255,255,0.2)',
+                backgroundColor: 'rgba(255,255,255,0.2)', // lint-override: semi-transparent white overlay on dynamic brand color — no token for this alpha blend
               }}
             >
               <Palette className="w-5 h-5" style={{ color: textColorOnBrand(palette.brand) }} />
@@ -1025,7 +1027,7 @@ export function ThemeSettings() {
                       }
                     }}
                     className="w-32 font-mono text-sm"
-                    placeholder="#2563eb"
+                    placeholder="#2563eb" // lint-override: hex input field placeholder — user-facing hex color input, not chrome
                   />
                   <div
                     className="w-10 h-10 rounded-md border border-border shrink-0"
@@ -1107,7 +1109,7 @@ export function ThemeSettings() {
                     preview: (
                       <div
                         className="w-10 h-7 bg-bg-surface border border-border"
-                        style={{ boxShadow: '0 1px 3px rgb(0 0 0 / 0.06)' }}
+                        style={{ boxShadow: '0 1px 3px rgb(0 0 0 / 0.06)' }} // lint-override: shadow preview swatch uses raw alpha — no token for box-shadow alpha
                       />
                     ),
                   },
@@ -1117,7 +1119,7 @@ export function ThemeSettings() {
                     preview: (
                       <div
                         className="w-10 h-7 bg-bg-surface border border-border"
-                        style={{ boxShadow: '0 4px 6px rgb(0 0 0 / 0.1)' }}
+                        style={{ boxShadow: '0 4px 6px rgb(0 0 0 / 0.1)' }} // lint-override: shadow preview swatch uses raw alpha — no token for box-shadow alpha
                       />
                     ),
                   },

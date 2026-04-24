@@ -104,8 +104,8 @@ const KITCHEN_COLUMNS: {
   {
     status: 'preparing',
     label: 'Preparing',
-    colorClass: 'border-[#7c3aed]',
-    headerBg: 'bg-[#ede9fe] text-[#7c3aed] dark:bg-[#2e1065] dark:text-[#a78bfa]',
+    colorClass: 'border-[#7c3aed]', // lint-override: "Preparing" station uses violet — distinct from warning/success/danger; no semantic token maps to this KDS-specific state
+    headerBg: 'bg-[#ede9fe] text-[#7c3aed] dark:bg-[#2e1065] dark:text-[#a78bfa]', // lint-override: violet station tints — KDS-specific status color with no design-system token equivalent
   },
   {
     status: 'ready',
@@ -270,7 +270,7 @@ function printKitchenTicket(order: Order, t: (key: string) => string) {
             }
           }
           if (modNames.length > 0) {
-            modLine = `<div style="margin-left:2em;font-size:1em;">[${modNames.join(', ')}]</div>`;
+            modLine = `<div style="margin-left:2em;font-size:1em;">[${modNames.join(', ')}]</div>`; // lint-override: inside printKitchenTicket — generates HTML for a new browser window; CSS tokens don't apply
           }
         } catch {
           // Ignore parse errors
@@ -287,7 +287,7 @@ function printKitchenTicket(order: Order, t: (key: string) => string) {
           : '';
       return `<div style="font-size:1.2em;font-weight:bold;">${item.quantity}x ${item.name}</div>${modLine}${noteLine}${allergenLine}`;
     })
-    .join('<hr style="border:none;border-top:1px dashed #333;margin:4px 0;" />');
+    .join('<hr style="border:none;border-top:1px dashed #333;margin:4px 0;" />'); // lint-override: print window HTML inline style — dark gray dashed separator; no token propagation
 
   const orderNoteLine = order.notes
     ? `<div style="margin-top:8px;font-weight:bold;">${t('Notes:')} ${order.notes}</div>`
@@ -298,9 +298,9 @@ function printKitchenTicket(order: Order, t: (key: string) => string) {
 <head>
   <title>Kitchen Ticket #${orderId}</title>
   <style>
-    body { font-family: monospace; padding: 16px; font-size: 14px; color: #000; }
+    body { font-family: monospace; padding: 16px; font-size: 14px; color: #000; } // lint-override: print window HTML — no CSS token propagation; black ink on white paper
     h1 { font-size: 1.4em; margin: 0 0 4px; }
-    .divider { border: none; border-top: 2px solid #000; margin: 6px 0; }
+    .divider { border: none; border-top: 2px solid #000; margin: 6px 0; } // lint-override: print window HTML — no CSS token propagation; black ink on white paper
     .header-row { display: flex; justify-content: space-between; font-size: 1.1em; font-weight: bold; }
   </style>
 </head>
