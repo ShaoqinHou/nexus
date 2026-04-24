@@ -104,6 +104,13 @@
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+
+  /* Hit targets — per Claude Design § VISUAL FOUNDATIONS.
+     44/48/52 match Button size sm/md/lg. 44 is the WCAG 2.1 AA floor.
+     Fixed across themes and modes — ergonomics, not aesthetics. */
+  --hit-sm: 44px;
+  --hit-md: 48px;
+  --hit-lg: 52px;
 }
 
 .dark {
@@ -160,4 +167,7 @@
   --shadow-sm: var(--shadow-sm);
   --shadow-md: var(--shadow-md);
   --shadow-lg: var(--shadow-lg);
+  --hit-sm: var(--hit-sm);
+  --hit-md: var(--hit-md);
+  --hit-lg: var(--hit-lg);
 }

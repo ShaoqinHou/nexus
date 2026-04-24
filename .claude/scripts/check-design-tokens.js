@@ -75,7 +75,9 @@ const RULES = [
     id: 'rgba-literal',
     standard: 'S-NO-HARDCODE-COLORS',
     message: 'Raw rgb()/rgba() — use var(--color-*) or a semantic token.',
-    regex: /\brgba?\(\s*\d{1,3}\s*,/g,
+    // Catches both comma-separated (rgb(255, 0, 0)) and CSS Level 4
+    // space-separated (rgb(255 0 0), rgba(255 0 0 / 50%)) syntaxes.
+    regex: /\brgba?\(\s*\d{1,3}\s*(?:,|\s+\d)/g,
     appliesTo: (rel) => /\.(tsx|ts|css|scss|sass)$/.test(rel),
   },
   {
@@ -89,14 +91,17 @@ const RULES = [
     id: 'hit-target-hardcoded',
     standard: 'S-HIT-TARGET-TOKEN',
     message: 'Hardcoded hit-target pixel — use h-[var(--hit-sm/md/lg)] or <Button size="..." />.',
-    regex: /\b(min-h|h|min-w|w)-\[(4[89]|5[012])px\]/g,
+    // Canonical hit targets are 44/48/52 (--hit-sm/md/lg). We scan the full
+    // 44-59px range to catch near-miss hardcodes ("50px looks right") that
+    // should collapse to the nearest token.
+    regex: /\b(min-h|h|min-w|w)-\[(4[4-9]|5[0-9])px\]/g,
     appliesTo: (rel) => /\.(tsx|ts)$/.test(rel),
   },
   {
     id: 'non-lucide-icon-import',
     standard: 'S-LUCIDE-ONLY',
     message: 'Only lucide-react is permitted for UI icons.',
-    regex: /from\s+['"](react-icons\/[^'"]+|@heroicons\/react[^'"]*|heroicons[^'"]*|phosphor-react|phosphor-icons|@tabler\/icons[^'"]*)['"]/g,
+    regex: /from\s+['"](react-icons\/[^'"]+|@heroicons\/react[^'"]*|heroicons[^'"]*|phosphor-react|phosphor-icons|@phosphor-icons\/react[^'"]*|@iconify\/react[^'"]*|@radix-ui\/react-icons[^'"]*|@tabler\/icons[^'"]*)['"]/g,
     appliesTo: (rel) => /\.(tsx|ts)$/.test(rel),
   },
 ];

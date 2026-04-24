@@ -112,6 +112,9 @@ Use chrome-devtools MCP. Start dev server (`npm run dev:all`). Take snapshots, c
 
 (Append entries below. Most-recent first.)
 
+- 2026-04-25 **HOOK BEHAVIOUR**: Claude Code is NOT auto-invoking `.claude/hooks/commit-review.sh` (PostToolUse/Bash) in this autonomous session. Manual probe confirmed: shell Bash calls never add a trace entry to `scratch/hook-trace.log`. Hook itself is functional when invoked directly. Likely cause: shell cwd sits inside a worktree subdir (`focused-pasteur-7ffd29`) and relative-path hook resolution fails. **Workaround**: after each substantive commit, manually spawn Reviewer agent via `Agent(subagent_type: "reviewer", ...)` targeting HEAD. Do NOT rely on the background queue.
+- 2026-04-25 Phase 2.1-2.3 done. Bundle `978d28b` reviewer verdict: PASS, 0 BLOCK, 0 WARN, 2 NOTE (stray clipboard PNG + 3 undocumented JPGs — cosmetic, no standards violation). Report at `scratch/review-978d28b.md`.
+- 2026-04-25 Phase 1 commit `50789e8`. Phase 0 setup commit `331daf5`. Feature branch pushed to origin.
 - 2026-04-25 Setup tick — creating plan file + feature branch.
 
 ---
