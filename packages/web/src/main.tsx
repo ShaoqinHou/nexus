@@ -7,6 +7,7 @@ import { ToastProvider } from '@web/platform/ToastProvider';
 import { AuthProvider } from '@web/platform/auth/AuthProvider';
 import { router } from '@web/routeTree';
 import '@web/platform/theme/tokens.css';
+import '@web/platform/theme/themes.css';
 
 const queryClient = new QueryClient({
   defaultOptions: {
