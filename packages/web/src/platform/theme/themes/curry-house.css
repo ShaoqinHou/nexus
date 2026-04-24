@@ -1,0 +1,75 @@
+/* ============================================================
+   THEME: CURRY HOUSE
+   Spiced, jewel-toned, aromatic. Saffron + turmeric + deep teal.
+   Best for: Indian, Pakistani, Sri Lankan, Nepalese, South
+   Asian restaurants, curry houses, tandoor kitchens, biryani
+   houses, chaat counters. Feels warm, rich, deeply flavored.
+   ============================================================ */
+
+[data-theme="curry-house"] {
+  --color-bg:          #fbf5e7;  /* turmeric cream */
+  --color-bg-surface:  #f3eacf;
+  --color-bg-muted:    #e8dcb3;
+  --color-bg-elevated: #fdfaf0;
+  --color-bg-strong:   #1a0d1a;  /* deep aubergine */
+
+  --color-text:           #2a1a0d;
+  --color-text-secondary: #6a4c2e;
+  --color-text-tertiary:  #a08858;
+  --color-text-inverse:   #fbf5e7;
+
+  --color-border:        #dbc897;
+  --color-border-strong: #b59a5e;
+
+  /* Brand — saffron / marigold */
+  --color-brand:         #d97a1a;  /* saffron */
+  --color-brand-hover:   #b36012;
+  --color-brand-light:   #fadec2;
+  --color-primary:       var(--color-brand);
+  --color-primary-hover: var(--color-brand-hover);
+  --color-primary-light: var(--color-brand-light);
+
+  /* Accent — deep teal */
+  --color-accent:        #0f6a6a;
+  --color-accent-light:  #cde3e3;
+
+  --color-success:       #4a7a2c;
+  --color-success-light: #dfead0;
+  --color-warning:       #d97a1a;
+  --color-warning-light: #fadec2;
+  --color-danger:        #a1341c;  /* red chili */
+  --color-danger-light:  #f4d8cf;
+  --color-info:          #0f6a6a;
+  --color-info-light:    #cde3e3;
+
+  --font-display: 'Fraunces', 'Noto Serif SC', Georgia, serif;
+  --font-sans:    'Inter', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+  --font-display-weight: 600;
+  --font-display-tracking: -0.005em;
+
+  --radius-sm: 4px; --radius-md: 8px; --radius-lg: 14px;
+  --radius-xl: 20px; --radius-2xl: 28px; --radius-full: 9999px;
+  --radius-card: var(--radius-lg);
+  --radius-btn:  var(--radius-full);
+  --radius-chip: var(--radius-full);
+
+  --shadow-sm: 0 1px 3px 0 rgb(140 80 20 / 0.1);
+  --shadow-md: 0 6px 14px -2px rgb(140 80 20 / 0.15);
+  --shadow-lg: 0 16px 32px -8px rgb(140 80 20 / 0.22);
+
+  --density-card-padding: 20px;
+  --density-row-gap:      14px;
+  --density-section-gap:  32px;
+
+  --theme-name: 'Curry House';
+  --theme-vibe: 'Spiced, jewel-toned, aromatic';
+}
+
+[data-theme="curry-house"].dark {
+  --color-bg: #1a120a; --color-bg-surface: #2a1c10; --color-bg-muted: #3a2816;
+  --color-bg-elevated: #2a1c10;
+  --color-text: #f5e6c4; --color-text-secondary: #c9a97d; --color-text-tertiary: #8e7250;
+  --color-border: #3a2816; --color-border-strong: #5a4228;
+  --color-brand-light: #4a2810; --color-accent-light: #0c3838;
+}

@@ -1,0 +1,39 @@
+/* ============================================================
+   Nexus Cuisine Themes — aggregator
+   ------------------------------------------------------------
+   Ten canonical theme identities from the Claude Design bundle.
+   Apply via `data-theme="<id>"` on a wrapper element — the cascade
+   re-resolves every var(--color-*), every token, live. No JS
+   re-render needed.
+
+   Canonical IDs (see S-THEMED-COMPONENT in standards.md):
+     classic, trattoria, izakaya, bubble-tea, counter,
+     taqueria, curry-house, sichuan, cantonese, wok
+
+   Semantic tokens (--color-success / danger / warning / info)
+   are NEVER re-themed — success is always green, danger is
+   always red. Only surface/brand/accent/type/radius/shadow
+   tokens shift.
+
+   Per-tenant --color-brand overrides flow through inline styles
+   on the wrapper element, layered ON TOP of the theme defaults.
+
+   Load order: tokens.css (base) → themes.css (this file).
+   ============================================================ */
+
+@import url('./themes/classic.css');
+@import url('./themes/trattoria.css');
+@import url('./themes/izakaya.css');
+@import url('./themes/bubble-tea.css');
+@import url('./themes/sichuan.css');
+@import url('./themes/counter.css');
+@import url('./themes/cantonese.css');
+@import url('./themes/wok.css');
+@import url('./themes/taqueria.css');
+@import url('./themes/curry-house.css');
+
+/* Display fonts used by a subset of themes (Trattoria, Bubble Tea, Sichuan,
+   Cantonese, Wok, Curry House). One Google Fonts import covers all.
+   All UI-weight Inter + JetBrains Mono are self-hosted in /fonts/ via
+   tokens.css @font-face declarations. */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap');
