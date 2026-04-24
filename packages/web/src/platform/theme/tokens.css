@@ -1,5 +1,25 @@
 @import 'tailwindcss';
 
+/* Self-hosted variable fonts per Claude Design § VISUAL FOUNDATIONS.
+   Inter powers all UI; JetBrains Mono handles code-adjacent text
+   (tenant slugs, order IDs, IDs in receipts). woff2 sources live under
+   packages/web/public/fonts/ and are referenced via absolute paths so
+   they work under both root and subpath deployments. */
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/Inter-Variable.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/fonts/JetBrainsMono-Variable.woff2') format('woff2-variations');
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Hide scrollbars but allow scrolling */
 .scrollbar-hide {
   -ms-overflow-style: none;
