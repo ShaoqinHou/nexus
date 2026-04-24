@@ -221,7 +221,7 @@ const MenuItemCard = memo(function MenuItemCard({
             variant="primary"
             size="sm"
             onClick={handleAdd}
-            className="min-h-[48px] min-w-[48px] !p-0 active:scale-[0.97] transition-transform"
+            className="min-h-[var(--hit-md)] min-w-[var(--hit-md)] !p-0 active:scale-[0.97] transition-transform"
             aria-label={`${t('Add')} ${item.name} ${t('to cart')}`}
             {...(tourTarget ? { 'data-tour': tourTarget } : {})}
           >
@@ -772,7 +772,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
             <button
               type="button"
               onClick={() => setSearchQuery('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-bg-muted text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className="absolute right-2 top-1/2 -translate-y-1/2 min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] flex items-center justify-center rounded-full hover:bg-bg-muted text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               aria-label={t('Clear search')}
             >
               <X className="h-4 w-4" />
@@ -823,7 +823,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                   <button
                     type="button"
                     onClick={() => setHiddenAllergens(new Set())}
-                    className="ml-auto text-xs text-primary hover:text-primary-hover font-medium min-h-[44px] min-w-[44px] flex items-center justify-center"
+                    className="ml-auto text-xs text-primary hover:text-primary-hover font-medium min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] flex items-center justify-center"
                   >
                     {t('Clear All')}
                   </button>
@@ -905,7 +905,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
         <div className="sticky top-0 z-10 bg-bg/95 backdrop-blur-sm border-b border-border lg:hidden">
           {searchOpen ? (
             <>
-              <div className="flex items-center gap-2 px-4 min-h-[48px]">
+              <div className="flex items-center gap-2 px-4 min-h-[var(--hit-md)]">
                 <Search className="h-5 w-5 text-text-tertiary shrink-0" />
                 <div className="relative flex-1">
                   <input
@@ -920,7 +920,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                     <button
                       type="button"
                       onClick={() => setSearchQuery('')}
-                      className="absolute right-0 top-1/2 -translate-y-1/2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-bg-muted text-text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                      className="absolute right-0 top-1/2 -translate-y-1/2 min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] flex items-center justify-center rounded-full hover:bg-bg-muted text-text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                       aria-label={t('Clear search')}
                     >
                       <X className="h-4 w-4" />
@@ -943,7 +943,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                     <button
                       type="button"
                       onClick={clearSearchHistory}
-                      className="text-xs text-primary hover:text-primary-hover font-medium min-h-[44px] min-w-[44px] flex items-center justify-center"
+                      className="text-xs text-primary hover:text-primary-hover font-medium min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] flex items-center justify-center"
                     >
                       {t('Clear')}
                     </button>
@@ -989,7 +989,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
               <button
                 type="button"
                 onClick={() => setSearchOpen(true)}
-                className="shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-bg-muted text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="shrink-0 min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] flex items-center justify-center rounded-full hover:bg-bg-muted text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 aria-label={t('Search menu')}
               >
                 <Search className="h-5 w-5" />
@@ -1000,7 +1000,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                   type="button"
                   onClick={() => setAllergenFilterOpen((p) => !p)}
                   className={[
-                    'shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                    'shrink-0 min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] flex items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
                     hiddenAllergens.size > 0
                       ? 'text-danger bg-danger-light relative'
                       : 'text-text-secondary hover:bg-bg-muted',
@@ -1019,7 +1019,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
               <button
                 type="button"
                 onClick={toggleTheme}
-                className="shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-bg-muted text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="shrink-0 min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] flex items-center justify-center rounded-full hover:bg-bg-muted text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 aria-label={theme === 'light' ? t('Switch to dark mode') : t('Switch to light mode')}
               >
                 {theme === 'light' ? (
@@ -1046,7 +1046,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                   <button
                     type="button"
                     onClick={() => setHiddenAllergens(new Set())}
-                    className="text-xs text-primary hover:text-primary-hover font-medium min-h-[44px] min-w-[44px] flex items-center justify-center"
+                    className="text-xs text-primary hover:text-primary-hover font-medium min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] flex items-center justify-center"
                   >
                     {t('Clear All')}
                   </button>
@@ -1061,7 +1061,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                       type="button"
                       onClick={() => toggleAllergenFilter(allergen)}
                       className={[
-                        'min-h-[44px] px-3 py-1 rounded-full text-xs font-medium border transition-colors',
+                        'min-h-[var(--hit-sm)] px-3 py-1 rounded-full text-xs font-medium border transition-colors',
                         isHidden
                           ? 'bg-danger text-text-inverse border-danger'
                           : 'bg-bg-muted text-text-secondary border-border hover:border-border-strong',
@@ -1183,7 +1183,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
         <button
           type="button"
           onClick={scrollToTop}
-          className="fixed bottom-20 right-4 lg:bottom-4 lg:right-8 z-30 min-h-[48px] min-w-[48px] h-14 w-14 flex items-center justify-center rounded-full bg-primary text-text-inverse shadow-lg hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          className="fixed bottom-20 right-4 lg:bottom-4 lg:right-8 z-30 min-h-[var(--hit-md)] min-w-[var(--hit-md)] h-14 w-14 flex items-center justify-center rounded-full bg-primary text-text-inverse shadow-lg hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           aria-label={t('Back to top')}
         >
           <ArrowUp className="h-6 w-6" />

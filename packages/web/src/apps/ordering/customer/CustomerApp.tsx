@@ -209,7 +209,7 @@ function CustomerAppInner({ tenantSlug, tableNumber, availableLocales }: Custome
           <button
             type="button"
             onClick={() => setView({ type: 'confirmation', orderId: recentOrder.id })}
-            className="text-sm font-medium text-primary hover:text-primary-hover py-2 min-h-[48px] flex items-center justify-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+            className="text-sm font-medium text-primary hover:text-primary-hover py-2 min-h-[var(--hit-md)] flex items-center justify-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
           >
             <Eye className="h-4 w-4" />
             {t('View order')}

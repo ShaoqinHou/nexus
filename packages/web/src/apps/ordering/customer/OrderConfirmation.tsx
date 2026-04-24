@@ -276,7 +276,7 @@ function FeedbackSection({
             onClick={() => setRating(star)}
             onMouseEnter={() => setHoveredStar(star)}
             onMouseLeave={() => setHoveredStar(0)}
-            className="min-h-[48px] min-w-[48px] flex items-center justify-center rounded-full hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="min-h-[var(--hit-md)] min-w-[var(--hit-md)] flex items-center justify-center rounded-full hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             aria-label={`${t('Rate')} ${star} ${t(star !== 1 ? 'stars' : 'star')}`}
           >
             <Star
@@ -553,7 +553,7 @@ export function OrderConfirmation({
         <button
           type="button"
           onClick={handleContactRestaurant}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-border bg-bg-elevated hover:bg-bg-muted transition-colors text-text font-medium min-h-[48px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-border bg-bg-elevated hover:bg-bg-muted transition-colors text-text font-medium min-h-[var(--hit-md)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
           <Phone className="h-5 w-5" />
           {t('Contact Restaurant')}
@@ -655,7 +655,7 @@ export function OrderConfirmation({
                       type="button"
                       onClick={() => handleCancelItem(item.id, item.name)}
                       disabled={cancelItems.isPending}
-                      className="min-h-[44px] min-w-[44px] flex items-center justify-center text-danger hover:text-danger/80 hover:bg-danger/10 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger focus-visible:ring-offset-2"
+                      className="min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] flex items-center justify-center text-danger hover:text-danger/80 hover:bg-danger/10 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger focus-visible:ring-offset-2"
                       aria-label={`Request cancellation for ${item.name}`}
                     >
                       <X className="h-5 w-5" />

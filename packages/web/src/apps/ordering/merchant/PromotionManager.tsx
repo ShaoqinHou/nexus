@@ -511,7 +511,7 @@ function PromotionCard({
               variant="ghost"
               size="sm"
               onClick={() => setExpanded(!expanded)}
-              className="min-h-[44px]"
+              className="min-h-[var(--hit-sm)]"
             >
               <Ticket className="h-3.5 w-3.5" />
               {t('Codes')}
@@ -526,7 +526,7 @@ function PromotionCard({
               size="sm"
               onClick={() => onEdit(promo)}
               aria-label={`Edit ${promo.name}`}
-              className="min-h-[44px]"
+              className="min-h-[var(--hit-sm)]"
             >
               <Pencil className="h-3.5 w-3.5" />
               {t('Edit')}
@@ -536,7 +536,7 @@ function PromotionCard({
               size="sm"
               onConfirm={() => onDelete(promo.id)}
               confirmText={t('Delete?')}
-              className="min-h-[44px]"
+              className="min-h-[var(--hit-sm)]"
             >
               {t('Delete')}
             </ConfirmButton>
@@ -737,7 +737,7 @@ export function PromotionManager() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-text">{t('Promotions')}</h1>
-        <Button onClick={handleAddPromotion} className="min-h-[48px]">
+        <Button onClick={handleAddPromotion} className="min-h-[var(--hit-md)]">
           <Plus className="h-4 w-4" />
           {t('Add Promotion')}
         </Button>

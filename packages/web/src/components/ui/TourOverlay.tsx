@@ -302,7 +302,7 @@ export function TourOverlay({
           <button
             type="button"
             onClick={onSkip}
-            className="min-h-[44px] px-3 text-sm font-medium text-text-tertiary hover:text-text-secondary hover:bg-bg-muted rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]"
+            className="min-h-[var(--hit-sm)] px-3 text-sm font-medium text-text-tertiary hover:text-text-secondary hover:bg-bg-muted rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]"
           >
             {t('Skip tour')}
           </button>
@@ -310,7 +310,7 @@ export function TourOverlay({
             <button
               type="button"
               onClick={onNext}
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 min-h-[44px] text-sm font-medium rounded-lg bg-primary text-text-inverse hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 min-h-[var(--hit-sm)] text-sm font-medium rounded-lg bg-primary text-text-inverse hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]"
             >
               {buttonLabel}
             </button>

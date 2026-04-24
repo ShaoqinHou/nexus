@@ -7,7 +7,7 @@ interface ToggleProps {
 
 export function Toggle({ checked, onChange, label, disabled = false }: ToggleProps) {
   return (
-    <label className="inline-flex items-center gap-3 cursor-pointer select-none min-h-[44px]">
+    <label className="inline-flex items-center gap-3 cursor-pointer select-none min-h-[var(--hit-sm)]">
       <button
         type="button"
         role="switch"

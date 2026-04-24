@@ -123,7 +123,7 @@ function CategoryDialog({
       data-tour="category-dialog"
       footer={
         <>
-          <Button variant="secondary" onClick={handleClose} disabled={loading} className="min-h-[48px]">
+          <Button variant="secondary" onClick={handleClose} disabled={loading} className="min-h-[var(--hit-md)]">
             {t('Cancel')}
           </Button>
           <Button
@@ -132,7 +132,7 @@ function CategoryDialog({
             form="category-form"
             loading={loading}
             disabled={!name.trim()}
-            className="min-h-[48px]"
+            className="min-h-[var(--hit-md)]"
           >
             {isEdit ? t('Save') : t('Add')}
           </Button>
@@ -281,7 +281,7 @@ function ItemDialog({
       data-tour="item-dialog"
       footer={
         <>
-          <Button variant="secondary" onClick={handleClose} disabled={loading} className="min-h-[48px]">
+          <Button variant="secondary" onClick={handleClose} disabled={loading} className="min-h-[var(--hit-md)]">
             {t('Cancel')}
           </Button>
           <Button
@@ -290,7 +290,7 @@ function ItemDialog({
             form="item-form"
             loading={loading}
             disabled={!name.trim() || !price}
-            className="min-h-[48px]"
+            className="min-h-[var(--hit-md)]"
           >
             {isEdit ? t('Save') : t('Add')}
           </Button>
@@ -350,7 +350,7 @@ function ItemDialog({
                   type="button"
                   onClick={() => toggleTag(tag)}
                   className={[
-                    'min-h-[44px] px-2.5 py-2.5 rounded-full text-xs font-medium border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+                    'min-h-[var(--hit-sm)] px-2.5 py-2.5 rounded-full text-xs font-medium border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
                     isSelected
                       ? 'bg-primary text-text-inverse border-primary'
                       : 'bg-bg-muted text-text-secondary border-border hover:border-border-strong',
@@ -375,7 +375,7 @@ function ItemDialog({
                   type="button"
                   onClick={() => toggleAllergen(allergen)}
                   className={[
-                    'min-h-[44px] px-2.5 py-2.5 rounded-full text-xs font-medium border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+                    'min-h-[var(--hit-sm)] px-2.5 py-2.5 rounded-full text-xs font-medium border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
                     isSelected
                       ? 'bg-warning text-text-inverse border-warning'
                       : 'bg-bg-muted text-text-secondary border-border hover:border-border-strong',
@@ -521,7 +521,7 @@ function CategoryList({
                         onMove(cat.id, 'up');
                       }}
                       disabled={idx === 0}
-                      className="min-h-[44px] min-w-[44px] p-2 sm:p-1 rounded text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors disabled:opacity-30 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                      className="min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] p-2 sm:p-1 rounded text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors disabled:opacity-30 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                       aria-label={`${t('Move')} ${cat.name} ${t('up')}`}
                     >
                       <ChevronUp className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
@@ -533,7 +533,7 @@ function CategoryList({
                         onMove(cat.id, 'down');
                       }}
                       disabled={idx === categories.length - 1}
-                      className="min-h-[44px] min-w-[44px] p-2 sm:p-1 rounded text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors disabled:opacity-30 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                      className="min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] p-2 sm:p-1 rounded text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors disabled:opacity-30 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                       aria-label={`${t('Move')} ${cat.name} ${t('down')}`}
                     >
                       <ChevronDown className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
@@ -544,7 +544,7 @@ function CategoryList({
                         e.stopPropagation();
                         onEdit(cat);
                       }}
-                      className="min-h-[44px] min-w-[44px] p-2 sm:p-1 rounded text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                      className="min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] p-2 sm:p-1 rounded text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                       aria-label={`${t('Edit')} ${cat.name}`}
                     >
                       <Pencil className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
@@ -558,7 +558,7 @@ function CategoryList({
                           ? `${t('Delete')} ${cat.name}? (${itemCountByCategory[cat.id]} ${t(itemCountByCategory[cat.id] === 1 ? 'item' : 'items')} ${t('will be hidden')})`
                           : t('Delete?')
                       }
-                      className="min-h-[44px] min-w-[44px] !p-1 text-text-tertiary hover:text-danger"
+                      className="min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] !p-1 text-text-tertiary hover:text-danger"
                     >
                       <span className="text-xs">{t('Del')}</span>
                     </ConfirmButton>
@@ -939,7 +939,7 @@ function MenuItemCard({
                 type="button"
                 onClick={() => onMove(item.id, 'up')}
                 disabled={isFirst}
-                className="min-h-[44px] min-w-[44px] p-1.5 rounded text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors disabled:opacity-30 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                className="min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] p-1.5 rounded text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors disabled:opacity-30 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                 aria-label={`${t('Move')} ${item.name} ${t('up')}`}
               >
                 <ChevronUp className="h-3.5 w-3.5" />
@@ -948,7 +948,7 @@ function MenuItemCard({
                 type="button"
                 onClick={() => onMove(item.id, 'down')}
                 disabled={isLast}
-                className="min-h-[44px] min-w-[44px] p-1.5 rounded text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors disabled:opacity-30 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                className="min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] p-1.5 rounded text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors disabled:opacity-30 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                 aria-label={`${t('Move')} ${item.name} ${t('down')}`}
               >
                 <ChevronDown className="h-3.5 w-3.5" />
@@ -958,7 +958,7 @@ function MenuItemCard({
                 size="sm"
                 onClick={() => onManageModifiers(item)}
                 aria-label={`${t('Manage modifiers for')} ${item.name}`}
-                className="min-h-[44px]"
+                className="min-h-[var(--hit-sm)]"
               >
                 <Settings2 className="h-3.5 w-3.5" />
                 {t('Modifiers')}
@@ -968,7 +968,7 @@ function MenuItemCard({
                 size="sm"
                 onClick={() => onEdit(item)}
                 aria-label={`${t('Edit')} ${item.name}`}
-                className="min-h-[44px]"
+                className="min-h-[var(--hit-sm)]"
               >
                 <Pencil className="h-3.5 w-3.5" />
                 {t('Edit')}
@@ -978,7 +978,7 @@ function MenuItemCard({
                 size="sm"
                 onConfirm={() => onDelete(item.id)}
                 confirmText={t('Delete?')}
-                className="min-h-[44px]"
+                className="min-h-[var(--hit-sm)]"
               >
                 {t('Delete')}
               </ConfirmButton>

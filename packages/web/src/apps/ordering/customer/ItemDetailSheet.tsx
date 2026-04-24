@@ -244,7 +244,7 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
           <button
             type="button"
             onClick={onClose}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            className="min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] flex items-center justify-center rounded-full text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             aria-label={t('Close')}
           >
             <X className="h-6 w-6" />
@@ -292,7 +292,7 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
                           onClick={() => toggleOption(group, option.id)}
                           disabled={isDisabled}
                           className={[
-                            'w-full flex items-center justify-between px-4 py-3 min-h-[48px] rounded-lg border text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]',
+                            'w-full flex items-center justify-between px-4 py-3 min-h-[var(--hit-md)] rounded-lg border text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]',
                             isSelected
                               ? 'border-primary bg-primary/5'
                               : 'border-border hover:bg-bg-muted',

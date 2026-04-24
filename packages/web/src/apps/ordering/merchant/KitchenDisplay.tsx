@@ -413,7 +413,7 @@ function KitchenOrderCard({
               type="button"
               onClick={() => onToggleItem(item.id)}
               className={[
-                'w-full min-h-[48px] flex items-start gap-3 rounded-lg px-3 py-2.5 text-left transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+                'w-full min-h-[var(--hit-md)] flex items-start gap-3 rounded-lg px-3 py-2.5 text-left transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
                 item.status === 'cancel_requested'
                   ? 'bg-warning-light/20 border border-warning/30'
                   : 'bg-bg-muted/50',
@@ -534,7 +534,7 @@ function KitchenOrderCard({
         {nextStatus && nextLabel && (
           <Button
             size="lg"
-            className="flex-1 text-base font-bold min-h-[52px]"
+            className="flex-1 text-base font-bold min-h-[var(--hit-lg)]"
             onClick={() => onAdvance(order.id, nextStatus)}
             loading={isUpdating}
           >
@@ -548,7 +548,7 @@ function KitchenOrderCard({
             onConfirm={() => onCancel(order.id)}
             confirmText={t('Cancel?')}
             disabled={isUpdating}
-            className="min-h-[52px]"
+            className="min-h-[var(--hit-lg)]"
           >
             {t('Cancel')}
           </ConfirmButton>
