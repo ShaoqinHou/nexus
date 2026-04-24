@@ -40,28 +40,21 @@ yield until next tick. Do not burn the quota retrying.
 ## Phase 0 — Setup (this tick)
 
 - [x] Write this file
-- [ ] Create `feat/design-workflow-v2` branch + push
-- [ ] Drop `.claude/workflow/scratch/review-pause` sentinel (pauses review during workflow edits)
-- [ ] Schedule 31-min durable watchdog CronCreate
-- [ ] Audit the 4 files with GLM references — classify as "agent-model refs (replace)" vs "z.ai translation product feature (keep)"
+- [x] Create `feat/design-workflow-v2` branch + push
+- [x] Drop `.claude/workflow/scratch/review-pause` sentinel (pauses review during workflow edits)
+- [x] Schedule ~30-min durable watchdog CronCreate (fires at :07 and :37 each hour)
+- [x] Audit GLM references — **finding: all GLM refs in `.claude/` are the z.ai product translation service (menu content). Agent models in reviewer.md, fixer.md, commit-review.sh are ALREADY `model: sonnet`. Nothing to rename for agent-model purposes. Phase 1.1 reduces to a no-op; keep z.ai references intact.**
 
 ## Phase 1 — Workflow updates (review PAUSED)
 
 Editing the review/fixer system itself, so review stays off.
 
-- [ ] **1.1** GLM→Sonnet rename across `.claude/**`. Preserve z.ai translation-service references (product feature, not agent model). Preserve Opus nuance for hard design decisions.
-- [ ] **1.2** Add new standards to `.claude/workflow/design/standards.md`:
-      - `S-DESIGN-REFERENCE` — committed `design/reference/v1/` is read-only, edits blocked.
-      - `S-REGISTRY-ENTRY` — every `components/ui/*.tsx` and `components/patterns/*.tsx` must have a `registry.json` entry.
-      - `S-ZOO-PAGE` — every primitive/pattern must have a `/design/<name>` route.
-      - `S-HEX-LITERAL` — no raw `#RRGGBB` in `apps/**` or `components/**` (exempt token files + SVG internals).
-      - `S-HIT-TARGET` — interactive elements use `--hit-sm/md/lg` tokens, not arbitrary pixels.
-      - `S-LUCIDE-ONLY` — utility icons from Lucide only; dietary/spice/promo from `dietary-icons.svg` sprite.
-      - `S-DIETARY-SPRITE` — no emoji or unicode glyphs for dietary/allergen markers.
-- [ ] **1.3** Update `.claude/agents/reviewer.md` — reference new standard IDs, new trap registry entries.
-- [ ] **1.4** Update `.claude/agents/fixer.md` — mention new standards.
-- [ ] **1.5** Add `.claude/rules/design-system.md` additions: reference bundle location, registry format, zoo pattern, ESLint layer.
-- [ ] **1.6** Update trap registry in `nexus/CLAUDE.md`: `hardcoded-hex-chrome`, `missing-registry-entry`, `missing-zoo-page`, `hit-target-hardcoded-px`.
+- [x] **1.1** ~~GLM→Sonnet rename~~ — no-op confirmed in Phase 0 audit. Agent frontmatter already `model: sonnet`; CLAUDE.md already codifies "Sonnet default, Opus for hard design." z.ai GLM references are product translation service, stay put.
+- [x] **1.2** Added 7 new standards to `standards.md`: S-DESIGN-REFERENCE, S-REGISTRY-ENTRY, S-ZOO-PAGE, S-HIT-TARGET-TOKEN, S-LUCIDE-ONLY, S-DIETARY-SPRITE, S-THEMED-COMPONENT. Redundant S-HEX-LITERAL dropped — covered by existing S-NO-HARDCODE-COLORS.
+- [x] **1.3** Reviewer scope table extended with new file patterns (`registry.json`, `routes/__design/*`, `platform/theme/themes/*.css`, `assets/dietary-icons.svg`, `design/reference/**`). Priorities list extended to 11 items covering design-reference immutability, registry/zoo coverage, iconography, theme purity.
+- [x] **1.4** Fixer legitimate-dispute examples extended. Added dedicated "Design-system fixes" section covering S-DESIGN-REFERENCE, S-ICON-LIBRARY, emoji-as-icon, theme-overrides-semantic.
+- [x] **1.5** `.claude/rules/design-system.md` extended with: Design Reference Bundle, Component Registry, Zoo, Theme System, Iconography, Hit Target Tokens, Enforcement sections.
+- [x] **1.6** Trap registry in `nexus/CLAUDE.md` extended with 9 new traps: `design-reference-mutated`, `missing-registry-entry`, `missing-zoo-page`, `zoo-page-inline-redef`, `emoji-as-icon`, `non-lucide-icon-library`, `dietary-text-only`, `theme-overrides-semantic`, `hit-target-hardcoded-px`.
 - [ ] **1.7** Commit workflow changes on branch. (No review fires — paused.)
 
 ## Phase 2 — Re-enable review + pilot commits (review ON)

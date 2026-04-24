@@ -109,3 +109,124 @@ z-40  — navigation, sidebars
 z-50  — modals, dialogs
 z-[100] — toasts, notifications
 ```
+
+---
+
+## Design Reference Bundle (read-only spec)
+
+The Claude Design handoff bundle lives in `design/reference/v1/` at the repo root. It is
+the **source-of-truth spec** for what Nexus should look and read like — NOT a runtime
+library. It is authored as a self-contained reference; production code never imports from
+it.
+
+- Never edit files under `design/reference/v<N>/` — that version is frozen. When a new
+  export arrives, save as `design/reference/v<N+1>/` alongside.
+- Before any substantive visual change, read `design/reference/v1/nexus-design-system/README.md`
+  and `DESIGN-SYSTEM.md` — the invariants listed there are non-negotiable.
+- When an updated export arrives: commit it as a new version folder, run
+  `git diff design/reference/v<N> design/reference/v<N+1>` to understand what shifted,
+  then PORT the relevant changes into `packages/web/src/` as a separate commit with
+  `Design-Bump: v<N>→v<N+1>` trailer. Never bypass the port step.
+
+## Component Registry (agent-readable index)
+
+`packages/web/src/components/registry.json` is the machine-readable index of every
+primitive and pattern. Agents (and humans) grep this first before inventing new
+components. Format:
+
+```json
+{
+  "primitives": [
+    {
+      "name": "Button",
+      "path": "packages/web/src/components/ui/Button.tsx",
+      "kind": "ui",
+      "purpose": "Primary action control. Variants: primary, secondary, destructive, ghost.",
+      "propsShape": { "variant": "string", "size": "sm|md|lg", "loading": "boolean" },
+      "tokensUsed": ["--color-primary", "--color-primary-hover", "--hit-sm", "--hit-md", "--hit-lg"],
+      "dependencies": ["lucide-react"],
+      "zooRoute": "/design/button"
+    }
+  ],
+  "patterns": [...]
+}
+```
+
+Every new file in `components/ui/*.tsx` or `components/patterns/*.tsx` MUST add an entry
+here in the same commit.
+
+## Zoo (living component catalog)
+
+`packages/web/src/routes/__design/<name>.tsx` renders each primitive/pattern in isolation
+with its variants visible, plus dark-mode and theme toggles. Zoo routes are **dev-only**:
+
+- Mounted behind an `import.meta.env.DEV` guard; code-split so they never land in the
+  production bundle.
+- `import` the real component — NEVER inline-redefine. A zoo page is a reflection of
+  source, not a copy.
+- Pair every new primitive/pattern with its zoo page in the same commit.
+- A zoo page should show: the component itself, every variant/size, dark/light, the real
+  token references (so "does this work under our cascade" is tested authentically).
+
+## Theme System (data-theme attribute)
+
+10 canonical theme IDs from Claude Design: `classic`, `trattoria`, `izakaya`, `bubble-tea`,
+`counter`, `taqueria`, `curry-house`, `sichuan`, `cantonese`, `wok`. Apply via
+`data-theme="<id>"` on a wrapper element — cascade re-resolves, no JS re-render.
+
+- Theme files live in `packages/web/src/platform/theme/themes/*.css` and redefine tokens
+  inside a `[data-theme="<id>"]` block.
+- **Semantic tokens (`--color-success`, `--color-danger`, `--color-warning`,
+  `--color-info`) are NEVER re-themed.** Success is always green; danger is always red.
+- `--color-brand` and `--color-brand-hover` are overridable per-tenant at runtime via
+  inline style on the customer shell wrapper — this is how a single Sichuan restaurant
+  can pick a slightly different red from the theme default.
+- Customer-facing surfaces re-skin by theme; merchant console stays on `classic` default.
+
+## Iconography
+
+### Utility / UI icons — Lucide only
+
+- `lucide-react` is the sole icon library in `apps/`/`components/`. No `react-icons`,
+  `heroicons`, `phosphor-react`. Stroke-based outlines, no filled variants.
+- Sizes: `h-5 w-5` nav, `h-4 w-4` button-inline, `h-6 w-6` dialog close, `h-8 w-8`
+  EmptyState circles.
+- Icons inherit `color` from text — never hardcode `fill` on a Lucide element.
+- `shrink-0` on every icon so labels truncate around them.
+
+### Dietary / allergen / spice / promo — custom sprite
+
+`packages/web/src/assets/dietary-icons.svg` is the SVG symbol sprite. Access via a
+`<DietaryIcon name="vegetarian">` primitive (wraps `<use href="/dietary-icons.svg#vegetarian">`).
+Sanctioned names: `vegetarian`, `vegan`, `gluten-free`, `halal`, `kosher`, `nut-free`,
+`dairy-free`, `shellfish`, `spice-1`, `spice-2`, `spice-3`, `promo`.
+
+### FORBIDDEN
+
+- Emoji anywhere in UI chrome.
+- Unicode glyphs as icons (`→`, `★`, `●` etc.).
+- Custom one-off SVGs for what Lucide already covers.
+- Text-only dietary markers. Every dietary tag renders its icon.
+- The single unicode exception is ` · ` (U+00B7 middle dot) as the separator on the
+  customer hero status line.
+
+## Hit Target Tokens
+
+Three sizes, token-backed:
+
+- `--hit-sm` = 44px — minimum secondary actions (WCAG 2.1 AA floor).
+- `--hit-md` = 48px — primary actions, customer quantity steppers.
+- `--hit-lg` = 52px — main CTAs.
+
+Every `<Button>` size prop maps to these. Clickable icons use `min-h-[var(--hit-sm)]
+min-w-[var(--hit-sm)]`. Hardcoded `h-[44px]`, `min-h-[48px]` Tailwind arbitrary values are
+legacy — new code uses the token via `h-[var(--hit-md)]` or the semantic size prop.
+
+## Enforcement
+
+- `.claude/hooks/check-edited-file.sh` — PostToolUse detection (runs on every Edit/Write).
+- `eslint-plugin-design-tokens` (added Phase 2) — `color-no-hex` in `apps/` + `components/`.
+- `import/no-restricted-paths` — app/module/UI boundary enforcement.
+- Commit-review loop — Reviewer cites `standards.md` IDs, Fixer addresses BLOCK findings.
+- Zoo visual check — every PR builds the `/design/*` routes; a broken zoo page means a
+  broken component under our own cascade.

@@ -210,6 +210,7 @@ Every substantive commit is automatically reviewed by a two-agent loop. Ported f
 | zod-missing-on-mutation | Every POST/PUT/PATCH/DELETE with a body needs `zValidator('json', schema)` before handler |
 | hardcoded-hex-chrome | Raw `#RRGGBB` or `rgba()` in `apps/` or `components/` → replace with token (`var(--color-*)` or semantic Tailwind class) |
 | hardcoded-pixels | `Npx` outside Tailwind arbitrary brackets → use Tailwind spacing scale (`p-4`, `h-12`) |
+| hit-target-hardcoded-px | `min-h-[44px]`, `h-[48px]` → `h-[var(--hit-sm/md/lg)]` or `<Button size="sm/md/lg">` |
 | tailwind-color-utility | `bg-gray-900`, `text-red-500` in apps/components → use `bg-bg-surface`, `text-danger` semantic tokens |
 | useeffect-data-fetch | `useEffect(() => fetch(...))` → TanStack Query `useQuery` |
 | inline-query-key | `useQuery({ queryKey: ['menu', tenantId], ... })` → `useQuery({ queryKey: orderingKeys.menu(tenantId), ... })` |
@@ -222,6 +223,14 @@ Every substantive commit is automatically reviewed by a two-agent loop. Ported f
 | cross-module-import | `modules/ordering/` importing from `modules/loyalty/` → extract to `packages/api/src/lib/` |
 | ui-imports-apps | `components/ui/` importing from `apps/` or `platform/` → UI primitives are domain-free |
 | missing-tenant-test | New module without an A-vs-B tenant isolation test → without it, a silent filter drop goes undetected |
+| design-reference-mutated | Any edit to `design/reference/v<N>/` files without a `Design-Bump:` trailer → revert, copy to new `v<N+1>/` folder instead |
+| missing-registry-entry | New `components/ui/*.tsx` or `components/patterns/*.tsx` without matching entry in `components/registry.json` → add entry in same commit |
+| missing-zoo-page | New primitive or pattern without `routes/__design/<name>.tsx` → add zoo page that imports from real source |
+| zoo-page-inline-redef | Zoo page redefines the component inline instead of importing → replace with `import { Button } from '@web/components/ui'` |
+| emoji-as-icon | Emoji or unicode glyph (`→`, `★`, `⚠`) used as an icon in JSX → swap to matching Lucide icon. Dietary markers use `<DietaryIcon>` sprite, not emoji. |
+| non-lucide-icon-library | `import { X } from 'react-icons/...'` or `heroicons`/`phosphor-react` → migrate to `lucide-react`, the sole sanctioned UI icon library |
+| dietary-text-only | Dietary/allergen/spice label rendered as plain text or emoji → wrap in `<DietaryIcon name="..." />` using the sprite |
+| theme-overrides-semantic | A theme CSS file in `platform/theme/themes/*.css` redefines `--color-success/danger/warning/info` → remove the override; semantic colors are stable across themes |
 
 ## Agent Coordination
 
