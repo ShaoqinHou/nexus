@@ -1,13 +1,39 @@
 # Project Status
 
 ## Current State
-- **Phase:** Production v2 — restaurant operations + i18n + performance
-- **Last verified:** 2026-04-14
+- **Phase:** Production v2 — restaurant operations + i18n + performance + Claude Design system v1
+- **Last verified:** 2026-04-14 (pre v2 design work)
+- **Active branch:** `feat/design-workflow-v2` (in review)
 - **Live at:** https://cv.rehou.games/nexus/
-- **Commits:** 135 | **Lines:** 33,368 | **Components:** 53 | **API routes:** 67
+- **Commits:** 135+ on main; 14 on feat/design-workflow-v2
+- **Lines:** 33,368 | **Components:** 53 | **API routes:** 67
 - **Tests:** 203 unit (181 API + 22 web) + 21 Playwright E2E + 7 smoke tests
 - **Locale keys:** 688 per language (en/zh/ja/ko/fr)
 - **Bundle:** 240KB main (lazy-loaded routes, vendor-split)
+
+## In-flight: feat/design-workflow-v2 — Claude Design handoff integration
+
+| Area | Status | Artifact |
+|---|---|---|
+| Design-reference baseline | ✓ | `design/reference/v1/` (123 files, 645K, frozen) |
+| Workflow standards | ✓ | 7 new S-* IDs in `.claude/workflow/design/standards.md` |
+| Reviewer + Fixer updated | ✓ | New scope patterns, dispute examples, 11-item priority list |
+| Trap registry | ✓ | 9 new traps in `nexus/CLAUDE.md` |
+| Design-token linter | ✓ | `.claude/scripts/check-design-tokens.mjs` — 5 rule kinds |
+| Hit-target tokens | ✓ | `--hit-sm/md/lg` in tokens.css, Button retrofitted |
+| Self-hosted fonts | ✓ | Inter + JetBrains Mono woff2 in `packages/web/public/fonts/` |
+| Dietary-icons sprite | ✓ | `/dietary-icons.svg` — 30 symbols |
+| DietaryIcon primitive | ✓ | `components/ui/DietaryIcon.tsx`, typed union of 30 names |
+| 10 cuisine themes | ✓ | `platform/theme/themes/*.css` + aggregator |
+| ThemeProvider extension | ✓ | themeId context + data-theme on `<html>` + brand override props |
+| Component registry | ✓ | `components/registry.json` — 12 primitives + 8 patterns |
+| Zoo (/design/*) | ✓ | `routes/__design/Zoo.tsx`, dev-only, 12 of 20 showcases wired |
+| Hex/rgba sweep | ~ | hit-target done (153→0); hex/rgba sweep in progress |
+| E2E verification | ~ | zoo + merchant + customer flows in progress |
+| Themed components | deferred | OrderTracker/Receipt/PromoCard/CheckoutSummary — post-sweep |
+
+See `.claude/workflow/session-plan.md` for full phase-by-phase log and
+commit list.
 
 ## Features
 
