@@ -1,7 +1,6 @@
 {
   "name": "nexus",
   "private": true,
-  "type": "module",
   "workspaces": [
     "packages/*"
   ],
