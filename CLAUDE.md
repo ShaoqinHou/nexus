@@ -58,7 +58,7 @@ npm run lint:design:quiet    # summary only
 npm run lint:design:json     # JSON for scripting
 ```
 
-The script (`.claude/scripts/check-design-tokens.js`) scans `packages/web/src/`
+The script (`.claude/scripts/check-design-tokens.mjs`) scans `packages/web/src/`
 for hex literals, `rgb()/rgba()` literals, Tailwind color-scale classes,
 hardcoded hit-target pixels, and non-Lucide icon imports — all drift the
 design-system standards ban. Exit 0 = clean, 1 = violations. Use
