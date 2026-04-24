@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Nexus — Vendor Theme Studio</title>
+  <link rel="stylesheet" href="../colors_and_type.css" />
+  <link rel="stylesheet" href="../themes.css" />
+  <style>
+    body { margin: 0; background: #0e0e10; font-family: 'Inter', system-ui, sans-serif; color: #f5f5f7; min-height: 100vh; }
+    .app { display: grid; grid-template-columns: 320px 1fr; min-height: 100vh; }
+
+    /* ---------- Sidebar (control panel) ---------- */
+    .panel { background: #17171a; border-right: 1px solid #2a2a2e; padding: 24px 20px; overflow-y: auto; }
+    .panel h1 { font-size: 16px; font-weight: 600; margin: 0 0 4px; }
+    .panel p.intro { font-size: 12px; color: #9b9ba1; margin: 0 0 24px; line-height: 1.5; }
+    .group { margin-bottom: 24px; }
+    .group-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #6e6e76; margin-bottom: 10px; }
+
+    /* Theme picker */
+    .themes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .theme-tile {
+      cursor: pointer; padding: 10px; border-radius: 8px;
+      border: 1.5px solid #2a2a2e; background: #1f1f23;
+      transition: border-color 120ms ease, background 120ms ease;
+    }
+    .theme-tile:hover { border-color: #3d3d42; }
+    .theme-tile.active { border-color: #fff; background: #2a2a2e; }
+    .theme-tile .swatches { display: flex; gap: 3px; margin-bottom: 6px; }
+    .theme-tile .sw { width: 14px; height: 14px; border-radius: 3px; border: 1px solid rgba(255,255,255,0.08); }
+    .theme-tile .name { font-size: 12px; font-weight: 600; color: #f5f5f7; }
+    .theme-tile .vibe { font-size: 10px; color: #8a8a91; line-height: 1.3; margin-top: 2px; }
+
+    /* Color picker */
+    .field { margin-bottom: 12px; }
+    .field label { display: block; font-size: 11px; color: #9b9ba1; margin-bottom: 4px; font-weight: 500; }
+    .color-row { display: flex; gap: 8px; align-items: center; }
+    .color-row input[type=color] { width: 40px; height: 32px; border: 1px solid #2a2a2e; border-radius: 6px; background: transparent; cursor: pointer; padding: 2px; }
+    .color-row input[type=text] { flex: 1; height: 32px; padding: 0 10px; background: #1f1f23; border: 1px solid #2a2a2e; border-radius: 6px; color: #f5f5f7; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+    .color-row input[type=text]:focus { outline: none; border-color: #4a4a52; }
+
+    .input-text { width: 100%; height: 36px; padding: 0 12px; background: #1f1f23; border: 1px solid #2a2a2e; border-radius: 6px; color: #f5f5f7; font-size: 13px; font-family: inherit; box-sizing: border-box; }
+    .input-text:focus { outline: none; border-color: #4a4a52; }
+
+    /* Logo upload */
+    .logo-row { display: flex; gap: 10px; align-items: center; }
+    .logo-thumb { width: 48px; height: 48px; border-radius: 8px; background: #1f1f23; border: 1px dashed #3a3a40; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; color: #f5f5f7; overflow: hidden; }
+    .logo-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .logo-actions { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+    .btn-mini { padding: 6px 10px; background: #2a2a2e; color: #f5f5f7; border: none; border-radius: 5px; font-size: 11px; cursor: pointer; }
+    .btn-mini:hover { background: #3a3a40; }
+
+    /* View toggles */
+    .view-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; background: #1f1f23; border-radius: 8px; }
+    .view-toggle button { padding: 8px 10px; background: transparent; color: #9b9ba1; border: none; border-radius: 5px; font-size: 12px; font-weight: 500; cursor: pointer; }
+    .view-toggle button.active { background: #2f2f35; color: #f5f5f7; }
+
+    /* Info note */
+    .note { font-size: 11px; color: #6e6e76; line-height: 1.5; padding: 10px 12px; background: #1a1a1d; border-radius: 6px; border-left: 2px solid #3a3a40; }
+
+    /* ---------- Preview pane ---------- */
+    .preview { padding: 32px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .preview-stage { display: flex; gap: 28px; align-items: flex-start; }
+    .device-wrap { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+    .device-label { font-size: 11px; color: #6e6e76; text-transform: uppercase; letter-spacing: 0.08em; }
+
+    /* Phone frame */
+    .phone {
+      width: 360px; height: 760px;
+      border-radius: 36px; overflow: hidden; background: var(--color-bg);
+      box-shadow: 0 0 0 10px #1c1c1f, 0 30px 60px rgb(0 0 0 / 0.4);
+      position: relative;
+    }
+    .phone-status {
+      position: absolute; top: 0; left: 0; right: 0; height: 32px;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0 22px; font-size: 12px; font-weight: 600;
+      color: var(--color-text); z-index: 10;
+    }
+    .phone-content { position: absolute; inset: 32px 0 0 0; overflow: hidden; }
+
+    /* Tablet (orders board) */
+    .tablet {
+      width: 840px; height: 580px;
+      border-radius: 14px; overflow: hidden; background: var(--color-bg);
+      box-shadow: 0 0 0 10px #1c1c1f, 0 30px 60px rgb(0 0 0 / 0.4);
+    }
+  </style>
+</head>
+<body>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <div id="root"></div>
+
+  <script type="text/babel" src="themed-menu.jsx"></script>
+  <script type="text/babel" src="themed-orders.jsx"></script>
+  <script type="text/babel" src="themed-components.jsx"></script>
+  <script type="text/babel">
+    const { useState, useRef } = React;
+
+    const THEMES = [
+      { id: 'classic',    name: 'Classic',    vibe: 'Modern American · chains',           swatches: ['#ffffff', '#2563eb', '#f59e0b', '#111827'], defaultBrand: '#2563eb' },
+      { id: 'trattoria',  name: 'Trattoria',  vibe: 'Italian · neighborhood bistro',      swatches: ['#faf6ef', '#c0532a', '#6b7d3a', '#2b1f17'], defaultBrand: '#c0532a' },
+      { id: 'izakaya',    name: 'Izakaya',    vibe: 'Japanese · Korean BBQ · ramen',      swatches: ['#1a1714', '#e89d3a', '#c44536', '#f5ede0'], defaultBrand: '#e89d3a' },
+      { id: 'bubble-tea', name: 'Bubble Tea', vibe: 'Boba · dessert · cafe',              swatches: ['#fefaf5', '#b87fc2', '#8fb87a', '#e07b7b'], defaultBrand: '#b87fc2' },
+      { id: 'sichuan',    name: 'Sichuan',    vibe: 'Hot pot · 川菜 · spicy regional',     swatches: ['#fbf6ee', '#b8262b', '#c89a3c', '#1a0e0a'], defaultBrand: '#b8262b' },
+      { id: 'cantonese',  name: 'Cantonese',  vibe: 'Dim sum · 烧腊 · tea house',          swatches: ['#f7f3e9', '#1f6b4a', '#b68c3c', '#0f2419'], defaultBrand: '#1f6b4a' },
+      { id: 'wok',        name: 'Wok',        vibe: 'Chinese-American · franchise',        swatches: ['#ffffff', '#d62828', '#e5a52c', '#0d0605'], defaultBrand: '#d62828' },
+      { id: 'counter',    name: 'Counter',    vibe: '3rd-wave coffee · counter-service',  swatches: ['#ffffff', '#ff2d20', '#0a0a0a', '#f5f500'], defaultBrand: '#ff2d20' },
+      { id: 'taqueria',   name: 'Taqueria',   vibe: 'Mexican · street food · Tex-Mex',    swatches: ['#fdf6e9', '#d94f2a', '#7a9a2a', '#2a1a0e'], defaultBrand: '#d94f2a' },
+      { id: 'curry-house',name: 'Curry House',vibe: 'Indian · South Asian · tandoor',    swatches: ['#fbf5e7', '#d97a1a', '#0f6a6a', '#1a0d1a'], defaultBrand: '#d97a1a' },
+    ];
+
+    const DEFAULT_NAMES = {
+      'classic': 'Marlowe Diner', 'trattoria': 'Da Lucia', 'izakaya': 'Tori-Bar Hachi',
+      'bubble-tea': 'Mochi & Milk', 'sichuan': '川味老灶', 'cantonese': '茶香轩',
+      'wok': 'Wok & Roll', 'counter': 'COUNTER NO. 7',
+      'taqueria': 'El Farolito', 'curry-house': 'Saffron House',
+    };
+
+    function App() {
+      const [themeId, setThemeId] = useState('sichuan');
+      const [brandColor, setBrandColor] = useState(THEMES.find(t => t.id === 'sichuan').defaultBrand);
+      const [accentColor, setAccentColor] = useState('#c89a3c');
+      const [restaurantName, setRestaurantName] = useState(DEFAULT_NAMES['sichuan']);
+      const [logo, setLogo] = useState(null);
+      const [view, setView] = useState('customer');
+      const fileRef = useRef(null);
+
+      const switchTheme = (id) => {
+        setThemeId(id);
+        const t = THEMES.find(x => x.id === id);
+        setBrandColor(t.defaultBrand);
+        setRestaurantName(DEFAULT_NAMES[id]);
+        setLogo(null);
+      };
+
+      const handleLogo = (e) => {
+        const f = e.target.files?.[0]; if (!f) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => setLogo(ev.target.result);
+        reader.readAsDataURL(f);
+      };
+
+      // Apply per-tenant overrides via inline style on a wrapper
+      const themeOverrides = {
+        '--color-brand': brandColor,
+        '--color-brand-hover': brandColor,
+        '--color-primary': brandColor,
+        '--color-primary-hover': brandColor,
+        '--color-accent': accentColor,
+      };
+
+      return (
+        <div className="app">
+          <div className="panel">
+            <h1>Theme Studio</h1>
+            <p className="intro">Pick a starting theme, then customize. Your changes preview live across the customer & merchant views.</p>
+
+            <div className="group">
+              <div className="group-label">1 · Pick a theme</div>
+              <div className="themes">
+                {THEMES.map(t => (
+                  <div key={t.id}
+                       className={`theme-tile ${themeId === t.id ? 'active' : ''}`}
+                       onClick={() => switchTheme(t.id)}>
+                    <div className="swatches">
+                      {t.swatches.map((s, i) => <div key={i} className="sw" style={{background: s}}></div>)}
+                    </div>
+                    <div className="name">{t.name}</div>
+                    <div className="vibe">{t.vibe}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="group">
+              <div className="group-label">2 · Restaurant identity</div>
+              <div className="field">
+                <label>Name</label>
+                <input className="input-text" value={restaurantName} onChange={e => setRestaurantName(e.target.value)} />
+              </div>
+              <div className="field">
+                <label>Logo</label>
+                <div className="logo-row">
+                  <div className="logo-thumb" style={{background: brandColor, color: '#fff'}}>
+                    {logo ? <img src={logo} alt="" /> : restaurantName.charAt(0)}
+                  </div>
+                  <div className="logo-actions">
+                    <button className="btn-mini" onClick={() => fileRef.current?.click()}>Upload image</button>
+                    {logo && <button className="btn-mini" onClick={() => setLogo(null)}>Remove</button>}
+                    <input ref={fileRef} type="file" accept="image/*" onChange={handleLogo} style={{display: 'none'}} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="group">
+              <div className="group-label">3 · Brand colors</div>
+              <div className="field">
+                <label>Primary brand color</label>
+                <div className="color-row">
+                  <input type="color" value={brandColor} onChange={e => setBrandColor(e.target.value)} />
+                  <input type="text" value={brandColor} onChange={e => setBrandColor(e.target.value)} />
+                </div>
+              </div>
+              <div className="field">
+                <label>Accent color (highlights, promos)</label>
+                <div className="color-row">
+                  <input type="color" value={accentColor} onChange={e => setAccentColor(e.target.value)} />
+                  <input type="text" value={accentColor} onChange={e => setAccentColor(e.target.value)} />
+                </div>
+              </div>
+            </div>
+
+            <div className="group">
+              <div className="group-label">4 · Preview</div>
+              <div className="view-toggle" style={{gridTemplateColumns: '1fr 1fr 1fr'}}>
+                <button className={view === 'customer' ? 'active' : ''} onClick={() => setView('customer')}>Menu</button>
+                <button className={view === 'merchant' ? 'active' : ''} onClick={() => setView('merchant')}>Orders</button>
+                <button className={view === 'components' ? 'active' : ''} onClick={() => setView('components')}>Parts</button>
+              </div>
+            </div>
+
+            <div className="note">
+              The base theme defines surface, type, density, and shape language.
+              Brand color and logo are tenant-overridable — everything else stays consistent.
+            </div>
+          </div>
+
+          <div className="preview">
+            <div className="preview-stage" style={themeOverrides}>
+              {view === 'customer' && (
+                <div className="device-wrap">
+                  <div className="device-label">Customer · ordering app</div>
+                  <div data-theme={themeId} className="phone">
+                    <div className="phone-status">
+                      <span style={{fontFamily: 'var(--font-mono)'}}>9:41</span>
+                      <span style={{display: 'flex', gap: 4, alignItems: 'center'}}>
+                        <span style={{width: 14, height: 8, border: '1px solid currentColor', borderRadius: 2}}></span>
+                      </span>
+                    </div>
+                    <div className="phone-content">
+                      <ThemedMenu theme={themeId} density="compact" />
+                    </div>
+                  </div>
+                </div>
+              )}
+              {view === 'merchant' && (
+                <div className="device-wrap">
+                  <div className="device-label">Merchant · live orders board</div>
+                  <div className="tablet">
+                    <ThemedOrdersBoard theme={themeId} restaurantName={restaurantName} logo={logo} />
+                  </div>
+                </div>
+              )}
+              {view === 'components' && (
+                <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, padding: 20, background: 'var(--color-bg)', borderRadius: 16, maxHeight: 800, overflow: 'auto', width: 880}} data-theme={themeId}>
+                  <div style={{gridColumn: 'span 2'}}><OrderTracker theme={themeId} status="preparing" /></div>
+                  <div><Receipt theme={themeId} restaurantName={restaurantName} /></div>
+                  <div style={{display: 'flex', flexDirection: 'column', gap: 16}}>
+                    <PromoCard theme={themeId} />
+                    <Toast theme={themeId} kind="success" />
+                    <Toast theme={themeId} kind="warning" title="Low stock" desc="Mapo tofu has 3 servings left." />
+                  </div>
+                  <div><CheckoutSummary theme={themeId} /></div>
+                  <div><EmptyState theme={themeId} /></div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

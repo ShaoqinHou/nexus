@@ -1,0 +1,93 @@
+/* ============================================================
+   THEME: TRATTORIA
+   Warm, hand-crafted, generous. Cream paper + terracotta + olive.
+   Best for: Italian / Mediterranean trattorias, wood-fired pizza,
+   wine bars, family-owned bistros, neighborhood restaurants
+   that want to feel "lived in".
+   ============================================================ */
+
+[data-theme="trattoria"] {
+  /* Surfaces — cream paper, never pure white */
+  --color-bg:          #faf6ef;  /* warm bone */
+  --color-bg-surface:  #f3ece1;  /* deeper cream */
+  --color-bg-muted:    #ebe2d4;  /* sand */
+  --color-bg-elevated: #fdfbf7;  /* slight lift */
+  --color-bg-strong:   #2b1f17;  /* dark espresso */
+
+  /* Text — warm dark brown, never black */
+  --color-text:           #2b1f17;  /* espresso */
+  --color-text-secondary: #6b5a4a;  /* coffee */
+  --color-text-tertiary:  #9c8b78;  /* tan */
+  --color-text-inverse:   #faf6ef;
+
+  /* Borders — warm taupe hairlines */
+  --color-border:        #d8c9b3;
+  --color-border-strong: #b8a48a;
+
+  /* Brand — terracotta */
+  --color-brand:         #c0532a;  /* terracotta */
+  --color-brand-hover:   #a4441f;  /* burnt sienna */
+  --color-brand-light:   #f5e1d4;  /* peach blush */
+  --color-primary:       var(--color-brand);
+  --color-primary-hover: var(--color-brand-hover);
+  --color-primary-light: var(--color-brand-light);
+
+  /* Accent — olive */
+  --color-accent:        #6b7d3a;  /* olive */
+  --color-accent-light:  #e7e9cf;
+
+  /* Semantic — adapted to warm palette */
+  --color-success:       #5a7a3a;  /* basil */
+  --color-success-light: #e3ead0;
+  --color-warning:       #c98b1a;  /* saffron */
+  --color-warning-light: #f7e9c8;
+  --color-danger:        #9b2a1f;  /* paprika */
+  --color-danger-light:  #f3d8d2;
+  --color-info:          #5a6e7d;  /* slate-blue */
+  --color-info-light:    #dde5ec;
+
+  /* Type pairing — display serif, body sans */
+  --font-display: 'Fraunces', 'Playfair Display', Georgia, serif;
+  --font-sans:    'Inter', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+  --font-display-weight: 600;
+  --font-display-tracking: -0.015em;
+
+  /* Radii — rounded, soft */
+  --radius-sm:   6px;
+  --radius-md:   10px;
+  --radius-lg:   14px;
+  --radius-xl:   20px;
+  --radius-2xl:  28px;
+  --radius-full: 9999px;
+  --radius-card: var(--radius-lg);
+  --radius-btn:  var(--radius-full);
+  --radius-chip: var(--radius-full);
+
+  /* Shadows — warm, soft */
+  --shadow-sm: 0 1px 3px 0 rgb(120 80 40 / 0.08);
+  --shadow-md: 0 6px 14px -2px rgb(120 80 40 / 0.12);
+  --shadow-lg: 0 16px 28px -8px rgb(120 80 40 / 0.18);
+
+  /* Density — generous */
+  --density-card-padding: 20px;
+  --density-row-gap:      14px;
+  --density-section-gap:  32px;
+
+  --theme-name: 'Trattoria';
+  --theme-vibe: 'Warm, hand-crafted, generous';
+}
+
+[data-theme="trattoria"].dark {
+  --color-bg:          #1f1814;
+  --color-bg-surface:  #2a2018;
+  --color-bg-muted:    #382b22;
+  --color-bg-elevated: #2a2018;
+  --color-text:           #f3ece1;
+  --color-text-secondary: #c9b89d;
+  --color-text-tertiary:  #8e7d68;
+  --color-border:        #3a2d22;
+  --color-border-strong: #5a4838;
+  --color-brand-light:   #4a2418;
+  --color-accent-light:  #2f3520;
+}

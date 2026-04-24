@@ -1,0 +1,18 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Select & Toggle</title><link rel="stylesheet" href="_base.css">
+<style>
+.sel{height:48px;border:1px solid #e5e7eb;border-radius:6px;padding:0 36px 0 12px;font-size:14px;background:#fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") no-repeat right 12px center;appearance:none;font-family:var(--font-sans);color:#111827;min-width:200px}
+.tg{position:relative;display:inline-flex;height:24px;width:44px;border-radius:9999px;background:#d1d5db;transition:all .2s;cursor:pointer}
+.tg.on{background:#2563eb}
+.tg::after{content:"";position:absolute;top:2px;left:2px;height:20px;width:20px;border-radius:9999px;background:#fff;box-shadow:0 1px 2px rgb(0 0 0 /.05);transition:transform .2s}
+.tg.on::after{transform:translateX(20px)}
+</style></head>
+<body><div class="card">
+  <p class="eyebrow">Select · Toggle</p>
+  <div class="row" style="gap:24px">
+    <div class="col"><span style="font-size:12px;color:#6b7280">Category</span><select class="sel"><option>Mains</option><option>Starters</option></select></div>
+    <div class="col">
+      <div style="display:flex;align-items:center;gap:12px"><span class="tg on"></span><span style="font-size:14px">Ordering enabled</span></div>
+      <div style="display:flex;align-items:center;gap:12px"><span class="tg"></span><span style="font-size:14px;color:#9ca3af">Dark mode</span></div>
+    </div>
+  </div>
+</div></body></html>

@@ -1,0 +1,94 @@
+/* ============================================================
+   THEME: COUNTER
+   High-contrast, dense, editorial. Black + white + electric red.
+   Best for: third-wave coffee shops, ramen counters, sandwich
+   shops, fast-casual chains that want to look "design-forward",
+   bagel/deli, kebab counters, urban street food.
+   ============================================================ */
+
+[data-theme="counter"] {
+  /* Surfaces — pure paper / pure ink */
+  --color-bg:          #ffffff;
+  --color-bg-surface:  #fafafa;
+  --color-bg-muted:    #f0f0f0;
+  --color-bg-elevated: #ffffff;
+  --color-bg-strong:   #0a0a0a;
+
+  /* Text — pure black */
+  --color-text:           #0a0a0a;
+  --color-text-secondary: #4a4a4a;
+  --color-text-tertiary:  #8a8a8a;
+  --color-text-inverse:   #ffffff;
+
+  /* Borders — black hairlines, no gray */
+  --color-border:        #1a1a1a;
+  --color-border-strong: #0a0a0a;
+
+  /* Brand — electric red */
+  --color-brand:         #ff2d20;  /* electric red */
+  --color-brand-hover:   #d92418;
+  --color-brand-light:   #ffe0dd;
+  --color-primary:       var(--color-brand);
+  --color-primary-hover: var(--color-brand-hover);
+  --color-primary-light: var(--color-brand-light);
+
+  /* Accent — same as brand by default; can swap to lime/yellow */
+  --color-accent:        #f5f500;  /* highlighter yellow */
+  --color-accent-light:  #fafad0;
+
+  /* Semantic — desaturated, editorial */
+  --color-success:       #006633;
+  --color-success-light: #d4ead8;
+  --color-warning:       #c95500;
+  --color-warning-light: #fbe0c4;
+  --color-danger:        #ff2d20;
+  --color-danger-light:  #ffe0dd;
+  --color-info:          #0a0a0a;
+  --color-info-light:    #f0f0f0;
+
+  /* Type — display in mono uppercase, body in sans */
+  --font-display: 'JetBrains Mono', 'Inter', sans-serif;
+  --font-sans:    'Inter', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+  --font-display-weight: 700;
+  --font-display-tracking: -0.02em;
+
+  /* Radii — sharp, no soft anything */
+  --radius-sm:   0px;
+  --radius-md:   0px;
+  --radius-lg:   2px;
+  --radius-xl:   2px;
+  --radius-2xl:  2px;
+  --radius-full: 9999px;
+  --radius-card: 0px;
+  --radius-btn:  0px;
+  --radius-chip: 0px;
+
+  /* Shadows — minimal, mostly use borders instead */
+  --shadow-sm: 0 0 0 1px rgb(0 0 0 / 0.08);
+  --shadow-md: 2px 2px 0 0 rgb(0 0 0 / 1);
+  --shadow-lg: 4px 4px 0 0 rgb(0 0 0 / 1);
+
+  --density-card-padding: 16px;
+  --density-row-gap:      8px;
+  --density-section-gap:  24px;
+
+  --theme-name: 'Counter';
+  --theme-vibe: 'High-contrast, dense, editorial';
+}
+
+[data-theme="counter"].dark {
+  --color-bg:          #0a0a0a;
+  --color-bg-surface:  #161616;
+  --color-bg-muted:    #222222;
+  --color-bg-elevated: #161616;
+  --color-bg-strong:   #ffffff;
+  --color-text:           #ffffff;
+  --color-text-secondary: #b8b8b8;
+  --color-text-tertiary:  #6a6a6a;
+  --color-text-inverse:   #0a0a0a;
+  --color-border:        #ffffff;
+  --color-border-strong: #ffffff;
+  --color-brand-light:   #4a0a08;
+  --color-accent-light:  #3a3a00;
+}

@@ -1,0 +1,16 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Buttons</title><link rel="stylesheet" href="_base.css">
+<style>
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--font-sans);font-weight:500;border-radius:6px;border:1px solid transparent;cursor:pointer;transition:all .15s;font-size:14px;padding:0 16px;min-height:48px}
+.btn.primary{background:#2563eb;color:#fff}
+.btn.secondary{background:#f9fafb;color:#111827;border-color:#e5e7eb}
+.btn.destructive{background:#dc2626;color:#fff}
+.btn.ghost{background:transparent;color:#111827}
+.btn.sm{font-size:13px;padding:0 12px;min-height:44px}
+.btn.lg{font-size:15px;padding:0 24px;min-height:52px}
+.btn[disabled]{opacity:.5}
+</style></head>
+<body><div class="card">
+  <p class="eyebrow">Buttons · 4 variants × 3 sizes</p>
+  <div class="row" style="gap:10px"><button class="btn primary sm">Primary sm</button><button class="btn primary">Primary md</button><button class="btn primary lg">Primary lg</button></div>
+  <div class="row" style="gap:10px"><button class="btn secondary">Secondary</button><button class="btn destructive">Destructive</button><button class="btn ghost">Ghost</button><button class="btn primary" disabled>Disabled</button></div>
+</div></body></html>
