@@ -13,7 +13,10 @@
     "db:push": "npm run db:push --workspace=packages/api",
     "db:generate": "npm run db:generate --workspace=packages/api",
     "db:seed": "npm run db:seed --workspace=packages/api",
-    "db:studio": "npm run db:studio --workspace=packages/api"
+    "db:studio": "npm run db:studio --workspace=packages/api",
+    "lint:design": "node .claude/scripts/check-design-tokens.js",
+    "lint:design:quiet": "node .claude/scripts/check-design-tokens.js --quiet",
+    "lint:design:json": "node .claude/scripts/check-design-tokens.js --format=json"
   },
   "dependencies": {
     "sharp": "^0.34.5"

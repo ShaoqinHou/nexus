@@ -50,7 +50,23 @@ bash .claude/hooks/run-tests.sh                                # Full suite + ma
 bash .claude/hooks/run-tests.sh --module ordering              # Module tests + marker
 ```
 
-No linter/formatter config exists.
+No ESLint/Stylelint/Prettier. Design-token drift is caught by a Node script:
+
+```bash
+npm run lint:design          # human-readable report
+npm run lint:design:quiet    # summary only
+npm run lint:design:json     # JSON for scripting
+```
+
+The script (`.claude/scripts/check-design-tokens.js`) scans `packages/web/src/`
+for hex literals, `rgb()/rgba()` literals, Tailwind color-scale classes,
+hardcoded hit-target pixels, and non-Lucide icon imports — all drift the
+design-system standards ban. Exit 0 = clean, 1 = violations. Use
+`// lint-override` on a line as the per-line escape hatch.
+
+Per-PR convention: `npm run lint:design` count must be ≤ the previous
+commit's count (monotone decreasing). Current baseline on `main` is
+documented in `.claude/workflow/session-plan.md` Phase 4.
 
 ## Architecture
 
