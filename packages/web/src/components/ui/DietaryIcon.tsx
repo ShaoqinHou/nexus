@@ -60,6 +60,16 @@ interface DietaryIconProps extends Omit<SVGProps<SVGSVGElement>, 'name'> {
   name: DietaryIconName;
   /** sm = 16px (inline), md = 20px (default chip), lg = 24px (hero) */
   size?: Size;
+  /**
+   * Pass ONLY when the icon stands alone with no sibling text label.
+   * When set, the SVG receives `role="img"` + `aria-label` so screen readers
+   * announce the dietary meaning directly.
+   *
+   * For chip patterns (icon + adjacent text label) leave this undefined —
+   * the sibling text already carries the semantic meaning and `aria-hidden`
+   * prevents double-announcement.
+   */
+  accessibleLabel?: string;
 }
 
 const sizeClasses: Record<Size, string> = {
@@ -72,12 +82,16 @@ export function DietaryIcon({
   name,
   size = 'sm',
   className = '',
+  accessibleLabel,
   ...rest
 }: DietaryIconProps) {
+  const a11yProps = accessibleLabel
+    ? { role: 'img' as const, 'aria-label': accessibleLabel }
+    : { 'aria-hidden': true as const, focusable: 'false' as const };
+
   return (
     <svg
-      aria-hidden="true"
-      focusable="false"
+      {...a11yProps}
       className={`${sizeClasses[size]} shrink-0 ${className}`}
       fill="none"
       stroke="currentColor"

@@ -232,7 +232,7 @@ function DietaryIconShowcase() {
   const row = (names: DietaryIconName[]) =>
     names.map((n) => (
       <div key={n} className="flex flex-col items-center gap-1 min-w-[84px]">
-        <DietaryIcon name={n} size="lg" />
+        <DietaryIcon name={n} size="lg" accessibleLabel={n} />
         <span className="nx-meta">{n}</span>
       </div>
     ));
@@ -256,9 +256,9 @@ function DietaryIconShowcase() {
       </Section>
       <Section title="Sizes">
         <div className="flex items-end gap-6">
-          <div className="flex flex-col items-center gap-1"><DietaryIcon name="vegan" size="sm" /><span className="nx-meta">sm / h-4</span></div>
-          <div className="flex flex-col items-center gap-1"><DietaryIcon name="vegan" size="md" /><span className="nx-meta">md / h-5</span></div>
-          <div className="flex flex-col items-center gap-1"><DietaryIcon name="vegan" size="lg" /><span className="nx-meta">lg / h-6</span></div>
+          <div className="flex flex-col items-center gap-1"><DietaryIcon name="vegan" size="sm" accessibleLabel="vegan" /><span className="nx-meta">sm / h-4</span></div>
+          <div className="flex flex-col items-center gap-1"><DietaryIcon name="vegan" size="md" accessibleLabel="vegan" /><span className="nx-meta">md / h-5</span></div>
+          <div className="flex flex-col items-center gap-1"><DietaryIcon name="vegan" size="lg" accessibleLabel="vegan" /><span className="nx-meta">lg / h-6</span></div>
         </div>
       </Section>
     </>
