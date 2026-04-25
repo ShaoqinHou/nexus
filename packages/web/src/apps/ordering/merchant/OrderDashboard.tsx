@@ -808,13 +808,13 @@ function OrderCard({
         <CardContent className="flex items-center justify-between gap-3 sm:gap-4 py-4">
           <div className="flex items-center gap-3 sm:gap-4 min-w-0">
             <div className="shrink-0 h-10 w-10 rounded-full bg-bg-muted flex items-center justify-center">
-              <span className="text-sm font-bold text-text">
+              <span className="text-sm font-bold text-text font-mono">
                 {order.tableNumber}
               </span>
             </div>
             <div className="min-w-0">
               <p className="text-sm font-medium text-text">
-                {t('Table')} {order.tableNumber}
+                {t('Table')} <span className="font-mono">{order.tableNumber}</span>
               </p>
               <p className="text-xs text-text-secondary">
                 {order.items.length} {t(order.items.length !== 1 ? 'items' : 'item')}
@@ -830,7 +830,7 @@ function OrderCard({
               </Badge>
             )}
             <div className="text-right">
-              <p className="text-sm font-semibold text-text">
+              <p className="text-sm font-semibold text-text font-mono tabular-nums">
                 {formatPrice(order.total)}
               </p>
               <div className="flex items-center gap-1 text-xs text-text-tertiary">
