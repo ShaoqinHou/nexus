@@ -162,3 +162,18 @@ commit list.
 - Demo Restaurant: demo@example.com / password123
 - Sakura Sushi: same email (multi-restaurant demo)
 - Customer: /order/demo?table=1 or /order/sakura?table=1
+
+---
+
+## Post-close addendum: 2 regression fixes (52 commits total)
+
+After the user pointed out 2 of the 4 noted regressions were worth fixing, two parallel agents shipped:
+
+- `23bd8d4` **OrderTracker responsive mobile-vertical** — `@media (max-width: 640px)` flips `.order-tracker-steps` to `flex-direction: column`, connectors switch from horizontal bar to vertical line. Customer phone-first ergonomic restored. Zoo gained a "Mobile (≤640px)" preview section in a 375px container.
+- `297ffa8` **CheckoutSummary tax-inclusive footnote** — math-comprehension fix. When `taxInclusive=true` the tax row is hidden and a `(Includes X% Tax)` footnote renders below the Total, mirroring Receipt's pattern. CartSheet was already passing taxRate/taxInclusive/taxLabel; replaced its previous workaround (zeroing taxRate + prepending `t('Incl.')` to label) with a clean pass-through.
+
+Final gates: 65/65 web tests · 185/185 API tests · 0 lint violations · 0 tsc errors web/api · vite build clean.
+
+Two of the original 4 regressions were retained as design intent:
+- Receipt 340px-centered card aesthetic (Claude Design language)
+- "Order Items" h3 dropped (Receipt's implicit hierarchy carries it)
