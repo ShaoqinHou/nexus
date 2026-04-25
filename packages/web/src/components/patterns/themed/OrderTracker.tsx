@@ -10,10 +10,78 @@
  * custom properties cascade from the active theme preset automatically.
  * Never hardcode colors here — every visual value reads from `var(--color-*)`.
  *
+ * Responsive layout: at ≤640px (sm breakpoint) the steps stack vertically
+ * with a vertical connector line on the left edge, keeping labels readable
+ * at 375px viewport width. Above 640px the original horizontal layout is used.
+ *
  * Typical usage: customer confirmation page, kitchen display status header.
  */
 
 import { useT } from '@web/lib/i18n';
+
+/* ---------------------------------------------------------------------------
+ * Responsive styles — small `<style>` block is consistent with other themed
+ * components that rely on inline-style props for the data-theme cascade.
+ * Media queries cannot be expressed as Tailwind utilities on dynamic elements,
+ * so a scoped block is the cleanest option here.
+ * --------------------------------------------------------------------------- */
+const RESPONSIVE_STYLES = `
+.order-tracker-steps {
+  display: flex;
+  flex-direction: row;
+  gap: 0;
+  position: relative;
+}
+.order-tracker-step {
+  flex: 1;
+  text-align: center;
+  position: relative;
+}
+.order-tracker-connector {
+  position: absolute;
+  top: 13px;
+  left: 50%;
+  right: -50%;
+  height: 2px;
+  z-index: 0;
+}
+.order-tracker-step-label {
+  font-size: 11px;
+  margin-top: 8px;
+}
+
+@media (max-width: 640px) {
+  .order-tracker-steps {
+    flex-direction: column;
+    gap: 0;
+  }
+  .order-tracker-step {
+    flex: none;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    text-align: left;
+    padding: 8px 0;
+    padding-left: 4px;
+    position: relative;
+  }
+  /* Vertical connector: a thin line on the left, between bubbles */
+  .order-tracker-connector {
+    position: absolute;
+    /* Start at the bottom of this bubble's centre */
+    top: 36px;
+    left: 17px;
+    right: auto;
+    width: 2px;
+    height: calc(100% + 16px);
+  }
+  .order-tracker-step-label {
+    font-size: 12px;
+    margin-top: 0;
+  }
+}
+`;
 
 // ---------------------------------------------------------------------------
 // Types
@@ -155,108 +223,105 @@ export function OrderTracker({
   const etaDisplay = eta ?? defaultEta;
 
   return (
-    <div
-      data-theme={theme}
-      style={{
-        padding: 20,
-        background: 'var(--color-bg-elevated)',
-        border: '1px solid var(--color-border)',
-        borderRadius: 'var(--radius-card)',
-        fontFamily: 'var(--font-sans)',
-      }}
-    >
-      {/* Order ref */}
+    <>
+      {/* Inject responsive styles once per render — no JSX-specific CSS-in-JS needed */}
+      <style>{RESPONSIVE_STYLES}</style>
       <div
+        data-theme={theme}
         style={{
-          fontSize: 11,
-          fontWeight: 600,
-          textTransform: 'uppercase',
-          letterSpacing: '0.08em',
-          color: 'var(--color-text-tertiary)',
-          marginBottom: 6,
+          padding: 20,
+          background: 'var(--color-bg-elevated)',
+          border: '1px solid var(--color-border)',
+          borderRadius: 'var(--radius-card)',
+          fontFamily: 'var(--font-sans)',
         }}
       >
-        {t('Order')} #{orderNumber}
-      </div>
+        {/* Order ref */}
+        <div
+          style={{
+            fontSize: 11,
+            fontWeight: 600,
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em',
+            color: 'var(--color-text-tertiary)',
+            marginBottom: 6,
+          }}
+        >
+          {t('Order')} #{orderNumber}
+        </div>
 
-      {/* Current step + ETA */}
-      <div
-        style={{
-          fontFamily: 'var(--font-display)',
-          fontWeight: 'var(--font-display-weight)',
-          fontSize: 22,
-          color: 'var(--color-text)',
-          marginBottom: 20,
-        }}
-      >
-        {currentLabel} — {etaDisplay}
-      </div>
+        {/* Current step + ETA */}
+        <div
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontWeight: 'var(--font-display-weight)',
+            fontSize: 22,
+            color: 'var(--color-text)',
+            marginBottom: 20,
+          }}
+        >
+          {currentLabel} — {etaDisplay}
+        </div>
 
-      {/* Step bubbles */}
-      <div style={{ display: 'flex', gap: 0, position: 'relative' }}>
-        {steps.map((step, i) => {
-          const done = i <= idx;
-          const active = i === idx;
-          return (
-            <div
-              key={step.id}
-              style={{ flex: 1, textAlign: 'center', position: 'relative' }}
-            >
-              {/* Connector line between steps */}
-              {i < steps.length - 1 && (
+        {/* Step bubbles — responsive: row on ≥640px, column on <640px */}
+        <div className="order-tracker-steps">
+          {steps.map((step, i) => {
+            const done = i <= idx;
+            const active = i === idx;
+            return (
+              <div key={step.id} className="order-tracker-step">
+                {/* Connector line between steps (hidden on last step) */}
+                {i < steps.length - 1 && (
+                  <div
+                    className="order-tracker-connector"
+                    style={{
+                      background: i < idx ? 'var(--color-primary)' : 'var(--color-border)',
+                    }}
+                  />
+                )}
+
+                {/* Bubble */}
                 <div
+                  aria-label={`${t(step.labelKey)}${active ? ` (${t('current')})` : ''}`}
                   style={{
-                    position: 'absolute',
-                    top: 13,
-                    left: '50%',
-                    right: '-50%',
-                    height: 2,
-                    background: i < idx ? 'var(--color-primary)' : 'var(--color-border)',
-                    zIndex: 0,
+                    width: 28,
+                    height: 28,
+                    borderRadius: 'var(--radius-full)',
+                    background: done ? 'var(--color-primary)' : 'var(--color-bg-muted)',
+                    border: active ? '3px solid var(--color-primary-light)' : 'none',
+                    color: done ? 'var(--color-text-inverse)' : 'var(--color-text-tertiary)',
+                    flexShrink: 0,
+                    position: 'relative',
+                    zIndex: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    boxShadow: active ? '0 0 0 6px var(--color-primary-light)' : 'none',
+                    transition: 'all 200ms',
+                    /* On wide layout, centre horizontally; overridden to flexShrink via inline */
+                    margin: '0 auto',
                   }}
-                />
-              )}
+                >
+                  {done ? '✓' : i + 1}
+                </div>
 
-              {/* Bubble */}
-              <div
-                aria-label={`${t(step.labelKey)}${active ? ` (${t('current')})` : ''}`}
-                style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: 'var(--radius-full)',
-                  background: done ? 'var(--color-primary)' : 'var(--color-bg-muted)',
-                  border: active ? '3px solid var(--color-primary-light)' : 'none',
-                  color: done ? 'var(--color-text-inverse)' : 'var(--color-text-tertiary)',
-                  margin: '0 auto',
-                  position: 'relative',
-                  zIndex: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 12,
-                  fontWeight: 700,
-                  boxShadow: active ? '0 0 0 6px var(--color-primary-light)' : 'none',
-                  transition: 'all 200ms',
-                }}
-              >
-                {done ? '✓' : i + 1}
+                {/* Step label */}
+                <div
+                  className="order-tracker-step-label"
+                  style={{
+                    color: done ? 'var(--color-text)' : 'var(--color-text-tertiary)',
+                    fontWeight: active ? 600 : 500,
+                  }}
+                >
+                  {t(step.labelKey)}
+                </div>
               </div>
-
-              {/* Step label */}
-              <div
-                style={{
-                  fontSize: 11,
-                  marginTop: 8,
-                  color: done ? 'var(--color-text)' : 'var(--color-text-tertiary)',
-                  fontWeight: active ? 600 : 500,
-                }}
-              >
-                {t(step.labelKey)}
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -398,6 +398,18 @@ function OrderTrackerShowcase() {
       <Section title="Delivery (on the way)">
         <OrderTracker theme={themeId} type="delivery" status="on-way" orderNumber={1043} eta="18 min" />
       </Section>
+      <Section title="Mobile (≤640px viewport) — vertical stack layout">
+        <p className="nx-meta mb-3 text-text-tertiary">
+          Constrained to 375px max-width so the CSS media-query flips to column layout.
+          Circle on left · connector line on the left edge · label on the right.
+        </p>
+        <div className="max-w-[375px]">
+          <OrderTracker theme={themeId} type="dine-in" status="preparing" orderNumber={1042} eta="8 min" />
+        </div>
+        <div className="max-w-[375px] mt-4">
+          <OrderTracker theme={themeId} type="delivery" status="on-way" orderNumber={1043} eta="18 min" />
+        </div>
+      </Section>
     </>
   );
 }
