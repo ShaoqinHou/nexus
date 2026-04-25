@@ -64,8 +64,12 @@ async function request<T>(
       // Response body is not JSON, use default message
     }
 
-    // Auto-logout on 401 (expired/invalid JWT)
-    if (response.status === 401 && getAuthToken()) {
+    // Auto-logout on 401 (expired/invalid JWT).
+    // Skip on customer QR routes (/order/...) — those use cookie sessions,
+    // not staff JWTs, so a 401 there must not redirect the customer to /login
+    // even if a staff token happens to be present in localStorage.
+    const isCustomerRoute = window.location.pathname.startsWith('/order/');
+    if (response.status === 401 && getAuthToken() && !isCustomerRoute) {
       localStorage.removeItem('nexus_token');
       localStorage.removeItem('nexus_user');
       window.location.href = '/login';
