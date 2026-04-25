@@ -7,7 +7,7 @@
   "scripts": {
     "dev:api": "npm run dev --workspace=packages/api",
     "dev:web": "npm run dev --workspace=packages/web",
-    "dev:all": "npm run dev:api & npm run dev:web",
+    "dev:all": "concurrently --names api,web --prefix-colors cyan,magenta \"npm:dev:api\" \"npm:dev:web\"",
     "build": "npm run build --workspace=packages/web",
     "test": "npm run test --workspace=packages/api && npm run test --workspace=packages/web",
     "db:push": "npm run db:push --workspace=packages/api",
@@ -20,5 +20,8 @@
   },
   "dependencies": {
     "sharp": "^0.34.5"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
   }
 }
