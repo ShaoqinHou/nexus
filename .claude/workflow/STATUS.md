@@ -49,10 +49,25 @@ Outstanding follow-ups (backlog, non-blocking):
 
 Remaining backlog after final close:
 
-- ~~Self-host Fraunces + Noto Serif/Sans SC~~ — **DONE** in `3a6953f` via `@fontsource` packages. No more runtime Google Fonts dep. Detail at `scratch/font-selfhost-backlog.md`.
-- ~~`combo_slots.name` GLM translation~~ — **DONE** in `d792387`. The pre-existing "NOT translated in this pass" comment is gone; combo slot names now auto-translate on save and apply via `?lang=`. Cross-tenant isolation test added.
-- **Themed-component swap-in** — PIVOTED. Per the Receipt integration agent's discovery of a 4th blocker (interactive per-item UI in `OrderConfirmation.tsx`), the existing customer flow has evolved past what the bundle's simpler presentational components can host. Themed components (OrderTracker / Receipt / PromoCard / CheckoutSummary) shift from "deferred swap-in" to "available pattern, used when a future feature needs them." Detail + reasoning in `scratch/themed-integration-plan.md`.
-- **"Nexus" brand string in LoginPage** — flagged by i18n audit as unwrapped. Defensibly exempt as a product name. No action.
+- ~~Self-host Fraunces + Noto Serif/Sans SC~~ — **DONE** in `3a6953f` via `@fontsource` packages.
+- ~~`combo_slots.name` GLM translation~~ — **DONE** in `d792387`. Cross-tenant isolation test added.
+- ~~"Nexus" brand string in LoginPage~~ — **DONE** in `004ad90` (wrapped in `t()`, brand stays as 'Nexus' across locales).
+- ~~Themed-component swap-in~~ — **DONE** under user directive ("methodology > backwards compat, research project") via the force-swap wave:
+  - `a03b5bd` CheckoutSummary swap into CartSheet (with `precomputedTotal`/`onPlaceOrder`/`loading` bridge props)
+  - `b6168e0` PromoCard new render site in MenuBrowse + customer-facing `GET /promotions` endpoint + tenant-isolation test
+  - `222b895` OrderTracker accepts platform 5-step status IDs (alias mapper)
+  - `6f173a0` OrderConfirmation full retheme — OrderTracker + Receipt swaps, `itemRenderer` slot preserves cancel/notes/badges
+  - `539249b` reviewer findings cleanup (4 BLOCK + 2 WARN, all addressed)
+
+  Honest behavioural changes (per user directive these are accepted):
+  - StatusTimeline's mobile-vertical responsive layout → OrderTracker horizontal-only
+  - Old totals block was full-width → Receipt is max 340px centered
+  - "Order Items" section heading dropped (Receipt has no equivalent slot)
+  - Tax-inclusive footnote in CheckoutSummary moved to standard tax row position
+
+  Final E2E: 6/6 PASS, including the critical cancel-item interactive flow surviving the Receipt swap via the itemRenderer slot. Theme rotation confirmed: all 4 themed components reskin to sichuan tokens when tenant theme changes.
+
+**No remaining backlog.** All originally-flagged items resolved.
 
 See `.claude/workflow/session-plan.md` for full phase-by-phase log and
 commit list.
