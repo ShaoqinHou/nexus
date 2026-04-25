@@ -3,7 +3,35 @@
 **Status key:** `[ ]` pending · `[~]` in-progress · `[x]` done · `[!]` blocked
 
 **Started:** 2026-04-25 by lead session.
-**Branch:** `feat/design-workflow-v2` (auto-push every phase complete).
+**Branch:** `feat/design-workflow-v2` (auto-push every phase complete). **Phases 0-6 complete and merged to main 2026-04-25 (`380b57b`).**
+
+---
+
+## ACTIVE SCOPE — Merchant Retheme (continuation 2026-04-25)
+
+**Branch:** `main` (continuing directly; no feature branch).
+**Plan source:** `.claude/workflow/e2e/merchant-retheme-plan.md`.
+**Status:** Phase 0 (`81f86c7`), Phase 1 (`0553876`+`19a90f7`), Phase 2 (`891d843`) all done. **Phase 3 in flight (this watchdog tick).**
+
+### Phase 3 — Per-screen density alignment (review ON)
+
+Bundle reference: `design/reference/v1/.../merchant/Components.jsx` (76 LOC) defines 4 patterns: StatusBadge, OrderCard (12px card gap, mono order#, semantic badge variants), StatCard (eyebrow + 28px value + signed delta), EmptyState (muted-circle icon, 18/14 type). Linter clean (0 violations / 90 files) — work is visual density tweaks only.
+
+- [~] **3.1** OrderDashboard.tsx — spot-check, no layout change
+- [ ] **3.2** KitchenDisplay.tsx — confirm no stray hex
+- [ ] **3.3** MenuManagement.tsx — density tweaks
+- [ ] **3.4** ModifierManager.tsx — density tweaks
+- [ ] **3.5** ComboManager.tsx — density tweaks
+- [ ] **3.6** PromotionManager.tsx — density tweaks
+- [ ] **3.7** QRCodes.tsx — density + print CSS confirm
+- [ ] **3.8** Analytics.tsx — chart palette uses tokens
+- [ ] **3.9** StaffManagement.tsx — density tweaks
+- [ ] **3.x** tests + tsc + lint:design gate after each screen
+- [ ] **3.x** E2E walkthrough via chrome-devtools
+- [ ] **3.x** deploy + production verify
+
+---
+
 **Review loop:** paused via `scratch/review-pause` during Phase 1, re-enabled at Phase 2.
 **Model tier:** Sonnet default, Opus for hard design calls (architecture, standards authoring).
 **Watchdog:** CronCreate durable job, every ~31 min — fires prompt below.
@@ -159,6 +187,7 @@ Session closed at 2026-04-25.
 
 (Append entries below. Most-recent first.)
 
+- 2026-04-25 **Watchdog tick after session-close — no-op** — fired at 10:34 UTC. All phases in this plan are `[x]`; Final Summary written. The task description was changed to "RE-ARMED 2026-04-25 — fixing 4 production bugs." but the prompt was NOT updated and no plan describes what those 4 bugs are. The `merchant-retheme-plan.md` (untracked) is a separate scope whose Phase 0-2 commits already landed on `main` (`81f86c7`, `0553876`, `19a90f7`, `891d843`) — `feat/design-workflow-v2` (last commit `0553876`) is therefore behind `main`. The work shipped. **Action this tick**: tried to self-disable via `update_scheduled_task` but the runtime blocks self-mutation from inside a scheduled-task session. Logged this note and yielded. **For the user**: either disable the task in the scheduled-tasks panel, OR re-arm with an updated prompt + a fresh `session-plan.md` that lists the 4 production bugs. The current prompt will keep firing this same no-op every 30 minutes until disabled.
 - 2026-04-25 **Session progress snapshot** — 12 commits on `feat/design-workflow-v2`:
     331daf5 chore(workflow): session plan
     50789e8 feat(workflow): design-system standards (Phase 1)
