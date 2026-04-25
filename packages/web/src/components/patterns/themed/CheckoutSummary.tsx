@@ -57,8 +57,14 @@ export interface CheckoutSummaryProps {
   discountAmount?: number;
   /** Label for the discount row. Defaults to "Discount". */
   discountLabel?: string;
-  /** Label for the tax row. Defaults to "Tax". */
+  /** Label for the tax row / footnote. Defaults to "Tax". */
   taxLabel?: string;
+  /**
+   * When true, tax is shown as a footnote "(Includes X% Tax)" below the Total
+   * row instead of a separate tax row, reflecting tax-included pricing (NZ/AU GST).
+   * When false or omitted, the tax row is shown separately (default behaviour).
+   */
+  taxInclusive?: boolean;
   /** Called when the user clicks the place-order button. */
   onPlaceOrder?: () => void;
   /** Loading state — disables and dims the CTA button when true. */
@@ -81,6 +87,7 @@ export function CheckoutSummary({
   discountAmount = 0,
   discountLabel,
   taxLabel,
+  taxInclusive = false,
   onPlaceOrder,
   loading = false,
   ctaLabel,
@@ -196,7 +203,7 @@ export function CheckoutSummary({
         </div>
       )}
 
-      {taxRate > 0 && (
+      {taxRate > 0 && !taxInclusive && (
         <div
           style={{
             display: 'flex',
@@ -218,13 +225,27 @@ export function CheckoutSummary({
           justifyContent: 'space-between',
           fontSize: 16,
           fontWeight: 700,
-          marginBottom: 18,
-          marginTop: taxRate > 0 || deliveryFee > 0 || discountAmount > 0 ? 0 : 14,
+          marginBottom: taxInclusive && taxRate > 0 ? 4 : 18,
+          marginTop: (taxRate > 0 && !taxInclusive) || deliveryFee > 0 || discountAmount > 0 ? 0 : 14,
         }}
       >
         <div>{t('Total')}</div>
         <div style={{ fontFamily: 'var(--font-mono)' }}>{formatPrice(total)}</div>
       </div>
+
+      {/* Tax-inclusive footnote */}
+      {taxInclusive && taxRate > 0 && (
+        <div
+          style={{
+            fontSize: 11,
+            color: 'var(--color-text-tertiary)',
+            textAlign: 'right',
+            marginBottom: 14,
+          }}
+        >
+          ({t('Includes')} {Math.round(taxRate * 100)}% {resolvedTaxLabel})
+        </div>
+      )}
 
       {/* Place order CTA */}
       <button

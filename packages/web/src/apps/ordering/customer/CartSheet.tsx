@@ -495,12 +495,9 @@ export function CartSheet({
                       precomputedSubtotal={totalPrice}
                       discountAmount={appliedPromo ? discountAmount : 0}
                       discountLabel={t('Discount')}
-                      taxLabel={
-                        hasTax
-                          ? `${taxInclusive ? t('Incl.') : t('Est.')} ${taxLabel ?? 'Tax'} (${effectiveRate}%)`
-                          : undefined
-                      }
-                      taxRate={hasTax && !taxInclusive ? effectiveRate / 100 : 0}
+                      taxLabel={taxLabel ?? t('Tax')}
+                      taxRate={hasTax ? effectiveRate / 100 : 0}
+                      taxInclusive={taxInclusive}
                       onPlaceOrder={handlePlaceOrder}
                       loading={placeOrderMutation.isPending}
                       ctaLabel={ctaLabel}

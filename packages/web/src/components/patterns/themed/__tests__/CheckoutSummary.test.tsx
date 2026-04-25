@@ -133,4 +133,47 @@ describe('CheckoutSummary', () => {
       expect(button.textContent).toContain('Placing order');
     });
   });
+
+  describe('taxInclusive behaviour', () => {
+    it('hides the tax row and shows footnote when taxInclusive=true', () => {
+      // taxRate=0.15, taxLabel="GST" → footnote should read "(Includes 15% GST)"
+      render(
+        <CheckoutSummary
+          items={ITEMS}
+          precomputedTotal={39.50}
+          taxRate={0.15}
+          taxLabel="GST"
+          taxInclusive={true}
+          onPlaceOrder={() => {}}
+        />,
+      );
+
+      // Tax row must NOT be rendered (it would contain the label text)
+      expect(screen.queryByText('GST')).not.toBeInTheDocument();
+
+      // Footnote must be rendered and contain the rate and label
+      const footnote = screen.getByText(/Includes/i);
+      expect(footnote.textContent).toContain('15%');
+      expect(footnote.textContent).toContain('GST');
+    });
+
+    it('shows the tax row (not footnote) when taxInclusive=false and taxRate>0', () => {
+      render(
+        <CheckoutSummary
+          items={ITEMS}
+          precomputedTotal={45.43}
+          taxRate={0.15}
+          taxLabel="GST"
+          taxInclusive={false}
+          onPlaceOrder={() => {}}
+        />,
+      );
+
+      // Tax row IS rendered
+      expect(screen.getByText('GST')).toBeInTheDocument();
+
+      // Footnote must NOT be rendered
+      expect(screen.queryByText(/Includes/i)).not.toBeInTheDocument();
+    });
+  });
 });
