@@ -4,7 +4,7 @@ import { X, Plus, Minus } from 'lucide-react';
 import { Badge, Button, DietaryIcon } from '@web/components/ui';
 import { useT } from '@web/lib/i18n';
 import { formatPrice, formatPriceDelta, parseTags } from '@web/lib/format';
-import { useCart } from '@web/apps/ordering/customer/CartProvider';
+import { useCart } from '@web/apps/ordering/customer/CartContext';
 import type { MenuItem, ModifierGroup, ModifierOption } from '@web/apps/ordering/types';
 import { dietaryIconName, allergenIconName, dietaryTagColor } from '@web/lib/dietary';
 

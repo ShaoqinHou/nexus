@@ -4,8 +4,8 @@ import { X, Plus, Minus } from 'lucide-react';
 import { Badge, Button } from '@web/components/ui';
 import { useT } from '@web/lib/i18n';
 import { formatPrice, formatPriceDelta } from '@web/lib/format';
-import { useCart } from '@web/apps/ordering/customer/CartProvider';
-import type { CartItemModifier } from '@web/apps/ordering/customer/CartProvider';
+import { useCart } from '@web/apps/ordering/customer/CartContext';
+import type { CartItemModifier } from '@web/apps/ordering/customer/CartContext';
 import type { ComboDeal, ComboSlot, ModifierGroup, ModifierOption } from '@web/apps/ordering/types';
 
 interface ComboSheetProps {

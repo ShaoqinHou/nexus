@@ -6,7 +6,7 @@ import { formatPrice, parseTags } from '@web/lib/format';
 import { Button, DietaryIcon } from '@web/components/ui';
 import { EmptyState, PullToRefreshIndicator } from '@web/components/patterns';
 import { dietaryIconName, allergenIconName, dietaryTagColor } from '@web/lib/dietary';
-import { useCart } from '@web/apps/ordering/customer/CartProvider';
+import { useCart } from '@web/apps/ordering/customer/CartContext';
 import { ItemDetailSheet } from '@web/apps/ordering/customer/ItemDetailSheet';
 import { ComboSheet } from '@web/apps/ordering/customer/ComboSheet';
 import { useTheme } from '@web/platform/theme/ThemeProvider';

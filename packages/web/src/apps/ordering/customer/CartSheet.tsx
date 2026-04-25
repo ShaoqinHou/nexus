@@ -14,7 +14,7 @@ import {
 import { formatPrice } from '@web/lib/format';
 import { Button, Badge } from '@web/components/ui';
 import { useT } from '@web/lib/i18n';
-import { useCart } from '@web/apps/ordering/customer/CartProvider';
+import { useCart } from '@web/apps/ordering/customer/CartContext';
 import { useCartOrder } from '@web/apps/ordering/customer/useCartOrder';
 import type { Order } from '@web/apps/ordering/types';
 

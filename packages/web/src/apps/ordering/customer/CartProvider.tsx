@@ -1,6 +1,4 @@
 import {
-  createContext,
-  useContext,
   useReducer,
   useEffect,
   useCallback,
@@ -8,48 +6,24 @@ import {
   type ReactNode,
 } from 'react';
 import { useToast } from '@web/platform/ToastProvider';
+import {
+  CartContext,
+  type CartItem,
+  type CartItemModifier,
+  type ComboSelection,
+  type AddItemPayload,
+  type CartContextValue,
+} from '@web/apps/ordering/customer/CartContext';
 
-export interface CartItemModifier {
-  optionId: string;
-  name: string;
-  price: number;
-}
-
-export interface ComboSelection {
-  slotId: string;
-  slotName: string;
-  menuItemId: string;
-  itemName: string;
-  priceModifier: number;
-  modifiers?: CartItemModifier[];
-}
-
-export interface CartItem {
-  menuItemId: string;
-  name: string;
-  price: number;
-  quantity: number;
-  notes?: string;
-  modifiers?: CartItemModifier[];
-  comboDealId?: string;
-  comboSelections?: ComboSelection[];
-}
+// Re-export types for downstream consumers that import from CartProvider
+export type { CartItem, CartItemModifier, ComboSelection, AddItemPayload, CartContextValue };
+// Re-export useCart so existing imports of `useCart from ./CartProvider` still work
+export { useCart } from '@web/apps/ordering/customer/CartContext';
 
 interface CartState {
   items: CartItem[];
   notes: string;
 }
-
-type AddItemPayload = {
-  menuItemId: string;
-  name: string;
-  price: number;
-  quantity?: number;
-  notes?: string;
-  modifiers?: CartItemModifier[];
-  comboDealId?: string;
-  comboSelections?: ComboSelection[];
-};
 
 type CartAction =
   | { type: 'ADD_ITEM'; payload: AddItemPayload }
@@ -58,21 +32,6 @@ type CartAction =
   | { type: 'UPDATE_ITEM_NOTES'; payload: { cartIndex: number; notes: string } }
   | { type: 'SET_NOTES'; payload: { notes: string } }
   | { type: 'CLEAR_CART' };
-
-interface CartContextValue {
-  items: CartItem[];
-  notes: string;
-  addItem: (item: AddItemPayload) => void;
-  removeItem: (cartIndex: number) => void;
-  updateQuantity: (cartIndex: number, quantity: number) => void;
-  updateItemNotes: (cartIndex: number, notes: string) => void;
-  setNotes: (notes: string) => void;
-  clearCart: () => void;
-  totalItems: number;
-  totalPrice: number;
-}
-
-const CartContext = createContext<CartContextValue | null>(null);
 
 /** Check if two modifier arrays represent the same selection */
 function sameModifiers(
@@ -307,12 +266,4 @@ export function CartProvider({ tenantSlug, tableNumber, children }: CartProvider
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
-}
-
-export function useCart(): CartContextValue {
-  const context = useContext(CartContext);
-  if (!context) {
-    throw new Error('useCart must be used within a CartProvider');
-  }
-  return context;
 }
