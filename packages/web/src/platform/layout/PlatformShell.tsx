@@ -54,6 +54,17 @@ export function PlatformShell() {
     })),
   );
 
+  // Derive current page title from active nav item or fall back to tenant name
+  const dashboardPath = `/t/${tenantSlug}`;
+  const restaurantsPath = `/t/${tenantSlug}/restaurants`;
+  const activeNavItem = navItems.find((i) => location.pathname.startsWith(i.path));
+  const pageTitle = (() => {
+    if (location.pathname === restaurantsPath) return t('Switch Restaurant');
+    if (activeNavItem) return t(activeNavItem.label);
+    if (location.pathname === dashboardPath) return t('Dashboard');
+    return tenant?.name ?? tenantSlug;
+  })();
+
   return (
     <div className="flex h-screen bg-bg">
       {/* Mobile backdrop */}
@@ -74,7 +85,7 @@ export function PlatformShell() {
           sidebarCollapsed ? 'w-16' : 'w-64',
         ].join(' ')}
       >
-        {/* Sidebar header */}
+        {/* Sidebar header — brand mark + tenant name per bundle spec */}
         <div className="flex items-center justify-between h-16 px-4 border-b border-border">
           {!sidebarCollapsed && (
             <span className="text-lg font-bold text-text truncate">
@@ -106,11 +117,12 @@ export function PlatformShell() {
 
         {/* Navigation */}
         <nav data-tour="sidebar-nav" className="flex-1 overflow-y-auto py-4 px-2">
+          {/* Dashboard — top-level, ungrouped per bundle spec */}
           <Link
             to="/t/$tenantSlug"
             params={{ tenantSlug }}
             className={[
-              'flex items-center gap-3 rounded-md px-3 py-2.5 min-h-[var(--hit-sm)] text-sm font-medium transition-colors mb-0.5',
+              'flex items-center gap-3 rounded-md px-3 py-2.5 min-h-[var(--hit-sm)] text-sm font-medium transition-colors mb-3',
               location.pathname === `/t/${tenantSlug}`
                 ? 'bg-primary-light text-primary font-medium'
                 : 'text-text-secondary hover:text-text hover:bg-bg-muted',
@@ -126,7 +138,7 @@ export function PlatformShell() {
               to="/t/$tenantSlug/restaurants"
               params={{ tenantSlug }}
               className={[
-                'flex items-center gap-3 rounded-md px-3 py-2.5 min-h-[var(--hit-sm)] text-sm font-medium transition-colors mb-0.5',
+                'flex items-center gap-3 rounded-md px-3 py-2.5 min-h-[var(--hit-sm)] text-sm font-medium transition-colors mb-3',
                 location.pathname === `/t/${tenantSlug}/restaurants`
                   ? 'bg-primary-light text-primary font-medium'
                   : 'text-text-secondary hover:text-text hover:bg-bg-muted',
@@ -138,6 +150,7 @@ export function PlatformShell() {
             </Link>
           )}
 
+          {/* Grouped nav — Operations / Menu / Marketing / Management per bundle spec */}
           {(() => {
             const navGroups = [
               { label: 'Operations', items: navItems.filter((i) => ['/orders', '/kitchen'].some((p) => i.path.includes(p))) },
@@ -197,7 +210,7 @@ export function PlatformShell() {
           })()}
         </nav>
 
-        {/* Sidebar footer */}
+        {/* Sidebar footer — user identity per bundle spec */}
         {!sidebarCollapsed && user && (
           <div className="border-t border-border p-4">
             <div className="text-sm font-medium text-text truncate">
@@ -212,9 +225,10 @@ export function PlatformShell() {
 
       {/* Main area */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Top bar */}
+        {/* Top bar — page title slot + right-aligned controls per bundle spec */}
         <header className="flex items-center justify-between h-16 px-6 border-b border-border bg-bg-elevated print:hidden">
           <div className="flex items-center gap-3">
+            {/* Mobile hamburger */}
             <button
               type="button"
               onClick={() => setSidebarOpen(true)}
@@ -223,11 +237,13 @@ export function PlatformShell() {
             >
               <Menu className="h-6 w-6" />
             </button>
+            {/* Page title — shows current screen name per bundle spec (tenant name stays in sidebar) */}
             <h2 className="text-lg font-semibold text-text truncate">
-              {tenant?.name ?? tenantSlug}
+              {pageTitle}
             </h2>
           </div>
 
+          {/* Right-aligned controls: tour, locale, theme, logout */}
           <div className="flex items-center gap-2">
             {firstTour && (
               <button
