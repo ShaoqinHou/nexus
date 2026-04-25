@@ -844,5 +844,8 @@
   "Curry House": "커리 하우스",
   "Sichuan": "쓰촨 요리",
   "Cantonese": "광둥 요리",
-  "Wok": "웍"
+  "Wok": "웍",
+  "Something went wrong": "오류가 발생했습니다",
+  "An unexpected error occurred.": "예상치 못한 오류가 발생했습니다.",
+  "Reload page": "페이지 새로고침"
 }

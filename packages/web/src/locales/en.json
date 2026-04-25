@@ -844,5 +844,8 @@
   "Curry House": "Curry House",
   "Sichuan": "Sichuan",
   "Cantonese": "Cantonese",
-  "Wok": "Wok"
+  "Wok": "Wok",
+  "Something went wrong": "Something went wrong",
+  "An unexpected error occurred.": "An unexpected error occurred.",
+  "Reload page": "Reload page"
 }

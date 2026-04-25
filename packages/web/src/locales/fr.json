@@ -844,5 +844,8 @@
   "Curry House": "Maison du curry",
   "Sichuan": "Sichuan",
   "Cantonese": "Cantonais",
-  "Wok": "Wok"
+  "Wok": "Wok",
+  "Something went wrong": "Une erreur s'est produite",
+  "An unexpected error occurred.": "Une erreur inattendue s'est produite.",
+  "Reload page": "Recharger la page"
 }
