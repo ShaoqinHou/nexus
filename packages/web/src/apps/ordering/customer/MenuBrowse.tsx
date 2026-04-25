@@ -5,6 +5,7 @@ import { apiClient } from '@web/lib/api';
 import { formatPrice, parseTags } from '@web/lib/format';
 import { Button, DietaryIcon } from '@web/components/ui';
 import { EmptyState, PullToRefreshIndicator } from '@web/components/patterns';
+import { PromoCard } from '@web/components/patterns/themed/PromoCard';
 import { dietaryIconName, allergenIconName, dietaryTagColor } from '@web/lib/dietary';
 import { useCart } from '@web/apps/ordering/customer/CartContext';
 import { ItemDetailSheet } from '@web/apps/ordering/customer/ItemDetailSheet';
@@ -12,6 +13,7 @@ import { ComboSheet } from '@web/apps/ordering/customer/ComboSheet';
 import { useTheme } from '@web/platform/theme/ThemeProvider';
 import { usePullToRefresh } from '@web/lib/hooks/usePullToRefresh';
 import { useCallWaiter } from '@web/apps/ordering/hooks/useTables';
+import { usePublicPromotions } from '@web/apps/ordering/hooks/usePromotions';
 import { useToast } from '@web/platform/ToastProvider';
 import { useT, useLocale } from '@web/lib/i18n';
 import type { MenuCategory, MenuItem, ModifierGroup, ComboDeal } from '@web/apps/ordering/types';
@@ -441,6 +443,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
   const { theme, toggleTheme } = useTheme();
   const { toast } = useToast();
   const callWaiter = useCallWaiter(tenantSlug);
+  const { data: publicPromotions } = usePublicPromotions(tenantSlug);
 
   const handleCallWaiter = useCallback(() => {
     if (!tableNumber || waiterCooldown) return;
@@ -886,6 +889,32 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                   </div>
                 </button>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Active promotions strip — rendered below featured items, above category pills */}
+        {publicPromotions && publicPromotions.length > 0 && (
+          <div className="px-4 pt-3 pb-1">
+            <h2 className="text-sm font-bold text-text mb-2">{t('Special Offers')}</h2>
+            <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2">
+              {publicPromotions.map((promo) => {
+                const discountStr =
+                  promo.type === 'percentage'
+                    ? `${promo.discountValue}% OFF`
+                    : `$${promo.discountValue} OFF`;
+                const firstCode = promo.codes[0]?.code;
+                return (
+                  <div key={promo.id} className="shrink-0">
+                    <PromoCard
+                      title={t('Special Offer')}
+                      discount={discountStr}
+                      description={promo.description ?? undefined}
+                      code={firstCode}
+                    />
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

@@ -65,6 +65,7 @@ import {
   getStatusBreakdown,
   getDailySummary,
   getOrdersForExport,
+  getPublicPromotions,
   getOrdersBySessionId,
   getTableStatuses,
   upsertTableStatus,
@@ -1517,6 +1518,13 @@ export function customerOrderingRoutes(db: DrizzleDB) {
 
     const menu = getPublicMenu(db, tenantId, locale);
     return c.json({ data: menu });
+  });
+
+  // Public active promotions — no session required, filters by date range
+  router.get('/promotions', (c) => {
+    const tenantId = c.var.tenantId;
+    const promos = getPublicPromotions(db, tenantId);
+    return c.json({ data: promos });
   });
 
   // Validate promo code — public, no session required

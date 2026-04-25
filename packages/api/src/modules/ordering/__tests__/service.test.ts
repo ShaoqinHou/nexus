@@ -30,6 +30,7 @@ import {
   getPromotions,
   createPromotion,
   deletePromotion,
+  getPublicPromotions,
   getPromoCodes,
   createPromoCode,
   validatePromoCode,
@@ -2574,5 +2575,53 @@ describe('combo_slot translation via getPublicCombos + getTranslationsForLocale'
     expect(combosB[0].slots[0].name).not.toBe('Choose your main');
     // Tenant B sees exactly one combo (not tenant A's)
     expect(combosB[0].name).toBe('B Lunch Deal');
+  });
+
+  it('getPublicPromotions for tenant B does NOT return tenant A promotions', () => {
+    const past = new Date(Date.now() - 86400_000).toISOString();
+    const future = new Date(Date.now() + 86400_000).toISOString();
+    const far = new Date(Date.now() + 7 * 86400_000).toISOString();
+
+    // Tenant A: one active promotion within date range
+    createPromotion(db, tenantAId, {
+      name: 'A Summer Sale',
+      type: 'percentage',
+      discountValue: 20,
+      startsAt: past,
+      endsAt: far,
+    });
+
+    // Tenant B: no promotions
+    // Sanity: tenant B should see no promos
+    const promosB = getPublicPromotions(db, tenantBId);
+    expect(promosB).toHaveLength(0);
+
+    // Tenant A should see its own promo
+    const promosA = getPublicPromotions(db, tenantAId);
+    expect(promosA).toHaveLength(1);
+    expect(promosA[0].name).toBe('A Summer Sale');
+
+    // Expired promotion is NOT returned
+    createPromotion(db, tenantAId, {
+      name: 'A Old Deal',
+      type: 'fixed_amount',
+      discountValue: 5,
+      startsAt: new Date(Date.now() - 2 * 86400_000).toISOString(),
+      endsAt: past,
+    });
+    const promosAAfter = getPublicPromotions(db, tenantAId);
+    expect(promosAAfter).toHaveLength(1); // expired promo NOT included
+    expect(promosAAfter.every((p) => p.name !== 'A Old Deal')).toBe(true);
+
+    // Future promotion (not yet started) is NOT returned
+    createPromotion(db, tenantAId, {
+      name: 'A Future Deal',
+      type: 'percentage',
+      discountValue: 10,
+      startsAt: future,
+    });
+    const promosAFuture = getPublicPromotions(db, tenantAId);
+    expect(promosAFuture).toHaveLength(1); // future promo NOT included
+    expect(promosAFuture.every((p) => p.name !== 'A Future Deal')).toBe(true);
   });
 });

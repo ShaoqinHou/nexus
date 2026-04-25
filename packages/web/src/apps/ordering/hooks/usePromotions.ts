@@ -118,7 +118,38 @@ export function useDeletePromoCode(tenantSlug: string) {
   });
 }
 
-// --- Customer hook ---
+// --- Customer hooks ---
+
+export interface PublicPromotion {
+  id: string;
+  tenantId: string;
+  name: string;
+  description: string | null;
+  type: 'percentage' | 'fixed_amount';
+  discountValue: number;
+  minOrderAmount: number | null;
+  startsAt: string;
+  endsAt: string | null;
+  maxUses: number | null;
+  currentUses: number;
+  isActive: number;
+  createdAt: string;
+  updatedAt: string;
+  codes: Array<{ id: string; code: string; usageLimit: number | null; usageCount: number; isActive: number }>;
+}
+
+export function usePublicPromotions(tenantSlug: string) {
+  return useQuery({
+    queryKey: orderingKeys.publicPromotions(tenantSlug),
+    queryFn: () =>
+      apiClient.get<{ data: PublicPromotion[] }>(
+        `/order/${tenantSlug}/ordering/promotions`,
+      ),
+    select: (res) => res.data,
+    staleTime: 60000, // 1 minute
+    gcTime: 300000, // 5 minutes
+  });
+}
 
 interface ValidatePromoData {
   code: string;
