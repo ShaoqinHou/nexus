@@ -12,6 +12,8 @@
  * upsell strip.
  */
 
+import { useCallback, useRef, useState } from 'react';
+import { Check } from 'lucide-react';
 import { useT } from '@web/lib/i18n';
 
 // ---------------------------------------------------------------------------
@@ -29,6 +31,45 @@ export interface PromoCardProps {
   description?: string;
   /** Promo code string to render in the code chip. Omit to hide the chip. */
   code?: string;
+  /**
+   * Called after the promo code is successfully copied to the clipboard.
+   * Receives the copied code so callers can show a toast.
+   */
+  onCopy?: (code: string) => void;
+}
+
+// ---------------------------------------------------------------------------
+// Tap-not-scroll heuristic constants
+// ---------------------------------------------------------------------------
+
+/** Max duration (ms) for a touch/pointer sequence to be treated as a tap. */
+const TAP_MAX_MS = 250;
+/** Max squared displacement (px²) to be treated as a tap. 100 = 10px radius. */
+const TAP_MAX_SQ = 100;
+/** How long (ms) to show the "copied" confirmation state on the chip. */
+const COPIED_FEEDBACK_MS = 500;
+
+// ---------------------------------------------------------------------------
+// Clipboard helper
+// ---------------------------------------------------------------------------
+
+function copyToClipboard(text: string): Promise<void> {
+  if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+    return navigator.clipboard.writeText(text);
+  }
+  // Fallback for older browsers / WebViews
+  return new Promise<void>((resolve, reject) => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    if (ok) resolve();
+    else reject(new Error('execCommand copy failed'));
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -41,8 +82,61 @@ export function PromoCard({
   discount,
   description,
   code,
+  onCopy,
 }: PromoCardProps) {
   const t = useT();
+
+  // ---- tap-not-scroll state ------------------------------------------------
+  const tapOriginRef = useRef<{ x: number; y: number; t: number } | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const handlePointerDown = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
+    tapOriginRef.current = { x: e.clientX, y: e.clientY, t: Date.now() };
+  }, []);
+
+  const handlePointerUp = useCallback(
+    (e: React.PointerEvent<HTMLButtonElement>) => {
+      if (!code || !tapOriginRef.current) return;
+      const origin = tapOriginRef.current;
+      tapOriginRef.current = null;
+
+      const dt = Date.now() - origin.t;
+      const dx = e.clientX - origin.x;
+      const dy = e.clientY - origin.y;
+      const distSq = dx * dx + dy * dy;
+
+      // Only treat as tap if fast and little movement
+      if (dt >= TAP_MAX_MS || distSq >= TAP_MAX_SQ) return;
+
+      copyToClipboard(code).then(() => {
+        setCopied(true);
+        onCopy?.(code);
+        setTimeout(() => setCopied(false), COPIED_FEEDBACK_MS);
+      });
+    },
+    [code, onCopy],
+  );
+
+  // Cancel tap on pointer leave so scrolling past doesn't fire
+  const handlePointerLeave = useCallback(() => {
+    tapOriginRef.current = null;
+  }, []);
+
+  // Keyboard activation for accessibility
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLButtonElement>) => {
+      if (!code) return;
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        copyToClipboard(code).then(() => {
+          setCopied(true);
+          onCopy?.(code);
+          setTimeout(() => setCopied(false), COPIED_FEEDBACK_MS);
+        });
+      }
+    },
+    [code, onCopy],
+  );
 
   return (
     <div
@@ -121,23 +215,47 @@ export function PromoCard({
           </div>
         )}
 
-        {/* Promo code chip */}
+        {/* Promo code chip — tap/click to copy */}
         {code && (
-          <div
+          <button
+            type="button"
+            aria-label={t('Copy promo code') + ' ' + code}
+            aria-pressed={copied}
+            onPointerDown={handlePointerDown}
+            onPointerUp={handlePointerUp}
+            onPointerLeave={handlePointerLeave}
+            onKeyDown={handleKeyDown}
             style={{
-              display: 'inline-block',
-              background: 'var(--color-text-inverse)',
-              color: 'var(--color-primary)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              background: copied ? 'var(--color-success)' : 'var(--color-text-inverse)',
+              color: copied ? 'var(--color-text-inverse)' : 'var(--color-primary)',
               padding: '6px 12px',
               borderRadius: 'var(--radius-chip)',
               fontFamily: 'var(--font-mono)',
               fontSize: 12,
               fontWeight: 700,
               letterSpacing: '0.08em',
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'background 150ms ease, color 150ms ease',
+              userSelect: 'none',
+              WebkitUserSelect: 'none',
+              touchAction: 'manipulation',
             }}
           >
-            {t('Code')} {code}
-          </div>
+            {copied ? (
+              <>
+                <Check size={12} aria-hidden="true" />
+                {t('Copied!')}
+              </>
+            ) : (
+              <>
+                {t('Code')} {code}
+              </>
+            )}
+          </button>
         )}
       </div>
     </div>

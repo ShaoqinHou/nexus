@@ -911,6 +911,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                       discount={discountStr}
                       description={promo.description ?? undefined}
                       code={firstCode}
+                      onCopy={() => toast('success', t('Promo code copied'))}
                     />
                   </div>
                 );
