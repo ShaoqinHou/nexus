@@ -197,7 +197,7 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
                     <span
                       key={tag}
                       className={[
-                        'inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-medium',
+                        'inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-medium leading-none',
                         dietaryTagColor(tag),
                       ].join(' ')}
                     >
@@ -216,7 +216,7 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
                   return (
                     <span
                       key={allergen}
-                      className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-medium bg-danger-light text-danger"
+                      className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-medium leading-none bg-danger-light text-danger"
                     >
                       {icon && <DietaryIcon name={icon} size="sm" />}
                       {t(allergen)}

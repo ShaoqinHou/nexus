@@ -56,7 +56,7 @@ const DietaryTagBadges = memo(function DietaryTagBadges({ tags }: { tags: string
           <span
             key={tag}
             className={[
-              'inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-medium',
+              'inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-medium leading-none',
               dietaryTagColor(tag),
             ].join(' ')}
           >
@@ -80,7 +80,7 @@ const AllergenBadges = memo(function AllergenBadges({ allergens }: { allergens: 
         return (
           <span
             key={allergen}
-            className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-medium bg-danger-light text-danger"
+            className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-medium leading-none bg-danger-light text-danger"
           >
             {icon && <DietaryIcon name={icon} size="sm" />}
             {t(allergen)}
