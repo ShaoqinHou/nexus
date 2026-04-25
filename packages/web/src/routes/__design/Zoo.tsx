@@ -53,6 +53,12 @@ import {
   PullToRefreshIndicator,
   AddToCartToast,
 } from '@web/components/patterns';
+import {
+  OrderTracker,
+  Receipt,
+  PromoCard,
+  CheckoutSummary,
+} from '@web/components/patterns/themed';
 import { ErrorBoundary } from '@web/components/patterns/ErrorBoundary';
 import { Smile, Mail, AlertCircle, ShoppingBag } from 'lucide-react';
 
@@ -379,6 +385,76 @@ function TokensShowcase() {
         </div>
       </Section>
     </>
+  );
+}
+
+function OrderTrackerShowcase() {
+  const { themeId } = useTheme();
+  return (
+    <>
+      <Section title="Dine-in (preparing)">
+        <OrderTracker theme={themeId} type="dine-in" status="preparing" orderNumber={1042} eta="8 min" />
+      </Section>
+      <Section title="Delivery (on the way)">
+        <OrderTracker theme={themeId} type="delivery" status="on-way" orderNumber={1043} eta="18 min" />
+      </Section>
+    </>
+  );
+}
+
+function ReceiptShowcase() {
+  const { themeId } = useTheme();
+  return (
+    <Section title="Receipt block (customer confirmation screen)">
+      <Receipt
+        theme={themeId}
+        restaurantName="Demo Restaurant"
+        orderNumber={1042}
+        tableLabel="4"
+        placedAt={new Date().toISOString()}
+        items={[
+          { name: 'Mapo Tofu', quantity: 2, unitPrice: 14.5 },
+          { name: 'Steamed Rice', quantity: 2, unitPrice: 3.0 },
+          { name: 'Mango Pudding', quantity: 1, unitPrice: 6.5 },
+        ]}
+        taxRate={0.0875}
+        tipRate={0.18}
+      />
+    </Section>
+  );
+}
+
+function PromoCardShowcase() {
+  const { themeId } = useTheme();
+  return (
+    <Section title="Promo banner">
+      <PromoCard
+        theme={themeId}
+        title="Happy Hour"
+        discount="25% OFF"
+        description="Weekdays 3–6pm · all appetisers"
+        code="HAPPY25"
+      />
+    </Section>
+  );
+}
+
+function CheckoutSummaryShowcase() {
+  const { themeId } = useTheme();
+  return (
+    <Section title="Cart summary with place-order CTA">
+      <CheckoutSummary
+        theme={themeId}
+        items={[
+          { name: 'Mapo Tofu', quantity: 2, unitPrice: 14.5 },
+          { name: 'Steamed Rice', quantity: 2, unitPrice: 3.0 },
+          { name: 'Mango Pudding', quantity: 1, unitPrice: 6.5 },
+        ]}
+        deliveryFee={0}
+        taxRate={0.0875}
+        onPlaceOrder={() => alert('Order placed (showcase)')}
+      />
+    </Section>
   );
 }
 
@@ -731,6 +807,10 @@ const showcases: Record<string, { title: string; render: () => ReactNode }> = {
   'error-boundary':  { title: 'ErrorBoundary',         render: ErrorBoundaryShowcase },
   'pull-to-refresh': { title: 'PullToRefreshIndicator', render: PullToRefreshShowcase },
   'add-to-cart-toast': { title: 'AddToCartToast',      render: AddToCartToastShowcase },
+  'order-tracker':   { title: 'OrderTracker (themed)', render: OrderTrackerShowcase },
+  receipt:           { title: 'Receipt (themed)',      render: ReceiptShowcase },
+  'promo-card':      { title: 'PromoCard (themed)',    render: PromoCardShowcase },
+  'checkout-summary':{ title: 'CheckoutSummary (themed)', render: CheckoutSummaryShowcase },
   tokens:            { title: 'Tokens',                render: TokensShowcase },
   themes:            { title: 'Themes',                render: ThemesShowcase },
 };
