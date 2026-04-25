@@ -11,26 +11,35 @@
 - **Locale keys:** 688 per language (en/zh/ja/ko/fr)
 - **Bundle:** 240KB main (lazy-loaded routes, vendor-split)
 
-## In-flight: feat/design-workflow-v2 — Claude Design handoff integration
+## Shipped: feat/design-workflow-v2 — Claude Design handoff integration (21 commits)
 
 | Area | Status | Artifact |
 |---|---|---|
-| Design-reference baseline | ✓ | `design/reference/v1/` (123 files, 645K, frozen) |
-| Workflow standards | ✓ | 7 new S-* IDs in `.claude/workflow/design/standards.md` |
-| Reviewer + Fixer updated | ✓ | New scope patterns, dispute examples, 11-item priority list |
+| Design-reference baseline | ✓ | `design/reference/v1/` (123 files, 645K, frozen — diff future bundles against this) |
+| Workflow standards | ✓ | 7 new S-* IDs in `.claude/workflow/design/standards.md` (S-DESIGN-REFERENCE, S-REGISTRY-ENTRY, S-ZOO-PAGE, S-HIT-TARGET-TOKEN, S-LUCIDE-ONLY, S-DIETARY-SPRITE, S-THEMED-COMPONENT) |
+| Reviewer + Fixer updated | ✓ | New scope patterns, dispute examples, 11-item priority list, dedicated design-system fix protocol |
 | Trap registry | ✓ | 9 new traps in `nexus/CLAUDE.md` |
-| Design-token linter | ✓ | `.claude/scripts/check-design-tokens.mjs` — 5 rule kinds |
-| Hit-target tokens | ✓ | `--hit-sm/md/lg` in tokens.css, Button retrofitted |
-| Self-hosted fonts | ✓ | Inter + JetBrains Mono woff2 in `packages/web/public/fonts/` |
-| Dietary-icons sprite | ✓ | `/dietary-icons.svg` — 30 symbols |
-| DietaryIcon primitive | ✓ | `components/ui/DietaryIcon.tsx`, typed union of 30 names |
-| 10 cuisine themes | ✓ | `platform/theme/themes/*.css` + aggregator |
-| ThemeProvider extension | ✓ | themeId context + data-theme on `<html>` + brand override props |
-| Component registry | ✓ | `components/registry.json` — 12 primitives + 8 patterns |
-| Zoo (/design/*) | ✓ | `routes/__design/Zoo.tsx`, dev-only, 12 of 20 showcases wired |
-| Hex/rgba sweep | ~ | hit-target done (153→0); hex/rgba sweep in progress |
-| E2E verification | ~ | zoo + merchant + customer flows in progress |
-| Themed components | deferred | OrderTracker/Receipt/PromoCard/CheckoutSummary — post-sweep |
+| Design-token linter | ✓ | `.claude/scripts/check-design-tokens.mjs` — 5 rule kinds, accepts `// lint-override` and `/* lint-override */` escape hatches; 0 violations across 88 files |
+| Hit-target tokens | ✓ | `--hit-sm/md/lg` in tokens.css, Button retrofitted, 153 hardcoded-px violations swept across 23 files |
+| Self-hosted fonts | ✓ | Inter + JetBrains Mono woff2 in `packages/web/public/fonts/` + `@font-face` |
+| Dietary-icons sprite | ✓ | `/dietary-icons.svg` — 30 symbols (5 diets, 7 free-from, 8 contains-warnings, 3 spice levels, 7 promo/meta) |
+| DietaryIcon primitive | ✓ | `components/ui/DietaryIcon.tsx`, typed union of 30 names; wired in customer MenuBrowse + ItemDetailSheet |
+| Dietary helpers | ✓ | `lib/dietary.ts` — `dietaryIconName()`, `allergenIconName()`, `dietaryTagColor()` |
+| 10 cuisine themes | ✓ | `platform/theme/themes/*.css` + aggregator + Google Fonts (Fraunces, Noto Serif/Sans SC) |
+| ThemeProvider extension | ✓ | themeId context + data-theme on `<html>` + brandColor inline-style override; CustomerShell reads `tenant.settings.theme` + `brandColor` |
+| Tenant settings schema | ✓ | `tenant.settings.theme` field added to TenantThemeSettings + Zod schema |
+| Component registry | ✓ | `components/registry.json` — 12 primitives + 12 patterns (8 base + 4 themed) |
+| Zoo (/design/*) | ✓ | `routes/__design/Zoo.tsx`, dev-only, **24 of 24 showcases wired** (12 primitives + 8 patterns + 4 themed + tokens + themes) |
+| Themed components | ✓ | NEW patterns/themed/{OrderTracker, Receipt, PromoCard, CheckoutSummary} (auto-reskin via data-theme) |
+| Hex/rgba sweep | ✓ | 63 residual lint-overrides applied to legitimate domain-logic uses (palette math, print windows, keyframes, SVG fills) — 0 chrome drift |
+| Test/build gates | ✓ | API 181/181 + web 22/22 + tsc web/api 0 errors + Vite build 3.5s |
+| E2E verification | partial | First pass found + fixed S-DIETARY-SPRITE (commit 0dcf4ad). Re-verify pass running. |
+
+Outstanding follow-ups (backlog, non-blocking):
+
+- `--color-kds-preparing` token pair to absorb KitchenDisplay's violet station hue (reviewer F-352e6d8d, currently lint-overridden)
+- `dev:all` Windows MINGW race — when both api + web boot concurrently, web sometimes silent-fails; workaround is two terminals
+- ThemeSettings.tsx merchant UI: surface a theme-picker dropdown alongside the brand-color field (data flow is wired, UI is not)
 
 See `.claude/workflow/session-plan.md` for full phase-by-phase log and
 commit list.
