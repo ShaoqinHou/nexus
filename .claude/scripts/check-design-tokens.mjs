@@ -157,8 +157,12 @@ for (const file of files) {
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       if (rule.ignoreLineRegex && rule.ignoreLineRegex.test(line)) continue;
-      // review-override escape hatch: one-line override
-      if (/\/\/\s*lint-override/.test(line)) continue;
+      // review-override escape hatch: one-line override.
+      // Accepts both JS (`// lint-override`) and CSS (`/* lint-override */`)
+      // comment styles so CSS template strings inside .tsx (window.open print
+      // HTML, @media print blocks) can use proper CSS comment syntax without
+      // emitting stray `// lint-override` text into the rendered DOM.
+      if (/(\/\/|\/\*)\s*lint-override/.test(line)) continue;
       rule.regex.lastIndex = 0;
       let m;
       while ((m = rule.regex.exec(line)) !== null) {
