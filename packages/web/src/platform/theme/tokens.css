@@ -105,7 +105,10 @@
   --color-info: #2563eb;
   --color-info-light: #dbeafe;
 
-  /* KDS station colours */
+  /* KDS station colours — nexus-specific extension to the Claude Design bundle.
+     The bundle predates the kitchen-display preparing-station tint; this pair
+     resolves S-DARK-MODE for that single non-semantic accent without re-theming
+     it per cuisine (see S-THEMED-COMPONENT — semantic + KDS tokens stay stable). */
   --color-kds-preparing: #ede9fe;
   --color-kds-preparing-fg: #7c3aed;
 

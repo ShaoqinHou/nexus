@@ -479,9 +479,10 @@ Severity: medium
 
 ## S-THEMED-COMPONENT
 Source: .claude/rules/design-system.md, Claude Design bundle § THEMES
-Rule: Themes are applied via `data-theme="<id>"` on a wrapper element, not JS re-renders. The 10 canonical theme IDs are: `classic`, `trattoria`, `izakaya`, `bubble-tea`, `counter`, `taqueria`, `curry-house`, `sichuan`, `cantonese`, `wok`. Customer-facing surfaces re-skin when `data-theme` flips; merchant console stays neutral (uses `classic` default). Semantic tokens (`--color-success`, `--color-danger`) do NOT get re-themed — success is always green, danger is always red.
+Rule: Themes are applied via `data-theme="<id>"` on a wrapper element, not JS re-renders. The 10 canonical theme IDs are: `classic`, `trattoria`, `izakaya`, `bubble-tea`, `counter`, `taqueria`, `curry-house`, `sichuan`, `cantonese`, `wok`. **Customer-facing surfaces re-skin when `data-theme` flips. The merchant console defaults to `classic` but has a Vendor Theme Studio at `/t/<slug>/ordering/settings` where the merchant can PREVIEW cuisine themes against representative customer screens before committing.** The merchant's chrome layout (PlatformShell sidebar/topbar, nav, settings) follows the bundle's `Shell.jsx` spec and uses the same design-system primitives as the customer. Semantic tokens (`--color-success`, `--color-danger`) do NOT get re-themed — success is always green, danger is always red.
 Detection:
   - grep `data-theme=` in `packages/web/src/` — values must be one of the 10 canonical IDs.
   - grep for per-theme JS overrides (`if (theme === 'sichuan') style = { ... }`) — theme logic belongs in CSS, not JS.
   - grep theme files in `packages/web/src/platform/theme/themes/*.css` for `--color-success|--color-danger|--color-warning|--color-info` overrides — semantic tokens must not be re-themed at the theme layer.
+  - merchant chrome (`packages/web/src/platform/layout/PlatformShell.tsx` + parent nav surface) must render under `data-theme="classic"` outside the Vendor Studio preview pane — `data-theme="<id>"` for non-classic IDs only inside the explicitly-scoped studio preview.
 Severity: medium

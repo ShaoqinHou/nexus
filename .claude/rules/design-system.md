@@ -181,7 +181,7 @@ with its variants visible, plus dark-mode and theme toggles. Zoo routes are **de
 - `--color-brand` and `--color-brand-hover` are overridable per-tenant at runtime via
   inline style on the customer shell wrapper — this is how a single Sichuan restaurant
   can pick a slightly different red from the theme default.
-- Customer-facing surfaces re-skin by theme; merchant console stays on `classic` default.
+- Customer-facing surfaces re-skin by theme. The merchant console defaults to `classic` but has a Vendor Theme Studio at `/t/<slug>/ordering/settings` where the merchant can PREVIEW cuisine themes against representative customer screens before committing. The merchant's chrome layout follows the bundle's `Shell.jsx` spec and uses the same design-system primitives as the customer.
 
 ## Iconography
 
