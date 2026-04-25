@@ -110,14 +110,14 @@ export function PlatformShell() {
             to="/t/$tenantSlug"
             params={{ tenantSlug }}
             className={[
-              'flex items-center gap-3 rounded-md px-3 py-2.5 min-h-[var(--hit-sm)] text-sm font-medium transition-colors mb-1',
+              'flex items-center gap-3 rounded-md px-3 py-2.5 min-h-[var(--hit-sm)] text-sm font-medium transition-colors mb-0.5',
               location.pathname === `/t/${tenantSlug}`
-                ? 'bg-primary/10 text-primary font-medium'
+                ? 'bg-primary-light text-primary font-medium'
                 : 'text-text-secondary hover:text-text hover:bg-bg-muted',
             ].join(' ')}
             onClick={closeMobileSidebar}
           >
-            <LayoutDashboard className="h-5 w-5 shrink-0" />
+            <LayoutDashboard className="h-[18px] w-[18px] shrink-0" />
             {!sidebarCollapsed && <span>{t('Dashboard')}</span>}
           </Link>
 
@@ -126,14 +126,14 @@ export function PlatformShell() {
               to="/t/$tenantSlug/restaurants"
               params={{ tenantSlug }}
               className={[
-                'flex items-center gap-3 rounded-md px-3 py-2.5 min-h-[var(--hit-sm)] text-sm font-medium transition-colors mb-1',
+                'flex items-center gap-3 rounded-md px-3 py-2.5 min-h-[var(--hit-sm)] text-sm font-medium transition-colors mb-0.5',
                 location.pathname === `/t/${tenantSlug}/restaurants`
-                  ? 'bg-primary/10 text-primary font-medium'
+                  ? 'bg-primary-light text-primary font-medium'
                   : 'text-text-secondary hover:text-text hover:bg-bg-muted',
               ].join(' ')}
               onClick={closeMobileSidebar}
             >
-              <ArrowLeftRight className="h-5 w-5 shrink-0" />
+              <ArrowLeftRight className="h-[18px] w-[18px] shrink-0" />
               {!sidebarCollapsed && <span>{t('Switch Restaurant')}</span>}
             </Link>
           )}
@@ -180,14 +180,14 @@ export function PlatformShell() {
                       to={item.path}
                       {...(tourAttr ? { 'data-tour': tourAttr } : {})}
                       className={[
-                        'flex items-center gap-3 rounded-md px-3 py-2.5 min-h-[var(--hit-sm)] text-sm font-medium transition-colors mb-1',
+                        'flex items-center gap-3 rounded-md px-3 py-2.5 min-h-[var(--hit-sm)] text-sm font-medium transition-colors mb-0.5',
                         isActiveNav
-                          ? 'bg-primary/10 text-primary font-medium'
+                          ? 'bg-primary-light text-primary font-medium'
                           : 'text-text-secondary hover:text-text hover:bg-bg-muted',
                       ].join(' ')}
                       onClick={closeMobileSidebar}
                     >
-                      <Icon className="h-5 w-5 shrink-0" />
+                      <Icon className="h-[18px] w-[18px] shrink-0" />
                       {!sidebarCollapsed && <span>{t(item.label)}</span>}
                     </Link>
                   );
@@ -213,7 +213,7 @@ export function PlatformShell() {
       {/* Main area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar */}
-        <header className="flex items-center justify-between h-16 px-4 border-b border-border bg-bg-elevated print:hidden">
+        <header className="flex items-center justify-between h-16 px-6 border-b border-border bg-bg-elevated print:hidden">
           <div className="flex items-center gap-3">
             <button
               type="button"
