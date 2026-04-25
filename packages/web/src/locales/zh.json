@@ -686,5 +686,16 @@
   "Option deleted": "选项已删除",
   "Failed to delete option": "删除选项失败",
   "OFF": "折扣",
-  "Thank you for dining with us!": "感谢光临！"
+  "Thank you for dining with us!": "感谢光临！",
+  "Cuisine Theme": "餐厅主题",
+  "Default (Classic)": "默认（经典）",
+  "Trattoria": "意式餐厅",
+  "Izakaya": "居酒屋",
+  "Bubble Tea": "珍珠奶茶店",
+  "Counter": "咖啡轻食",
+  "Taqueria": "墨西哥菜",
+  "Curry House": "印度料理",
+  "Sichuan": "川菜",
+  "Cantonese": "粤菜",
+  "Wok": "中式炒锅"
 }
