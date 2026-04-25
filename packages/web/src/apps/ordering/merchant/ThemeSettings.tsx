@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Palette, Check, RotateCcw, Save, Eye, Clock, Monitor, Smartphone, Receipt, Globe, Timer, Settings2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Palette, Check, RotateCcw, Save, Eye, Clock, Monitor, Smartphone, Receipt, Globe, Timer, Settings2, ChevronDown, ChevronUp, Paintbrush, Sliders } from 'lucide-react';
 import {
   Button,
   Card,
@@ -63,6 +63,125 @@ const FONT_OPTIONS = [
   { value: 'Lora', label: 'Lora' },
   { value: 'Merriweather', label: 'Merriweather' },
 ];
+
+// --- Cuisine Theme Data (10 canonical themes from Claude Design bundle) ---
+// Swatches: [bg, brand, accent, text] — mirrors the bundle spec tile layout.
+// lint-override block: these are design-spec swatch values, not app chrome.
+
+interface CuisineThemeDef {
+  id: string;
+  name: string;
+  vibe: string;
+  swatches: [string, string, string, string]; // lint-override: cuisine theme spec swatches — design reference data, not chrome
+  defaultBrand: string; // lint-override: cuisine theme default brand seed — user-facing choice data
+}
+
+const CUISINE_THEMES: CuisineThemeDef[] = [
+  { id: 'classic',    name: 'Classic',     vibe: 'Modern American · chains',          swatches: ['#ffffff', '#2563eb', '#f59e0b', '#111827'], defaultBrand: '#2563eb' }, // lint-override: cuisine spec swatch
+  { id: 'trattoria',  name: 'Trattoria',   vibe: 'Italian · neighbourhood bistro',    swatches: ['#faf6ef', '#c0532a', '#6b7d3a', '#2b1f17'], defaultBrand: '#c0532a' }, // lint-override: cuisine spec swatch
+  { id: 'izakaya',    name: 'Izakaya',     vibe: 'Japanese · Korean BBQ · ramen',     swatches: ['#1a1714', '#e89d3a', '#c44536', '#f5ede0'], defaultBrand: '#e89d3a' }, // lint-override: cuisine spec swatch
+  { id: 'bubble-tea', name: 'Bubble Tea',  vibe: 'Boba · dessert · cafe',             swatches: ['#fefaf5', '#b87fc2', '#8fb87a', '#e07b7b'], defaultBrand: '#b87fc2' }, // lint-override: cuisine spec swatch
+  { id: 'sichuan',    name: 'Sichuan',     vibe: 'Hot pot · spicy regional',          swatches: ['#fbf6ee', '#b8262b', '#c89a3c', '#1a0e0a'], defaultBrand: '#b8262b' }, // lint-override: cuisine spec swatch
+  { id: 'cantonese',  name: 'Cantonese',   vibe: 'Dim sum · tea house',               swatches: ['#f7f3e9', '#1f6b4a', '#b68c3c', '#0f2419'], defaultBrand: '#1f6b4a' }, // lint-override: cuisine spec swatch
+  { id: 'wok',        name: 'Wok',         vibe: 'Chinese-American · franchise',      swatches: ['#ffffff', '#d62828', '#e5a52c', '#0d0605'], defaultBrand: '#d62828' }, // lint-override: cuisine spec swatch
+  { id: 'counter',    name: 'Counter',     vibe: '3rd-wave coffee · counter-service', swatches: ['#ffffff', '#ff2d20', '#0a0a0a', '#f5f500'], defaultBrand: '#ff2d20' }, // lint-override: cuisine spec swatch
+  { id: 'taqueria',   name: 'Taqueria',    vibe: 'Mexican · street food · Tex-Mex',   swatches: ['#fdf6e9', '#d94f2a', '#7a9a2a', '#2a1a0e'], defaultBrand: '#d94f2a' }, // lint-override: cuisine spec swatch
+  { id: 'curry-house',name: 'Curry House', vibe: 'Indian · South Asian · tandoor',   swatches: ['#fbf5e7', '#d97a1a', '#0f6a6a', '#1a0d1a'], defaultBrand: '#d97a1a' }, // lint-override: cuisine spec swatch
+];
+
+// --- Cuisine Theme Card ---
+
+interface CuisineThemeCardProps {
+  theme: CuisineThemeDef;
+  isActive: boolean;
+  onClick: () => void;
+}
+
+function CuisineThemeCard({ theme, isActive, onClick }: CuisineThemeCardProps) {
+  const t = useT();
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={[
+        'relative flex flex-col gap-2 p-3 rounded-lg border-2 transition-all text-left active:scale-[0.98]',
+        'hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+        isActive
+          ? 'border-primary bg-primary-light shadow-sm'
+          : 'border-border bg-bg-surface hover:border-border-strong',
+      ].join(' ')}
+    >
+      {isActive && (
+        <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
+          <Check className="h-2.5 w-2.5 text-text-inverse" />
+        </div>
+      )}
+      {/* Swatch row: bg / brand / accent / text — 4 chips */}
+      <div className="flex gap-1">
+        {theme.swatches.map((sw, i) => (
+          <div
+            key={i}
+            className="w-4 h-4 rounded-sm border shrink-0"
+            style={{
+              backgroundColor: sw,
+              borderColor: 'rgba(0,0,0,0.12)', // lint-override: semi-transparent swatch border — no token for this alpha overlay
+            }}
+          />
+        ))}
+      </div>
+      {/* Mini layout mock: header strip + button stub */}
+      <div className="w-full h-7 rounded overflow-hidden flex flex-col gap-0.5">
+        <div className="h-4 w-full rounded-sm" style={{ backgroundColor: theme.swatches[1] }} />
+        <div className="flex gap-1">
+          <div className="h-2.5 flex-1 rounded-sm" style={{ backgroundColor: theme.swatches[0], border: `1px solid rgba(0,0,0,0.08)` /* lint-override: alpha border on mini mock */ }} />
+          <div className="h-2.5 w-6 rounded-sm" style={{ backgroundColor: theme.swatches[2] }} />
+        </div>
+      </div>
+      <div>
+        <p className="text-xs font-semibold text-text leading-tight">{t(theme.name)}</p>
+        <p className="text-[10px] text-text-tertiary leading-tight mt-0.5">{t(theme.vibe)}</p>
+      </div>
+    </button>
+  );
+}
+
+// --- Derived Palette Chips ---
+
+interface DerivedPaletteChipsProps {
+  brandColor: string;
+  isDark: boolean;
+}
+
+function DerivedPaletteChips({ brandColor, isDark }: DerivedPaletteChipsProps) {
+  const t = useT();
+  const palette = generatePalette(brandColor, isDark);
+
+  const chips: Array<{ label: string; color: string }> = [
+    { label: t('Brand'), color: palette.brand },
+    { label: t('Hover'), color: palette.brandHover },
+    { label: t('Primary'), color: palette.primary },
+    { label: t('Light'), color: palette.primaryLight },
+    { label: t('On Brand'), color: palette.textOnBrand === '#ffffff' ? '#ffffff' : '#111827' }, // lint-override: text-on-brand is either white or dark — pure contrast logic
+  ];
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span className="text-xs font-medium text-text-secondary">{t('Derived Palette')}</span>
+      <div className="flex gap-2">
+        {chips.map((chip) => (
+          <div key={chip.label} className="flex flex-col items-center gap-1">
+            <div
+              className="w-8 h-8 rounded-md border border-border-strong shrink-0"
+              style={{ backgroundColor: chip.color }}
+              title={chip.color}
+            />
+            <span className="text-[10px] text-text-tertiary text-center leading-tight">{chip.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 type BorderRadius = 'sharp' | 'rounded' | 'pill';
 type SurfaceStyle = 'flat' | 'subtle' | 'elevated';
@@ -709,49 +828,65 @@ export function ThemeSettings() {
         {/* Left: settings form */}
         <div className="lg:col-span-3 space-y-6">
 
-          {/* ═══════════ THEME & BRAND SECTION ═══════════ */}
+          {/* ═══════════ SECTION A — CUISINE THEME ═══════════ */}
           <div>
             <div className="flex items-center gap-2">
               <Palette className="h-5 w-5 text-primary" />
-              <h2 className="text-lg font-bold text-text">{t('Theme & Brand')}</h2>
+              <h2 className="text-lg font-bold text-text">{t('Cuisine Theme')}</h2>
             </div>
             <p className="text-sm text-text-secondary mt-1 ml-7">
-              {t('Visual identity, brand color, and cuisine theme for your customer app')}
+              {t('Pick a starting theme for your customer app. Defines surface, typography, and shape language.')}
             </p>
           </div>
 
-          {/* Preset picker */}
+          {/* Section A: Cuisine theme card grid */}
           <Card>
-            <CardHeader>
-              <CardTitle>{t('Theme Presets')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-text-secondary mb-4">
-                {t('Choose a preset as a starting point, then customize to match your brand.')}
-              </p>
-              <div data-tour="theme-presets" className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-                {THEME_PRESETS.map((preset) => (
-                  <PresetCard
-                    key={preset.id}
-                    preset={preset}
-                    isActive={form.preset === preset.id}
-                    onClick={() => applyPreset(preset)}
+            <CardContent className="pt-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-2">
+                {CUISINE_THEMES.map((theme) => (
+                  <CuisineThemeCard
+                    key={theme.id}
+                    theme={theme}
+                    isActive={
+                      form.cuisineTheme === theme.id ||
+                      (theme.id === 'classic' && form.cuisineTheme === '')
+                    }
+                    onClick={() => {
+                      updateField('cuisineTheme', theme.id === 'classic' ? '' : theme.id);
+                      // Suggest the theme's default brand color when the user hasn't manually overridden it
+                      // (i.e. when the current brand color matches another theme's default or our fallback)
+                      const otherDefaults = CUISINE_THEMES.filter((t) => t.id !== theme.id).map((t) => t.defaultBrand);
+                      const isDefaultBrand =
+                        otherDefaults.includes(form.brandColor) ||
+                        form.brandColor === '#2563eb'; // lint-override: default brand seed comparison — not chrome
+                      if (isDefaultBrand) {
+                        updateField('brandColor', theme.defaultBrand);
+                      }
+                    }}
                   />
                 ))}
               </div>
             </CardContent>
           </Card>
 
-          {/* Custom overrides */}
+          {/* ═══════════ SECTION B — BRAND IDENTITY ═══════════ */}
+          <div>
+            <div className="flex items-center gap-2">
+              <Paintbrush className="h-5 w-5 text-primary" />
+              <h2 className="text-lg font-bold text-text">{t('Brand Identity')}</h2>
+            </div>
+            <p className="text-sm text-text-secondary mt-1 ml-7">
+              {t('Brand color, logo, and cover image for your customer app')}
+            </p>
+          </div>
+
+          {/* Brand color + derived palette */}
           <Card>
-            <CardHeader>
-              <CardTitle>{t('Custom Overrides')}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-5">
-              {/* Brand Color */}
-              <div className="flex flex-col gap-2">
+            <CardContent className="space-y-5 pt-6">
+              {/* Brand Color + derived palette chips */}
+              <div className="flex flex-col gap-3">
                 <label className="text-sm font-medium text-text">{t('Brand Color')}</label>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-wrap">
                   <div className="relative">
                     <input
                       type="color"
@@ -786,25 +921,74 @@ export function ThemeSettings() {
                     title={form.brandColor}
                   />
                 </div>
+                {/* Derived palette chips — computed from generatePalette() */}
+                <DerivedPaletteChips brandColor={form.brandColor} isDark={isDark} />
               </div>
+            </CardContent>
+          </Card>
 
-              {/* Cuisine Theme */}
-              <Select
-                label={t('Cuisine Theme')}
-                options={[
-                  { value: '', label: t('Default (Classic)') },
-                  ...THEME_IDS.filter((id) => id !== 'classic').map((id) => ({
-                    value: id,
-                    label: t(id
-                      .split('-')
-                      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                      .join(' ')),
-                  })),
-                ]}
-                value={form.cuisineTheme}
-                onChange={(value) => updateField('cuisineTheme', value)}
+          {/* Branding Assets (logo + cover) */}
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('Branding Assets')}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <ImageUpload
+                label={t('Logo')}
+                value={form.logoUrl || null}
+                onChange={(url) => updateField('logoUrl', url ?? '')}
+                tenantSlug={tenantSlug}
+                aspectRatio="1:1"
               />
+              <ImageUpload
+                label={t('Cover Image')}
+                value={form.coverImageUrl || null}
+                onChange={(url) => updateField('coverImageUrl', url ?? '')}
+                tenantSlug={tenantSlug}
+                aspectRatio="3:1"
+              />
+            </CardContent>
+          </Card>
 
+          {/* ═══════════ SECTION C — CUSTOMISATION (presets + overrides) ═══════════ */}
+          <div>
+            <div className="flex items-center gap-2">
+              <Sliders className="h-5 w-5 text-primary" />
+              <h2 className="text-lg font-bold text-text">{t('Customisation')}</h2>
+            </div>
+            <p className="text-sm text-text-secondary mt-1 ml-7">
+              {t('Preset starting points and fine-tuning controls for fonts, shape, and depth')}
+            </p>
+          </div>
+
+          {/* Preset picker */}
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('Theme Presets')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-text-secondary mb-4">
+                {t('Choose a preset as a starting point, then customize to match your brand.')}
+              </p>
+              <div data-tour="theme-presets" className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                {THEME_PRESETS.map((preset) => (
+                  <PresetCard
+                    key={preset.id}
+                    preset={preset}
+                    isActive={form.preset === preset.id}
+                    onClick={() => applyPreset(preset)}
+                  />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Custom overrides */}
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('Custom Overrides')}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-5">
               {/* Font Family */}
               <Select
                 label={t('Font Family')}
@@ -892,29 +1076,6 @@ export function ThemeSettings() {
                     ),
                   },
                 ]}
-              />
-            </CardContent>
-          </Card>
-
-          {/* Branding Assets */}
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('Branding Assets')}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <ImageUpload
-                label={t('Logo')}
-                value={form.logoUrl || null}
-                onChange={(url) => updateField('logoUrl', url ?? '')}
-                tenantSlug={tenantSlug}
-                aspectRatio="1:1"
-              />
-              <ImageUpload
-                label={t('Cover Image')}
-                value={form.coverImageUrl || null}
-                onChange={(url) => updateField('coverImageUrl', url ?? '')}
-                tenantSlug={tenantSlug}
-                aspectRatio="3:1"
               />
             </CardContent>
           </Card>
