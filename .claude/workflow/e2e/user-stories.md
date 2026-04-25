@@ -5,6 +5,65 @@ character against the same dev server (port 5173 web, 3001 api). The shared
 SQLite backend provides cross-character coordination — when Aiko places an
 order, Liam sees it in the kitchen display because they share a tenant.
 
+## Agent dispatch settings (revised after first run)
+
+- **DO NOT use `isolation: "worktree"`** for character agents. Worktree-isolated
+  agents are sandboxed out of writing to the parent repo's
+  `.claude/workflow/scratch/` directory — that's exactly where role-play
+  coordination lives. 4 of 5 first-run agents hit Bash/Write denials mid-flow
+  and the lead session had to write their sentinels and reports manually.
+  Use plain `general-purpose` agents (no isolation) so they can write to the
+  shared scratch dir.
+- `run_in_background: true` for all character agents; the lead orchestrates.
+- `model: sonnet` is sufficient — these are role-play scripts, not deep
+  design judgement.
+
+## State reset before each run
+
+The role-play assumes a clean tenant state:
+
+- Run `npm run db:seed` to reset Demo + Sakura tenants to known fixtures.
+- Verify no stale `pending` orders on tables 3 / 7 of Demo (else Marco /
+  Aiko will hit the `JoinExistingOrder` intermediate screen — see "Known
+  flow detours" below).
+
+## Known flow detours
+
+### `JoinExistingOrder` landing screen
+
+When a customer scans a QR for a table that already has an active order
+(`status` ∈ {`pending`, `confirmed`, `preparing`, `ready`}), they get a
+3-button choice screen ("Add to existing order", "Start new order", "View
+order") instead of the menu. Customer-flow scripts MUST detect this:
+
+```js
+// pseudo
+const buttons = await evaluate('Array.from(document.querySelectorAll("button")).map(b=>b.textContent)');
+if (buttons.some(t => t.includes("Add to existing order"))) {
+  // we hit JoinExistingOrder — pick "Start new order" or "View order"
+  // depending on what the script needs next.
+}
+```
+
+### chrome-devtools `resize_page` quirk
+
+The MCP tool's `resize_page` does NOT actually fire CSS media queries in
+the agent's run — `window.innerWidth` doesn't change. To verify mobile
+layouts visually, prefer:
+
+- `mcp__chrome-devtools__emulate({ device: 'iPhone 13' })` — proper device
+  emulation that actually re-evaluates media queries.
+- OR source-level CSS verification: `evaluate_script` returning the matched
+  CSS rules.
+
+## Status-gated verifications
+
+Some interactive UI is correctly hidden after status changes (e.g. cancel
+buttons disappear once an order is `ready`). When the script tests both
+cancel-button presence AND order-state advancement, the cancel-button check
+MUST happen during `pending` status, BEFORE the kitchen agent moves the
+order. Either rearrange the script timing or split into two characters.
+
 ## Coordination
 
 Sentinel files live in `.claude/workflow/scratch/e2e-rolepay/` (gitignored).
