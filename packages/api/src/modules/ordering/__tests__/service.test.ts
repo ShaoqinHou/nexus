@@ -42,6 +42,8 @@ import {
   getTopItems,
   getOrderStats,
   getStatusBreakdown,
+  setTranslation,
+  getTranslationsForLocale,
 } from '../service';
 
 type TestDB = ReturnType<typeof createTestDb>;
@@ -272,6 +274,7 @@ function createTestDb() {
       locale TEXT NOT NULL,
       field TEXT NOT NULL,
       value TEXT NOT NULL,
+      source TEXT NOT NULL DEFAULT 'auto',
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
@@ -2452,5 +2455,124 @@ describe('Analytics Service', () => {
 
     expect(topB).toHaveLength(1);
     expect(topB[0].name).toBe('B Burger');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// combo_slot ?lang= translation — S-TENANT-ISOLATION-TEST
+// ---------------------------------------------------------------------------
+
+describe('combo_slot translation via getPublicCombos + getTranslationsForLocale', () => {
+  let db: TestDB;
+  let tenantAId: string;
+  let tenantBId: string;
+
+  beforeEach(() => {
+    db = createTestDb();
+    const tenantA = createTestTenant(db, 'tenant-a');
+    const tenantB = createTestTenant(db, 'tenant-b');
+    tenantAId = tenantA.id;
+    tenantBId = tenantB.id;
+  });
+
+  it('returns translated combo_slot name when a zh translation is stored for tenant A', () => {
+    // Seed a menu item for tenant A (required for combo slot options)
+    const catA = createCategory(db, tenantAId, { name: 'Mains' });
+    const itemResult = createMenuItem(db, tenantAId, {
+      categoryId: catA.id,
+      name: 'Burger',
+      price: 15,
+    });
+    const itemA = (itemResult as { data: schema.MenuItem }).data;
+
+    // Create a combo deal with one slot under tenant A
+    const comboResult = createComboDeal(db, tenantAId, {
+      name: 'Lunch Deal',
+      basePrice: 20,
+      slots: [
+        {
+          name: 'Choose your main',
+          options: [{ menuItemId: itemA.id, priceModifier: 0 }],
+        },
+      ],
+    });
+    const combo = (comboResult as { data: { id: string; slots: Array<{ id: string; name: string }> } }).data;
+    const slotId = combo.slots[0].id;
+
+    // Simulate what GLM would store — seed the zh translation directly
+    setTranslation(db, tenantAId, 'combo_slot', slotId, 'zh', 'name', '选择你的主菜');
+
+    // Hit GET /menu?lang=zh path: load translations then call getPublicCombos
+    const translations = getTranslationsForLocale(db, tenantAId, 'zh');
+    const combos = getPublicCombos(db, tenantAId, translations);
+
+    expect(combos).toHaveLength(1);
+    const slot = combos[0].slots[0];
+    expect(slot.name).toBe('选择你的主菜');
+  });
+
+  it('combo_slot translation is tenant-isolated — tenant B cannot see tenant A slot translations', () => {
+    // Seed tenant A combo
+    const catA = createCategory(db, tenantAId, { name: 'A Mains' });
+    const itemAResult = createMenuItem(db, tenantAId, {
+      categoryId: catA.id,
+      name: 'A Burger',
+      price: 15,
+    });
+    const itemA = (itemAResult as { data: schema.MenuItem }).data;
+
+    const comboAResult = createComboDeal(db, tenantAId, {
+      name: 'A Lunch Deal',
+      basePrice: 20,
+      slots: [
+        {
+          name: 'Choose your main',
+          options: [{ menuItemId: itemA.id, priceModifier: 0 }],
+        },
+      ],
+    });
+    const comboA = (comboAResult as { data: { id: string; slots: Array<{ id: string; name: string }> } }).data;
+    const slotAId = comboA.slots[0].id;
+
+    // Store zh translation for tenant A's slot
+    setTranslation(db, tenantAId, 'combo_slot', slotAId, 'zh', 'name', '选择你的主菜');
+
+    // Seed tenant B combo (separate menu item)
+    const catB = createCategory(db, tenantBId, { name: 'B Mains' });
+    const itemBResult = createMenuItem(db, tenantBId, {
+      categoryId: catB.id,
+      name: 'B Burger',
+      price: 12,
+    });
+    const itemB = (itemBResult as { data: schema.MenuItem }).data;
+
+    createComboDeal(db, tenantBId, {
+      name: 'B Lunch Deal',
+      basePrice: 18,
+      slots: [
+        {
+          name: 'Pick a main',
+          options: [{ menuItemId: itemB.id, priceModifier: 0 }],
+        },
+      ],
+    });
+
+    // Tenant A sees its translated slot name
+    const translationsA = getTranslationsForLocale(db, tenantAId, 'zh');
+    const combosA = getPublicCombos(db, tenantAId, translationsA);
+    expect(combosA).toHaveLength(1);
+    expect(combosA[0].slots[0].name).toBe('选择你的主菜');
+
+    // Tenant B sees its own slot in the primary language (no cross-tenant translation leak)
+    const translationsB = getTranslationsForLocale(db, tenantBId, 'zh');
+    const combosB = getPublicCombos(db, tenantBId, translationsB);
+    expect(combosB).toHaveLength(1);
+    // Tenant B's slot has no zh translation — falls back to primary name
+    expect(combosB[0].slots[0].name).toBe('Pick a main');
+    // Critically: tenant B must NOT see tenant A's slot names
+    expect(combosB[0].slots[0].name).not.toBe('选择你的主菜');
+    expect(combosB[0].slots[0].name).not.toBe('Choose your main');
+    // Tenant B sees exactly one combo (not tenant A's)
+    expect(combosB[0].name).toBe('B Lunch Deal');
   });
 });

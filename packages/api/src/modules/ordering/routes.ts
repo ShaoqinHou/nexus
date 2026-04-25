@@ -677,20 +677,32 @@ export function staffOrderingRoutes(db: DrizzleDB) {
       return c.json({ error: result.error }, 400);
     }
 
-    // Auto-translate (fire-and-forget). Combo slots are NOT translated in this pass.
+    // Auto-translate combo deal fields and all slot names (fire-and-forget).
     try {
-      const fields: Record<string, string> = {};
-      if (result.data.name) fields.name = result.data.name;
-      if (result.data.description) fields.description = result.data.description;
-      if (Object.keys(fields).length > 0) {
+      const dealFields: Record<string, string> = {};
+      if (result.data.name) dealFields.name = result.data.name;
+      if (result.data.description) dealFields.description = result.data.description;
+      if (Object.keys(dealFields).length > 0) {
         await autoTranslateEntity(
           db,
           tenantId,
           'combo_deal',
           result.data.id,
-          fields,
+          dealFields,
           'combo deal',
         );
+      }
+      for (const slot of result.data.slots) {
+        if (slot.name) {
+          await autoTranslateEntity(
+            db,
+            tenantId,
+            'combo_slot',
+            slot.id,
+            { name: slot.name },
+            'combo slot',
+          );
+        }
       }
     } catch (err) {
       console.error(
@@ -711,21 +723,37 @@ export function staffOrderingRoutes(db: DrizzleDB) {
       return c.json({ error: result.error }, 404);
     }
 
-    // Auto-translate if name or description changed
+    // Auto-translate combo deal fields and slot names when changed (fire-and-forget).
     try {
-      const fields: Record<string, string> = {};
-      if (body.name && result.data.name) fields.name = result.data.name;
+      const dealFields: Record<string, string> = {};
+      if (body.name && result.data.name) dealFields.name = result.data.name;
       if (body.description !== undefined && result.data.description)
-        fields.description = result.data.description;
-      if (Object.keys(fields).length > 0) {
+        dealFields.description = result.data.description;
+      if (Object.keys(dealFields).length > 0) {
         await autoTranslateEntity(
           db,
           tenantId,
           'combo_deal',
           result.data.id,
-          fields,
+          dealFields,
           'combo deal',
         );
+      }
+      // Translate new slot names when slots are replaced via update.
+      if (body.slots && 'slots' in result.data) {
+        const slots = (result.data as { slots: Array<{ id: string; name: string }> }).slots;
+        for (const slot of slots) {
+          if (slot.name) {
+            await autoTranslateEntity(
+              db,
+              tenantId,
+              'combo_slot',
+              slot.id,
+              { name: slot.name },
+              'combo slot',
+            );
+          }
+        }
       }
     } catch (err) {
       console.error(
