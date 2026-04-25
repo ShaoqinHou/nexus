@@ -299,6 +299,75 @@
       "tokensUsed": ["--color-success", "--color-text-inverse"],
       "dependencies": ["lucide-react"],
       "zooRoute": "/design/add-to-cart-toast"
+    },
+    {
+      "name": "OrderTracker",
+      "path": "packages/web/src/components/patterns/themed/OrderTracker.tsx",
+      "kind": "pattern",
+      "purpose": "Themed order status timeline. Horizontal step tracker with connector lines and pulsing active bubble. Supports dine-in (Received→Preparing→Ready→Served) and delivery (Received→Preparing→On the way→Delivered) modes. data-theme wrapper drives full theme cascade.",
+      "propsShape": {
+        "theme": "string (data-theme value; optional)",
+        "status": "'received' | 'preparing' | 'ready' | 'served' | 'on-way' | 'delivered'",
+        "type": "'dine-in' | 'delivery' (default: 'dine-in')",
+        "orderNumber": "string | number",
+        "eta": "string (e.g. '8 min'; defaults to type-based placeholder)"
+      },
+      "tokensUsed": ["--color-bg-elevated", "--color-border", "--color-primary", "--color-primary-light", "--color-bg-muted", "--color-text", "--color-text-tertiary", "--color-text-inverse", "--radius-card", "--radius-full", "--font-sans", "--font-display", "--font-display-weight"],
+      "dependencies": ["@web/lib/i18n"],
+      "zooRoute": "/design/order-tracker"
+    },
+    {
+      "name": "Receipt",
+      "path": "packages/web/src/components/patterns/themed/Receipt.tsx",
+      "kind": "pattern",
+      "purpose": "Themed visual receipt block for the customer confirmation screen (NOT a print template). Monospace font, dashed dividers, itemised line items, subtotal/tax/tip rows, bold total, and a thank-you footer. data-theme wrapper drives full theme cascade.",
+      "propsShape": {
+        "theme": "string (data-theme value; optional)",
+        "restaurantName": "string",
+        "orderNumber": "string | number",
+        "tableLabel": "string",
+        "placedAt": "string (ISO 8601)",
+        "items": "ReceiptLineItem[] — { name, quantity, unitPrice }",
+        "taxRate": "number (decimal, e.g. 0.0875; default 0)",
+        "tipRate": "number (decimal, e.g. 0.18; omit to hide tip row)"
+      },
+      "tokensUsed": ["--color-bg-elevated", "--color-border", "--color-border-strong", "--color-text", "--color-text-secondary", "--color-text-tertiary", "--radius-card", "--font-mono", "--font-display", "--font-display-weight", "--font-display-tracking"],
+      "dependencies": ["@web/lib/i18n"],
+      "zooRoute": "/design/receipt"
+    },
+    {
+      "name": "PromoCard",
+      "path": "packages/web/src/components/patterns/themed/PromoCard.tsx",
+      "kind": "pattern",
+      "purpose": "Themed promotion banner with primary-colour background, decorative accent circle, large discount headline, and mono-font promo-code chip. All props are optional — render any subset. data-theme wrapper drives full theme cascade.",
+      "propsShape": {
+        "theme": "string (data-theme value; optional)",
+        "title": "string (category label, e.g. 'Happy Hour')",
+        "discount": "string (headline, e.g. '25% OFF')",
+        "description": "string (supporting copy)",
+        "code": "string (promo code; omit to hide chip)"
+      },
+      "tokensUsed": ["--color-primary", "--color-text-inverse", "--color-accent", "--radius-card", "--radius-full", "--radius-chip", "--font-sans", "--font-display", "--font-display-weight", "--font-display-tracking", "--font-mono"],
+      "dependencies": ["@web/lib/i18n"],
+      "zooRoute": "/design/promo-card"
+    },
+    {
+      "name": "CheckoutSummary",
+      "path": "packages/web/src/components/patterns/themed/CheckoutSummary.tsx",
+      "kind": "pattern",
+      "purpose": "Themed cart/order summary block: itemised line items, divider, per-line cost breakdown (subtotal / delivery / tax), bold total, and a full-width place-order CTA that mirrors the total in its label. Display-only — pass onPlaceOrder for the mutation. data-theme wrapper drives full theme cascade.",
+      "propsShape": {
+        "theme": "string (data-theme value; optional)",
+        "items": "CheckoutLineItem[] — { name, quantity, unitPrice }",
+        "deliveryFee": "number (flat fee; 0 to hide row)",
+        "taxRate": "number (decimal, e.g. 0.0875; 0 to hide row)",
+        "onPlaceOrder": "() => void",
+        "loading": "boolean",
+        "ctaLabel": "string (override CTA text)"
+      },
+      "tokensUsed": ["--color-bg-elevated", "--color-border", "--color-bg-muted", "--color-text", "--color-text-secondary", "--color-primary", "--color-text-inverse", "--radius-card", "--radius-btn", "--font-sans", "--font-display", "--font-display-weight", "--font-mono"],
+      "dependencies": ["@web/lib/i18n"],
+      "zooRoute": "/design/checkout-summary"
     }
   ],
   "tokens": {

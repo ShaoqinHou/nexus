@@ -821,5 +821,17 @@
   "Open this on a tablet in your kitchen. It shows a live board with incoming orders. Kitchen staff can tap items as they prepare them.": "Ouvrez ceci sur une tablette en cuisine. Un tableau en direct affiche les commandes entrantes. Le personnel peut toucher les articles au fur et à mesure de leur préparation.",
   "Set your table count and print. Each code opens directly to your menu for that table.": "Définissez le nombre de tables et imprimez. Chaque code ouvre directement votre menu pour cette table.",
   "You're Ready!": "Vous êtes prêt !",
-  "Your restaurant is set up. Share the QR codes and start taking orders!": "Votre restaurant est configuré. Partagez les QR codes et commencez à prendre des commandes !"
+  "Your restaurant is set up. Share the QR codes and start taking orders!": "Votre restaurant est configuré. Partagez les QR codes et commencez à prendre des commandes !",
+  "Delivery": "Livraison",
+  "Received": "Reçue",
+  "Served": "Servie",
+  "On the way": "En route",
+  "ETA 18 min": "ETA 18 min",
+  "Est. 8 min": "Env. 8 min",
+  "Order summary": "Récapitulatif",
+  "Thank you · See you soon": "Merci · À bientôt",
+  "Placing order…": "Commande en cours…",
+  "Place order": "Commander",
+  "Code": "Code",
+  "Tip": "Pourboire"
 }
