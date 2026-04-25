@@ -30,8 +30,12 @@ function getHistoryKey(tenantSlug: string, tableNumber: string): string {
   return `nexus_orders_${tenantSlug}_${tableNumber}`;
 }
 
+// Order-history reader: intentionally uses localStorage so a customer can see
+// their recent orders across page reloads. Cart STATE lives in CartProvider
+// (sessionStorage, per S-CART-SESSION-STORAGE) — these are different concerns.
 function loadRecentOrders(tenantSlug: string, tableNumber: string): OrderHistoryEntry[] {
   try {
+    // lint-override S-CART-SESSION-STORAGE: order history, not cart state
     const raw = localStorage.getItem(getHistoryKey(tenantSlug, tableNumber));
     if (!raw) return [];
     const entries = JSON.parse(raw) as OrderHistoryEntry[];

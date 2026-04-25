@@ -24,7 +24,7 @@ import {
   type ThemePreset,
   type OperatingHoursEntry,
 } from '@web/lib/theme';
-import { THEME_IDS, type ThemeId } from '@web/platform/theme/ThemeProvider';
+import { THEME_IDS, isThemeId, type ThemeId } from '@web/platform/theme/ThemeProvider';
 import {
   useTenantSettings,
   useUpdateTenantSettings,
@@ -581,9 +581,12 @@ export function ThemeSettings() {
     applyTenantTheme(themeSettings, isDark);
   }, [form.brandColor, form.fontFamily, form.borderRadius, form.surfaceStyle, form.preset, isDark]);
 
-  // Live-preview cuisine theme by updating the data-theme attribute immediately
+  // Live-preview cuisine theme by updating the data-theme attribute immediately.
+  // Use the runtime guard rather than a cast — a stale or invalid DB value
+  // (theme deleted from THEME_IDS in a future cleanup) falls back to 'classic'
+  // instead of being silently passed to setThemeId.
   useEffect(() => {
-    const id = (form.cuisineTheme as ThemeId) || 'classic';
+    const id: ThemeId = isThemeId(form.cuisineTheme) ? form.cuisineTheme : 'classic';
     if (id !== activeThemeId) {
       setThemeId(id);
     }
@@ -619,8 +622,10 @@ export function ThemeSettings() {
         preset: savedRef.current.preset || undefined,
       };
       applyTenantTheme(themeSettings, isDark);
-      // Restore saved cuisine theme
-      const savedThemeId = (savedRef.current.cuisineTheme as ThemeId) || 'classic';
+      // Restore saved cuisine theme — guard, don't cast.
+      const savedThemeId: ThemeId = isThemeId(savedRef.current.cuisineTheme)
+        ? savedRef.current.cuisineTheme
+        : 'classic';
       setThemeId(savedThemeId);
     }
   }, [isDark, setThemeId]);
