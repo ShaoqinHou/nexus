@@ -129,6 +129,8 @@ export interface OperatingHoursEntry {
 
 export interface TenantThemeSettings {
   brandColor?: string;
+  /** Cuisine theme ID (one of ThemeProvider THEME_IDS). Stored as free-form string; validated via isThemeId() at read time. */
+  theme?: string;
   logoUrl?: string;
   coverImageUrl?: string;
   preset?: string;
