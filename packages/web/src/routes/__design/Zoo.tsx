@@ -538,7 +538,7 @@ function ZooLayout({ slug }: { slug?: string }) {
               type="button"
               onClick={toggleTheme}
               className="flex items-center gap-1 rounded-md px-2 py-1 hover:bg-bg-muted"
-              aria-label="Toggle dark mode"
+              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
             >
               {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               <span className="nx-meta">{theme}</span>

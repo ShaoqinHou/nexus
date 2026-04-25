@@ -3,8 +3,9 @@ import { useQuery } from '@tanstack/react-query';
 import { Plus, Minus, UtensilsCrossed, Package, Search, X, AlertTriangle, ArrowUp, Moon, Sun, BellRing, Receipt } from 'lucide-react';
 import { apiClient } from '@web/lib/api';
 import { formatPrice, parseTags } from '@web/lib/format';
-import { Button } from '@web/components/ui';
+import { Button, DietaryIcon } from '@web/components/ui';
 import { EmptyState, PullToRefreshIndicator } from '@web/components/patterns';
+import { dietaryIconName, allergenIconName, dietaryTagColor } from '@web/lib/dietary';
 import { useCart } from '@web/apps/ordering/customer/CartProvider';
 import { ItemDetailSheet } from '@web/apps/ordering/customer/ItemDetailSheet';
 import { ComboSheet } from '@web/apps/ordering/customer/ComboSheet';
@@ -40,44 +41,29 @@ interface MenuBrowseProps {
   disabled?: boolean;
 }
 
-function getTagColor(tag: string): string {
-  switch (tag as DietaryTag) {
-    case 'vegetarian':
-    case 'vegan':
-      return 'bg-success-light text-success';
-    case 'gluten-free':
-    case 'dairy-free':
-    case 'nut-free':
-      return 'bg-primary-light text-primary';
-    case 'halal':
-      return 'bg-primary-light text-primary';
-    case 'spicy':
-      return 'bg-warning-light text-warning';
-    case 'new':
-    case 'popular':
-      return 'bg-warning-light text-warning';
-    default:
-      return 'bg-bg-muted text-text-secondary';
-  }
-}
-
+// Per S-DIETARY-SPRITE: every dietary / allergen render site uses <DietaryIcon>
+// via the SVG sprite. Tag → sprite-name + chip color come from @web/lib/dietary.
 const DietaryTagBadges = memo(function DietaryTagBadges({ tags }: { tags: string | null }) {
   const t = useT();
   const parsed = parseTags(tags);
   if (parsed.length === 0) return null;
   return (
     <div className="flex flex-wrap gap-1.5 mt-1">
-      {parsed.map((tag) => (
-        <span
-          key={tag}
-          className={[
-            'inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-medium',
-            getTagColor(tag),
-          ].join(' ')}
-        >
-          {t(tag)}
-        </span>
-      ))}
+      {parsed.map((tag) => {
+        const icon = dietaryIconName(tag);
+        return (
+          <span
+            key={tag}
+            className={[
+              'inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-medium',
+              dietaryTagColor(tag),
+            ].join(' ')}
+          >
+            {icon && <DietaryIcon name={icon} size="sm" />}
+            {t(tag)}
+          </span>
+        );
+      })}
     </div>
   );
 });
@@ -88,14 +74,18 @@ const AllergenBadges = memo(function AllergenBadges({ allergens }: { allergens: 
   if (parsed.length === 0) return null;
   return (
     <div className="flex flex-wrap gap-1 mt-1">
-      {parsed.map((allergen) => (
-        <span
-          key={allergen}
-          className="inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-medium bg-danger-light text-danger"
-        >
-          {t(allergen)}
-        </span>
-      ))}
+      {parsed.map((allergen) => {
+        const icon = allergenIconName(allergen);
+        return (
+          <span
+            key={allergen}
+            className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-medium bg-danger-light text-danger"
+          >
+            {icon && <DietaryIcon name={icon} size="sm" />}
+            {t(allergen)}
+          </span>
+        );
+      })}
     </div>
   );
 });
