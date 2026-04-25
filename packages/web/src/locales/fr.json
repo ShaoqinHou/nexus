@@ -833,5 +833,16 @@
   "Placing order…": "Commande en cours…",
   "Place order": "Commander",
   "Code": "Code",
-  "Tip": "Pourboire"
+  "Tip": "Pourboire",
+  "Cuisine Theme": "Thème culinaire",
+  "Default (Classic)": "Par défaut (Classique)",
+  "Trattoria": "Trattoria",
+  "Izakaya": "Izakaya",
+  "Bubble Tea": "Bubble Tea",
+  "Counter": "Comptoir",
+  "Taqueria": "Taqueria",
+  "Curry House": "Maison du curry",
+  "Sichuan": "Sichuan",
+  "Cantonese": "Cantonais",
+  "Wok": "Wok"
 }

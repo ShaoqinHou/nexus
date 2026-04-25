@@ -24,6 +24,7 @@ import {
   type ThemePreset,
   type OperatingHoursEntry,
 } from '@web/lib/theme';
+import { THEME_IDS, type ThemeId } from '@web/platform/theme/ThemeProvider';
 import {
   useTenantSettings,
   useUpdateTenantSettings,
@@ -103,6 +104,7 @@ function stateToHoursEntries(state: DayHoursState[]): OperatingHoursEntry[] {
 interface FormState {
   preset: string;
   brandColor: string;
+  cuisineTheme: string;
   fontFamily: string;
   borderRadius: BorderRadius;
   surfaceStyle: SurfaceStyle;
@@ -125,6 +127,7 @@ function settingsToFormState(settings: TenantThemeSettings | undefined): FormSta
   return {
     preset: settings?.preset ?? '',
     brandColor: settings?.brandColor ?? '#2563eb', // lint-override: default brand color seed for form — user-facing input value, not chrome
+    cuisineTheme: settings?.theme ?? '',
     fontFamily: settings?.fontFamily ?? 'system-ui',
     borderRadius: settings?.borderRadius ?? 'rounded',
     surfaceStyle: settings?.surfaceStyle ?? 'subtle',
@@ -146,6 +149,7 @@ function formStateToSettings(form: FormState): Partial<TenantThemeSettings> {
   return {
     preset: form.preset || undefined,
     brandColor: form.brandColor,
+    theme: form.cuisineTheme || undefined,
     fontFamily: form.fontFamily === 'system-ui' ? undefined : form.fontFamily,
     borderRadius: form.borderRadius,
     surfaceStyle: form.surfaceStyle,
@@ -540,7 +544,7 @@ function LivePreview({ settings, isDark, previewMode, onPreviewModeChange }: Liv
 export function ThemeSettings() {
   const t = useT();
   const { tenant, tenantSlug } = useTenant();
-  const { theme: appTheme } = useTheme();
+  const { theme: appTheme, setThemeId, themeId: activeThemeId } = useTheme();
   const { toast } = useToast();
   const isDark = appTheme === 'dark';
 
@@ -577,6 +581,14 @@ export function ThemeSettings() {
     applyTenantTheme(themeSettings, isDark);
   }, [form.brandColor, form.fontFamily, form.borderRadius, form.surfaceStyle, form.preset, isDark]);
 
+  // Live-preview cuisine theme by updating the data-theme attribute immediately
+  useEffect(() => {
+    const id = (form.cuisineTheme as ThemeId) || 'classic';
+    if (id !== activeThemeId) {
+      setThemeId(id);
+    }
+  }, [form.cuisineTheme, activeThemeId, setThemeId]);
+
   const updateField = useCallback(<K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
     setIsDirty(true);
@@ -607,8 +619,11 @@ export function ThemeSettings() {
         preset: savedRef.current.preset || undefined,
       };
       applyTenantTheme(themeSettings, isDark);
+      // Restore saved cuisine theme
+      const savedThemeId = (savedRef.current.cuisineTheme as ThemeId) || 'classic';
+      setThemeId(savedThemeId);
     }
-  }, [isDark]);
+  }, [isDark, setThemeId]);
 
   const handleSave = useCallback(() => {
     // Validate operating hours: open must be before close for all enabled days
@@ -1036,6 +1051,23 @@ export function ThemeSettings() {
                   />
                 </div>
               </div>
+
+              {/* Cuisine Theme */}
+              <Select
+                label={t('Cuisine Theme')}
+                options={[
+                  { value: '', label: t('Default (Classic)') },
+                  ...THEME_IDS.filter((id) => id !== 'classic').map((id) => ({
+                    value: id,
+                    label: t(id
+                      .split('-')
+                      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                      .join(' ')),
+                  })),
+                ]}
+                value={form.cuisineTheme}
+                onChange={(value) => updateField('cuisineTheme', value)}
+              />
 
               {/* Font Family */}
               <Select

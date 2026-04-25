@@ -833,5 +833,16 @@
   "Placing order…": "주문 중…",
   "Place order": "주문하기",
   "Code": "코드",
-  "Tip": "팁"
+  "Tip": "팁",
+  "Cuisine Theme": "요리 테마",
+  "Default (Classic)": "기본 (클래식)",
+  "Trattoria": "트라토리아",
+  "Izakaya": "이자카야",
+  "Bubble Tea": "버블티",
+  "Counter": "카운터",
+  "Taqueria": "타케리아",
+  "Curry House": "커리 하우스",
+  "Sichuan": "쓰촨 요리",
+  "Cantonese": "광둥 요리",
+  "Wok": "웍"
 }

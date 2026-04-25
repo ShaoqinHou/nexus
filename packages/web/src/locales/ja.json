@@ -833,5 +833,16 @@
   "Placing order…": "注文中…",
   "Place order": "注文する",
   "Code": "コード",
-  "Tip": "チップ"
+  "Tip": "チップ",
+  "Cuisine Theme": "料理テーマ",
+  "Default (Classic)": "デフォルト（クラシック）",
+  "Trattoria": "トラットリア",
+  "Izakaya": "居酒屋",
+  "Bubble Tea": "タピオカティー",
+  "Counter": "カウンター",
+  "Taqueria": "タケリア",
+  "Curry House": "カレー屋",
+  "Sichuan": "四川料理",
+  "Cantonese": "広東料理",
+  "Wok": "中華鍋"
 }

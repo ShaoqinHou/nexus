@@ -833,5 +833,16 @@
   "Placing order…": "Placing order…",
   "Place order": "Place order",
   "Code": "Code",
-  "Tip": "Tip"
+  "Tip": "Tip",
+  "Cuisine Theme": "Cuisine Theme",
+  "Default (Classic)": "Default (Classic)",
+  "Trattoria": "Trattoria",
+  "Izakaya": "Izakaya",
+  "Bubble Tea": "Bubble Tea",
+  "Counter": "Counter",
+  "Taqueria": "Taqueria",
+  "Curry House": "Curry House",
+  "Sichuan": "Sichuan",
+  "Cantonese": "Cantonese",
+  "Wok": "Wok"
 }

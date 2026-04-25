@@ -833,5 +833,16 @@
   "Placing order…": "正在下单…",
   "Place order": "下单",
   "Code": "代码",
-  "Tip": "小费"
+  "Tip": "小费",
+  "Cuisine Theme": "菜系主题",
+  "Default (Classic)": "默认（经典）",
+  "Trattoria": "意式小馆",
+  "Izakaya": "居酒屋",
+  "Bubble Tea": "奶茶店",
+  "Counter": "快餐台",
+  "Taqueria": "墨西哥小店",
+  "Curry House": "咖喱馆",
+  "Sichuan": "川菜",
+  "Cantonese": "粤菜",
+  "Wok": "铁锅"
 }
