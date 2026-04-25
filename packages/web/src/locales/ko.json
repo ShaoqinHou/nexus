@@ -686,5 +686,16 @@
   "Option deleted": "옵션이 삭제되었습니다",
   "Failed to delete option": "옵션 삭제 실패",
   "OFF": "할인",
-  "Thank you for dining with us!": "방문해 주셔서 감사합니다!"
+  "Thank you for dining with us!": "방문해 주셔서 감사합니다!",
+  "Cuisine Theme": "요리 테마",
+  "Default (Classic)": "기본값(클래식)",
+  "Trattoria": "트라토리아",
+  "Izakaya": "이자카야",
+  "Bubble Tea": "버블티",
+  "Counter": "카페·카운터",
+  "Taqueria": "타케리아",
+  "Curry House": "카레하우스",
+  "Sichuan": "사천 요리",
+  "Cantonese": "광둥 요리",
+  "Wok": "중식"
 }
