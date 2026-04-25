@@ -1,5 +1,25 @@
 @import 'tailwindcss';
 
+/* Self-hosted variable fonts per Claude Design § VISUAL FOUNDATIONS.
+   Inter powers all UI; JetBrains Mono handles code-adjacent text
+   (tenant slugs, order IDs, IDs in receipts). woff2 sources live under
+   packages/web/public/fonts/ and are referenced via absolute paths so
+   they work under both root and subpath deployments. */
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/Inter-Variable.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/fonts/JetBrainsMono-Variable.woff2') format('woff2-variations');
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Hide scrollbars but allow scrolling */
 .scrollbar-hide {
   -ms-overflow-style: none;
@@ -85,6 +105,10 @@
   --color-info: #2563eb;
   --color-info-light: #dbeafe;
 
+  /* KDS station colours */
+  --color-kds-preparing: #ede9fe;
+  --color-kds-preparing-fg: #7c3aed;
+
   /* Brand (overridable per tenant) */
   --color-brand: #2563eb;
   --color-brand-hover: #1d4ed8;
@@ -104,6 +128,13 @@
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+
+  /* Hit targets — per Claude Design § VISUAL FOUNDATIONS.
+     44/48/52 match Button size sm/md/lg. 44 is the WCAG 2.1 AA floor.
+     Fixed across themes and modes — ergonomics, not aesthetics. */
+  --hit-sm: 44px;
+  --hit-md: 48px;
+  --hit-lg: 52px;
 }
 
 .dark {
@@ -123,6 +154,10 @@
   --color-warning-light: #451a03;
   --color-info: #3b82f6;
   --color-info-light: #1e3a5f;
+
+  /* KDS station colours */
+  --color-kds-preparing: #2e1065;
+  --color-kds-preparing-fg: #a78bfa;
 }
 
 @theme {
@@ -148,6 +183,8 @@
   --color-warning-light: var(--color-warning-light);
   --color-info: var(--color-info);
   --color-info-light: var(--color-info-light);
+  --color-kds-preparing: var(--color-kds-preparing);
+  --color-kds-preparing-fg: var(--color-kds-preparing-fg);
   --color-brand: var(--color-brand);
   --color-brand-hover: var(--color-brand-hover);
   --font-sans: var(--font-sans);
@@ -160,4 +197,7 @@
   --shadow-sm: var(--shadow-sm);
   --shadow-md: var(--shadow-md);
   --shadow-lg: var(--shadow-lg);
+  --hit-sm: var(--hit-sm);
+  --hit-md: var(--hit-md);
+  --hit-lg: var(--hit-lg);
 }

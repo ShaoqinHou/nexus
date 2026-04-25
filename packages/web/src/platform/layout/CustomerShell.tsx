@@ -2,7 +2,8 @@ import { Outlet, useSearch } from '@tanstack/react-router';
 import { useTenant } from '@web/platform/tenant/TenantProvider';
 import { useT } from '@web/lib/i18n';
 import type { TenantThemeSettings } from '@web/lib/theme';
-import { textColorOnBrand, isOpenNow } from '@web/lib/theme';
+import { textColorOnBrand, isOpenNow, generatePalette } from '@web/lib/theme';
+import { ThemeProvider, isThemeId, useTheme } from '@web/platform/theme/ThemeProvider';
 
 function RestaurantHero({
   name,
@@ -62,7 +63,7 @@ function RestaurantHero({
             className="h-14 w-14 rounded-full border-2 border-bg flex items-center justify-center text-xl font-bold shadow-md"
             style={{
               backgroundColor: brandColor,
-              color: textColorOnBrand(settings.brandColor ?? '#2563eb'),
+              color: textColorOnBrand(settings.brandColor ?? '#2563eb'), // lint-override: fallback seed for contrast calculation — textColorOnBrand() requires a parseable hex string; no CSS variable can substitute
             }}
           >
             {initial}
@@ -90,7 +91,8 @@ function RestaurantHero({
   );
 }
 
-export function CustomerShell() {
+/** Inner shell — rendered inside the nested ThemeProvider so all children inherit the tenant theme. */
+function CustomerShellContent() {
   const t = useT();
   const { tenant, loading, error } = useTenant();
   const search = useSearch({ strict: false }) as Record<string, string>;
@@ -137,5 +139,47 @@ export function CustomerShell() {
         <Outlet />
       </main>
     </div>
+  );
+}
+
+/**
+ * CustomerShell wraps the customer-facing view with a nested ThemeProvider
+ * that pins the cuisine theme and brand color from the tenant's settings.
+ *
+ * Why a nested ThemeProvider (option a) rather than imperative CSS overrides
+ * (option b): the nested context makes the theme source-of-truth explicit in
+ * React's component tree, lets any child call useTheme() and receive the
+ * correct tenant-scoped values, and is cleaned up automatically on unmount.
+ * The outer ThemeProvider (mounted in main.tsx) remains active for the
+ * merchant console; the nested one only shadows it for the customer path.
+ */
+export function CustomerShell() {
+  const { tenant } = useTenant();
+  const { theme: mode } = useTheme(); // read mode (light/dark) from outer provider
+
+  const settings = (tenant?.settings ?? {}) as TenantThemeSettings;
+
+  // Resolve cuisine theme — fall back to 'classic' silently for invalid/missing values
+  const tenantThemeId = isThemeId(settings.theme) ? settings.theme : 'classic';
+
+  // Derive brand-color palette for hover shade. If brandColor is absent, leave
+  // both props undefined so the nested ThemeProvider's theme defaults take over.
+  const isDark = mode === 'dark';
+  const tenantBrandColor = settings.brandColor ?? null;
+  const tenantBrandColorHover = tenantBrandColor
+    ? generatePalette(tenantBrandColor, isDark).brandHover
+    : null;
+
+  return (
+    // Nested ThemeProvider — overrides the outer provider for all customer views.
+    // initialThemeId pins the cuisine theme from tenant settings.
+    // brandColor / brandColorHover layer the tenant's brand on top of the theme default.
+    <ThemeProvider
+      initialThemeId={tenantThemeId}
+      brandColor={tenantBrandColor}
+      brandColorHover={tenantBrandColorHover}
+    >
+      <CustomerShellContent />
+    </ThemeProvider>
   );
 }

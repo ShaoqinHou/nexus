@@ -14,9 +14,11 @@ import {
 import { formatPrice } from '@web/lib/format';
 import { Button, Badge } from '@web/components/ui';
 import { useT } from '@web/lib/i18n';
-import { useCart } from '@web/apps/ordering/customer/CartProvider';
+import { useCart } from '@web/apps/ordering/customer/CartContext';
 import { useCartOrder } from '@web/apps/ordering/customer/useCartOrder';
 import type { Order } from '@web/apps/ordering/types';
+import { CheckoutSummary } from '@web/components/patterns/themed/CheckoutSummary';
+import type { CheckoutLineItem } from '@web/components/patterns/themed/CheckoutSummary';
 
 interface CartSheetProps {
   tenantSlug: string;
@@ -128,7 +130,7 @@ export function CartSheet({
               <button
                 type="button"
                 onClick={closeSheet}
-                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-bg-muted transition-colors text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                className="min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] flex items-center justify-center rounded-full hover:bg-bg-muted transition-colors text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                 aria-label={t('Close cart')}
               >
                 <X className="h-5 w-5" />
@@ -209,7 +211,7 @@ export function CartSheet({
                 <button
                   type="button"
                   onClick={closeSheet}
-                  className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-bg-muted transition-colors text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                  className="min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] flex items-center justify-center rounded-full hover:bg-bg-muted transition-colors text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                   aria-label={t('Close cart')}
                 >
                   <X className="h-5 w-5" />
@@ -323,7 +325,7 @@ export function CartSheet({
                               )
                             }
                             className={[
-                              'min-h-[48px] min-w-[48px] flex items-center justify-center rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+                              'min-h-[var(--hit-md)] min-w-[var(--hit-md)] flex items-center justify-center rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
                               item.notes
                                 ? 'text-primary'
                                 : 'text-text-tertiary hover:text-text-secondary',
@@ -335,7 +337,7 @@ export function CartSheet({
                           <button
                             type="button"
                             onClick={() => removeItem(index)}
-                            className="min-h-[48px] min-w-[48px] flex items-center justify-center rounded text-text-tertiary hover:text-danger transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                            className="min-h-[var(--hit-md)] min-w-[var(--hit-md)] flex items-center justify-center rounded text-text-tertiary hover:text-danger transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                             aria-label={`${t('Remove')} ${item.name} ${t('from cart')}`}
                           >
                             <Trash2 className="h-5 w-5" />
@@ -408,7 +410,7 @@ export function CartSheet({
                       <button
                         type="button"
                         onClick={handleRemovePromo}
-                        className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded text-text-tertiary hover:text-danger transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                        className="min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] flex items-center justify-center rounded text-text-tertiary hover:text-danger transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                         aria-label={t('Remove promo code')}
                       >
                         <X className="h-4 w-4" />
@@ -459,88 +461,49 @@ export function CartSheet({
                   </div>
                 )}
 
-                {/* Price breakdown */}
-                <div className="space-y-1">
-                  {(() => {
-                    const effectiveRate = taxRate ?? 0;
-                    const effectiveLabel = taxLabel || 'Tax';
-                    const hasTax = effectiveRate > 0;
-                    const showSubtotal = !!appliedPromo || (hasTax && !taxInclusive);
+                {/* Price breakdown + place order CTA */}
+                {(() => {
+                  const effectiveRate = taxRate ?? 0;
+                  const hasTax = effectiveRate > 0;
 
-                    // Estimate tax on finalTotal (pre-tax for exclusive, included for inclusive)
-                    let estimatedTax = 0;
-                    let displayTotal = finalTotal;
-                    if (hasTax) {
-                      if (taxInclusive) {
-                        estimatedTax = finalTotal - (finalTotal / (1 + effectiveRate / 100));
-                      } else {
-                        estimatedTax = finalTotal * (effectiveRate / 100);
-                        displayTotal = finalTotal + estimatedTax;
-                      }
-                      estimatedTax = Math.round(estimatedTax * 100) / 100;
-                      displayTotal = Math.round(displayTotal * 100) / 100;
-                    }
+                  // Compute displayTotal with tax if exclusive
+                  let displayTotal = finalTotal;
+                  if (hasTax && !taxInclusive) {
+                    displayTotal = Math.round(finalTotal * (1 + effectiveRate / 100) * 100) / 100;
+                  }
 
-                    return (
-                      <>
-                        {showSubtotal && (
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-text-secondary">{t('Subtotal')}</span>
-                            <span className="text-sm text-text">
-                              {formatPrice(totalPrice)}
-                            </span>
-                          </div>
-                        )}
-                        {appliedPromo && (
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-success">{t('Discount')}</span>
-                            <span className="text-sm font-medium text-success">
-                              -{formatPrice(discountAmount)}
-                            </span>
-                          </div>
-                        )}
-                        {hasTax && !taxInclusive && (
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-text-secondary">
-                              {t('Est.')} {effectiveLabel} ({effectiveRate}%)
-                            </span>
-                            <span className="text-sm text-text">
-                              {formatPrice(estimatedTax)}
-                            </span>
-                          </div>
-                        )}
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-text-secondary">{t('Total')}</span>
-                          <span className="text-lg font-bold text-text">
-                            {formatPrice(displayTotal)}
-                          </span>
-                        </div>
-                        {hasTax && taxInclusive && (
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-text-tertiary">
-                              {t('Incl.')} {effectiveLabel} ({effectiveRate}%)
-                            </span>
-                            <span className="text-xs text-text-tertiary">
-                              {formatPrice(estimatedTax)}
-                            </span>
-                          </div>
-                        )}
-                      </>
-                    );
-                  })()}
-                </div>
+                  const summaryItems: CheckoutLineItem[] = items.map((cartItem) => {
+                    const isCombo = !!cartItem.comboDealId;
+                    const modifierTotal = isCombo
+                      ? 0
+                      : (cartItem.modifiers ?? []).reduce((sum, m) => sum + m.price, 0);
+                    return {
+                      name: cartItem.name,
+                      quantity: cartItem.quantity,
+                      unitPrice: cartItem.price + modifierTotal,
+                    };
+                  });
 
-                {/* Place order button */}
-                <Button
-                  variant="primary"
-                  size="lg"
-                  className="w-full"
-                  onClick={handlePlaceOrder}
-                  loading={placeOrderMutation.isPending}
-                  disabled={items.length === 0}
-                >
-                  {addToOrderId ? t('Add to Order') : t('Place Order')}
-                </Button>
+                  const ctaLabel = addToOrderId
+                    ? `${t('Add to Order')} · ${formatPrice(displayTotal)}`
+                    : `${t('Place Order')} · ${formatPrice(displayTotal)}`;
+
+                  return (
+                    <CheckoutSummary
+                      items={summaryItems}
+                      precomputedTotal={displayTotal}
+                      precomputedSubtotal={totalPrice}
+                      discountAmount={appliedPromo ? discountAmount : 0}
+                      discountLabel={t('Discount')}
+                      taxLabel={taxLabel ?? t('Tax')}
+                      taxRate={hasTax ? effectiveRate / 100 : 0}
+                      taxInclusive={taxInclusive}
+                      onPlaceOrder={handlePlaceOrder}
+                      loading={placeOrderMutation.isPending}
+                      ctaLabel={ctaLabel}
+                    />
+                  );
+                })()}
               </div>
             </>
           )}

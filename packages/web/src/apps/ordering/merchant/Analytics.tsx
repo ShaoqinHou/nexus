@@ -172,16 +172,16 @@ function printDailyReport(summary: DailySummary, tenantName: string, t: (key: st
   @page { margin: 20px; }
   body { font-family: Arial, sans-serif; font-size: 13px; max-width: 500px; margin: 0 auto; padding: 20px; }
   h1 { font-size: 18px; margin-bottom: 4px; }
-  h2 { font-size: 14px; margin: 16px 0 8px; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+  h2 { font-size: 14px; margin: 16px 0 8px; border-bottom: 1px solid #ccc; padding-bottom: 4px; } /* lint-override: print window — CSS vars don't propagate */
   table { width: 100%; border-collapse: collapse; margin: 8px 0; }
   td, th { padding: 4px 8px; text-align: left; }
   .right { text-align: right; }
   .bold { font-weight: bold; }
-  .muted { color: #666; }
+  .muted { color: #666; } /* lint-override: print window — muted gray */
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .stat { padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+  .stat { padding: 8px; border: 1px solid #ddd; border-radius: 4px; } /* lint-override: print window — card border */
   .stat-value { font-size: 20px; font-weight: bold; }
-  .stat-label { font-size: 11px; color: #666; }
+  .stat-label { font-size: 11px; color: #666; } /* lint-override: print window — muted gray */
 </style></head><body>
   <h1>${tenantName} - ${t('Daily Report')}</h1>
   <p class="muted">${summary.date}</p>
@@ -471,7 +471,7 @@ export function Analytics() {
             type="button"
             onClick={() => setActiveTab('overview')}
             className={[
-              'px-4 py-2.5 min-h-[44px] text-sm font-medium rounded-md transition-colors active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+              'px-4 py-2.5 min-h-[var(--hit-sm)] text-sm font-medium rounded-md transition-colors active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
               activeTab === 'overview'
                 ? 'bg-primary text-text-inverse'
                 : 'bg-bg-muted text-text-secondary hover:bg-bg-surface',
@@ -483,7 +483,7 @@ export function Analytics() {
             type="button"
             onClick={() => setActiveTab('daily-summary')}
             className={[
-              'px-4 py-2.5 min-h-[44px] text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+              'px-4 py-2.5 min-h-[var(--hit-sm)] text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
               activeTab === 'daily-summary'
                 ? 'bg-primary text-text-inverse'
                 : 'bg-bg-muted text-text-secondary hover:bg-bg-surface',
@@ -496,7 +496,7 @@ export function Analytics() {
             type="button"
             onClick={() => setActiveTab('feedback')}
             className={[
-              'px-4 py-2.5 min-h-[44px] text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+              'px-4 py-2.5 min-h-[var(--hit-sm)] text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
               activeTab === 'feedback'
                 ? 'bg-primary text-text-inverse'
                 : 'bg-bg-muted text-text-secondary hover:bg-bg-surface',
@@ -550,7 +550,7 @@ export function Analytics() {
               type="button"
               onClick={() => setDays(d)}
               className={[
-                'px-4 py-2.5 min-h-[44px] text-sm font-medium rounded-md transition-colors active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+                'px-4 py-2.5 min-h-[var(--hit-sm)] text-sm font-medium rounded-md transition-colors active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
                 days === d
                   ? 'bg-primary text-text-inverse'
                   : 'bg-bg-muted text-text-secondary hover:bg-bg-surface',

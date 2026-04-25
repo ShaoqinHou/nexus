@@ -405,3 +405,83 @@ Source: .claude/rules/tech-conventions.md
 Rule: No `console.log` in committed code. Use structured logging or remove. `console.error` is acceptable for genuinely unrecoverable errors with actionable messages.
 Detection: grep `console\.log\(` inside `packages/api/src/` and `packages/web/src/` (excluding `__tests__/` and `scripts/`).
 Severity: low
+
+---
+
+# Design-System Standards (Claude Design handoff)
+
+These standards govern the design-system infrastructure imported from the Claude Design
+bundle in `design/reference/v1/`. They compose with the existing colour/pixel/token rules
+above.
+
+---
+
+## S-DESIGN-REFERENCE
+Source: .claude/rules/design-system.md, Claude Design handoff README
+Rule: `design/reference/v<N>/` holds a Claude Design export verbatim as a read-only baseline. It is the source-of-truth SPEC, not a runtime library. Never import from it in production code; never edit its contents. When a new export arrives, save as the next version (`v2/`, `v3/`) and `git diff` structurally to plan updates. The bundle's own README (`design/reference/v1/nexus-design-system/README.md`) enumerates the design invariants and must be consulted before any visual change.
+Detection:
+  - any edit to files under `design/reference/v<N>/*` (excluding new version folders) — flag as violation.
+  - any `import` or `@import` pointing at `design/reference/` inside `packages/*/src/` — flag.
+Severity: high
+
+---
+
+## S-REGISTRY-ENTRY
+Source: .claude/rules/design-system.md
+Rule: Every file in `packages/web/src/components/ui/*.tsx` and `packages/web/src/components/patterns/*.tsx` (excluding `index.ts`, `__tests__/`) MUST have a corresponding entry in `packages/web/src/components/registry.json` listing `{ name, path, kind: "ui" | "pattern", purpose, propsShape, tokensUsed, dependencies, zooRoute }`. The registry is the machine-readable index agents read before inventing new components.
+Detection:
+  - list `packages/web/src/components/ui/*.tsx` and `packages/web/src/components/patterns/*.tsx` (strip `index.ts` and `__tests__`).
+  - read `packages/web/src/components/registry.json`.
+  - every component filename basename must appear as a registry entry with a matching `path`. Missing entries are violations; orphan entries (registry has it, filesystem doesn't) are also violations.
+Severity: medium
+
+---
+
+## S-ZOO-PAGE
+Source: .claude/rules/design-system.md
+Rule: Every primitive and pattern component has a zoo page at `packages/web/src/routes/__design/<name>.tsx` that imports from the real component and renders each variant in isolation. The zoo is a reflection of source, not a duplicate — it imports, never copies. Zoo routes are dev-only: mounted under `/design/*` only when `import.meta.env.DEV`, code-split so nothing lands in the production bundle.
+Detection:
+  - for each registry.json entry, verify `packages/web/src/routes/__design/<name>.tsx` exists.
+  - grep the zoo file for an import from the real component path listed in the registry — a zoo page that redefines the component inline (rather than importing) is a violation.
+  - grep the route wiring for an `import.meta.env.DEV` guard or a dedicated dev-only lazy loader — zoo routes that ship to prod are violations.
+Severity: medium
+
+---
+
+## S-HIT-TARGET-TOKEN
+Source: .claude/rules/design-system.md, Claude Design bundle § VISUAL FOUNDATIONS
+Rule: Interactive elements use `--hit-sm` (44px), `--hit-md` (48px), or `--hit-lg` (52px) token-based sizing. Tailwind arbitrary pixel values (`h-[44px]`, `min-h-[48px]`) are legacy — replace with token references via `h-[var(--hit-md)]` OR semantic size props on `<Button size="md">`. This supersedes S-TOUCH-TARGET-48 whenever a primitive is available. 44×44px remains the floor — customer quantity steppers use 48×48px minimum (`size="md"`).
+Detection: grep `min-h-\[(4[89]|5[0-9])px\]|h-\[(4[89]|5[0-9])px\]` inside `packages/web/src/apps/` and `packages/web/src/components/` — hardcoded touch-target pixels that could be token references are flagged.
+Severity: medium
+
+---
+
+## S-LUCIDE-ONLY
+Source: .claude/rules/design-system.md, Claude Design bundle § ICONOGRAPHY
+Rule: Utility/UI icons come from `lucide-react` stroke-based outlines only — no filled variants. Default size `h-5 w-5` (20px) for nav, `h-4 w-4` for button-inline, `h-6 w-6` for dialog close, `h-8 w-8` for EmptyState circles. Emoji and unicode glyphs are FORBIDDEN as icons (they render differently per OS and break i18n). The single sanctioned unicode exception is ` · ` (middle dot U+00B7) used once on the customer hero between two short status fragments.
+Detection:
+  - grep for common unicode-as-icon patterns in JSX text: `→|←|↑|↓|✓|✗|★|☆|●|○|▸|◂|⚠|⓵|①` inside `packages/web/src/apps/` and `packages/web/src/components/`.
+  - grep `[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]` (emoji + misc-symbols block) in `.tsx` files under the same paths. Locale JSON files are exempt (translated user content).
+  - `lucide-react` is the ONLY icon-library import permitted in `apps/`/`components/`. Any other icon library (`react-icons`, `heroicons`, `phosphor-react`, `@heroicons/react`) is a violation.
+Severity: medium
+
+---
+
+## S-DIETARY-SPRITE
+Source: .claude/rules/design-system.md, Claude Design bundle § ICONOGRAPHY
+Rule: Dietary markers (vegetarian, vegan, gluten-free, halal, kosher, nut-free, dairy-free, shellfish), spice-level indicators, and promo badges MUST reference the custom sprite at `packages/web/src/assets/dietary-icons.svg` via a `<DietaryIcon name="vegetarian">` primitive (which wraps `<svg><use href="/dietary-icons.svg#<name>" /></svg>`). Emoji, unicode glyphs, and per-tag inline SVGs are forbidden.
+Detection:
+  - grep food/dietary emoji (`🌱|🌿|🥩|🥜|🌶|🥛|🦐|🍤|🔥|🌾|🥗|🥖|🍗|🥛`) inside `packages/web/src/apps/ordering/`.
+  - grep `DIETARY_TAGS|DIETARY_LABELS` render sites — every one must render a `<DietaryIcon>` component or a `<use href="...dietary-icons...">`, not a text-only label or emoji.
+Severity: medium
+
+---
+
+## S-THEMED-COMPONENT
+Source: .claude/rules/design-system.md, Claude Design bundle § THEMES
+Rule: Themes are applied via `data-theme="<id>"` on a wrapper element, not JS re-renders. The 10 canonical theme IDs are: `classic`, `trattoria`, `izakaya`, `bubble-tea`, `counter`, `taqueria`, `curry-house`, `sichuan`, `cantonese`, `wok`. Customer-facing surfaces re-skin when `data-theme` flips; merchant console stays neutral (uses `classic` default). Semantic tokens (`--color-success`, `--color-danger`) do NOT get re-themed — success is always green, danger is always red.
+Detection:
+  - grep `data-theme=` in `packages/web/src/` — values must be one of the 10 canonical IDs.
+  - grep for per-theme JS overrides (`if (theme === 'sichuan') style = { ... }`) — theme logic belongs in CSS, not JS.
+  - grep theme files in `packages/web/src/platform/theme/themes/*.css` for `--color-success|--color-danger|--color-warning|--color-info` overrides — semantic tokens must not be re-themed at the theme layer.
+Severity: medium

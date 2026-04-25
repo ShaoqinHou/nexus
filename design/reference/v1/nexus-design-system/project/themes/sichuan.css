@@ -1,0 +1,92 @@
+/* ============================================================
+   THEME: SICHUAN
+   Bold, hot, dramatic. Deep red + ink + gold.
+   Best for: Chinese hot pot, Sichuan / Hunan spicy cuisine,
+   Chinese BBQ (烧烤), traditional Chinese restaurants,
+   anywhere "spicy & bold" is the brand promise.
+   ============================================================ */
+
+[data-theme="sichuan"] {
+  /* Surfaces — warm rice paper, with deep ink panels */
+  --color-bg:          #fbf6ee;  /* rice paper */
+  --color-bg-surface:  #f4ecdc;  /* aged paper */
+  --color-bg-muted:    #ebe0c9;  /* tea-stained */
+  --color-bg-elevated: #fdfaf3;
+  --color-bg-strong:   #1a0e0a;  /* lacquer black */
+
+  /* Text — deep red-black */
+  --color-text:           #1a0e0a;  /* lacquer */
+  --color-text-secondary: #6b3a2e;  /* clay */
+  --color-text-tertiary:  #9b7b65;
+  --color-text-inverse:   #fbf6ee;
+
+  /* Borders */
+  --color-border:        #d9c8a8;
+  --color-border-strong: #b89a72;
+
+  /* Brand — deep cinnabar red (中国红) */
+  --color-brand:         #b8262b;  /* cinnabar */
+  --color-brand-hover:   #951c20;  /* deeper */
+  --color-brand-light:   #f5dad8;
+  --color-primary:       var(--color-brand);
+  --color-primary-hover: var(--color-brand-hover);
+  --color-primary-light: var(--color-brand-light);
+
+  /* Accent — imperial gold */
+  --color-accent:        #c89a3c;  /* gold */
+  --color-accent-light:  #f5e8c4;
+
+  /* Semantic */
+  --color-success:       #5e7a3a;  /* bamboo */
+  --color-success-light: #e3ead0;
+  --color-warning:       #d97706;  /* chili oil */
+  --color-warning-light: #fae8c8;
+  --color-danger:        #951c20;
+  --color-danger-light:  #f5dad8;
+  --color-info:          #3a5a6e;  /* indigo */
+  --color-info-light:    #d8e0e6;
+
+  /* Type — strong display, mono accents */
+  --font-display: 'Noto Serif SC', 'Fraunces', Georgia, serif;
+  --font-sans:    'Inter', 'Noto Sans SC', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+  --font-display-weight: 700;
+  --font-display-tracking: 0;
+
+  /* Radii — restrained, traditional */
+  --radius-sm:   3px;
+  --radius-md:   5px;
+  --radius-lg:   8px;
+  --radius-xl:   12px;
+  --radius-2xl:  16px;
+  --radius-full: 9999px;
+  --radius-card: var(--radius-md);
+  --radius-btn:  var(--radius-sm);
+  --radius-chip: var(--radius-sm);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(60 20 10 / 0.08);
+  --shadow-md: 0 4px 10px -2px rgb(60 20 10 / 0.15);
+  --shadow-lg: 0 12px 24px -6px rgb(60 20 10 / 0.22);
+
+  --density-card-padding: 18px;
+  --density-row-gap:      12px;
+  --density-section-gap:  28px;
+
+  --theme-name: 'Sichuan';
+  --theme-vibe: 'Bold, hot, dramatic';
+}
+
+[data-theme="sichuan"].dark {
+  --color-bg:          #1a0e0a;
+  --color-bg-surface:  #261612;
+  --color-bg-muted:    #3a201a;
+  --color-bg-elevated: #261612;
+  --color-text:           #f5e6d6;
+  --color-text-secondary: #c4a48c;
+  --color-text-tertiary:  #8e6e58;
+  --color-border:        #3a2218;
+  --color-border-strong: #5a3a2a;
+  --color-brand-light:   #4a1a1a;
+  --color-accent-light:  #3a2a18;
+}

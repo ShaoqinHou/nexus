@@ -1,0 +1,128 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Nexus · Merchant Console</title>
+  <link rel="stylesheet" href="../shared/nexus.css" />
+  <style>body { height: 100vh; overflow: hidden; }</style>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div id="root" style="height:100vh"></div>
+  <script type="text/babel" src="Shell.jsx"></script>
+  <script type="text/babel" src="Components.jsx"></script>
+  <script type="text/babel">
+    const { useState } = React;
+    const { Sidebar, TopBar, Icon } = window.MerchantShell;
+    const { OrderCard, StatCard, EmptyState, StatusBadge } = window.MerchantParts;
+
+    const INITIAL_ORDERS = [
+      { id: 'AB3F2C', table: '5', status: 'preparing', minutesAgo: 4, nextLabel: 'Mark ready',
+        items: [{ qty: 2, name: 'Dan Dan Noodles', price: 14.00 }, { qty: 1, name: 'Mapo Tofu', price: 12.50 }, { qty: 2, name: 'Cucumber Salad', price: 6.00 }], total: 52.50 },
+      { id: 'AB3F2D', table: '3', status: 'pending', minutesAgo: 1, nextLabel: 'Confirm',
+        items: [{ qty: 1, name: 'Kung Pao Chicken', price: 15.00 }, { qty: 1, name: 'Scallion Pancake', price: 5.50 }], total: 20.50 },
+      { id: 'AB3F2A', table: '8', status: 'ready', minutesAgo: 12, nextLabel: 'Complete',
+        items: [{ qty: 3, name: 'Xiao Long Bao', price: 11.00 }, { qty: 1, name: 'Hot & Sour Soup', price: 7.50 }], total: 40.50 },
+      { id: 'AB3F29', table: '1', status: 'confirmed', minutesAgo: 7, nextLabel: 'Start preparing',
+        items: [{ qty: 1, name: 'Fried Rice', price: 13.00 }], total: 13.00 },
+    ];
+
+    const NEXT_STATUS = { pending: 'confirmed', confirmed: 'preparing', preparing: 'ready', ready: 'completed' };
+    const NEXT_LABELS = { pending: 'Confirm', confirmed: 'Start preparing', preparing: 'Mark ready', ready: 'Complete' };
+
+    function App() {
+      const [active, setActive] = useState('orders');
+      const [collapsed, setCollapsed] = useState(false);
+      const [theme, setTheme] = useState('light');
+      const [orders, setOrders] = useState(INITIAL_ORDERS);
+
+      React.useEffect(() => {
+        document.documentElement.classList.toggle('dark', theme === 'dark');
+      }, [theme]);
+
+      const advance = (id) => setOrders(orders.map(o => {
+        if (o.id !== id) return o;
+        const next = NEXT_STATUS[o.status];
+        if (next === 'completed') return null;
+        return { ...o, status: next, nextLabel: NEXT_LABELS[next] };
+      }).filter(Boolean));
+
+      const pageTitle = { orders: 'Orders', kitchen: 'Kitchen Display', analytics: 'Analytics', menu: 'Menu', dashboard: 'Dashboard' }[active] || active;
+
+      return (
+        <div style={{ display: 'flex', height: '100vh', background: 'var(--color-bg)' }}>
+          <Sidebar active={active} onNavigate={setActive} collapsed={collapsed} onToggleCollapse={() => setCollapsed(!collapsed)} />
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+            <TopBar title={pageTitle} onToggleTheme={() => setTheme(theme === 'light' ? 'dark' : 'light')} theme={theme} />
+            <main style={{ flex: 1, overflowY: 'auto', padding: 24 }}>
+              {active === 'orders' && (
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                    <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: 'var(--color-text)', letterSpacing: '-0.01em' }}>Live Orders</h1>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <span className="nx-badge nx-badge--warning">{orders.filter(o => o.status === 'preparing').length} preparing</span>
+                      <span className="nx-badge nx-badge--success">{orders.filter(o => o.status === 'ready').length} ready</span>
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 16 }}>
+                    {orders.map(o => <OrderCard key={o.id} order={o} onAdvance={advance} />)}
+                  </div>
+                </div>
+              )}
+              {active === 'kitchen' && (
+                <div>
+                  <h1 style={{ margin: '0 0 20px', fontSize: 24, fontWeight: 700 }}>Kitchen Display</h1>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+                    {['pending', 'preparing', 'ready'].map(col => (
+                      <div key={col} className="nx-card" style={{ minHeight: 300 }}>
+                        <div className="nx-card__header"><h3 className="nx-card__title" style={{ fontSize: 14, textTransform: 'capitalize' }}>{col}</h3><span className="nx-badge nx-badge--default">{orders.filter(o => o.status === col).length}</span></div>
+                        <div className="nx-card__content" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                          {orders.filter(o => o.status === col).map(o => (
+                            <div key={o.id} style={{ padding: 10, background: 'var(--color-bg-surface)', borderRadius: 6, fontSize: 13 }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}><span>#{o.id}</span><span style={{ color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-mono)' }}>T{o.table}</span></div>
+                              <div style={{ color: 'var(--color-text-secondary)', marginTop: 4 }}>{o.items.map(i => `${i.qty}× ${i.name}`).join(' · ')}</div>
+                            </div>
+                          ))}
+                          {orders.filter(o => o.status === col).length === 0 && <div style={{ fontSize: 12, color: 'var(--color-text-tertiary)', padding: 12 }}>Nothing here</div>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {active === 'analytics' && (
+                <div>
+                  <h1 style={{ margin: '0 0 20px', fontSize: 24, fontWeight: 700 }}>Today at a glance</h1>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
+                    <StatCard label="Revenue" value="$1,284" delta="+12% vs yesterday" deltaType="up" />
+                    <StatCard label="Orders" value="38" delta="+4 vs yesterday" deltaType="up" />
+                    <StatCard label="Avg. ticket" value="$33.80" delta="−2% vs yesterday" deltaType="down" />
+                    <StatCard label="Avg. prep time" value="14m" delta="on target" deltaType="neutral" />
+                  </div>
+                  <div className="nx-card">
+                    <div className="nx-card__header"><h3 className="nx-card__title">Top items</h3></div>
+                    <div className="nx-card__content">
+                      {[['Dan Dan Noodles', 14, 196], ['Xiao Long Bao', 11, 121], ['Mapo Tofu', 9, 112.50], ['Kung Pao Chicken', 8, 120]].map(([name, qty, rev]) => (
+                        <div key={name} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', fontSize: 14, borderBottom: '1px solid var(--color-border)' }}>
+                          <span>{name}</span>
+                          <span style={{ color: 'var(--color-text-secondary)', fontFamily: 'var(--font-mono)' }}>{qty} sold · ${rev.toFixed(2)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+              {!['orders','kitchen','analytics'].includes(active) && (
+                <EmptyState icon="clipboard-list" title={`${pageTitle} screen`} description="Not built in this kit — shell + active nav state shown only." />
+              )}
+            </main>
+          </div>
+        </div>
+      );
+    }
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

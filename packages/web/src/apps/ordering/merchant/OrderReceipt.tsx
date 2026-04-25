@@ -1,3 +1,6 @@
+// This module generates a thermal receipt HTML string that is written into a new browser window.
+// CSS tokens do NOT propagate into the new window; black-on-white thermal paper colors are intentional. // lint-override: hex refs in comment
+// All hex usages below carry individual lint-overrides.
 import { PAYMENT_STATUS_LABELS } from '@nexus/shared';
 import { formatPrice } from '@web/lib/format';
 import type { Order, SnapshotModifier } from '../types';
@@ -81,19 +84,19 @@ function toHtml(order: Order, tenantName: string, t?: (key: string) => string): 
     line-height: 1.4;
     width: 80mm;
     padding: 8px;
-    color: #000;
-    background: #fff;
+    color: #000; // lint-override: thermal receipt print template — black ink on white paper; no token propagation
+    background: #fff; // lint-override: thermal receipt print template — white paper background; no token propagation
   }
   .center { text-align: center; }
   .right { text-align: right; }
   .bold { font-weight: bold; }
-  .divider { border-top: 1px dashed #000; margin: 6px 0; }
-  .divider-thick { border-top: 2px solid #000; margin: 6px 0; }
+  .divider { border-top: 1px dashed #000; margin: 6px 0; } // lint-override: thermal receipt — black ink; no token propagation
+  .divider-thick { border-top: 2px solid #000; margin: 6px 0; } // lint-override: thermal receipt — black ink; no token propagation
   table { width: 100%; border-collapse: collapse; }
   td { vertical-align: top; padding: 1px 0; }
-  .mods { font-size: 10px; color: #555; padding-left: 16px; }
+  .mods { font-size: 10px; color: #555; padding-left: 16px; } // lint-override: thermal receipt — muted gray; no token propagation
   .header { font-size: 14px; font-weight: bold; }
-  .footer { font-size: 10px; color: #555; margin-top: 8px; }
+  .footer { font-size: 10px; color: #555; margin-top: 8px; } // lint-override: thermal receipt — muted gray; no token propagation
   @media print {
     body { width: 100%; }
   }

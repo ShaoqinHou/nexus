@@ -84,7 +84,7 @@ export function PlatformShell() {
           <button
             type="button"
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="hidden lg:flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.95]"
+            className="hidden lg:flex min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] items-center justify-center rounded-md text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.95]"
             aria-label={sidebarCollapsed ? t('Expand sidebar') : t('Collapse sidebar')}
           >
             <ChevronLeft
@@ -97,7 +97,7 @@ export function PlatformShell() {
           <button
             type="button"
             onClick={closeMobileSidebar}
-            className="lg:hidden min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.95]"
+            className="lg:hidden min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] flex items-center justify-center rounded-md text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.95]"
             aria-label={t('Close sidebar')}
           >
             <X className="h-5 w-5" />
@@ -110,7 +110,7 @@ export function PlatformShell() {
             to="/t/$tenantSlug"
             params={{ tenantSlug }}
             className={[
-              'flex items-center gap-3 rounded-md px-3 py-2.5 min-h-[44px] text-sm font-medium transition-colors mb-1',
+              'flex items-center gap-3 rounded-md px-3 py-2.5 min-h-[var(--hit-sm)] text-sm font-medium transition-colors mb-1',
               location.pathname === `/t/${tenantSlug}`
                 ? 'bg-primary/10 text-primary font-medium'
                 : 'text-text-secondary hover:text-text hover:bg-bg-muted',
@@ -126,7 +126,7 @@ export function PlatformShell() {
               to="/t/$tenantSlug/restaurants"
               params={{ tenantSlug }}
               className={[
-                'flex items-center gap-3 rounded-md px-3 py-2.5 min-h-[44px] text-sm font-medium transition-colors mb-1',
+                'flex items-center gap-3 rounded-md px-3 py-2.5 min-h-[var(--hit-sm)] text-sm font-medium transition-colors mb-1',
                 location.pathname === `/t/${tenantSlug}/restaurants`
                   ? 'bg-primary/10 text-primary font-medium'
                   : 'text-text-secondary hover:text-text hover:bg-bg-muted',
@@ -180,7 +180,7 @@ export function PlatformShell() {
                       to={item.path}
                       {...(tourAttr ? { 'data-tour': tourAttr } : {})}
                       className={[
-                        'flex items-center gap-3 rounded-md px-3 py-2.5 min-h-[44px] text-sm font-medium transition-colors mb-1',
+                        'flex items-center gap-3 rounded-md px-3 py-2.5 min-h-[var(--hit-sm)] text-sm font-medium transition-colors mb-1',
                         isActiveNav
                           ? 'bg-primary/10 text-primary font-medium'
                           : 'text-text-secondary hover:text-text hover:bg-bg-muted',
@@ -218,7 +218,7 @@ export function PlatformShell() {
             <button
               type="button"
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.95]"
+              className="lg:hidden min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] flex items-center justify-center rounded-md text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.95]"
               aria-label={t('Open menu')}
             >
               <Menu className="h-6 w-6" />
@@ -240,7 +240,7 @@ export function PlatformShell() {
                   if (firstTour.onEnd) void firstTour.onEnd(tenantSlug);
                   startTour(firstTour.steps, firstTour.id, onEnd);
                 }}
-                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.95]"
+                className="min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] flex items-center justify-center rounded-md text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.95]"
                 aria-label={t('Start guided tour')}
                 title={t(firstTour.label)}
               >
@@ -253,7 +253,7 @@ export function PlatformShell() {
             <button
               type="button"
               onClick={toggleTheme}
-              className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.95]"
+              className="min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] flex items-center justify-center rounded-md text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.95]"
               aria-label={t('Toggle theme')}
             >
               {theme === 'light' ? (

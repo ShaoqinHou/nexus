@@ -30,6 +30,10 @@ const TranslationsDashboard = lazy(() => import('@web/apps/ordering/merchant/Tra
 const CustomerApp = lazy(() => import('@web/apps/ordering/customer/CustomerApp').then(m => ({ default: m.CustomerApp })));
 const TenantPicker = lazy(() => import('@web/platform/auth/TenantPicker').then(m => ({ default: m.TenantPicker })));
 
+// Zoo (dev-only component catalog) — lazy-loaded. Mounted only under DEV.
+const DesignZooIndexPage = lazy(() => import('@web/routes/__design/Zoo').then(m => ({ default: m.DesignZooIndexPage })));
+const DesignZooSlugPage  = lazy(() => import('@web/routes/__design/Zoo').then(m => ({ default: m.DesignZooSlugPage })));
+
 // Suspense wrapper for lazy-loaded route components
 function SuspenseWrap({ children }: { children: React.ReactNode }) {
   return <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>}>{children}</Suspense>;
@@ -283,8 +287,24 @@ function TenantNotFound() {
   );
 }
 
+// --- Design zoo routes (dev-only) ---
+// Per S-ZOO-PAGE the /design/* tree ships ONLY when import.meta.env.DEV.
+// In production Vite tree-shakes the dead branch since these routes are
+// never added to the tree.
+const designZooIndexRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/design',
+  component: () => <SuspenseWrap><DesignZooIndexPage /></SuspenseWrap>,
+});
+
+const designZooSlugRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/design/$slug',
+  component: () => <SuspenseWrap><DesignZooSlugPage /></SuspenseWrap>,
+});
+
 // Route tree
-const routeTree = rootRoute.addChildren([
+const baseChildren = [
   indexRoute,
   loginRoute,
   kitchenRoute,
@@ -304,7 +324,13 @@ const routeTree = rootRoute.addChildren([
     tenantCatchAllRoute,
   ]),
   customerRoute.addChildren([customerIndexRoute, customerCatchAllRoute]),
-]);
+];
+
+const routeTree = rootRoute.addChildren(
+  import.meta.env.DEV
+    ? [...baseChildren, designZooIndexRoute, designZooSlugRoute]
+    : baseChildren
+);
 
 // Router
 // Vite sets BASE_URL from --base flag ("/nexus/" in prod, "/" in dev)

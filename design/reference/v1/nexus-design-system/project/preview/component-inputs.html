@@ -1,0 +1,17 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Inputs</title><link rel="stylesheet" href="_base.css">
+<style>
+.fld{display:flex;flex-direction:column;gap:6px}
+.lbl{font-size:14px;font-weight:500;color:#111827}
+.inp{height:48px;border:1px solid #e5e7eb;border-radius:6px;padding:0 12px;font-size:14px;font-family:var(--font-sans);color:#111827;background:#fff;width:100%;outline:none}
+.inp:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.15)}
+.inp.err{border-color:#dc2626}
+.hlp{font-size:12px;color:#9ca3af}
+.err-msg{font-size:12px;color:#dc2626}
+</style></head>
+<body><div class="card">
+  <p class="eyebrow">Inputs & helper text</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div class="fld"><label class="lbl">Email</label><input class="inp" value="demo@example.com"><span class="hlp">Lowercase only</span></div>
+    <div class="fld"><label class="lbl">Restaurant ID</label><input class="inp err" value="My Place!"><span class="err-msg">Lowercase letters, numbers, and hyphens only</span></div>
+  </div>
+</div></body></html>

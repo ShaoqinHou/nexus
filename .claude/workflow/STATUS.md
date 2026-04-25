@@ -1,13 +1,76 @@
 # Project Status
 
 ## Current State
-- **Phase:** Production v2 — restaurant operations + i18n + performance
-- **Last verified:** 2026-04-14
+- **Phase:** Production v2 — restaurant operations + i18n + performance + Claude Design system v1
+- **Last verified:** 2026-04-14 (pre v2 design work)
+- **Active branch:** `feat/design-workflow-v2` (in review)
 - **Live at:** https://cv.rehou.games/nexus/
-- **Commits:** 135 | **Lines:** 33,368 | **Components:** 53 | **API routes:** 67
+- **Commits:** 135+ on main; 14 on feat/design-workflow-v2
+- **Lines:** 33,368 | **Components:** 53 | **API routes:** 67
 - **Tests:** 203 unit (181 API + 22 web) + 21 Playwright E2E + 7 smoke tests
 - **Locale keys:** 688 per language (en/zh/ja/ko/fr)
 - **Bundle:** 240KB main (lazy-loaded routes, vendor-split)
+
+## Shipped: feat/design-workflow-v2 — Claude Design handoff integration (21 commits)
+
+| Area | Status | Artifact |
+|---|---|---|
+| Design-reference baseline | ✓ | `design/reference/v1/` (123 files, 645K, frozen — diff future bundles against this) |
+| Workflow standards | ✓ | 7 new S-* IDs in `.claude/workflow/design/standards.md` (S-DESIGN-REFERENCE, S-REGISTRY-ENTRY, S-ZOO-PAGE, S-HIT-TARGET-TOKEN, S-LUCIDE-ONLY, S-DIETARY-SPRITE, S-THEMED-COMPONENT) |
+| Reviewer + Fixer updated | ✓ | New scope patterns, dispute examples, 11-item priority list, dedicated design-system fix protocol |
+| Trap registry | ✓ | 9 new traps in `nexus/CLAUDE.md` |
+| Design-token linter | ✓ | `.claude/scripts/check-design-tokens.mjs` — 5 rule kinds, accepts `// lint-override` and `/* lint-override */` escape hatches; 0 violations across 88 files |
+| Hit-target tokens | ✓ | `--hit-sm/md/lg` in tokens.css, Button retrofitted, 153 hardcoded-px violations swept across 23 files |
+| Self-hosted fonts | ✓ | Inter + JetBrains Mono woff2 in `packages/web/public/fonts/` + `@font-face` |
+| Dietary-icons sprite | ✓ | `/dietary-icons.svg` — 30 symbols (5 diets, 7 free-from, 8 contains-warnings, 3 spice levels, 7 promo/meta) |
+| DietaryIcon primitive | ✓ | `components/ui/DietaryIcon.tsx`, typed union of 30 names; wired in customer MenuBrowse + ItemDetailSheet |
+| Dietary helpers | ✓ | `lib/dietary.ts` — `dietaryIconName()`, `allergenIconName()`, `dietaryTagColor()` |
+| 10 cuisine themes | ✓ | `platform/theme/themes/*.css` + aggregator + Google Fonts (Fraunces, Noto Serif/Sans SC) |
+| ThemeProvider extension | ✓ | themeId context + data-theme on `<html>` + brandColor inline-style override; CustomerShell reads `tenant.settings.theme` + `brandColor` |
+| Tenant settings schema | ✓ | `tenant.settings.theme` field added to TenantThemeSettings + Zod schema |
+| Component registry | ✓ | `components/registry.json` — 12 primitives + 12 patterns (8 base + 4 themed) |
+| Zoo (/design/*) | ✓ | `routes/__design/Zoo.tsx`, dev-only, **24 of 24 showcases wired** (12 primitives + 8 patterns + 4 themed + tokens + themes) |
+| Themed components | ✓ | NEW patterns/themed/{OrderTracker, Receipt, PromoCard, CheckoutSummary} (auto-reskin via data-theme) |
+| Hex/rgba sweep | ✓ | 63 residual lint-overrides applied to legitimate domain-logic uses (palette math, print windows, keyframes, SVG fills) — 0 chrome drift |
+| Test/build gates | ✓ | API 181/181 + web 22/22 + tsc web/api 0 errors + Vite build 3.5s |
+| E2E verification | partial | First pass found + fixed S-DIETARY-SPRITE (commit 0dcf4ad). Re-verify pass running. |
+
+Outstanding follow-ups (backlog, non-blocking):
+
+- ~~`--color-kds-preparing` token pair~~ — **DONE** in commit `e93f187`
+- ~~`dev:all` Windows MINGW race~~ — **DONE** via `concurrently` package in `6b3572f`
+- ~~ThemeSettings.tsx merchant UI: cuisine-theme dropdown~~ — **DONE** in commit `1aa7530`
+- ~~Hook resolution from worktree cwd~~ — **DONE** with WORKTREE CWD GUARD in `36b8044`
+- ~~CartProvider HMR context-identity split~~ — **DONE** by extracting CartContext to leaf module in `f7b76f1`
+- ~~Real cuisine-theme translations (zh/ja/ko/fr)~~ — **DONE** in `5f0473e`
+- ~~ErrorBoundary i18n gap~~ — **DONE** in `b10bd3d`
+- ~~DietaryIcon a11y `accessibleLabel` prop~~ — **DONE** in `d2546ea`
+- ~~Unit tests for `lib/dietary.ts`, themed components, theme tenant-isolation~~ — **DONE** in `83ce187` (24 new test cases)
+
+Remaining backlog after final close:
+
+- ~~Self-host Fraunces + Noto Serif/Sans SC~~ — **DONE** in `3a6953f` via `@fontsource` packages.
+- ~~`combo_slots.name` GLM translation~~ — **DONE** in `d792387`. Cross-tenant isolation test added.
+- ~~"Nexus" brand string in LoginPage~~ — **DONE** in `004ad90` (wrapped in `t()`, brand stays as 'Nexus' across locales).
+- ~~Themed-component swap-in~~ — **DONE** under user directive ("methodology > backwards compat, research project") via the force-swap wave:
+  - `a03b5bd` CheckoutSummary swap into CartSheet (with `precomputedTotal`/`onPlaceOrder`/`loading` bridge props)
+  - `b6168e0` PromoCard new render site in MenuBrowse + customer-facing `GET /promotions` endpoint + tenant-isolation test
+  - `222b895` OrderTracker accepts platform 5-step status IDs (alias mapper)
+  - `6f173a0` OrderConfirmation full retheme — OrderTracker + Receipt swaps, `itemRenderer` slot preserves cancel/notes/badges
+  - `539249b` reviewer findings cleanup (4 BLOCK + 2 WARN, all addressed)
+
+  Honest behavioural changes (per user directive these are accepted):
+  - StatusTimeline's mobile-vertical responsive layout → OrderTracker horizontal-only
+  - Old totals block was full-width → Receipt is max 340px centered
+  - "Order Items" section heading dropped (Receipt has no equivalent slot)
+  - Tax-inclusive footnote in CheckoutSummary moved to standard tax row position
+
+  Final E2E: 6/6 PASS, including the critical cancel-item interactive flow surviving the Receipt swap via the itemRenderer slot. Theme rotation confirmed: all 4 themed components reskin to sichuan tokens when tenant theme changes.
+
+**No remaining backlog.** All originally-flagged items resolved.
+
+See `.claude/workflow/session-plan.md` for full phase-by-phase log and
+commit list.
 
 ## Features
 
@@ -99,3 +162,18 @@
 - Demo Restaurant: demo@example.com / password123
 - Sakura Sushi: same email (multi-restaurant demo)
 - Customer: /order/demo?table=1 or /order/sakura?table=1
+
+---
+
+## Post-close addendum: 2 regression fixes (52 commits total)
+
+After the user pointed out 2 of the 4 noted regressions were worth fixing, two parallel agents shipped:
+
+- `23bd8d4` **OrderTracker responsive mobile-vertical** — `@media (max-width: 640px)` flips `.order-tracker-steps` to `flex-direction: column`, connectors switch from horizontal bar to vertical line. Customer phone-first ergonomic restored. Zoo gained a "Mobile (≤640px)" preview section in a 375px container.
+- `297ffa8` **CheckoutSummary tax-inclusive footnote** — math-comprehension fix. When `taxInclusive=true` the tax row is hidden and a `(Includes X% Tax)` footnote renders below the Total, mirroring Receipt's pattern. CartSheet was already passing taxRate/taxInclusive/taxLabel; replaced its previous workaround (zeroing taxRate + prepending `t('Incl.')` to label) with a clean pass-through.
+
+Final gates: 65/65 web tests · 185/185 API tests · 0 lint violations · 0 tsc errors web/api · vite build clean.
+
+Two of the original 4 regressions were retained as design intent:
+- Receipt 340px-centered card aesthetic (Claude Design language)
+- "Order Items" h3 dropped (Receipt's implicit hierarchy carries it)

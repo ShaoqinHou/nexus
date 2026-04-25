@@ -137,7 +137,7 @@ export function LoginPage() {
               <button
                 type="button"
                 onClick={handleBackToLogin}
-                className="flex items-center gap-2 px-3 py-2 min-h-[44px] text-sm text-text-secondary hover:text-text hover:bg-bg-muted rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]"
+                className="flex items-center gap-2 px-3 py-2 min-h-[var(--hit-sm)] text-sm text-text-secondary hover:text-text hover:bg-bg-muted rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]"
               >
                 <ArrowLeft className="h-4 w-4" />
                 {t('Back to login')}
@@ -156,7 +156,7 @@ export function LoginPage() {
       </div>
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-text">Nexus</h1>
+          <h1 className="text-2xl font-bold text-text">{t('Nexus')}</h1>
           <p className="text-sm text-text-secondary mt-1">
             {mode === 'login'
               ? t('Sign in to your account')
@@ -226,7 +226,7 @@ export function LoginPage() {
                 setMode(mode === 'login' ? 'register' : 'login');
                 setError('');
               }}
-              className="px-3 py-2 min-h-[44px] text-sm text-primary hover:text-primary-hover hover:bg-primary-light rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]"
+              className="px-3 py-2 min-h-[var(--hit-sm)] text-sm text-primary hover:text-primary-hover hover:bg-primary-light rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]"
             >
               {mode === 'login'
                 ? t("Don't have an account? Register")

@@ -60,7 +60,7 @@ function contrastRatio(fg: string, bg: string): number {
 }
 
 export function textColorOnBrand(brandHex: string): string {
-  return contrastRatio('#ffffff', brandHex) >= contrastRatio('#111827', brandHex) ? '#ffffff' : '#111827';
+  return contrastRatio('#ffffff', brandHex) >= contrastRatio('#111827', brandHex) ? '#ffffff' : '#111827'; // lint-override: contrast math needs raw white/black hex — no token equivalent
 }
 
 // --- Palette Generation ---
@@ -111,12 +111,12 @@ export interface ThemePreset {
 }
 
 export const THEME_PRESETS: ThemePreset[] = [
-  { id: 'modern-minimal', name: 'Modern Minimal', description: 'Clean and contemporary', brandColor: '#111827', fontFamily: 'DM Sans', borderRadius: 'rounded', surfaceStyle: 'flat' },
-  { id: 'classic-bistro', name: 'Classic Bistro', description: 'Warm and traditional', brandColor: '#7c2d12', fontFamily: 'Playfair Display', borderRadius: 'sharp', surfaceStyle: 'elevated' },
-  { id: 'vibrant-street', name: 'Vibrant Street', description: 'Bold and energetic', brandColor: '#ea580c', fontFamily: 'Space Grotesk', borderRadius: 'pill', surfaceStyle: 'flat' },
-  { id: 'fine-dining', name: 'Fine Dining', description: 'Elegant and refined', brandColor: '#1e3a5f', fontFamily: 'Cormorant Garamond', borderRadius: 'sharp', surfaceStyle: 'elevated' },
-  { id: 'warm-cafe', name: 'Warm Cafe', description: 'Cozy and inviting', brandColor: '#b45309', fontFamily: 'Nunito', borderRadius: 'pill', surfaceStyle: 'subtle' },
-  { id: 'bold-casual', name: 'Bold Casual', description: 'Fun and straightforward', brandColor: '#dc2626', fontFamily: 'Plus Jakarta Sans', borderRadius: 'rounded', surfaceStyle: 'flat' },
+  { id: 'modern-minimal', name: 'Modern Minimal', description: 'Clean and contemporary', brandColor: '#111827', fontFamily: 'DM Sans', borderRadius: 'rounded', surfaceStyle: 'flat' }, // lint-override: preset brand color is user-facing choice, not chrome
+  { id: 'classic-bistro', name: 'Classic Bistro', description: 'Warm and traditional', brandColor: '#7c2d12', fontFamily: 'Playfair Display', borderRadius: 'sharp', surfaceStyle: 'elevated' }, // lint-override: preset brand color is user-facing choice, not chrome
+  { id: 'vibrant-street', name: 'Vibrant Street', description: 'Bold and energetic', brandColor: '#ea580c', fontFamily: 'Space Grotesk', borderRadius: 'pill', surfaceStyle: 'flat' }, // lint-override: preset brand color is user-facing choice, not chrome
+  { id: 'fine-dining', name: 'Fine Dining', description: 'Elegant and refined', brandColor: '#1e3a5f', fontFamily: 'Cormorant Garamond', borderRadius: 'sharp', surfaceStyle: 'elevated' }, // lint-override: preset brand color is user-facing choice, not chrome
+  { id: 'warm-cafe', name: 'Warm Cafe', description: 'Cozy and inviting', brandColor: '#b45309', fontFamily: 'Nunito', borderRadius: 'pill', surfaceStyle: 'subtle' }, // lint-override: preset brand color is user-facing choice, not chrome
+  { id: 'bold-casual', name: 'Bold Casual', description: 'Fun and straightforward', brandColor: '#dc2626', fontFamily: 'Plus Jakarta Sans', borderRadius: 'rounded', surfaceStyle: 'flat' }, // lint-override: preset brand color is user-facing choice, not chrome
 ];
 
 // --- Theme Application ---
@@ -129,6 +129,8 @@ export interface OperatingHoursEntry {
 
 export interface TenantThemeSettings {
   brandColor?: string;
+  /** Cuisine theme ID (one of ThemeProvider THEME_IDS). Stored as free-form string; validated via isThemeId() at read time. */
+  theme?: string;
   logoUrl?: string;
   coverImageUrl?: string;
   preset?: string;
@@ -216,8 +218,8 @@ const RADIUS_MAP: Record<string, Record<string, string>> = {
 
 const SHADOW_MAP: Record<string, Record<string, string>> = {
   flat: { sm: 'none', md: 'none', lg: 'none' },
-  subtle: { sm: '0 1px 2px 0 rgb(0 0 0 / 0.03)', md: '0 2px 4px -1px rgb(0 0 0 / 0.06)', lg: '0 4px 6px -2px rgb(0 0 0 / 0.05)' },
-  elevated: { sm: '0 1px 2px 0 rgb(0 0 0 / 0.05)', md: '0 4px 6px -1px rgb(0 0 0 / 0.1)', lg: '0 10px 15px -3px rgb(0 0 0 / 0.1)' },
+  subtle: { sm: '0 1px 2px 0 rgb(0 0 0 / 0.03)', md: '0 2px 4px -1px rgb(0 0 0 / 0.06)', lg: '0 4px 6px -2px rgb(0 0 0 / 0.05)' }, // lint-override: shadow values use rgb() for alpha — no CSS token equivalent for box-shadow alpha
+  elevated: { sm: '0 1px 2px 0 rgb(0 0 0 / 0.05)', md: '0 4px 6px -1px rgb(0 0 0 / 0.1)', lg: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }, // lint-override: shadow values use rgb() for alpha — no CSS token equivalent for box-shadow alpha
 };
 
 export function applyTenantTheme(settings: TenantThemeSettings, isDark: boolean): void {

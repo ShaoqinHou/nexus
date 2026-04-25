@@ -693,26 +693,101 @@ describe('Customer ordering routes', () => {
     expect(res.status).toBe(400);
   });
 
-  it('GET /orders/:id returns order by id', async () => {
-    // Place an order first
+  it('GET /orders/:id returns order by id when session cookie matches', async () => {
+    // Place an order first — response sets session_token cookie
     const orderRes = await app.request(
       jsonRequest(`/api/order/${SLUG}/ordering/orders`, 'POST', {
         tableNumber: '3',
         items: [{ menuItemId, quantity: 1 }],
       })
     );
+    expect(orderRes.status).toBe(201);
     const { data: order } = await orderRes.json();
+    const setCookieHeader = orderRes.headers.get('set-cookie') ?? '';
+    const sessionCookie = setCookieHeader.split(';')[0]; // "session_token=<value>"
 
-    // Retrieve it
-    const res = await app.request(`/api/order/${SLUG}/ordering/orders/${order.id}`);
+    // Retrieve it — must send the session cookie
+    const res = await app.request(
+      new Request(`http://localhost/api/order/${SLUG}/ordering/orders/${order.id}`, {
+        headers: { Cookie: sessionCookie },
+      })
+    );
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.data.id).toBe(order.id);
     expect(body.data.status).toBe('pending');
   });
 
-  it('GET /orders/:id returns 404 for non-existent order', async () => {
-    const res = await app.request(`/api/order/${SLUG}/ordering/orders/nonexistent-id`);
+  it('GET /orders/:id returns 401 when no session cookie is sent', async () => {
+    // Place an order (creates session server-side) but do NOT forward the cookie
+    const orderRes = await app.request(
+      jsonRequest(`/api/order/${SLUG}/ordering/orders`, 'POST', {
+        tableNumber: '4',
+        items: [{ menuItemId, quantity: 1 }],
+      })
+    );
+    expect(orderRes.status).toBe(201);
+    const { data: order } = await orderRes.json();
+
+    // GET with no cookie
+    const res = await app.request(`/api/order/${SLUG}/ordering/orders/${order.id}`);
+    expect(res.status).toBe(401);
+  });
+
+  it('GET /orders/:id returns 404 when session cookie belongs to a different order', async () => {
+    // Place order A — captures session cookie A
+    const orderResA = await app.request(
+      jsonRequest(`/api/order/${SLUG}/ordering/orders`, 'POST', {
+        tableNumber: '5',
+        items: [{ menuItemId, quantity: 1 }],
+      })
+    );
+    expect(orderResA.status).toBe(201);
+    const { data: orderA } = await orderResA.json();
+    const cookieA = (orderResA.headers.get('set-cookie') ?? '').split(';')[0];
+
+    // Place order B — a fresh session (no cookie sent, so a new session is created)
+    const orderResB = await app.request(
+      jsonRequest(`/api/order/${SLUG}/ordering/orders`, 'POST', {
+        tableNumber: '6',
+        items: [{ menuItemId, quantity: 1 }],
+      })
+    );
+    expect(orderResB.status).toBe(201);
+    const { data: orderB } = await orderResB.json();
+
+    // Try to fetch order B using session A's cookie → ownership mismatch → 404
+    const res = await app.request(
+      new Request(`http://localhost/api/order/${SLUG}/ordering/orders/${orderB.id}`, {
+        headers: { Cookie: cookieA },
+      })
+    );
+    expect(res.status).toBe(404);
+
+    // Sanity: session A can still fetch its own order
+    const resOwn = await app.request(
+      new Request(`http://localhost/api/order/${SLUG}/ordering/orders/${orderA.id}`, {
+        headers: { Cookie: cookieA },
+      })
+    );
+    expect(resOwn.status).toBe(200);
+  });
+
+  it('GET /orders/:id returns 404 for non-existent order (with valid session)', async () => {
+    // Create a session by placing any order
+    const orderRes = await app.request(
+      jsonRequest(`/api/order/${SLUG}/ordering/orders`, 'POST', {
+        tableNumber: '7',
+        items: [{ menuItemId, quantity: 1 }],
+      })
+    );
+    const sessionCookie = (orderRes.headers.get('set-cookie') ?? '').split(';')[0];
+
+    const res = await app.request(
+      new Request(`http://localhost/api/order/${SLUG}/ordering/orders/nonexistent-id`, {
+        headers: { Cookie: sessionCookie },
+      })
+    );
     expect(res.status).toBe(404);
   });
 });

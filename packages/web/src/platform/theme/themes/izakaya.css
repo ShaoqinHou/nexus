@@ -1,0 +1,92 @@
+/* ============================================================
+   THEME: IZAKAYA
+   Dark, intimate, refined. Ink + amber + cream.
+   Best for: Japanese izakayas, ramen, Korean BBQ, sushi,
+   yakitori, late-night drinking spots, Asian fine-casual.
+   Dark-first — designed to be used at night under low light.
+   ============================================================ */
+
+[data-theme="izakaya"] {
+  /* Surfaces — deep ink */
+  --color-bg:          #1a1714;  /* sumi ink */
+  --color-bg-surface:  #221e1a;  /* lifted ink */
+  --color-bg-muted:    #2d2823;  /* charcoal */
+  --color-bg-elevated: #221e1a;
+  --color-bg-strong:   #f5ede0;  /* paper, for inverse blocks */
+
+  /* Text — warm cream */
+  --color-text:           #f5ede0;  /* washi */
+  --color-text-secondary: #c4b5a0;  /* tea */
+  --color-text-tertiary:  #897b67;  /* dried bamboo */
+  --color-text-inverse:   #1a1714;
+
+  /* Borders — bronze hairlines */
+  --color-border:        #3d352b;
+  --color-border-strong: #574a3b;
+
+  /* Brand — warm amber, like a paper lantern */
+  --color-brand:         #e89d3a;  /* amber */
+  --color-brand-hover:   #d28522;
+  --color-brand-light:   #3d2e18;  /* dark amber wash */
+  --color-primary:       var(--color-brand);
+  --color-primary-hover: var(--color-brand-hover);
+  --color-primary-light: var(--color-brand-light);
+
+  /* Accent — vermillion (torii red) */
+  --color-accent:        #c44536;
+  --color-accent-light:  #3a1d18;
+
+  /* Semantic */
+  --color-success:       #8aa872;  /* matcha */
+  --color-success-light: #2a3322;
+  --color-warning:       #e89d3a;
+  --color-warning-light: #3d2e18;
+  --color-danger:        #c44536;
+  --color-danger-light:  #3a1d18;
+  --color-info:          #6b8a9e;  /* dusk blue */
+  --color-info-light:    #1f2830;
+
+  /* Type pairing — display in mono uppercase, body in sans */
+  --font-display: 'JetBrains Mono', 'Inter', sans-serif;
+  --font-sans:    'Inter', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+  --font-display-weight: 600;
+  --font-display-tracking: 0.02em;
+
+  /* Radii — sharp, restrained */
+  --radius-sm:   2px;
+  --radius-md:   3px;
+  --radius-lg:   4px;
+  --radius-xl:   6px;
+  --radius-2xl:  8px;
+  --radius-full: 9999px;
+  --radius-card: var(--radius-md);
+  --radius-btn:  var(--radius-sm);
+  --radius-chip: var(--radius-sm);
+
+  /* Shadows — deep, theatrical */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.4);
+  --shadow-md: 0 6px 12px -2px rgb(0 0 0 / 0.5);
+  --shadow-lg: 0 18px 32px -8px rgb(0 0 0 / 0.65);
+
+  --density-card-padding: 18px;
+  --density-row-gap:      10px;
+  --density-section-gap:  28px;
+
+  --theme-name: 'Izakaya';
+  --theme-vibe: 'Dark, intimate, refined';
+}
+
+/* Izakaya is dark by default — light mode is an inversion */
+[data-theme="izakaya"].light {
+  --color-bg:          #f5ede0;
+  --color-bg-surface:  #ede3d2;
+  --color-bg-muted:    #e0d4be;
+  --color-bg-elevated: #f5ede0;
+  --color-text:           #1a1714;
+  --color-text-secondary: #4d4239;
+  --color-text-tertiary:  #897b67;
+  --color-border:        #d4c5ad;
+  --color-border-strong: #b8a484;
+  --color-brand-light:   #fbe8c9;
+}

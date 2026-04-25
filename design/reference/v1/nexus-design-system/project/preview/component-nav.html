@@ -1,0 +1,20 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Nav item states</title><link rel="stylesheet" href="_base.css">
+<style>
+.nav{display:flex;flex-direction:column;gap:2px;width:240px;padding:8px;background:#fff;border:1px solid #e5e7eb;border-radius:8px}
+.ni{display:flex;align-items:center;gap:12px;padding:10px 12px;min-height:44px;border-radius:6px;font-size:14px;font-weight:500;color:#6b7280;cursor:pointer}
+.ni:hover{background:#f3f4f6;color:#111827}
+.ni.active{background:rgba(37,99,235,.1);color:#2563eb}
+.eb{font-size:10px;font-weight:600;color:#9ca3af;letter-spacing:.08em;text-transform:uppercase;padding:6px 12px 4px}
+.ic{width:18px;height:18px;flex-shrink:0}
+</style></head>
+<body style="background:#f9fafb"><div class="card" style="background:#f9fafb;align-items:flex-start">
+  <p class="eyebrow">Sidebar nav · default / hover / active</p>
+  <div class="nav">
+    <div class="eb">Operations</div>
+    <div class="ni active"><img class="ic" src="../assets/icons/layout-dashboard.svg" style="filter:invert(29%) sepia(93%) saturate(3074%) hue-rotate(217deg) brightness(93%) contrast(89%)">Orders</div>
+    <div class="ni"><img class="ic" src="../assets/icons/chef-hat.svg">Kitchen</div>
+    <div class="eb">Menu</div>
+    <div class="ni" style="background:#f3f4f6;color:#111827"><img class="ic" src="../assets/icons/book-open.svg">Menu (hover)</div>
+    <div class="ni"><img class="ic" src="../assets/icons/package.svg">Combos</div>
+  </div>
+</div></body></html>

@@ -1,0 +1,148 @@
+/* ============================================================
+   Nexus Themes — aggregator
+   Import this AFTER colors_and_type.css. Apply themes by setting
+   data-theme="classic|trattoria|izakaya|bubble-tea|sichuan|counter"
+   on any wrapper element.
+   ============================================================ */
+
+@import url('themes/classic.css');
+@import url('themes/trattoria.css');
+@import url('themes/izakaya.css');
+@import url('themes/bubble-tea.css');
+@import url('themes/sichuan.css');
+@import url('themes/counter.css');
+@import url('themes/cantonese.css');
+@import url('themes/wok.css');
+@import url('themes/taqueria.css');
+@import url('themes/curry-house.css');
+
+/* Imported display fonts via Google Fonts (used by Trattoria, Bubble Tea, Sichuan).
+   Single import covers all themes. */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap');
+
+/* ---------- Themed primitives ---------- */
+/* These primitives use the theme tokens, so they automatically
+   re-skin when [data-theme] changes. */
+
+/* Display headings — use theme's display font */
+.tx-display-xl,
+.tx-display-lg,
+.tx-display-md,
+.tx-display-sm {
+  font-family: var(--font-display, var(--font-sans));
+  font-weight: var(--font-display-weight, 700);
+  letter-spacing: var(--font-display-tracking, -0.01em);
+  color: var(--color-text);
+  line-height: 1.05;
+}
+.tx-display-xl { font-size: 56px; }
+.tx-display-lg { font-size: 40px; }
+.tx-display-md { font-size: 28px; }
+.tx-display-sm { font-size: 22px; line-height: 1.2; }
+
+/* Themed buttons */
+.tx-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: var(--hit-md, 44px);
+  padding: 0 18px;
+  border-radius: var(--radius-btn);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 14px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: transform 80ms ease, background 120ms ease, border-color 120ms ease;
+  white-space: nowrap;
+}
+.tx-btn:active { transform: scale(0.97); }
+
+.tx-btn-primary {
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+}
+.tx-btn-primary:hover { background: var(--color-primary-hover); }
+
+.tx-btn-secondary {
+  background: transparent;
+  color: var(--color-text);
+  border-color: var(--color-border-strong);
+}
+.tx-btn-secondary:hover { background: var(--color-bg-muted); }
+
+.tx-btn-ghost {
+  background: transparent;
+  color: var(--color-text);
+}
+.tx-btn-ghost:hover { background: var(--color-bg-muted); }
+
+.tx-btn-sm { height: 36px; padding: 0 12px; font-size: 13px; }
+.tx-btn-lg { height: var(--hit-lg, 52px); padding: 0 24px; font-size: 15px; }
+
+/* Themed cards */
+.tx-card {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--density-card-padding, 16px);
+  box-shadow: var(--shadow-sm);
+}
+.tx-card-flat {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--density-card-padding, 16px);
+}
+
+/* Themed chips */
+.tx-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: var(--radius-chip);
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 12px;
+  background: var(--color-bg-muted);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+/* Themed input */
+.tx-input {
+  height: var(--hit-sm, 44px);
+  padding: 0 14px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-elevated);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  width: 100%;
+  outline: none;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+.tx-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+/* Themed divider */
+.tx-divider { height: 1px; background: var(--color-border); width: 100%; }
+
+/* Themed surface helpers */
+.tx-surface { background: var(--color-bg-surface); color: var(--color-text); }
+.tx-elevated { background: var(--color-bg-elevated); color: var(--color-text); }
+.tx-inverse { background: var(--color-bg-strong); color: var(--color-text-inverse); }
+
+/* Body baseline (themed apps usually wrap in a [data-theme] root) */
+[data-theme] {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}

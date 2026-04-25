@@ -97,7 +97,7 @@ function GroupDialog({
       title={isEdit ? t('Edit Modifier Group') : t('Add Modifier Group')}
       footer={
         <>
-          <Button variant="secondary" onClick={handleClose} disabled={loading} className="min-h-[48px]">
+          <Button variant="secondary" onClick={handleClose} disabled={loading} className="min-h-[var(--hit-md)]">
             {t('Cancel')}
           </Button>
           <Button
@@ -105,7 +105,7 @@ function GroupDialog({
             form="group-form"
             loading={loading}
             disabled={!name.trim()}
-            className="min-h-[48px]"
+            className="min-h-[var(--hit-md)]"
           >
             {isEdit ? t('Save') : t('Add')}
           </Button>
@@ -212,7 +212,7 @@ function OptionDialog({
       title={isEdit ? t('Edit Option') : t('Add Option')}
       footer={
         <>
-          <Button variant="secondary" onClick={handleClose} disabled={loading} className="min-h-[48px]">
+          <Button variant="secondary" onClick={handleClose} disabled={loading} className="min-h-[var(--hit-md)]">
             {t('Cancel')}
           </Button>
           <Button
@@ -220,7 +220,7 @@ function OptionDialog({
             form="option-form"
             loading={loading}
             disabled={!name.trim()}
-            className="min-h-[48px]"
+            className="min-h-[var(--hit-md)]"
           >
             {isEdit ? t('Save') : t('Add')}
           </Button>
@@ -398,7 +398,7 @@ function GroupList({
                         e.stopPropagation();
                         onEdit(group);
                       }}
-                      className="min-h-[44px] min-w-[44px] p-2 sm:p-1 rounded text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                      className="min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] p-2 sm:p-1 rounded text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                       aria-label={`Edit ${group.name}`}
                     >
                       <Pencil className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
@@ -408,7 +408,7 @@ function GroupList({
                       size="sm"
                       onConfirm={() => onDelete(group.id)}
                       confirmText={t('Delete?')}
-                      className="min-h-[44px] min-w-[44px] !p-1 text-text-tertiary hover:text-danger"
+                      className="min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] !p-1 text-text-tertiary hover:text-danger"
                     >
                       <span className="text-xs">{t('Del')}</span>
                     </ConfirmButton>
@@ -465,7 +465,7 @@ function OptionCard({
             size="sm"
             onClick={() => onEdit(option)}
             aria-label={`Edit ${option.name}`}
-            className="min-h-[44px]"
+            className="min-h-[var(--hit-sm)]"
           >
             <Pencil className="h-3.5 w-3.5" />
             {t('Edit')}
@@ -475,7 +475,7 @@ function OptionCard({
             size="sm"
             onConfirm={() => onDelete(option.id)}
             confirmText={t('Delete?')}
-            className="min-h-[44px]"
+            className="min-h-[var(--hit-sm)]"
           >
             {t('Delete')}
           </ConfirmButton>

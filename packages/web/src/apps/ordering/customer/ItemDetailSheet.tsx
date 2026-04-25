@@ -1,32 +1,12 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Plus, Minus } from 'lucide-react';
-import { Badge, Button } from '@web/components/ui';
+import { Badge, Button, DietaryIcon } from '@web/components/ui';
 import { useT } from '@web/lib/i18n';
 import { formatPrice, formatPriceDelta, parseTags } from '@web/lib/format';
-import { useCart } from '@web/apps/ordering/customer/CartProvider';
-import type { MenuItem, ModifierGroup, ModifierOption, DietaryTag } from '@web/apps/ordering/types';
-
-function getTagColor(tag: string): string {
-  switch (tag as DietaryTag) {
-    case 'vegetarian':
-    case 'vegan':
-      return 'bg-success-light text-success';
-    case 'gluten-free':
-    case 'dairy-free':
-    case 'nut-free':
-      return 'bg-primary-light text-primary';
-    case 'halal':
-      return 'bg-primary-light text-primary';
-    case 'spicy':
-      return 'bg-warning-light text-warning';
-    case 'new':
-    case 'popular':
-      return 'bg-warning-light text-warning';
-    default:
-      return 'bg-bg-muted text-text-secondary';
-  }
-}
+import { useCart } from '@web/apps/ordering/customer/CartContext';
+import type { MenuItem, ModifierGroup, ModifierOption } from '@web/apps/ordering/types';
+import { dietaryIconName, allergenIconName, dietaryTagColor } from '@web/lib/dietary';
 
 interface ItemDetailSheetProps {
   item: MenuItem;
@@ -211,30 +191,38 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
             )}
             {item.tags && (
               <div className="flex flex-wrap gap-1 mt-1.5">
-                {parseTags(item.tags).map((tag) => (
-                  <span
-                    key={tag}
-                    className={[
-                      'inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-medium',
-                      getTagColor(tag),
-                    ].join(' ')}
-                  >
-                    {t(tag)}
-                  </span>
-                ))}
+                {parseTags(item.tags).map((tag) => {
+                  const icon = dietaryIconName(tag);
+                  return (
+                    <span
+                      key={tag}
+                      className={[
+                        'inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-medium',
+                        dietaryTagColor(tag),
+                      ].join(' ')}
+                    >
+                      {icon && <DietaryIcon name={icon} size="sm" />}
+                      {t(tag)}
+                    </span>
+                  );
+                })}
               </div>
             )}
             {item.allergens && parseTags(item.allergens).length > 0 && (
               <div className="flex flex-wrap items-center gap-1 mt-1.5">
                 <span className="text-xs font-semibold text-danger">{t('Allergens:')}</span>
-                {parseTags(item.allergens).map((allergen) => (
-                  <span
-                    key={allergen}
-                    className="inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-medium bg-danger-light text-danger"
-                  >
-                    {t(allergen)}
-                  </span>
-                ))}
+                {parseTags(item.allergens).map((allergen) => {
+                  const icon = allergenIconName(allergen);
+                  return (
+                    <span
+                      key={allergen}
+                      className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-medium bg-danger-light text-danger"
+                    >
+                      {icon && <DietaryIcon name={icon} size="sm" />}
+                      {t(allergen)}
+                    </span>
+                  );
+                })}
               </div>
             )}
             <p className="text-base font-semibold text-primary mt-1">
@@ -244,7 +232,7 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
           <button
             type="button"
             onClick={onClose}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            className="min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] flex items-center justify-center rounded-full text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             aria-label={t('Close')}
           >
             <X className="h-6 w-6" />
@@ -292,7 +280,7 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
                           onClick={() => toggleOption(group, option.id)}
                           disabled={isDisabled}
                           className={[
-                            'w-full flex items-center justify-between px-4 py-3 min-h-[48px] rounded-lg border text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]',
+                            'w-full flex items-center justify-between px-4 py-3 min-h-[var(--hit-md)] rounded-lg border text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]',
                             isSelected
                               ? 'border-primary bg-primary/5'
                               : 'border-border hover:bg-bg-muted',

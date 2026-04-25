@@ -3,18 +3,20 @@ import { useQuery } from '@tanstack/react-query';
 import { Plus, Minus, UtensilsCrossed, Package, Search, X, AlertTriangle, ArrowUp, Moon, Sun, BellRing, Receipt } from 'lucide-react';
 import { apiClient } from '@web/lib/api';
 import { formatPrice, parseTags } from '@web/lib/format';
-import { Button } from '@web/components/ui';
+import { Button, DietaryIcon } from '@web/components/ui';
 import { EmptyState, PullToRefreshIndicator } from '@web/components/patterns';
-import { useCart } from '@web/apps/ordering/customer/CartProvider';
+import { PromoCard } from '@web/components/patterns/themed/PromoCard';
+import { dietaryIconName, allergenIconName, dietaryTagColor } from '@web/lib/dietary';
+import { useCart } from '@web/apps/ordering/customer/CartContext';
 import { ItemDetailSheet } from '@web/apps/ordering/customer/ItemDetailSheet';
 import { ComboSheet } from '@web/apps/ordering/customer/ComboSheet';
 import { useTheme } from '@web/platform/theme/ThemeProvider';
 import { usePullToRefresh } from '@web/lib/hooks/usePullToRefresh';
 import { useCallWaiter } from '@web/apps/ordering/hooks/useTables';
+import { usePublicPromotions } from '@web/apps/ordering/hooks/usePromotions';
 import { useToast } from '@web/platform/ToastProvider';
 import { useT, useLocale } from '@web/lib/i18n';
 import type { MenuCategory, MenuItem, ModifierGroup, ComboDeal } from '@web/apps/ordering/types';
-import type { DietaryTag } from '@web/apps/ordering/types';
 import { ALLERGENS } from '@web/apps/ordering/types';
 
 interface PublicMenuItem extends MenuItem {
@@ -40,44 +42,29 @@ interface MenuBrowseProps {
   disabled?: boolean;
 }
 
-function getTagColor(tag: string): string {
-  switch (tag as DietaryTag) {
-    case 'vegetarian':
-    case 'vegan':
-      return 'bg-success-light text-success';
-    case 'gluten-free':
-    case 'dairy-free':
-    case 'nut-free':
-      return 'bg-primary-light text-primary';
-    case 'halal':
-      return 'bg-primary-light text-primary';
-    case 'spicy':
-      return 'bg-warning-light text-warning';
-    case 'new':
-    case 'popular':
-      return 'bg-warning-light text-warning';
-    default:
-      return 'bg-bg-muted text-text-secondary';
-  }
-}
-
+// Per S-DIETARY-SPRITE: every dietary / allergen render site uses <DietaryIcon>
+// via the SVG sprite. Tag → sprite-name + chip color come from @web/lib/dietary.
 const DietaryTagBadges = memo(function DietaryTagBadges({ tags }: { tags: string | null }) {
   const t = useT();
   const parsed = parseTags(tags);
   if (parsed.length === 0) return null;
   return (
     <div className="flex flex-wrap gap-1.5 mt-1">
-      {parsed.map((tag) => (
-        <span
-          key={tag}
-          className={[
-            'inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-medium',
-            getTagColor(tag),
-          ].join(' ')}
-        >
-          {t(tag)}
-        </span>
-      ))}
+      {parsed.map((tag) => {
+        const icon = dietaryIconName(tag);
+        return (
+          <span
+            key={tag}
+            className={[
+              'inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-medium',
+              dietaryTagColor(tag),
+            ].join(' ')}
+          >
+            {icon && <DietaryIcon name={icon} size="sm" />}
+            {t(tag)}
+          </span>
+        );
+      })}
     </div>
   );
 });
@@ -88,14 +75,18 @@ const AllergenBadges = memo(function AllergenBadges({ allergens }: { allergens: 
   if (parsed.length === 0) return null;
   return (
     <div className="flex flex-wrap gap-1 mt-1">
-      {parsed.map((allergen) => (
-        <span
-          key={allergen}
-          className="inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-medium bg-danger-light text-danger"
-        >
-          {t(allergen)}
-        </span>
-      ))}
+      {parsed.map((allergen) => {
+        const icon = allergenIconName(allergen);
+        return (
+          <span
+            key={allergen}
+            className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-medium bg-danger-light text-danger"
+          >
+            {icon && <DietaryIcon name={icon} size="sm" />}
+            {t(allergen)}
+          </span>
+        );
+      })}
     </div>
   );
 });
@@ -221,7 +212,7 @@ const MenuItemCard = memo(function MenuItemCard({
             variant="primary"
             size="sm"
             onClick={handleAdd}
-            className="min-h-[48px] min-w-[48px] !p-0 active:scale-[0.97] transition-transform"
+            className="min-h-[var(--hit-md)] min-w-[var(--hit-md)] !p-0 active:scale-[0.97] transition-transform"
             aria-label={`${t('Add')} ${item.name} ${t('to cart')}`}
             {...(tourTarget ? { 'data-tour': tourTarget } : {})}
           >
@@ -452,6 +443,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
   const { theme, toggleTheme } = useTheme();
   const { toast } = useToast();
   const callWaiter = useCallWaiter(tenantSlug);
+  const { data: publicPromotions } = usePublicPromotions(tenantSlug);
 
   const handleCallWaiter = useCallback(() => {
     if (!tableNumber || waiterCooldown) return;
@@ -772,7 +764,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
             <button
               type="button"
               onClick={() => setSearchQuery('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-bg-muted text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className="absolute right-2 top-1/2 -translate-y-1/2 min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] flex items-center justify-center rounded-full hover:bg-bg-muted text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               aria-label={t('Clear search')}
             >
               <X className="h-4 w-4" />
@@ -823,7 +815,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                   <button
                     type="button"
                     onClick={() => setHiddenAllergens(new Set())}
-                    className="ml-auto text-xs text-primary hover:text-primary-hover font-medium min-h-[44px] min-w-[44px] flex items-center justify-center"
+                    className="ml-auto text-xs text-primary hover:text-primary-hover font-medium min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] flex items-center justify-center"
                   >
                     {t('Clear All')}
                   </button>
@@ -901,11 +893,37 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
           </div>
         )}
 
+        {/* Active promotions strip — rendered below featured items, above category pills */}
+        {publicPromotions && publicPromotions.length > 0 && (
+          <div className="px-4 pt-3 pb-1">
+            <h2 className="text-sm font-bold text-text mb-2">{t('Special Offers')}</h2>
+            <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2">
+              {publicPromotions.map((promo) => {
+                const discountStr =
+                  promo.type === 'percentage'
+                    ? `${promo.discountValue}% ${t('OFF')}`
+                    : `${formatPrice(promo.discountValue)} ${t('OFF')}`;
+                const firstCode = promo.codes[0]?.code;
+                return (
+                  <div key={promo.id} className="shrink-0">
+                    <PromoCard
+                      title={t('Special Offer')}
+                      discount={discountStr}
+                      description={promo.description ?? undefined}
+                      code={firstCode}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Category pills + search — mobile/tablet only */}
         <div className="sticky top-0 z-10 bg-bg/95 backdrop-blur-sm border-b border-border lg:hidden">
           {searchOpen ? (
             <>
-              <div className="flex items-center gap-2 px-4 min-h-[48px]">
+              <div className="flex items-center gap-2 px-4 min-h-[var(--hit-md)]">
                 <Search className="h-5 w-5 text-text-tertiary shrink-0" />
                 <div className="relative flex-1">
                   <input
@@ -920,7 +938,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                     <button
                       type="button"
                       onClick={() => setSearchQuery('')}
-                      className="absolute right-0 top-1/2 -translate-y-1/2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-bg-muted text-text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                      className="absolute right-0 top-1/2 -translate-y-1/2 min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] flex items-center justify-center rounded-full hover:bg-bg-muted text-text-tertiary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                       aria-label={t('Clear search')}
                     >
                       <X className="h-4 w-4" />
@@ -943,7 +961,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                     <button
                       type="button"
                       onClick={clearSearchHistory}
-                      className="text-xs text-primary hover:text-primary-hover font-medium min-h-[44px] min-w-[44px] flex items-center justify-center"
+                      className="text-xs text-primary hover:text-primary-hover font-medium min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] flex items-center justify-center"
                     >
                       {t('Clear')}
                     </button>
@@ -989,7 +1007,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
               <button
                 type="button"
                 onClick={() => setSearchOpen(true)}
-                className="shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-bg-muted text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="shrink-0 min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] flex items-center justify-center rounded-full hover:bg-bg-muted text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 aria-label={t('Search menu')}
               >
                 <Search className="h-5 w-5" />
@@ -1000,7 +1018,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                   type="button"
                   onClick={() => setAllergenFilterOpen((p) => !p)}
                   className={[
-                    'shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                    'shrink-0 min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] flex items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
                     hiddenAllergens.size > 0
                       ? 'text-danger bg-danger-light relative'
                       : 'text-text-secondary hover:bg-bg-muted',
@@ -1019,7 +1037,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
               <button
                 type="button"
                 onClick={toggleTheme}
-                className="shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-bg-muted text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="shrink-0 min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] flex items-center justify-center rounded-full hover:bg-bg-muted text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 aria-label={theme === 'light' ? t('Switch to dark mode') : t('Switch to light mode')}
               >
                 {theme === 'light' ? (
@@ -1046,7 +1064,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                   <button
                     type="button"
                     onClick={() => setHiddenAllergens(new Set())}
-                    className="text-xs text-primary hover:text-primary-hover font-medium min-h-[44px] min-w-[44px] flex items-center justify-center"
+                    className="text-xs text-primary hover:text-primary-hover font-medium min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] flex items-center justify-center"
                   >
                     {t('Clear All')}
                   </button>
@@ -1061,7 +1079,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                       type="button"
                       onClick={() => toggleAllergenFilter(allergen)}
                       className={[
-                        'min-h-[44px] px-3 py-1 rounded-full text-xs font-medium border transition-colors',
+                        'min-h-[var(--hit-sm)] px-3 py-1 rounded-full text-xs font-medium border transition-colors',
                         isHidden
                           ? 'bg-danger text-text-inverse border-danger'
                           : 'bg-bg-muted text-text-secondary border-border hover:border-border-strong',
@@ -1183,7 +1201,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
         <button
           type="button"
           onClick={scrollToTop}
-          className="fixed bottom-20 right-4 lg:bottom-4 lg:right-8 z-30 min-h-[48px] min-w-[48px] h-14 w-14 flex items-center justify-center rounded-full bg-primary text-text-inverse shadow-lg hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          className="fixed bottom-20 right-4 lg:bottom-4 lg:right-8 z-30 min-h-[var(--hit-md)] min-w-[var(--hit-md)] h-14 w-14 flex items-center justify-center rounded-full bg-primary text-text-inverse shadow-lg hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           aria-label={t('Back to top')}
         >
           <ArrowUp className="h-6 w-6" />

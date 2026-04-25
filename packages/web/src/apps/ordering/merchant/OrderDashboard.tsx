@@ -147,7 +147,7 @@ function TableStatusPanel({ tenantSlug }: { tenantSlug: string }) {
       <button
         type="button"
         onClick={() => setOpen((p) => !p)}
-        className="w-full text-left min-h-[48px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+        className="w-full text-left min-h-[var(--hit-md)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
       >
         <CardContent className="flex items-center justify-between gap-3 py-3">
           <div className="flex items-center gap-2">
@@ -246,7 +246,7 @@ function WaiterCallBanner({ tenantSlug }: { tenantSlug: string }) {
                 variant="secondary"
                 onClick={() => handleAck(call.id, call.tableNumber)}
                 loading={acknowledge.isPending && acknowledge.variables === call.id}
-                className="min-h-[44px] border-success/30"
+                className="min-h-[var(--hit-sm)] border-success/30"
               >
                 {t('Table')} {call.tableNumber} — {t('Bill Ready')}
               </Button>
@@ -270,7 +270,7 @@ function WaiterCallBanner({ tenantSlug }: { tenantSlug: string }) {
                 variant="secondary"
                 onClick={() => handleAck(call.id, call.tableNumber)}
                 loading={acknowledge.isPending && acknowledge.variables === call.id}
-                className="min-h-[44px]"
+                className="min-h-[var(--hit-sm)]"
               >
                 {t('Table')} {call.tableNumber} — {t('Acknowledge')}
               </Button>
@@ -337,7 +337,7 @@ function PaymentMethodSelect({
           setOpen((prev) => !prev);
         }}
         loading={isPending}
-        className="min-h-[44px]"
+        className="min-h-[var(--hit-sm)]"
       >
         <CreditCard className="h-3.5 w-3.5 mr-1" />
         {t('Mark Paid')}
@@ -506,7 +506,7 @@ function DiscountOverridePopover({
           e.stopPropagation();
           setOpen((prev) => !prev);
         }}
-        className="min-h-[44px]"
+        className="min-h-[var(--hit-sm)]"
       >
         <Tag className="h-3.5 w-3.5 mr-1" />
         {t('Discount')}
@@ -629,7 +629,7 @@ function SplitPaymentPanel({
           setOpen(true);
           setAmount(String(remaining > 0 ? remaining.toFixed(2) : order.total.toFixed(2)));
         }}
-        className="min-h-[44px]"
+        className="min-h-[var(--hit-sm)]"
       >
         <Split className="h-3.5 w-3.5 mr-1" />
         {t('Split Payment')}
@@ -803,7 +803,7 @@ function OrderCard({
       <button
         type="button"
         onClick={() => setExpanded(!expanded)}
-        className="w-full text-left min-h-[48px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+        className="w-full text-left min-h-[var(--hit-md)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
       >
         <CardContent className="flex items-center justify-between gap-3 sm:gap-4 py-4">
           <div className="flex items-center gap-3 sm:gap-4 min-w-0">
@@ -921,7 +921,7 @@ function OrderCard({
                                 onHandleCancellation(order.id, item.id, 'approve');
                               }}
                               disabled={isCancellationPending}
-                              className="min-h-[44px]"
+                              className="min-h-[var(--hit-sm)]"
                             >
                               {t('Accept Cancel')}
                             </Button>
@@ -933,7 +933,7 @@ function OrderCard({
                                 onHandleCancellation(order.id, item.id, 'reject');
                               }}
                               disabled={isCancellationPending}
-                              className="min-h-[44px]"
+                              className="min-h-[var(--hit-sm)]"
                             >
                               {t('Reject')}
                             </Button>
@@ -1030,7 +1030,7 @@ function OrderCard({
                       loading={isUpdating}
                       disabled={(order.paymentStatus ?? 'unpaid') === 'paid'}
                       title={(order.paymentStatus ?? 'unpaid') === 'paid' ? 'Order is paid. Contact a manager to modify.' : undefined}
-                      className="min-h-[44px]"
+                      className="min-h-[var(--hit-sm)]"
                     >
                       {t(nextLabel)}
                     </Button>
@@ -1062,7 +1062,7 @@ function OrderCard({
                         onUpdatePaymentStatus(order.id, 'refunded');
                       }}
                       loading={isPaymentUpdating}
-                      className="min-h-[44px]"
+                      className="min-h-[var(--hit-sm)]"
                     >
                       {t('Refund')}
                     </Button>
@@ -1076,7 +1076,7 @@ function OrderCard({
                       e.stopPropagation();
                       printReceipt(order, tenantName, t);
                     }}
-                    className="min-h-[44px]"
+                    className="min-h-[var(--hit-sm)]"
                   >
                     <Printer className="h-3.5 w-3.5 mr-1" />
                     {t('Print')}
@@ -1098,7 +1098,7 @@ function OrderCard({
                       onConfirm={() => onUpdateStatus(order.id, 'cancelled')}
                       confirmText={t('Cancel this order?')}
                       disabled={isUpdating}
-                      className="min-h-[44px]"
+                      className="min-h-[var(--hit-sm)]"
                     >
                       {t('Cancel Order')}
                     </ConfirmButton>

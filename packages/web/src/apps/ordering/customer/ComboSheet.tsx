@@ -4,8 +4,8 @@ import { X, Plus, Minus } from 'lucide-react';
 import { Badge, Button } from '@web/components/ui';
 import { useT } from '@web/lib/i18n';
 import { formatPrice, formatPriceDelta } from '@web/lib/format';
-import { useCart } from '@web/apps/ordering/customer/CartProvider';
-import type { CartItemModifier } from '@web/apps/ordering/customer/CartProvider';
+import { useCart } from '@web/apps/ordering/customer/CartContext';
+import type { CartItemModifier } from '@web/apps/ordering/customer/CartContext';
 import type { ComboDeal, ComboSlot, ModifierGroup, ModifierOption } from '@web/apps/ordering/types';
 
 interface ComboSheetProps {
@@ -324,7 +324,7 @@ export function ComboSheet({ combo, onClose }: ComboSheetProps) {
           <button
             type="button"
             onClick={onClose}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            className="min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] flex items-center justify-center rounded-full text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             aria-label={t('Close')}
           >
             <X className="h-6 w-6" />
@@ -443,7 +443,7 @@ function SlotSelection({
                 type="button"
                 onClick={() => onSelect(slot.id, option.menuItemId)}
                 className={[
-                  'w-full flex items-center justify-between px-4 py-3 min-h-[48px] rounded-lg border text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]',
+                  'w-full flex items-center justify-between px-4 py-3 min-h-[var(--hit-md)] rounded-lg border text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]',
                   isSelected
                     ? 'border-primary bg-primary/5'
                     : 'border-border hover:bg-bg-muted',
@@ -517,7 +517,7 @@ function SlotSelection({
                                   }
                                   disabled={isDisabled}
                                   className={[
-                                    'w-full flex items-center justify-between px-4 py-2.5 min-h-[48px] rounded-lg border text-left transition-colors text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]',
+                                    'w-full flex items-center justify-between px-4 py-2.5 min-h-[var(--hit-md)] rounded-lg border text-left transition-colors text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]',
                                     isModSelected
                                       ? 'border-primary bg-primary/5'
                                       : 'border-border hover:bg-bg-muted',

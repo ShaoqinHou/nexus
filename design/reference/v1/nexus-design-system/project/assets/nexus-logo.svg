@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 48" width="220" height="48" fill="none">
+  
+  <rect x="0" y="4" width="40" height="40" rx="11" fill="currentColor"></rect>
+  <g stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M12 33V15"></path>
+    <path d="M28 33V15"></path>
+    <path d="M12 15L28 33"></path>
+  </g>
+  
+  <text x="52" y="32" font-family="Inter, system-ui, sans-serif" font-weight="650" font-size="24" fill="currentColor" letter-spacing="-0.02em">nexus</text>
+</svg>

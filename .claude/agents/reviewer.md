@@ -32,11 +32,17 @@ ONE file: `.claude/workflow/scratch/review-<sha>.md`. Write it exactly once.
 | `packages/web/src/apps/*/customer/*.tsx` | Same as merchant + S-CART-SESSION-STORAGE (ordering only) |
 | `packages/web/src/apps/*/hooks/*.ts` | S-TANSTACK-QUERY, S-QUERY-KEY-FACTORY |
 | `packages/web/src/apps/*/index.ts` | S-APP-REGISTRATION, S-LAZY-ROUTES |
-| `packages/web/src/components/ui/*.tsx` | S-IMPORT-BOUNDARIES-UI (no apps/ or platform/), S-NO-HARDCODE-COLORS, S-SEMANTIC-TOKENS, S-DARK-MODE, S-REACT-FUNCTIONAL |
-| `packages/web/src/components/patterns/*.tsx` | S-IMPORT-BOUNDARIES-UI (no apps/ or platform/ at pattern level too), S-NO-HARDCODE-COLORS, S-SHARED-UI-PRIMITIVES |
+| `packages/web/src/components/ui/*.tsx` | S-IMPORT-BOUNDARIES-UI (no apps/ or platform/), S-NO-HARDCODE-COLORS, S-SEMANTIC-TOKENS, S-DARK-MODE, S-REACT-FUNCTIONAL, S-REGISTRY-ENTRY, S-ZOO-PAGE, S-HIT-TARGET-TOKEN |
+| `packages/web/src/components/patterns/*.tsx` | S-IMPORT-BOUNDARIES-UI (no apps/ or platform/ at pattern level too), S-NO-HARDCODE-COLORS, S-SHARED-UI-PRIMITIVES, S-REGISTRY-ENTRY, S-ZOO-PAGE |
+| `packages/web/src/components/registry.json` | S-REGISTRY-ENTRY (every entry points to an existing file; every file has an entry) |
+| `packages/web/src/routes/__design/*.tsx` | S-ZOO-PAGE (imports from real source, does not copy; dev-only via `import.meta.env.DEV` guard) |
+| `packages/web/src/platform/theme/tokens.css` | S-NO-HARDCODE-COLORS exempt (this IS the token-definition file). S-HIT-TARGET-TOKEN: verify `--hit-sm/md/lg` present. |
+| `packages/web/src/platform/theme/themes/*.css` | S-THEMED-COMPONENT (must not override semantic tokens — success/danger/warning/info stay stable across themes) |
+| `packages/web/src/assets/dietary-icons.svg` | S-DIETARY-SPRITE (sprite must contain the canonical dietary/spice/promo symbol IDs) |
 | `packages/web/src/platform/*.tsx` | S-AUTH-CONTEXT-SINGLE, S-NO-HARDCODE-COLORS |
 | `packages/web/src/**/__tests__/*.test.tsx` | S-CONCRETE-ASSERTIONS, S-TESTS-L2 |
 | `packages/web/src/lib/i18n/**/*.json` | S-I18N-5-LOCALES (new keys present in all 5 files) |
+| `design/reference/**` | S-DESIGN-REFERENCE — ANY change to an existing `v<N>/` folder is a BLOCK unless the commit message contains `Design-Bump: v<N>→v<M>` trailer. New version folders are expected; edits to existing ones are not. |
 | `.claude/**`, `*.md`, `*.snap` | Skip review — docs / meta |
 
 Refer to the full rules in `.claude/rules/` for nuance. `standards.md` has the grep-level detection recipe for each standard.
@@ -106,6 +112,10 @@ These are the highest-signal checks — spend most of your attention here:
 5. **i18n coverage.** Static English JSX text, `placeholder="..."`, `aria-label="..."` without `t()` = BLOCK.
 6. **Import boundaries.** Cross-app, cross-module, UI→apps imports = BLOCK.
 7. **Test coverage.** New service function without unit test = WARN. New module without tenant-isolation test = BLOCK.
+8. **Design-reference immutability.** Any edit to `design/reference/v<N>/` files without a `Design-Bump:` trailer = BLOCK. The bundle is the read-only spec.
+9. **Registry + zoo coverage.** New file in `components/ui/` or `components/patterns/` without a matching `registry.json` entry = WARN. Missing `routes/__design/<name>.tsx` zoo page = WARN. The zoo must `import` from the real component, never inline-redefine it (BLOCK if it does).
+10. **Iconography.** Emoji or unicode glyph used as an icon in `apps/`/`components/` JSX = BLOCK (exempt: the ` · ` middle dot between status fragments on the customer hero). Icon library other than `lucide-react` = BLOCK. Dietary/spice/promo rendered without the `dietary-icons.svg` sprite = WARN.
+11. **Theme layer purity.** A theme CSS file in `platform/theme/themes/` that overrides semantic tokens (`--color-success|--color-danger|--color-warning|--color-info`) = BLOCK. Semantic meaning is stable across all themes.
 
 ## Constraints
 

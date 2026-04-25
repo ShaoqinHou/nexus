@@ -65,6 +65,7 @@ import {
   getStatusBreakdown,
   getDailySummary,
   getOrdersForExport,
+  getPublicPromotions,
   getOrdersBySessionId,
   getTableStatuses,
   upsertTableStatus,
@@ -677,20 +678,32 @@ export function staffOrderingRoutes(db: DrizzleDB) {
       return c.json({ error: result.error }, 400);
     }
 
-    // Auto-translate (fire-and-forget). Combo slots are NOT translated in this pass.
+    // Auto-translate combo deal fields and all slot names (fire-and-forget).
     try {
-      const fields: Record<string, string> = {};
-      if (result.data.name) fields.name = result.data.name;
-      if (result.data.description) fields.description = result.data.description;
-      if (Object.keys(fields).length > 0) {
+      const dealFields: Record<string, string> = {};
+      if (result.data.name) dealFields.name = result.data.name;
+      if (result.data.description) dealFields.description = result.data.description;
+      if (Object.keys(dealFields).length > 0) {
         await autoTranslateEntity(
           db,
           tenantId,
           'combo_deal',
           result.data.id,
-          fields,
+          dealFields,
           'combo deal',
         );
+      }
+      for (const slot of result.data.slots) {
+        if (slot.name) {
+          await autoTranslateEntity(
+            db,
+            tenantId,
+            'combo_slot',
+            slot.id,
+            { name: slot.name },
+            'combo slot',
+          );
+        }
       }
     } catch (err) {
       console.error(
@@ -711,21 +724,37 @@ export function staffOrderingRoutes(db: DrizzleDB) {
       return c.json({ error: result.error }, 404);
     }
 
-    // Auto-translate if name or description changed
+    // Auto-translate combo deal fields and slot names when changed (fire-and-forget).
     try {
-      const fields: Record<string, string> = {};
-      if (body.name && result.data.name) fields.name = result.data.name;
+      const dealFields: Record<string, string> = {};
+      if (body.name && result.data.name) dealFields.name = result.data.name;
       if (body.description !== undefined && result.data.description)
-        fields.description = result.data.description;
-      if (Object.keys(fields).length > 0) {
+        dealFields.description = result.data.description;
+      if (Object.keys(dealFields).length > 0) {
         await autoTranslateEntity(
           db,
           tenantId,
           'combo_deal',
           result.data.id,
-          fields,
+          dealFields,
           'combo deal',
         );
+      }
+      // Translate new slot names when slots are replaced via update.
+      if (body.slots && 'slots' in result.data) {
+        const slots = (result.data as { slots: Array<{ id: string; name: string }> }).slots;
+        for (const slot of slots) {
+          if (slot.name) {
+            await autoTranslateEntity(
+              db,
+              tenantId,
+              'combo_slot',
+              slot.id,
+              { name: slot.name },
+              'combo slot',
+            );
+          }
+        }
       }
     } catch (err) {
       console.error(
@@ -1491,6 +1520,13 @@ export function customerOrderingRoutes(db: DrizzleDB) {
     return c.json({ data: menu });
   });
 
+  // Public active promotions — no session required, filters by date range
+  router.get('/promotions', (c) => {
+    const tenantId = c.var.tenantId;
+    const promos = getPublicPromotions(db, tenantId);
+    return c.json({ data: promos });
+  });
+
   // Validate promo code — public, no session required
   // Rate limiting: max 5 attempts per IP per minute
   const promoAttempts = new Map<string, { count: number; resetAt: number }>();
@@ -1640,16 +1676,25 @@ export function customerOrderingRoutes(db: DrizzleDB) {
     return c.json({ data: result.data }, 201);
   });
 
-  // Get order by ID — for status polling
-  router.get('/orders/:id', (c) => {
-    const tenantId = c.var.tenantId;
-    const orderId = c.req.param('id');
-    const order = getOrder(db, tenantId, orderId);
-    if (!order) {
-      return c.json({ error: 'Order not found' }, 404);
+  // Get order by ID — for status polling; requires the customer session that placed the order
+  router.get(
+    '/orders/:id',
+    sessionMiddleware(db) as unknown as MiddlewareHandler<TenantEnv>,
+    (c) => {
+      const tenantId = c.var.tenantId;
+      const orderId = c.req.param('id');
+      const session = (c.var as unknown as CustomerEnv['Variables']).session;
+      const order = getOrder(db, tenantId, orderId);
+      if (!order) {
+        return c.json({ error: 'Order not found' }, 404);
+      }
+      // Verify the session owns this order — return 404 to avoid leaking order existence
+      if (order.sessionId !== session.id) {
+        return c.json({ error: 'Order not found' }, 404);
+      }
+      return c.json({ data: order });
     }
-    return c.json({ data: order });
-  });
+  );
 
   // --- Order Modifications (Customer) ---
 

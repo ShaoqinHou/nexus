@@ -12,7 +12,7 @@ import {
 import { formatPrice } from '@web/lib/format';
 import { Button, Badge } from '@web/components/ui';
 import { useT } from '@web/lib/i18n';
-import { useCart } from '@web/apps/ordering/customer/CartProvider';
+import { useCart } from '@web/apps/ordering/customer/CartContext';
 import { useCartOrder } from '@web/apps/ordering/customer/useCartOrder';
 import type { Order } from '@web/apps/ordering/types';
 
@@ -196,7 +196,7 @@ export function CartSidebar({
                       )
                     }
                     className={[
-                      'min-h-[44px] min-w-[44px] flex items-center justify-center rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+                      'min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] flex items-center justify-center rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
                       item.notes
                         ? 'text-primary'
                         : 'text-text-tertiary hover:text-text-secondary',
@@ -208,7 +208,7 @@ export function CartSidebar({
                   <button
                     type="button"
                     onClick={() => removeItem(index)}
-                    className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded text-text-tertiary hover:text-danger hover:bg-danger/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                    className="min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] flex items-center justify-center rounded text-text-tertiary hover:text-danger hover:bg-danger/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                     aria-label={`Remove ${item.name} from cart`}
                   >
                     <Trash2 className="h-5 w-5" />
@@ -281,7 +281,7 @@ export function CartSidebar({
               <button
                 type="button"
                 onClick={handleRemovePromo}
-                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded text-text-tertiary hover:text-danger hover:bg-danger/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                className="min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] flex items-center justify-center rounded text-text-tertiary hover:text-danger hover:bg-danger/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                 aria-label={t('Remove promo code')}
               >
                 <X className="h-4 w-4" />

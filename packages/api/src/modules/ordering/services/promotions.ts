@@ -1,4 +1,4 @@
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, or, isNull, lte, gte } from 'drizzle-orm';
 import { promotions, promoCodes } from '../../../db/schema.js';
 import type { DrizzleDB } from '../../../db/client.js';
 import type { Promotion, PromotionType } from '../../../db/schema.js';
@@ -278,6 +278,44 @@ export function validatePromoCode(
       promoCode: { id: promoCode.id, code: promoCode.code },
     },
   };
+}
+
+/**
+ * Returns active, non-expired promotions for a tenant along with their promo codes.
+ * Used by the customer-facing menu view — no auth required.
+ */
+export function getPublicPromotions(db: DrizzleDB, tenantId: string) {
+  const now = new Date().toISOString();
+
+  const promoList = db
+    .select()
+    .from(promotions)
+    .where(
+      and(
+        eq(promotions.tenantId, tenantId),
+        eq(promotions.isActive, 1),
+        lte(promotions.startsAt, now),
+        or(isNull(promotions.endsAt), gte(promotions.endsAt, now))
+      )
+    )
+    .orderBy(desc(promotions.createdAt))
+    .all();
+
+  return promoList.map((promo) => {
+    const codes = db
+      .select()
+      .from(promoCodes)
+      .where(
+        and(
+          eq(promoCodes.promotionId, promo.id),
+          eq(promoCodes.tenantId, tenantId),
+          eq(promoCodes.isActive, 1)
+        )
+      )
+      .all();
+
+    return { ...promo, codes };
+  });
 }
 
 export function applyPromotion(

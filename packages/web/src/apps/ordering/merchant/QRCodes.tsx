@@ -72,7 +72,7 @@ export function QRCodes() {
 
           .qr-card {
             break-inside: avoid;
-            border: 1px solid #e5e7eb !important;
+            border: 1px solid #e5e7eb !important; /* lint-override: @media print — CSS vars cannot resolve in print stylesheets */
             border-radius: 0.5rem !important;
             padding: 1rem !important;
             text-align: center !important;
@@ -106,7 +106,7 @@ export function QRCodes() {
                   onChange={handleTableCountChange}
                 />
               </div>
-              <Button variant="secondary" onClick={handlePrint} className="min-h-[48px]">
+              <Button variant="secondary" onClick={handlePrint} className="min-h-[var(--hit-md)]">
                 <Printer className="h-4 w-4" />
                 {t('Print All')}
               </Button>

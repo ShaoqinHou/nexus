@@ -18,6 +18,36 @@
 
 set -uo pipefail
 
+# WORKTREE CWD GUARD
+# Claude Code invokes hooks with the shell's current working directory, which
+# resets between Bash calls. When a hook fires during a worktree-based session
+# (e.g. a Fixer agent running in .claude/worktrees/<name>/), the cwd is the
+# worktree root — a sparse checkout that has only a .git file, not the full
+# project tree. The relative path "bash .claude/hooks/commit-review.sh" then
+# resolves against that sparse dir and fails with "No such file".
+#
+# Fix: re-anchor to the project root via the git common-dir. In a linked
+# worktree, `git rev-parse --git-common-dir` returns an absolute path like
+#   /path/to/repo/.git/worktrees/<name>
+# Running show-toplevel from that dir resolves to the main repo root.
+#
+# Fallback hierarchy:
+#   1. $CLAUDE_PROJECT_DIR  (set by Claude Code in some invocation modes)
+#   2. git common-dir -> show-toplevel -> cd to project root
+#   3. Stay in the current dir (legacy / non-git scenarios)
+if [ -n "${CLAUDE_PROJECT_DIR:-}" ] && [ -d "$CLAUDE_PROJECT_DIR" ]; then
+  cd "$CLAUDE_PROJECT_DIR"
+else
+  _GIT_COMMON=$(git rev-parse --git-common-dir 2>/dev/null || echo "")
+  if [ -n "$_GIT_COMMON" ] && [ "$_GIT_COMMON" != ".git" ]; then
+    # --git-common-dir returns absolute path when in a linked worktree
+    _GIT_ROOT=$(cd "$_GIT_COMMON" 2>/dev/null && git rev-parse --show-toplevel 2>/dev/null || echo "")
+    if [ -n "$_GIT_ROOT" ] && [ -d "$_GIT_ROOT" ]; then
+      cd "$_GIT_ROOT"
+    fi
+  fi
+fi
+
 SCRATCH_DIR=".claude/workflow/scratch"
 mkdir -p "$SCRATCH_DIR" 2>/dev/null || exit 0
 

@@ -4,7 +4,7 @@ import { apiClient } from '@web/lib/api';
 import { formatPrice } from '@web/lib/format';
 import { useToast } from '@web/platform/ToastProvider';
 import { useT } from '@web/lib/i18n';
-import { useCart } from '@web/apps/ordering/customer/CartProvider';
+import { useCart } from '@web/apps/ordering/customer/CartContext';
 import { useValidatePromoCode } from '@web/apps/ordering/hooks/usePromotions';
 import type { Order } from '@web/apps/ordering/types';
 

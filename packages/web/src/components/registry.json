@@ -1,0 +1,390 @@
+{
+  "$schema": "nexus-component-registry/v1",
+  "description": "Machine-readable index of every UI primitive and pattern in @web/components. Agents grep this before inventing new components. Keep in sync with components/ui/*.tsx and components/patterns/*.tsx — a file without an entry here is invisible to the design review loop (S-REGISTRY-ENTRY).",
+  "conventions": {
+    "tokensUsed": "CSS custom property names the component reads (via Tailwind or inline). Excludes theme-agnostic sizing/spacing.",
+    "dependencies": "External npm packages the component imports. Excludes React and @web/lib.",
+    "zooRoute": "Path under /design/* where this component is showcased. Each primitive/pattern MUST have a route per S-ZOO-PAGE.",
+    "propsShape": "Human-readable summary of the React prop surface. Not a JSON Schema — an index, not a validator."
+  },
+  "primitives": [
+    {
+      "name": "Button",
+      "path": "packages/web/src/components/ui/Button.tsx",
+      "kind": "ui",
+      "purpose": "Primary action control with four variants and three token-sized touch targets.",
+      "propsShape": {
+        "variant": "'primary' | 'secondary' | 'destructive' | 'ghost'",
+        "size": "'sm' | 'md' | 'lg' (44/48/52px hit targets)",
+        "loading": "boolean (shows Loader2 spinner, disables click)",
+        "children": "ReactNode",
+        "...": "native ButtonHTMLAttributes"
+      },
+      "tokensUsed": ["--color-primary", "--color-primary-hover", "--color-bg-surface", "--color-bg-muted", "--color-border", "--color-text", "--color-text-inverse", "--color-danger", "--color-danger-hover", "--hit-sm", "--hit-md", "--hit-lg"],
+      "dependencies": ["lucide-react"],
+      "zooRoute": "/design/button"
+    },
+    {
+      "name": "Badge",
+      "path": "packages/web/src/components/ui/Badge.tsx",
+      "kind": "ui",
+      "purpose": "Small status label; rounded-full pill. Exports BadgeVariant type.",
+      "propsShape": {
+        "variant": "'default' | 'success' | 'warning' | 'error' | 'info'",
+        "children": "ReactNode"
+      },
+      "tokensUsed": ["--color-success", "--color-success-light", "--color-warning", "--color-warning-light", "--color-danger", "--color-danger-light", "--color-info", "--color-info-light", "--color-bg-muted", "--radius-full"],
+      "dependencies": [],
+      "zooRoute": "/design/badge"
+    },
+    {
+      "name": "Card",
+      "path": "packages/web/src/components/ui/Card.tsx",
+      "kind": "ui",
+      "purpose": "Elevated content container. Composition: CardHeader + CardTitle + CardContent + CardFooter.",
+      "propsShape": {
+        "children": "ReactNode",
+        "className": "string (pass-through)"
+      },
+      "exports": ["Card", "CardHeader", "CardTitle", "CardContent", "CardFooter"],
+      "tokensUsed": ["--color-bg-elevated", "--color-border", "--shadow-sm", "--radius-lg"],
+      "dependencies": [],
+      "zooRoute": "/design/card"
+    },
+    {
+      "name": "Dialog",
+      "path": "packages/web/src/components/ui/Dialog.tsx",
+      "kind": "ui",
+      "purpose": "Modal dialog with overlay, title, optional footer. z-50 budget.",
+      "propsShape": {
+        "open": "boolean",
+        "onClose": "() => void",
+        "title": "string",
+        "footer": "ReactNode (optional)",
+        "children": "ReactNode"
+      },
+      "tokensUsed": ["--color-bg-elevated", "--color-border", "--shadow-md", "--radius-lg"],
+      "dependencies": ["lucide-react"],
+      "zooRoute": "/design/dialog"
+    },
+    {
+      "name": "Input",
+      "path": "packages/web/src/components/ui/Input.tsx",
+      "kind": "ui",
+      "purpose": "Text input with label, error, helperText slots. Focus ring tied to --color-primary.",
+      "propsShape": {
+        "label": "string (optional)",
+        "error": "string (optional — swaps ring to --color-danger)",
+        "helperText": "string (optional)",
+        "...": "native InputHTMLAttributes"
+      },
+      "tokensUsed": ["--color-bg-elevated", "--color-border", "--color-border-strong", "--color-primary", "--color-primary-light", "--color-danger", "--color-text", "--color-text-secondary", "--radius-md"],
+      "dependencies": [],
+      "zooRoute": "/design/input"
+    },
+    {
+      "name": "Toggle",
+      "path": "packages/web/src/components/ui/Toggle.tsx",
+      "kind": "ui",
+      "purpose": "Boolean switch. 200ms slide animation. ON uses --color-primary.",
+      "propsShape": {
+        "checked": "boolean",
+        "onChange": "(checked: boolean) => void",
+        "label": "string (optional)",
+        "disabled": "boolean"
+      },
+      "tokensUsed": ["--color-primary", "--color-border-strong", "--color-bg-elevated", "--shadow-sm"],
+      "dependencies": [],
+      "zooRoute": "/design/toggle"
+    },
+    {
+      "name": "Select",
+      "path": "packages/web/src/components/ui/Select.tsx",
+      "kind": "ui",
+      "purpose": "Dropdown with options array. Keyboard navigable. z-20 menu.",
+      "propsShape": {
+        "options": "Array<{ value: string; label: string }>",
+        "value": "string",
+        "onChange": "(value: string) => void",
+        "placeholder": "string"
+      },
+      "tokensUsed": ["--color-bg-elevated", "--color-border", "--color-text", "--color-bg-muted", "--color-primary"],
+      "dependencies": ["lucide-react"],
+      "zooRoute": "/design/select"
+    },
+    {
+      "name": "ImageUpload",
+      "path": "packages/web/src/components/ui/ImageUpload.tsx",
+      "kind": "ui",
+      "purpose": "Drag-drop image upload with progress indicator, preview, and remove. Calls API client directly (internal i18n + api lib import).",
+      "propsShape": {
+        "value": "string | null (current image URL)",
+        "onChange": "(url: string | null) => void",
+        "maxSizeMB": "number (default 5)",
+        "accept": "string (default 'image/*')"
+      },
+      "tokensUsed": ["--color-bg-muted", "--color-border", "--color-primary", "--color-danger"],
+      "dependencies": ["lucide-react", "@web/lib/api", "@web/lib/i18n"],
+      "zooRoute": "/design/image-upload"
+    },
+    {
+      "name": "Toast",
+      "path": "packages/web/src/components/ui/Toast.tsx",
+      "kind": "ui",
+      "purpose": "Toast notification renderer. Mounted via ToastProvider + useToast(). Exports ToastContainer + ToastData type.",
+      "propsShape": {
+        "toasts": "ToastData[]",
+        "onDismiss": "(id: string) => void"
+      },
+      "exports": ["ToastContainer", "ToastData"],
+      "tokensUsed": ["--color-success", "--color-success-light", "--color-warning", "--color-warning-light", "--color-danger", "--color-danger-light", "--color-info", "--color-info-light", "--shadow-md"],
+      "dependencies": ["lucide-react"],
+      "zooRoute": "/design/toast"
+    },
+    {
+      "name": "TourOverlay",
+      "path": "packages/web/src/components/ui/TourOverlay.tsx",
+      "kind": "ui",
+      "purpose": "Onboarding step highlighter with spotlight hole + next/prev controls. Uses i18n for step text.",
+      "propsShape": {
+        "steps": "TourStep[]",
+        "onComplete": "() => void",
+        "onSkip": "() => void"
+      },
+      "tokensUsed": ["--color-primary", "--color-text-inverse", "--color-bg-elevated", "--shadow-lg"],
+      "dependencies": ["@web/lib/i18n"],
+      "zooRoute": "/design/tour-overlay"
+    },
+    {
+      "name": "LanguagePicker",
+      "path": "packages/web/src/components/ui/LanguagePicker.tsx",
+      "kind": "ui",
+      "purpose": "Locale switcher dropdown — cycles through en/zh/ja/ko/fr. Uses useT() hook to display localized names.",
+      "propsShape": {
+        "size": "'sm' | 'md' | 'lg' (optional)",
+        "variant": "'button' | 'minimal' (optional)"
+      },
+      "tokensUsed": ["--color-bg-muted", "--color-text", "--color-border"],
+      "dependencies": ["@web/lib/i18n", "lucide-react"],
+      "zooRoute": "/design/language-picker"
+    },
+    {
+      "name": "DietaryIcon",
+      "path": "packages/web/src/components/ui/DietaryIcon.tsx",
+      "kind": "ui",
+      "purpose": "The ONE sanctioned way to render dietary / allergen / spice / promo markers in Nexus UI. Emoji / unicode alternatives are banned (S-DIETARY-SPRITE).",
+      "propsShape": {
+        "name": "DietaryIconName (30 canonical symbol IDs)",
+        "size": "'sm' | 'md' | 'lg' → h-4/h-5/h-6",
+        "className": "string (pass-through — currentColor inherited)"
+      },
+      "exports": ["DietaryIcon", "DietaryIconName"],
+      "tokensUsed": [],
+      "dependencies": [],
+      "spriteAsset": "packages/web/public/dietary-icons.svg",
+      "zooRoute": "/design/dietary-icon"
+    }
+  ],
+  "patterns": [
+    {
+      "name": "DataTable",
+      "path": "packages/web/src/components/patterns/DataTable.tsx",
+      "kind": "pattern",
+      "purpose": "Sortable, filterable table with generic row typing. Header click toggles sort.",
+      "propsShape": {
+        "columns": "Column<T>[]",
+        "rows": "T[]",
+        "onRowClick": "(row: T) => void",
+        "emptyState": "ReactNode"
+      },
+      "tokensUsed": ["--color-border", "--color-bg-surface", "--color-bg-muted", "--color-text", "--color-text-secondary"],
+      "dependencies": ["lucide-react"],
+      "zooRoute": "/design/data-table"
+    },
+    {
+      "name": "FormField",
+      "path": "packages/web/src/components/patterns/FormField.tsx",
+      "kind": "pattern",
+      "purpose": "Label + input + error wrapper. Composes Input under a label with gap-1.5.",
+      "propsShape": {
+        "label": "string",
+        "error": "string (optional)",
+        "children": "ReactNode (the input/select)"
+      },
+      "tokensUsed": ["--color-text", "--color-danger"],
+      "dependencies": [],
+      "zooRoute": "/design/form-field"
+    },
+    {
+      "name": "StatusBadge",
+      "path": "packages/web/src/components/patterns/StatusBadge.tsx",
+      "kind": "pattern",
+      "purpose": "Order-status / generic-status badge that maps status enum to Badge variant + capitalized label.",
+      "propsShape": {
+        "status": "string (one of the status enums)",
+        "size": "'sm' | 'md' (optional)"
+      },
+      "tokensUsed": ["see Badge"],
+      "dependencies": [],
+      "zooRoute": "/design/status-badge"
+    },
+    {
+      "name": "EmptyState",
+      "path": "packages/web/src/components/patterns/EmptyState.tsx",
+      "kind": "pattern",
+      "purpose": "No-data placeholder. Icon → title → context → single CTA button.",
+      "propsShape": {
+        "icon": "Lucide icon component",
+        "title": "string",
+        "description": "string (optional)",
+        "action": "{ label: string; onClick: () => void } (optional)"
+      },
+      "tokensUsed": ["--color-text", "--color-text-secondary", "--color-bg-muted"],
+      "dependencies": ["lucide-react"],
+      "zooRoute": "/design/empty-state"
+    },
+    {
+      "name": "ConfirmButton",
+      "path": "packages/web/src/components/patterns/ConfirmButton.tsx",
+      "kind": "pattern",
+      "purpose": "Two-click destructive action with 3s auto-reset. S-CONFIRM-DESTRUCTIVE requires this for delete/cancel/remove actions.",
+      "propsShape": {
+        "onConfirm": "() => void",
+        "children": "ReactNode (the resting-state label)",
+        "confirmLabel": "string (the armed-state label)",
+        "variant": "'destructive' | 'primary'"
+      },
+      "tokensUsed": ["--color-danger", "--color-danger-hover"],
+      "dependencies": [],
+      "zooRoute": "/design/confirm-button"
+    },
+    {
+      "name": "ErrorBoundary",
+      "path": "packages/web/src/components/patterns/ErrorBoundary.tsx",
+      "kind": "pattern",
+      "purpose": "React error boundary fallback — catches thrown errors in a subtree and shows a recoverable message. Only class component in codebase (React API requires class).",
+      "propsShape": {
+        "children": "ReactNode",
+        "fallback": "ReactNode (optional, default shown)"
+      },
+      "tokensUsed": ["--color-danger", "--color-danger-light", "--color-text"],
+      "dependencies": ["lucide-react"],
+      "zooRoute": "/design/error-boundary",
+      "notes": "Not exported from patterns/index.ts barrel yet — consumers import directly by path."
+    },
+    {
+      "name": "PullToRefreshIndicator",
+      "path": "packages/web/src/components/patterns/PullToRefreshIndicator.tsx",
+      "kind": "pattern",
+      "purpose": "Mobile pull-to-refresh visual indicator. Shows loading spinner once pull distance exceeds threshold.",
+      "propsShape": {
+        "pullDistance": "number (pixels)",
+        "isRefreshing": "boolean",
+        "threshold": "number (default 60)"
+      },
+      "tokensUsed": ["--color-primary", "--color-bg-muted"],
+      "dependencies": ["lucide-react"],
+      "zooRoute": "/design/pull-to-refresh"
+    },
+    {
+      "name": "AddToCartToast",
+      "path": "packages/web/src/components/patterns/AddToCartToast.tsx",
+      "kind": "pattern",
+      "purpose": "Customer-flow confirmation pill — slides up briefly after an item is added to cart. Uses slide-up-fade keyframe.",
+      "propsShape": {
+        "itemName": "string",
+        "onDismiss": "() => void",
+        "visible": "boolean"
+      },
+      "tokensUsed": ["--color-success", "--color-text-inverse"],
+      "dependencies": ["lucide-react"],
+      "zooRoute": "/design/add-to-cart-toast"
+    },
+    {
+      "name": "OrderTracker",
+      "path": "packages/web/src/components/patterns/themed/OrderTracker.tsx",
+      "kind": "pattern",
+      "purpose": "Themed order status timeline. Horizontal step tracker with connector lines and pulsing active bubble. Supports dine-in (Received→Preparing→Ready→Served) and delivery (Received→Preparing→On the way→Delivered) modes. data-theme wrapper drives full theme cascade.",
+      "propsShape": {
+        "theme": "string (data-theme value; optional)",
+        "status": "'received' | 'preparing' | 'ready' | 'served' | 'on-way' | 'delivered'",
+        "type": "'dine-in' | 'delivery' (default: 'dine-in')",
+        "orderNumber": "string | number",
+        "eta": "string (e.g. '8 min'; defaults to type-based placeholder)"
+      },
+      "tokensUsed": ["--color-bg-elevated", "--color-border", "--color-primary", "--color-primary-light", "--color-bg-muted", "--color-text", "--color-text-tertiary", "--color-text-inverse", "--radius-card", "--radius-full", "--font-sans", "--font-display", "--font-display-weight"],
+      "dependencies": ["@web/lib/i18n"],
+      "zooRoute": "/design/order-tracker"
+    },
+    {
+      "name": "Receipt",
+      "path": "packages/web/src/components/patterns/themed/Receipt.tsx",
+      "kind": "pattern",
+      "purpose": "Themed visual receipt block for the customer confirmation screen (NOT a print template). Monospace font, dashed dividers, itemised line items, subtotal/tax/tip rows, bold total, and a thank-you footer. data-theme wrapper drives full theme cascade.",
+      "propsShape": {
+        "theme": "string (data-theme value; optional)",
+        "restaurantName": "string",
+        "orderNumber": "string | number",
+        "tableLabel": "string",
+        "placedAt": "string (ISO 8601)",
+        "items": "ReceiptLineItem[] — { name, quantity, unitPrice }",
+        "taxRate": "number (decimal, e.g. 0.0875; default 0)",
+        "tipRate": "number (decimal, e.g. 0.18; omit to hide tip row)"
+      },
+      "tokensUsed": ["--color-bg-elevated", "--color-border", "--color-border-strong", "--color-text", "--color-text-secondary", "--color-text-tertiary", "--radius-card", "--font-mono", "--font-display", "--font-display-weight", "--font-display-tracking"],
+      "dependencies": ["@web/lib/i18n"],
+      "zooRoute": "/design/receipt"
+    },
+    {
+      "name": "PromoCard",
+      "path": "packages/web/src/components/patterns/themed/PromoCard.tsx",
+      "kind": "pattern",
+      "purpose": "Themed promotion banner with primary-colour background, decorative accent circle, large discount headline, and mono-font promo-code chip. All props are optional — render any subset. data-theme wrapper drives full theme cascade.",
+      "propsShape": {
+        "theme": "string (data-theme value; optional)",
+        "title": "string (category label, e.g. 'Happy Hour')",
+        "discount": "string (headline, e.g. '25% OFF')",
+        "description": "string (supporting copy)",
+        "code": "string (promo code; omit to hide chip)"
+      },
+      "tokensUsed": ["--color-primary", "--color-text-inverse", "--color-accent", "--radius-card", "--radius-full", "--radius-chip", "--font-sans", "--font-display", "--font-display-weight", "--font-display-tracking", "--font-mono"],
+      "dependencies": ["@web/lib/i18n"],
+      "zooRoute": "/design/promo-card"
+    },
+    {
+      "name": "CheckoutSummary",
+      "path": "packages/web/src/components/patterns/themed/CheckoutSummary.tsx",
+      "kind": "pattern",
+      "purpose": "Themed cart/order summary block: itemised line items, divider, per-line cost breakdown (subtotal / delivery / tax), bold total, and a full-width place-order CTA that mirrors the total in its label. Display-only — pass onPlaceOrder for the mutation. data-theme wrapper drives full theme cascade.",
+      "propsShape": {
+        "theme": "string (data-theme value; optional)",
+        "items": "CheckoutLineItem[] — { name, quantity, unitPrice }",
+        "deliveryFee": "number (flat fee; 0 to hide row)",
+        "taxRate": "number (decimal, e.g. 0.0875; 0 to hide row)",
+        "onPlaceOrder": "() => void",
+        "loading": "boolean",
+        "ctaLabel": "string (override CTA text)"
+      },
+      "tokensUsed": ["--color-bg-elevated", "--color-border", "--color-bg-muted", "--color-text", "--color-text-secondary", "--color-primary", "--color-text-inverse", "--radius-card", "--radius-btn", "--font-sans", "--font-display", "--font-display-weight", "--font-mono"],
+      "dependencies": ["@web/lib/i18n"],
+      "zooRoute": "/design/checkout-summary"
+    }
+  ],
+  "tokens": {
+    "sourceFile": "packages/web/src/platform/theme/tokens.css",
+    "themeFile": "packages/web/src/platform/theme/themes.css",
+    "themes": [
+      "classic",
+      "trattoria",
+      "izakaya",
+      "bubble-tea",
+      "counter",
+      "taqueria",
+      "curry-house",
+      "sichuan",
+      "cantonese",
+      "wok"
+    ],
+    "referenceBundle": "design/reference/v1/nexus-design-system/"
+  }
+}

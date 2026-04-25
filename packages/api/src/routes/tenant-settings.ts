@@ -17,6 +17,7 @@ const updateSettingsSchema = z.object({
   brandColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Must be a valid hex color').optional(),
   logoUrl: z.string().url().optional().or(z.literal('')),
   coverImageUrl: z.string().url().optional().or(z.literal('')),
+  theme: z.string().optional().or(z.literal('')),
   preset: z.string().optional().or(z.literal('')),
   fontFamily: z.string().optional(),
   borderRadius: z.enum(['sharp', 'rounded', 'pill']).optional(),

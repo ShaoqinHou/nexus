@@ -1,0 +1,92 @@
+/* ============================================================
+   THEME: BUBBLE TEA
+   Playful, soft, sweet. Pastels + roundness everywhere.
+   Best for: bubble tea / boba shops, dessert cafes, ice cream,
+   Asian dessert chains, kids menus, brunch spots, anything
+   that wants to feel youthful and inviting.
+   ============================================================ */
+
+[data-theme="bubble-tea"] {
+  /* Surfaces — soft cream-pink */
+  --color-bg:          #fefaf5;  /* milk white */
+  --color-bg-surface:  #faf2ea;  /* condensed milk */
+  --color-bg-muted:    #f5e8dc;  /* oat */
+  --color-bg-elevated: #ffffff;
+  --color-bg-strong:   #2d1f1a;  /* tapioca dark */
+
+  /* Text — soft brown */
+  --color-text:           #3d2a24;  /* roasted bean */
+  --color-text-secondary: #7d6358;
+  --color-text-tertiary:  #a89386;
+  --color-text-inverse:   #fefaf5;
+
+  /* Borders — pale rose */
+  --color-border:        #f0dfd0;
+  --color-border-strong: #d9c0ac;
+
+  /* Brand — taro purple */
+  --color-brand:         #b87fc2;  /* taro */
+  --color-brand-hover:   #9c63a8;
+  --color-brand-light:   #f3e1f5;  /* pastel taro */
+  --color-primary:       var(--color-brand);
+  --color-primary-hover: var(--color-brand-hover);
+  --color-primary-light: var(--color-brand-light);
+
+  /* Accent — matcha green */
+  --color-accent:        #8fb87a;  /* matcha */
+  --color-accent-light:  #e3f0d7;
+
+  /* Semantic — softened */
+  --color-success:       #7ab87a;  /* matcha */
+  --color-success-light: #dff0d7;
+  --color-warning:       #e8a85a;  /* honey */
+  --color-warning-light: #fae8c8;
+  --color-danger:        #e07b7b;  /* strawberry */
+  --color-danger-light:  #fae0e0;
+  --color-info:          #7ab8c8;  /* sky milk */
+  --color-info-light:    #d7ecf2;
+
+  /* Type — friendly rounded sans */
+  --font-display: 'Fraunces', 'Quicksand', 'Inter', sans-serif;
+  --font-sans:    'Inter', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+  --font-display-weight: 600;
+  --font-display-tracking: -0.005em;
+
+  /* Radii — generously round */
+  --radius-sm:   8px;
+  --radius-md:   14px;
+  --radius-lg:   20px;
+  --radius-xl:   28px;
+  --radius-2xl:  36px;
+  --radius-full: 9999px;
+  --radius-card: var(--radius-xl);
+  --radius-btn:  var(--radius-full);
+  --radius-chip: var(--radius-full);
+
+  /* Shadows — soft pillows */
+  --shadow-sm: 0 2px 4px 0 rgb(180 120 100 / 0.08);
+  --shadow-md: 0 8px 18px -4px rgb(180 120 100 / 0.15);
+  --shadow-lg: 0 20px 40px -10px rgb(180 120 100 / 0.22);
+
+  --density-card-padding: 20px;
+  --density-row-gap:      14px;
+  --density-section-gap:  28px;
+
+  --theme-name: 'Bubble Tea';
+  --theme-vibe: 'Playful, soft, sweet';
+}
+
+[data-theme="bubble-tea"].dark {
+  --color-bg:          #1f1a1d;
+  --color-bg-surface:  #2a232a;
+  --color-bg-muted:    #382f38;
+  --color-bg-elevated: #2a232a;
+  --color-text:           #faf0f5;
+  --color-text-secondary: #c4a8c0;
+  --color-text-tertiary:  #8e7a8a;
+  --color-border:        #3d2f3a;
+  --color-border-strong: #5a4658;
+  --color-brand-light:   #3d2540;
+  --color-accent-light:  #1f3320;
+}

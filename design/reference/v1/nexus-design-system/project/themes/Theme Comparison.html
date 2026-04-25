@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Nexus Themes — Comparison Canvas</title>
+  <link rel="stylesheet" href="../colors_and_type.css" />
+  <link rel="stylesheet" href="../themes.css" />
+  <style>
+    body { margin: 0; background: #0f0f10; font-family: 'Inter', system-ui, sans-serif; }
+    .phone-frame {
+      width: 360px; height: 640px;
+      border-radius: 36px;
+      overflow: hidden;
+      background: var(--color-bg);
+      box-shadow: 0 0 0 12px #1c1c1f, 0 30px 60px rgb(0 0 0 / 0.35);
+      position: relative;
+    }
+    .phone-status {
+      position: absolute; top: 0; left: 0; right: 0; height: 32px;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0 24px; font-size: 12px; font-weight: 600;
+      color: var(--color-text);
+      z-index: 10;
+    }
+    .phone-content { position: absolute; inset: 32px 0 0 0; overflow: hidden; }
+    .theme-meta {
+      padding: 16px 8px 8px;
+      color: #fff;
+    }
+    .theme-meta .name {
+      font-size: 18px; font-weight: 600; margin-bottom: 2px;
+    }
+    .theme-meta .vibe {
+      font-size: 12px; color: rgba(255,255,255,0.55);
+    }
+    .theme-meta .swatches {
+      display: flex; gap: 6px; margin-top: 8px;
+    }
+    .theme-meta .sw {
+      width: 18px; height: 18px; border-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+  </style>
+</head>
+<body>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <div id="root"></div>
+
+  <script type="text/babel" src="design-canvas.jsx"></script>
+  <script type="text/babel" src="themed-menu.jsx"></script>
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    const THEMES = [
+      { id: 'classic',    name: 'Classic',    vibe: 'Clean · neutral · professional',   swatches: ['#ffffff', '#2563eb', '#f59e0b', '#111827'] },
+      { id: 'trattoria',  name: 'Trattoria',  vibe: 'Warm · hand-crafted · generous',   swatches: ['#faf6ef', '#c0532a', '#6b7d3a', '#2b1f17'] },
+      { id: 'izakaya',    name: 'Izakaya',    vibe: 'Dark · intimate · refined',         swatches: ['#1a1714', '#e89d3a', '#c44536', '#f5ede0'] },
+      { id: 'bubble-tea', name: 'Bubble Tea', vibe: 'Playful · soft · sweet',            swatches: ['#fefaf5', '#b87fc2', '#8fb87a', '#e07b7b'] },
+      { id: 'sichuan',    name: 'Sichuan',    vibe: 'Bold · hot · 川菜',                   swatches: ['#fbf6ee', '#b8262b', '#c89a3c', '#1a0e0a'] },
+      { id: 'cantonese',  name: 'Cantonese',  vibe: 'Tea house · dim sum · 烧腊',        swatches: ['#f7f3e9', '#1f6b4a', '#b68c3c', '#0f2419'] },
+      { id: 'wok',        name: 'Wok',        vibe: 'Chinese-American · franchise',      swatches: ['#ffffff', '#d62828', '#e5a52c', '#0d0605'] },
+      { id: 'counter',    name: 'Counter',    vibe: 'High-contrast · editorial',         swatches: ['#ffffff', '#ff2d20', '#0a0a0a', '#f5f500'] },
+      { id: 'taqueria',   name: 'Taqueria',   vibe: 'Warm · vibrant · street-food',      swatches: ['#fdf6e9', '#d94f2a', '#7a9a2a', '#2a1a0e'] },
+      { id: 'curry-house',name: 'Curry House',vibe: 'Spiced · jewel-toned · aromatic',  swatches: ['#fbf5e7', '#d97a1a', '#0f6a6a', '#1a0d1a'] },
+    ];
+
+    const PhoneFrame = ({ theme }) => (
+      <div data-theme={theme} className="phone-frame">
+        <div className="phone-status">
+          <span style={{fontFamily: 'var(--font-mono)'}}>9:41</span>
+          <span style={{display: 'flex', gap: 4, alignItems: 'center'}}>
+            <span style={{width: 14, height: 8, border: '1px solid currentColor', borderRadius: 2}}></span>
+          </span>
+        </div>
+        <div className="phone-content">
+          <ThemedMenu theme={theme} density="compact" />
+        </div>
+      </div>
+    );
+
+    const ThemeCard = ({ theme }) => (
+      <div>
+        <PhoneFrame theme={theme.id} />
+        <div className="theme-meta">
+          <div className="name">{theme.name}</div>
+          <div className="vibe">{theme.vibe}</div>
+          <div className="swatches">
+            {theme.swatches.map((s, i) => (
+              <div key={i} className="sw" style={{ background: s }}></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+
+    function App() {
+      return (
+        <DesignCanvas title="Nexus — Six Restaurant Themes" subtitle="Same screen, six fully-integrated identities. Drag to pan, scroll to zoom, click any phone to focus.">
+          <DCSection id="phones" title="Customer menu — phone view">
+            {THEMES.map(t => (
+              <DCArtboard key={t.id} id={t.id} label={t.name} width={380} height={780}>
+                <ThemeCard theme={t} />
+              </DCArtboard>
+            ))}
+          </DCSection>
+        </DesignCanvas>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
