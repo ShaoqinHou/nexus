@@ -47,7 +47,7 @@
   --color-info-light:    #d8e0e6;
 
   /* Type — strong display, mono accents */
-  --font-display: 'Noto Serif SC', 'Fraunces', Georgia, serif;
+  --font-display: 'Noto Serif SC', 'Fraunces Variable', Georgia, serif;
   --font-sans:    'Inter', 'Noto Sans SC', system-ui, sans-serif;
   --font-mono:    'JetBrains Mono', ui-monospace, monospace;
   --font-display-weight: 700;

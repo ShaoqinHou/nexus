@@ -33,7 +33,8 @@
 @import url('./themes/curry-house.css');
 
 /* Display fonts used by a subset of themes (Trattoria, Bubble Tea, Sichuan,
-   Cantonese, Wok, Curry House). One Google Fonts import covers all.
+   Cantonese, Wok, Curry House). Previously loaded from Google Fonts — now
+   self-hosted via @fontsource imports in main.tsx. Font-face declarations
+   are injected at bundle time; no external network request at runtime.
    All UI-weight Inter + JetBrains Mono are self-hosted in /fonts/ via
    tokens.css @font-face declarations. */
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap');

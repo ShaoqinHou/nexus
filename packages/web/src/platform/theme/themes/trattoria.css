@@ -47,7 +47,7 @@
   --color-info-light:    #dde5ec;
 
   /* Type pairing — display serif, body sans */
-  --font-display: 'Fraunces', 'Playfair Display', Georgia, serif;
+  --font-display: 'Fraunces Variable', 'Playfair Display', Georgia, serif;
   --font-sans:    'Inter', system-ui, sans-serif;
   --font-mono:    'JetBrains Mono', ui-monospace, monospace;
   --font-display-weight: 600;

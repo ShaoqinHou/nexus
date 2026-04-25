@@ -47,7 +47,7 @@
   --color-info-light:    #d7ecf2;
 
   /* Type — friendly rounded sans */
-  --font-display: 'Fraunces', 'Quicksand', 'Inter', sans-serif;
+  --font-display: 'Fraunces Variable', 'Quicksand', 'Inter', sans-serif;
   --font-sans:    'Inter', system-ui, sans-serif;
   --font-mono:    'JetBrains Mono', ui-monospace, monospace;
   --font-display-weight: 600;
