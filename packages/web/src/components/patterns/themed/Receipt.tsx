@@ -10,9 +10,17 @@
  *
  * When tip is omitted (undefined) the tip row is hidden. Pass `showTip={false}` for
  * dine-in flows where tip is collected at the counter.
+ *
+ * When `itemRenderer` is provided it replaces the default mono-line per-item layout,
+ * allowing callers to embed cancel buttons, EditableItemNotes, status badges, etc.
+ *
+ * When `taxInclusive` is true the tax is shown as a footnote "(includes X% tax)"
+ * rather than a separate row, reflecting the tax-included pricing model.
  */
 
+import type { ReactNode } from 'react';
 import { useT } from '@web/lib/i18n';
+import { formatPrice } from '@web/lib/format';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -44,15 +52,35 @@ export interface ReceiptProps {
   taxRate?: number;
   /** Tip rate as a decimal, e.g. 0.18 for 18%. Omit to hide the tip row. */
   tipRate?: number;
+  /**
+   * Flat discount amount to deduct from subtotal (already computed).
+   * When provided a discount row is rendered between subtotal and tax.
+   */
+  discountAmount?: number;
+  /** Label for the discount row. Defaults to 'Discount'. */
+  discountLabel?: string;
+  /**
+   * When true, tax is shown as a footnote "(includes X% tax)" after the Total
+   * row instead of a separate subtotal row. Use for NZ/AU GST-inclusive pricing.
+   */
+  taxInclusive?: boolean;
+  /** Label for the tax row / footnote. Defaults to 'Tax'. */
+  taxLabel?: string;
+  /**
+   * Custom line-item renderer. When provided, this function is called for each
+   * item instead of the default mono-line layout. Allows callers to embed
+   * cancel buttons, EditableItemNotes, status badges, etc.
+   *
+   * @param item  The ReceiptLineItem data for this row.
+   * @param index The index of this item in the `items` array.
+   * @returns A ReactNode to render for this item row.
+   */
+  itemRenderer?: (item: ReceiptLineItem, index: number) => ReactNode;
 }
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-function formatMoney(value: number): string {
-  return value.toFixed(2);
-}
 
 function formatDate(iso: string): string {
   try {
@@ -81,16 +109,51 @@ export function Receipt({
   items,
   taxRate = 0,
   tipRate,
+  discountAmount,
+  discountLabel,
+  taxInclusive = false,
+  taxLabel,
+  itemRenderer,
 }: ReceiptProps) {
   const t = useT();
-  const subtotal = items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
-  const taxAmount = subtotal * taxRate;
-  const tipAmount = tipRate !== undefined ? subtotal * tipRate : 0;
-  const total = subtotal + taxAmount + tipAmount;
 
-  const tipLabel = tipRate !== undefined
+  const effectiveDiscountLabel = discountLabel ?? t('Discount');
+  const effectiveTaxLabel = taxLabel ?? t('Tax');
+
+  const subtotal = items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
+  const discount = discountAmount != null && discountAmount > 0 ? discountAmount : 0;
+  const subtotalAfterDiscount = subtotal - discount;
+  // When tax-inclusive, taxAmount is already baked into the subtotal — don't add it again.
+  const taxAmount = taxInclusive ? subtotal * taxRate : subtotalAfterDiscount * taxRate;
+  const tipAmount = tipRate !== undefined ? subtotalAfterDiscount * tipRate : 0;
+  const total = taxInclusive
+    ? subtotalAfterDiscount + tipAmount
+    : subtotalAfterDiscount + taxAmount + tipAmount;
+
+  const tipRowLabel = tipRate !== undefined
     ? `${t('Tip')} (${Math.round(tipRate * 100)}%)`
     : '';
+
+  // Build the subtotal rows array (between divider and Total)
+  const showSubtotal = discount > 0 || (!taxInclusive && taxRate > 0) || tipRate !== undefined;
+  const subRows: Array<{ label: string; value: number; color?: string }> = [];
+
+  if (showSubtotal) {
+    subRows.push({ label: t('Subtotal'), value: subtotal });
+  }
+  if (discount > 0) {
+    subRows.push({ label: effectiveDiscountLabel, value: -discount, color: 'var(--color-success)' });
+  }
+  if (!taxInclusive && taxRate > 0) {
+    const taxRatePct = Math.round(taxRate * 100);
+    subRows.push({
+      label: `${effectiveTaxLabel} (${taxRatePct}%)`,
+      value: taxAmount,
+    });
+  }
+  if (tipRate !== undefined) {
+    subRows.push({ label: tipRowLabel, value: tipAmount });
+  }
 
   return (
     <div
@@ -143,24 +206,28 @@ export function Receipt({
       </div>
 
       {/* Line items */}
-      {items.map((item, idx) => (
-        <div
-          key={idx}
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            marginBottom: 6,
-          }}
-        >
-          <div>
-            <span style={{ color: 'var(--color-text-tertiary)', marginRight: 8 }}>
-              {item.quantity}×
-            </span>
-            {item.name}
+      {items.map((item, idx) =>
+        itemRenderer ? (
+          itemRenderer(item, idx)
+        ) : (
+          <div
+            key={idx}
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              marginBottom: 6,
+            }}
+          >
+            <div>
+              <span style={{ color: 'var(--color-text-tertiary)', marginRight: 8 }}>
+                {item.quantity}×
+              </span>
+              {item.name}
+            </div>
+            <div>{formatPrice(item.quantity * item.unitPrice)}</div>
           </div>
-          <div>${formatMoney(item.quantity * item.unitPrice)}</div>
-        </div>
-      ))}
+        )
+      )}
 
       {/* Divider */}
       <div
@@ -170,23 +237,23 @@ export function Receipt({
         }}
       />
 
-      {/* Sub-totals */}
-      {[
-        [t('Subtotal'), subtotal] as [string, number],
-        ...(taxRate > 0 ? [[t('Tax'), taxAmount] as [string, number]] : []),
-        ...(tipRate !== undefined ? [[tipLabel, tipAmount] as [string, number]] : []),
-      ].map(([label, value]) => (
+      {/* Sub-total rows */}
+      {subRows.map(({ label, value, color }) => (
         <div
           key={label}
           style={{
             display: 'flex',
             justifyContent: 'space-between',
-            color: 'var(--color-text-secondary)',
+            color: color ?? 'var(--color-text-secondary)',
             marginBottom: 4,
           }}
         >
           <div>{label}</div>
-          <div>${formatMoney(value)}</div>
+          <div>
+            {value < 0
+              ? `-${formatPrice(Math.abs(value))}`
+              : formatPrice(value)}
+          </div>
         </div>
       ))}
 
@@ -203,8 +270,22 @@ export function Receipt({
         }}
       >
         <div>{t('Total')}</div>
-        <div>${formatMoney(total)}</div>
+        <div>{formatPrice(total)}</div>
       </div>
+
+      {/* Tax-inclusive footnote */}
+      {taxInclusive && taxRate > 0 && (
+        <div
+          style={{
+            marginTop: 6,
+            fontSize: 10,
+            color: 'var(--color-text-tertiary)',
+            textAlign: 'right',
+          }}
+        >
+          ({t('includes')} {Math.round(taxRate * 100)}% {effectiveTaxLabel})
+        </div>
+      )}
 
       {/* Footer */}
       <div
