@@ -855,5 +855,17 @@
   "Special Offers": "특별 혜택",
   "Special Offer": "특별 혜택",
   "Includes": "포함",
-  "Request cancellation for": "취소 요청"
+  "Request cancellation for": "취소 요청",
+  "Vendor Theme Studio": "테마 스튜디오",
+  "Preview how your theme looks to customers before saving": "저장 전 고객 화면에서 테마가 어떻게 보이는지 미리 보기",
+  "Theme & Brand": "테마 & 브랜드",
+  "Visual identity, brand color, and cuisine theme for your customer app": "고객 앱의 비주얼 아이덴티티, 브랜드 색상, 요리 테마",
+  "When your restaurant is open and accepting orders": "레스토랑 영업 시간 및 주문 접수 가능 시간",
+  "Weekly Schedule": "주간 스케줄",
+  "Tax & Currency": "세금 & 통화",
+  "Tax rates, labels, and how prices are displayed to customers": "세율, 레이블 및 고객에게 가격 표시 방식",
+  "Leave rate empty or 0 for no tax.": "세금 없이 비워두거나 0을 입력하세요.",
+  "Localization": "현지화",
+  "Primary language and AI-powered translations for your customers": "주 언어 및 AI 기반 고객 다국어 번역",
+  "Last-order cutoff and order-flow rules": "마지막 주문 마감 시간 및 주문 흐름 규칙"
 }

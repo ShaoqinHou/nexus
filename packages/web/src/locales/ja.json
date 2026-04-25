@@ -855,5 +855,17 @@
   "Special Offers": "特別オファー",
   "Special Offer": "特別オファー",
   "Includes": "含む",
-  "Request cancellation for": "キャンセルを依頼"
+  "Request cancellation for": "キャンセルを依頼",
+  "Vendor Theme Studio": "テーマスタジオ",
+  "Preview how your theme looks to customers before saving": "保存前にお客様向けテーマの表示をプレビューします",
+  "Theme & Brand": "テーマとブランド",
+  "Visual identity, brand color, and cuisine theme for your customer app": "お客様アプリのビジュアルアイデンティティ、ブランドカラー、料理テーマ",
+  "When your restaurant is open and accepting orders": "レストランの営業時間と注文受付時間",
+  "Weekly Schedule": "週間スケジュール",
+  "Tax & Currency": "税金と通貨",
+  "Tax rates, labels, and how prices are displayed to customers": "税率、ラベル、お客様への価格表示方法",
+  "Leave rate empty or 0 for no tax.": "税なしの場合は空欄または0を入力してください。",
+  "Localization": "ローカライゼーション",
+  "Primary language and AI-powered translations for your customers": "主要言語とAIによるお客様向け多言語翻訳",
+  "Last-order cutoff and order-flow rules": "ラストオーダー締め切りと注文フロールール"
 }

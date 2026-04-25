@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Palette, Check, RotateCcw, Save, Eye, Clock, Monitor, Smartphone, Receipt, Globe, Store, Timer, Settings2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Palette, Check, RotateCcw, Save, Eye, Clock, Monitor, Smartphone, Receipt, Globe, Timer, Settings2, ChevronDown, ChevronUp } from 'lucide-react';
 import {
   Button,
   Card,
@@ -690,9 +690,9 @@ export function ThemeSettings() {
         <div className="flex items-center gap-3">
           <Settings2 className="h-6 w-6 text-primary" />
           <div>
-            <h1 className="text-xl font-bold text-text">{t('Settings')}</h1>
+            <h1 className="text-xl font-bold text-text">{t('Vendor Theme Studio')}</h1>
             <p className="text-sm text-text-secondary">
-              {t('Configure settings and appearance')}
+              {t('Preview how your theme looks to customers before saving')}
             </p>
           </div>
         </div>
@@ -709,284 +709,15 @@ export function ThemeSettings() {
         {/* Left: settings form */}
         <div className="lg:col-span-3 space-y-6">
 
-          {/* ═══════════ RESTAURANT SECTION ═══════════ */}
-          <div className="flex items-center gap-2">
-            <Store className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-bold text-text">{t('Restaurant')}</h2>
-          </div>
-
-          {/* Operating Hours (collapsible) */}
-          <Card>
-            <CardHeader>
-              <button
-                type="button"
-                onClick={() => setHoursExpanded((prev) => !prev)}
-                className="flex items-center justify-between w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md"
-              >
-                <div className="flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-primary" />
-                  <CardTitle>{t('Operating Hours')}</CardTitle>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-text-secondary">
-                    {(() => {
-                      const openDays = form.operatingHours
-                        .map((d, i) => ({ ...d, name: DAY_NAMES[i]?.slice(0, 3) }))
-                        .filter((d) => d.isOpen);
-                      if (openDays.length === 0) return t('Closed all days');
-                      if (openDays.length === 7) {
-                        const allSame = openDays.every(
-                          (d) => d.open === openDays[0].open && d.close === openDays[0].close,
-                        );
-                        if (allSame) return `${t('Open daily')} ${openDays[0].open}\u2013${openDays[0].close}`;
-                      }
-                      return `${t('Open')} ${openDays.length} ${openDays.length > 1 ? t('days') : t('day')}`;
-                    })()}
-                  </span>
-                  {hoursExpanded ? (
-                    <ChevronUp className="h-4 w-4 text-text-tertiary" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4 text-text-tertiary" />
-                  )}
-                </div>
-              </button>
-            </CardHeader>
-            {hoursExpanded && (
-              <CardContent className="space-y-3">
-                <p className="text-sm text-text-secondary">
-                  {t('Set your opening hours. Days marked as closed will show a "closed" indicator to customers.')}
-                </p>
-                <div className="space-y-2">
-                  {form.operatingHours.map((day, dayIndex) => (
-                    <div
-                      key={dayIndex}
-                      className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 p-3 rounded-lg border border-border bg-bg-surface"
-                    >
-                      {/* Day name */}
-                      <span className="text-sm font-medium text-text w-24 shrink-0">
-                        {t(DAY_NAMES[dayIndex])}
-                      </span>
-
-                      {/* Open toggle */}
-                      <Toggle
-                        checked={day.isOpen}
-                        label={day.isOpen ? t('Open') : t('Closed')}
-                        onChange={(checked) => {
-                          const updated = [...form.operatingHours];
-                          updated[dayIndex] = { ...updated[dayIndex], isOpen: checked };
-                          updateField('operatingHours', updated);
-                        }}
-                      />
-
-                      {/* Time inputs */}
-                      {day.isOpen && (
-                        <div className="flex flex-col gap-1 flex-1">
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="time"
-                              value={day.open}
-                              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                const updated = [...form.operatingHours];
-                                updated[dayIndex] = { ...updated[dayIndex], open: e.target.value };
-                                updateField('operatingHours', updated);
-                              }}
-                              className="rounded-md border border-border px-2 py-1.5 text-sm text-text bg-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                            />
-                            <span className="text-xs text-text-tertiary">{t('to')}</span>
-                            <input
-                              type="time"
-                              value={day.close}
-                              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                const updated = [...form.operatingHours];
-                                updated[dayIndex] = { ...updated[dayIndex], close: e.target.value };
-                                updateField('operatingHours', updated);
-                              }}
-                              className="rounded-md border border-border px-2 py-1.5 text-sm text-text bg-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                            />
-                          </div>
-                          {day.open >= day.close && (
-                            <p className="text-xs text-danger mt-1">{t('Close time must be after open time')}</p>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            )}
-          </Card>
-
-          {/* Last Order Time */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Timer className="h-5 w-5 text-primary" />
-                <CardTitle>{t('Last Order Cutoff')}</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <p className="text-sm text-text-secondary">
-                {t('Stop accepting orders a set number of minutes before closing time. Leave empty or 0 for no restriction.')}
-              </p>
-              <Input
-                label={t('Minutes before closing')}
-                type="number"
-                min="0"
-                max="120"
-                step="5"
-                value={form.lastOrderMinutesBefore}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField('lastOrderMinutesBefore', e.target.value)}
-                placeholder={t('e.g. 30')}
-              />
-              {parseInt(form.lastOrderMinutesBefore, 10) > 0 && (
-                <p className="text-xs text-text-tertiary">
-                  {t('Example: if you close at 22:00, last orders will be accepted until')}{' '}
-                  {(() => {
-                    const mins = parseInt(form.lastOrderMinutesBefore, 10);
-                    const h = Math.floor((22 * 60 - mins) / 60);
-                    const m = (22 * 60 - mins) % 60;
-                    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-                  })()}
-                </p>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Language Settings */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Globe className="h-5 w-5 text-primary" />
-                <CardTitle>{t('Languages')}</CardTitle>
-              </div>
-              <p className="text-sm text-text-secondary mt-1">
-                {t("Set your restaurant's primary language and optional translations for foreign customers.")}
-              </p>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                {/* Primary Language */}
-                <div>
-                  <p className="text-xs text-text-secondary mb-1.5">
-                    {t('Primary language — the language you enter menu content in. Everything you type will be auto-translated from this language.')}
-                  </p>
-                  <Select
-                    label={t('Primary Language')}
-                    value={form.primaryLocale}
-                    onChange={(value) => {
-                      // Remove new primary from additional locales if it was there
-                      const nextAdditional = form.supportedLocales.filter((l) => l !== value);
-                      updateField('primaryLocale', value);
-                      updateField('supportedLocales', nextAdditional);
-                    }}
-                    options={LANGUAGE_CONFIG.map((lang) => ({
-                      value: lang.code,
-                      label: `${lang.flag} ${lang.label}`,
-                    }))}
-                  />
-                  <p className="text-xs text-text-tertiary mt-1.5">
-                    {t('This is the language you write menu items in. Customers see this by default.')}
-                  </p>
-                </div>
-
-                {/* Additional Languages */}
-                <div>
-                  <p className="text-sm font-medium text-text mb-1.5">{t('Additional Languages')}</p>
-                  <p className="text-xs text-text-secondary mb-1">
-                    {t('Additional languages — pick which other languages your customers can see. AI will translate all your content into these automatically on save.')}
-                  </p>
-                  <p className="text-xs text-text-tertiary mb-3">
-                    {t('Menu items will be auto-translated to these languages. Customers can switch via the language picker.')}
-                  </p>
-                  <div className="space-y-3">
-                    {LANGUAGE_CONFIG.filter((lang) => lang.code !== form.primaryLocale).map((lang) => {
-                      const isEnabled = form.supportedLocales.includes(lang.code);
-                      const isNewlyEnabled = isEnabled && !savedLocalesRef.current.includes(lang.code);
-                      return (
-                        <div
-                          key={lang.code}
-                          className={[
-                            'flex items-center gap-3 p-3 rounded-lg border transition-colors',
-                            isEnabled ? 'border-primary/30 bg-primary/5' : 'border-border',
-                          ].join(' ')}
-                        >
-                          <span className="text-lg">{lang.flag}</span>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-text">{lang.label}</p>
-                            <p className="text-xs text-text-tertiary">{lang.description}</p>
-                            {isNewlyEnabled && (
-                              <p className="text-xs text-primary mt-1">
-                                {t('Menu items will be translated automatically on save')}
-                              </p>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            <span className="text-xs text-text-secondary">
-                              {isEnabled ? t('Enabled') : t('Disabled')}
-                            </span>
-                            <Toggle
-                              checked={isEnabled}
-                              onChange={() => {
-                                const next = isEnabled
-                                  ? form.supportedLocales.filter((l) => l !== lang.code)
-                                  : [...form.supportedLocales, lang.code];
-                                updateField('supportedLocales', next);
-                              }}
-                            />
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-                <p className="text-xs text-text-tertiary italic border-t border-border pt-3">
-                  {t("Changing these settings doesn't re-translate existing content. Use the Translations page to regenerate if needed.")}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* ═══════════ TAX SECTION ═══════════ */}
-          <div className="flex items-center gap-2 pt-2">
-            <Receipt className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-bold text-text">{t('Tax')}</h2>
-          </div>
-
-          <Card>
-            <CardContent className="space-y-4 pt-6">
-              <p className="text-sm text-text-secondary">
-                {t('Configure tax calculation for orders. Leave rate empty or 0 for no tax.')}
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Input
-                  label={t('Tax Rate (%)')}
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max="100"
-                  value={form.taxRate}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField('taxRate', e.target.value)}
-                  placeholder={t('e.g. 15')}
-                />
-                <Input
-                  label={t('Tax Label')}
-                  value={form.taxLabel}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField('taxLabel', e.target.value)}
-                  placeholder={t('e.g. GST, VAT, Tax')}
-                />
-              </div>
-              <Toggle
-                checked={form.taxInclusive}
-                label={form.taxInclusive ? t('Tax inclusive (prices already include tax)') : t('Tax exclusive (tax added on top of prices)')}
-                onChange={(checked) => updateField('taxInclusive', checked)}
-              />
-            </CardContent>
-          </Card>
-
-          {/* ═══════════ THEME SECTION ═══════════ */}
-          <div className="flex items-center gap-2 pt-2">
-            <Palette className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-bold text-text">{t('Theme')}</h2>
+          {/* ═══════════ THEME & BRAND SECTION ═══════════ */}
+          <div>
+            <div className="flex items-center gap-2">
+              <Palette className="h-5 w-5 text-primary" />
+              <h2 className="text-lg font-bold text-text">{t('Theme & Brand')}</h2>
+            </div>
+            <p className="text-sm text-text-secondary mt-1 ml-7">
+              {t('Visual identity, brand color, and cuisine theme for your customer app')}
+            </p>
           </div>
 
           {/* Preset picker */}
@@ -1185,6 +916,304 @@ export function ThemeSettings() {
                 tenantSlug={tenantSlug}
                 aspectRatio="3:1"
               />
+            </CardContent>
+          </Card>
+
+          {/* ═══════════ OPERATING HOURS SECTION ═══════════ */}
+          <div>
+            <div className="flex items-center gap-2 pt-2">
+              <Clock className="h-5 w-5 text-primary" />
+              <h2 className="text-lg font-bold text-text">{t('Operating Hours')}</h2>
+            </div>
+            <p className="text-sm text-text-secondary mt-1 ml-7">
+              {t('When your restaurant is open and accepting orders')}
+            </p>
+          </div>
+
+          {/* Operating Hours (collapsible) */}
+          <Card>
+            <CardHeader>
+              <button
+                type="button"
+                onClick={() => setHoursExpanded((prev) => !prev)}
+                className="flex items-center justify-between w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md"
+              >
+                <div className="flex items-center gap-2">
+                  <CardTitle>{t('Weekly Schedule')}</CardTitle>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-text-secondary">
+                    {(() => {
+                      const openDays = form.operatingHours
+                        .map((d, i) => ({ ...d, name: DAY_NAMES[i]?.slice(0, 3) }))
+                        .filter((d) => d.isOpen);
+                      if (openDays.length === 0) return t('Closed all days');
+                      if (openDays.length === 7) {
+                        const allSame = openDays.every(
+                          (d) => d.open === openDays[0].open && d.close === openDays[0].close,
+                        );
+                        if (allSame) return `${t('Open daily')} ${openDays[0].open}\u2013${openDays[0].close}`;
+                      }
+                      return `${t('Open')} ${openDays.length} ${openDays.length > 1 ? t('days') : t('day')}`;
+                    })()}
+                  </span>
+                  {hoursExpanded ? (
+                    <ChevronUp className="h-4 w-4 text-text-tertiary" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-text-tertiary" />
+                  )}
+                </div>
+              </button>
+            </CardHeader>
+            {hoursExpanded && (
+              <CardContent className="space-y-3">
+                <p className="text-sm text-text-secondary">
+                  {t('Set your opening hours. Days marked as closed will show a "closed" indicator to customers.')}
+                </p>
+                <div className="space-y-2">
+                  {form.operatingHours.map((day, dayIndex) => (
+                    <div
+                      key={dayIndex}
+                      className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 p-3 rounded-lg border border-border bg-bg-surface"
+                    >
+                      {/* Day name */}
+                      <span className="text-sm font-medium text-text w-24 shrink-0">
+                        {t(DAY_NAMES[dayIndex])}
+                      </span>
+
+                      {/* Open toggle */}
+                      <Toggle
+                        checked={day.isOpen}
+                        label={day.isOpen ? t('Open') : t('Closed')}
+                        onChange={(checked) => {
+                          const updated = [...form.operatingHours];
+                          updated[dayIndex] = { ...updated[dayIndex], isOpen: checked };
+                          updateField('operatingHours', updated);
+                        }}
+                      />
+
+                      {/* Time inputs */}
+                      {day.isOpen && (
+                        <div className="flex flex-col gap-1 flex-1">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="time"
+                              value={day.open}
+                              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                const updated = [...form.operatingHours];
+                                updated[dayIndex] = { ...updated[dayIndex], open: e.target.value };
+                                updateField('operatingHours', updated);
+                              }}
+                              className="rounded-md border border-border px-2 py-1.5 text-sm text-text bg-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                            />
+                            <span className="text-xs text-text-tertiary">{t('to')}</span>
+                            <input
+                              type="time"
+                              value={day.close}
+                              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                const updated = [...form.operatingHours];
+                                updated[dayIndex] = { ...updated[dayIndex], close: e.target.value };
+                                updateField('operatingHours', updated);
+                              }}
+                              className="rounded-md border border-border px-2 py-1.5 text-sm text-text bg-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                            />
+                          </div>
+                          {day.open >= day.close && (
+                            <p className="text-xs text-danger mt-1">{t('Close time must be after open time')}</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            )}
+          </Card>
+
+          {/* ═══════════ TAX & CURRENCY SECTION ═══════════ */}
+          <div>
+            <div className="flex items-center gap-2 pt-2">
+              <Receipt className="h-5 w-5 text-primary" />
+              <h2 className="text-lg font-bold text-text">{t('Tax & Currency')}</h2>
+            </div>
+            <p className="text-sm text-text-secondary mt-1 ml-7">
+              {t('Tax rates, labels, and how prices are displayed to customers')}
+            </p>
+          </div>
+
+          <Card>
+            <CardContent className="space-y-4 pt-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Input
+                  label={t('Tax Rate (%)')}
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="100"
+                  value={form.taxRate}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField('taxRate', e.target.value)}
+                  placeholder={t('e.g. 15')}
+                />
+                <Input
+                  label={t('Tax Label')}
+                  value={form.taxLabel}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField('taxLabel', e.target.value)}
+                  placeholder={t('e.g. GST, VAT, Tax')}
+                />
+              </div>
+              <Toggle
+                checked={form.taxInclusive}
+                label={form.taxInclusive ? t('Tax inclusive (prices already include tax)') : t('Tax exclusive (tax added on top of prices)')}
+                onChange={(checked) => updateField('taxInclusive', checked)}
+              />
+              <p className="text-xs text-text-tertiary">
+                {t('Leave rate empty or 0 for no tax.')}
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* ═══════════ LOCALIZATION SECTION ═══════════ */}
+          <div>
+            <div className="flex items-center gap-2 pt-2">
+              <Globe className="h-5 w-5 text-primary" />
+              <h2 className="text-lg font-bold text-text">{t('Localization')}</h2>
+            </div>
+            <p className="text-sm text-text-secondary mt-1 ml-7">
+              {t("Primary language and AI-powered translations for your customers")}
+            </p>
+          </div>
+
+          {/* Language Settings */}
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('Languages')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                {/* Primary Language */}
+                <div>
+                  <p className="text-xs text-text-secondary mb-1.5">
+                    {t('Primary language — the language you enter menu content in. Everything you type will be auto-translated from this language.')}
+                  </p>
+                  <Select
+                    label={t('Primary Language')}
+                    value={form.primaryLocale}
+                    onChange={(value) => {
+                      // Remove new primary from additional locales if it was there
+                      const nextAdditional = form.supportedLocales.filter((l) => l !== value);
+                      updateField('primaryLocale', value);
+                      updateField('supportedLocales', nextAdditional);
+                    }}
+                    options={LANGUAGE_CONFIG.map((lang) => ({
+                      value: lang.code,
+                      label: `${lang.flag} ${lang.label}`,
+                    }))}
+                  />
+                  <p className="text-xs text-text-tertiary mt-1.5">
+                    {t('This is the language you write menu items in. Customers see this by default.')}
+                  </p>
+                </div>
+
+                {/* Additional Languages */}
+                <div>
+                  <p className="text-sm font-medium text-text mb-1.5">{t('Additional Languages')}</p>
+                  <p className="text-xs text-text-secondary mb-1">
+                    {t('Additional languages — pick which other languages your customers can see. AI will translate all your content into these automatically on save.')}
+                  </p>
+                  <p className="text-xs text-text-tertiary mb-3">
+                    {t('Menu items will be auto-translated to these languages. Customers can switch via the language picker.')}
+                  </p>
+                  <div className="space-y-3">
+                    {LANGUAGE_CONFIG.filter((lang) => lang.code !== form.primaryLocale).map((lang) => {
+                      const isEnabled = form.supportedLocales.includes(lang.code);
+                      const isNewlyEnabled = isEnabled && !savedLocalesRef.current.includes(lang.code);
+                      return (
+                        <div
+                          key={lang.code}
+                          className={[
+                            'flex items-center gap-3 p-3 rounded-lg border transition-colors',
+                            isEnabled ? 'border-primary/30 bg-primary/5' : 'border-border',
+                          ].join(' ')}
+                        >
+                          <span className="text-lg">{lang.flag}</span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-text">{lang.label}</p>
+                            <p className="text-xs text-text-tertiary">{lang.description}</p>
+                            {isNewlyEnabled && (
+                              <p className="text-xs text-primary mt-1">
+                                {t('Menu items will be translated automatically on save')}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-xs text-text-secondary">
+                              {isEnabled ? t('Enabled') : t('Disabled')}
+                            </span>
+                            <Toggle
+                              checked={isEnabled}
+                              onChange={() => {
+                                const next = isEnabled
+                                  ? form.supportedLocales.filter((l) => l !== lang.code)
+                                  : [...form.supportedLocales, lang.code];
+                                updateField('supportedLocales', next);
+                              }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+                <p className="text-xs text-text-tertiary italic border-t border-border pt-3">
+                  {t("Changing these settings doesn't re-translate existing content. Use the Translations page to regenerate if needed.")}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* ═══════════ OPERATIONS SECTION ═══════════ */}
+          <div>
+            <div className="flex items-center gap-2 pt-2">
+              <Timer className="h-5 w-5 text-primary" />
+              <h2 className="text-lg font-bold text-text">{t('Operations')}</h2>
+            </div>
+            <p className="text-sm text-text-secondary mt-1 ml-7">
+              {t('Last-order cutoff and order-flow rules')}
+            </p>
+          </div>
+
+          {/* Last Order Time */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <CardTitle>{t('Last Order Cutoff')}</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-text-secondary">
+                {t('Stop accepting orders a set number of minutes before closing time. Leave empty or 0 for no restriction.')}
+              </p>
+              <Input
+                label={t('Minutes before closing')}
+                type="number"
+                min="0"
+                max="120"
+                step="5"
+                value={form.lastOrderMinutesBefore}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField('lastOrderMinutesBefore', e.target.value)}
+                placeholder={t('e.g. 30')}
+              />
+              {parseInt(form.lastOrderMinutesBefore, 10) > 0 && (
+                <p className="text-xs text-text-tertiary">
+                  {t('Example: if you close at 22:00, last orders will be accepted until')}{' '}
+                  {(() => {
+                    const mins = parseInt(form.lastOrderMinutesBefore, 10);
+                    const h = Math.floor((22 * 60 - mins) / 60);
+                    const m = (22 * 60 - mins) % 60;
+                    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+                  })()}
+                </p>
+              )}
             </CardContent>
           </Card>
 

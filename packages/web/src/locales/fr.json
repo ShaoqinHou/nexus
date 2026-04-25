@@ -855,5 +855,17 @@
   "Special Offers": "Offres spéciales",
   "Special Offer": "Offre spéciale",
   "Includes": "Inclut",
-  "Request cancellation for": "Demander l'annulation de"
+  "Request cancellation for": "Demander l'annulation de",
+  "Vendor Theme Studio": "Studio de thèmes",
+  "Preview how your theme looks to customers before saving": "Aperçu du thème côté client avant d'enregistrer",
+  "Theme & Brand": "Thème & Marque",
+  "Visual identity, brand color, and cuisine theme for your customer app": "Identité visuelle, couleur de marque et thème culinaire pour votre app client",
+  "When your restaurant is open and accepting orders": "Quand votre restaurant est ouvert et accepte les commandes",
+  "Weekly Schedule": "Horaires hebdomadaires",
+  "Tax & Currency": "Taxes & Devise",
+  "Tax rates, labels, and how prices are displayed to customers": "Taux de taxe, libellés et affichage des prix pour les clients",
+  "Leave rate empty or 0 for no tax.": "Laissez le taux vide ou à 0 pour aucune taxe.",
+  "Localization": "Localisation",
+  "Primary language and AI-powered translations for your customers": "Langue principale et traductions IA pour vos clients",
+  "Last-order cutoff and order-flow rules": "Heure limite de dernière commande et règles de flux de commande"
 }

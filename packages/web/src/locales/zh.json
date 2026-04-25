@@ -855,5 +855,17 @@
   "Special Offers": "特别优惠",
   "Special Offer": "特别优惠",
   "Includes": "包含",
-  "Request cancellation for": "请求取消"
+  "Request cancellation for": "请求取消",
+  "Vendor Theme Studio": "主题工作室",
+  "Preview how your theme looks to customers before saving": "保存前预览主题在顾客端的显示效果",
+  "Theme & Brand": "主题与品牌",
+  "Visual identity, brand color, and cuisine theme for your customer app": "顾客端应用的视觉风格、品牌色与菜系主题",
+  "When your restaurant is open and accepting orders": "餐厅营业及接受订单的时间",
+  "Weekly Schedule": "每周营业时间",
+  "Tax & Currency": "税务与货币",
+  "Tax rates, labels, and how prices are displayed to customers": "税率、标签及价格对顾客的显示方式",
+  "Leave rate empty or 0 for no tax.": "留空或填0表示不征税。",
+  "Localization": "本地化",
+  "Primary language and AI-powered translations for your customers": "主要语言及AI驱动的顾客端多语言翻译",
+  "Last-order cutoff and order-flow rules": "最后接单截止时间及订单流程规则"
 }
