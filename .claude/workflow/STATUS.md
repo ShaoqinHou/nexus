@@ -47,12 +47,12 @@ Outstanding follow-ups (backlog, non-blocking):
 - ~~DietaryIcon a11y `accessibleLabel` prop~~ — **DONE** in `d2546ea`
 - ~~Unit tests for `lib/dietary.ts`, themed components, theme tenant-isolation~~ — **DONE** in `83ce187` (24 new test cases)
 
-Remaining backlog (true follow-ups, scheduled later):
+Remaining backlog after final close:
 
-- **Self-host Fraunces + Noto Serif/Sans SC** — `themes.css` still uses `@import` from Google Fonts. Adds runtime network dep + first-paint latency. Backlog note at `.claude/workflow/scratch/font-selfhost-backlog.md`. Estimated 30 min of work; deferred because two background agents hit a sandbox wall trying to write font files into worktree paths.
-- **`combo_slots.name` GLM translation** — pre-existing gap (comment in `routes.ts:680` explicitly says "Combo slots are NOT translated in this pass"). Customer combo-selection UI shows primary-language regardless of `?lang=`. Out of scope for design-workflow-v2.
-- **Themed-component swap-in** — OrderTracker / Receipt / PromoCard / CheckoutSummary are NEW pattern files in `components/patterns/themed/` but NOT wired into the customer flow. Per the integration audit (a81bbc96), each has data-shape blockers vs the existing customer flow components. Plan in `.claude/workflow/scratch/themed-integration-plan.md`. Resolution order: Receipt → CheckoutSummary → PromoCard → OrderTracker.
-- **"Nexus" brand string in LoginPage** — flagged by i18n audit as unwrapped. Defensibly exempt as a product name.
+- ~~Self-host Fraunces + Noto Serif/Sans SC~~ — **DONE** in `3a6953f` via `@fontsource` packages. No more runtime Google Fonts dep. Detail at `scratch/font-selfhost-backlog.md`.
+- ~~`combo_slots.name` GLM translation~~ — **DONE** in `d792387`. The pre-existing "NOT translated in this pass" comment is gone; combo slot names now auto-translate on save and apply via `?lang=`. Cross-tenant isolation test added.
+- **Themed-component swap-in** — PIVOTED. Per the Receipt integration agent's discovery of a 4th blocker (interactive per-item UI in `OrderConfirmation.tsx`), the existing customer flow has evolved past what the bundle's simpler presentational components can host. Themed components (OrderTracker / Receipt / PromoCard / CheckoutSummary) shift from "deferred swap-in" to "available pattern, used when a future feature needs them." Detail + reasoning in `scratch/themed-integration-plan.md`.
+- **"Nexus" brand string in LoginPage** — flagged by i18n audit as unwrapped. Defensibly exempt as a product name. No action.
 
 See `.claude/workflow/session-plan.md` for full phase-by-phase log and
 commit list.
