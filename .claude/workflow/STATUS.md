@@ -37,9 +37,22 @@
 
 Outstanding follow-ups (backlog, non-blocking):
 
-- `--color-kds-preparing` token pair to absorb KitchenDisplay's violet station hue (reviewer F-352e6d8d, currently lint-overridden)
-- `dev:all` Windows MINGW race — when both api + web boot concurrently, web sometimes silent-fails; workaround is two terminals
-- ThemeSettings.tsx merchant UI: surface a theme-picker dropdown alongside the brand-color field (data flow is wired, UI is not)
+- ~~`--color-kds-preparing` token pair~~ — **DONE** in commit `e93f187`
+- ~~`dev:all` Windows MINGW race~~ — **DONE** via `concurrently` package in `6b3572f`
+- ~~ThemeSettings.tsx merchant UI: cuisine-theme dropdown~~ — **DONE** in commit `1aa7530`
+- ~~Hook resolution from worktree cwd~~ — **DONE** with WORKTREE CWD GUARD in `36b8044`
+- ~~CartProvider HMR context-identity split~~ — **DONE** by extracting CartContext to leaf module in `f7b76f1`
+- ~~Real cuisine-theme translations (zh/ja/ko/fr)~~ — **DONE** in `5f0473e`
+- ~~ErrorBoundary i18n gap~~ — **DONE** in `b10bd3d`
+- ~~DietaryIcon a11y `accessibleLabel` prop~~ — **DONE** in `d2546ea`
+- ~~Unit tests for `lib/dietary.ts`, themed components, theme tenant-isolation~~ — **DONE** in `83ce187` (24 new test cases)
+
+Remaining backlog (true follow-ups, scheduled later):
+
+- **Self-host Fraunces + Noto Serif/Sans SC** — `themes.css` still uses `@import` from Google Fonts. Adds runtime network dep + first-paint latency. Backlog note at `.claude/workflow/scratch/font-selfhost-backlog.md`. Estimated 30 min of work; deferred because two background agents hit a sandbox wall trying to write font files into worktree paths.
+- **`combo_slots.name` GLM translation** — pre-existing gap (comment in `routes.ts:680` explicitly says "Combo slots are NOT translated in this pass"). Customer combo-selection UI shows primary-language regardless of `?lang=`. Out of scope for design-workflow-v2.
+- **Themed-component swap-in** — OrderTracker / Receipt / PromoCard / CheckoutSummary are NEW pattern files in `components/patterns/themed/` but NOT wired into the customer flow. Per the integration audit (a81bbc96), each has data-shape blockers vs the existing customer flow components. Plan in `.claude/workflow/scratch/themed-integration-plan.md`. Resolution order: Receipt → CheckoutSummary → PromoCard → OrderTracker.
+- **"Nexus" brand string in LoginPage** — flagged by i18n audit as unwrapped. Defensibly exempt as a product name.
 
 See `.claude/workflow/session-plan.md` for full phase-by-phase log and
 commit list.
