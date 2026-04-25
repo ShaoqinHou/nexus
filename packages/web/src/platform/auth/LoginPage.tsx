@@ -156,7 +156,7 @@ export function LoginPage() {
       </div>
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-text">Nexus</h1>
+          <h1 className="text-2xl font-bold text-text">{t('Nexus')}</h1>
           <p className="text-sm text-text-secondary mt-1">
             {mode === 'login'
               ? t('Sign in to your account')
