@@ -36,6 +36,11 @@ import {
   Input,
   Toggle,
   Select,
+  ImageUpload,
+  ToastContainer,
+  type ToastData,
+  TourOverlay,
+  LanguagePicker,
   DietaryIcon,
   type DietaryIconName,
 } from '@web/components/ui';
@@ -44,7 +49,11 @@ import {
   EmptyState,
   FormField,
   StatusBadge,
+  DataTable,
+  PullToRefreshIndicator,
+  AddToCartToast,
 } from '@web/components/patterns';
+import { ErrorBoundary } from '@web/components/patterns/ErrorBoundary';
 import { Smile, Mail, AlertCircle, ShoppingBag } from 'lucide-react';
 
 import registry from '@web/components/registry.json';
@@ -402,6 +411,301 @@ function ThemesShowcase() {
   );
 }
 
+function ImageUploadShowcase() {
+  const [value, setValue] = useState<string | null>(
+    'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=400&fit=crop',
+  );
+  return (
+    <>
+      <Section title="With preview (hover to see Replace / Remove)">
+        <div className="max-w-xs">
+          <ImageUpload
+            value={value}
+            onChange={setValue}
+            tenantSlug="demo"
+            label="Dish photo"
+            aspectRatio="1:1"
+          />
+        </div>
+      </Section>
+      <Section title="Empty / upload state">
+        <div className="max-w-xs">
+          <ImageUpload
+            value={null}
+            onChange={() => {}}
+            tenantSlug="demo"
+            label="Menu item image"
+            aspectRatio="16:9"
+          />
+        </div>
+        <p className="nx-meta mt-3 text-text-tertiary">
+          Note: actual file upload requires a live API at /t/demo/upload.
+          Drag-drop and URL fallback are fully interactive.
+        </p>
+      </Section>
+    </>
+  );
+}
+
+function ToastShowcase() {
+  const [toasts, setToasts] = useState<ToastData[]>([
+    { id: '1', type: 'success', message: 'Order confirmed — table 7 is ready.' },
+    { id: '2', type: 'error',   message: 'Failed to save menu item. Try again.' },
+    { id: '3', type: 'info',    message: 'Kitchen display connected.' },
+  ]);
+
+  const dismiss = (id: string) =>
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+
+  const addToast = (type: ToastData['type']) => {
+    const id = String(Date.now());
+    const messages: Record<ToastData['type'], string> = {
+      success: 'Item saved successfully.',
+      error:   'Something went wrong.',
+      info:    'New order received.',
+    };
+    setToasts((prev) => [...prev, { id, type, message: messages[type] }]);
+  };
+
+  return (
+    <>
+      <Section title="Live demo — add / dismiss toasts">
+        <div className="flex flex-wrap gap-2 mb-4">
+          <Button size="sm" variant="secondary" onClick={() => addToast('success')}>
+            + Success
+          </Button>
+          <Button size="sm" variant="secondary" onClick={() => addToast('error')}>
+            + Error
+          </Button>
+          <Button size="sm" variant="secondary" onClick={() => addToast('info')}>
+            + Info
+          </Button>
+        </div>
+        <p className="nx-meta text-text-tertiary">
+          ToastContainer renders fixed at bottom-right (z-100). Active toasts: {toasts.length}
+        </p>
+      </Section>
+      {/* Render the real ToastContainer — it's fixed so it won't affect layout */}
+      <ToastContainer toasts={toasts} onDismiss={dismiss} />
+    </>
+  );
+}
+
+function TourOverlayShowcase() {
+  const steps: Array<{
+    title: string;
+    description: string;
+    placement: 'center' | 'bottom' | 'top' | 'left' | 'right';
+  }> = [
+    {
+      title: 'Welcome to Nexus',
+      description: 'This tour shows how TourOverlay renders each step. Step 1 uses center placement — no spotlight target.',
+      placement: 'center',
+    },
+    {
+      title: 'Browse the menu',
+      description: 'Step 2 is also centered for this demo. In a real tour, you would pass a DOMRect from a ref to highlight an element.',
+      placement: 'center',
+    },
+    {
+      title: 'You are all set!',
+      description: 'The tour is complete. Press Got it to finish.',
+      placement: 'center',
+    },
+  ];
+
+  const [active, setActive] = useState(false);
+  const [step, setStep] = useState(0);
+
+  const handleNext = () => {
+    if (step < steps.length - 1) {
+      setStep((s) => s + 1);
+    } else {
+      setActive(false);
+      setStep(0);
+    }
+  };
+
+  return (
+    <Section title="3-step center tour (no DOM target needed)">
+      <Button onClick={() => { setStep(0); setActive(true); }}>
+        Start tour
+      </Button>
+      <p className="nx-meta mt-3 text-text-tertiary">
+        TourOverlay uses createPortal — it renders over the whole page.
+        Pass a real DOMRect from a ref to enable the spotlight cutout.
+      </p>
+      {active && (
+        <TourOverlay
+          targetRect={null}
+          title={steps[step].title}
+          description={steps[step].description}
+          step={step}
+          total={steps.length}
+          placement={steps[step].placement}
+          onNext={handleNext}
+          onSkip={() => { setActive(false); setStep(0); }}
+          stepType="info"
+        />
+      )}
+    </Section>
+  );
+}
+
+function LanguagePickerShowcase() {
+  return (
+    <>
+      <Section title="All locales (en / zh / ja / ko / fr)">
+        <LanguagePicker />
+        <p className="nx-meta mt-3 text-text-tertiary">
+          Selection persists via LocaleProvider at app root — switching here
+          changes the active locale across the entire dev session.
+        </p>
+      </Section>
+      <Section title="Filtered to 3 locales">
+        <LanguagePicker availableLocales={['en', 'zh', 'ja']} />
+      </Section>
+    </>
+  );
+}
+
+function DataTableShowcase() {
+  type Row = { id: string; name: string; status: string; price: string };
+
+  const rows: Row[] = [
+    { id: '1', name: 'Margherita Pizza',  status: 'active',   price: '$14.00' },
+    { id: '2', name: 'Tonkotsu Ramen',    status: 'active',   price: '$16.50' },
+    { id: '3', name: 'Tiramisu',          status: 'inactive', price: '$8.00'  },
+    { id: '4', name: 'Caesar Salad',      status: 'active',   price: '$12.00' },
+    { id: '5', name: 'Lemonade',          status: 'active',   price: '$4.50'  },
+  ];
+
+  const columns = [
+    { key: 'name',   header: 'Item name' },
+    { key: 'status', header: 'Status',
+      render: (row: Row) => (
+        <span className={row.status === 'active' ? 'text-success' : 'text-text-tertiary'}>
+          {row.status}
+        </span>
+      ),
+    },
+    { key: 'price', header: 'Price' },
+  ];
+
+  return (
+    <>
+      <Section title="5 rows, 3 columns, row click handler">
+        <DataTable<Row>
+          columns={columns}
+          data={rows}
+          onRowClick={(row) => alert(`Clicked: ${row.name}`)}
+        />
+      </Section>
+      <Section title="Empty state">
+        <DataTable<Row>
+          columns={columns}
+          data={[]}
+          emptyMessage="No menu items found."
+        />
+      </Section>
+    </>
+  );
+}
+
+function BombComponent({ shouldThrow }: { shouldThrow: boolean }) {
+  if (shouldThrow) {
+    throw new Error('Demo error — component intentionally threw.');
+  }
+  return (
+    <p className="nx-body text-text-secondary">
+      Component is healthy. Click the button above to trigger a render error.
+    </p>
+  );
+}
+
+function ErrorBoundaryShowcase() {
+  const [key, setKey] = useState(0);
+  const [shouldThrow, setShouldThrow] = useState(false);
+
+  const crash = () => { setShouldThrow(true); };
+  const reset = () => { setShouldThrow(false); setKey((k) => k + 1); };
+
+  return (
+    <Section title="Click to crash, click again to reset">
+      <div className="flex gap-3 mb-4">
+        <Button variant="destructive" size="sm" onClick={crash} disabled={shouldThrow}>
+          Crash component
+        </Button>
+        <Button variant="secondary" size="sm" onClick={reset}>
+          Reset boundary
+        </Button>
+      </div>
+      <ErrorBoundary key={key}>
+        <BombComponent shouldThrow={shouldThrow} />
+      </ErrorBoundary>
+    </Section>
+  );
+}
+
+function PullToRefreshShowcase() {
+  const THRESHOLD = 60;
+  const distances = [0, 30, 60, 90];
+
+  return (
+    <>
+      {distances.map((d) => (
+        <Section key={d} title={`pullDistance=${d}${d >= THRESHOLD ? ' (threshold met)' : ''}`}>
+          <div className="relative h-16 overflow-hidden rounded-lg border border-border bg-bg-muted">
+            <PullToRefreshIndicator
+              pullDistance={d}
+              threshold={THRESHOLD}
+              isRefreshing={false}
+            />
+          </div>
+        </Section>
+      ))}
+      <Section title="isRefreshing=true">
+        <div className="relative h-16 overflow-hidden rounded-lg border border-border bg-bg-muted">
+          <PullToRefreshIndicator
+            pullDistance={THRESHOLD}
+            threshold={THRESHOLD}
+            isRefreshing
+          />
+        </div>
+      </Section>
+    </>
+  );
+}
+
+function AddToCartToastShowcase() {
+  const [show, setShow] = useState(true);
+
+  return (
+    <>
+      <Section title="Visible toast pill (portal — renders over page)">
+        <div className="flex gap-3">
+          <Button size="sm" onClick={() => setShow(true)}>
+            Show toast
+          </Button>
+          <Button size="sm" variant="secondary" onClick={() => setShow(false)}>
+            Hide toast
+          </Button>
+        </div>
+        <p className="nx-meta mt-3 text-text-tertiary">
+          AddToCartToast uses createPortal and renders at bottom-center
+          (fixed position). The pill appears above the page content.
+        </p>
+        <AddToCartToast
+          show={show}
+          itemName="Margherita Pizza"
+          quantity={2}
+          onComplete={() => setShow(false)}
+        />
+      </Section>
+    </>
+  );
+}
+
 // ============================================================
 // REGISTRY LOOKUP — slug → showcase
 // ============================================================
@@ -418,9 +722,17 @@ const showcases: Record<string, { title: string; render: () => ReactNode }> = {
   'empty-state':     { title: 'EmptyState',         render: EmptyStateShowcase },
   'form-field':      { title: 'FormField',          render: FormFieldShowcase },
   'status-badge':    { title: 'StatusBadge',        render: StatusBadgeShowcase },
-  'confirm-button':  { title: 'ConfirmButton',      render: ConfirmButtonShowcase },
-  tokens:            { title: 'Tokens',             render: TokensShowcase },
-  themes:            { title: 'Themes',             render: ThemesShowcase },
+  'confirm-button':  { title: 'ConfirmButton',         render: ConfirmButtonShowcase },
+  'image-upload':    { title: 'ImageUpload',           render: ImageUploadShowcase },
+  'toast':           { title: 'Toast (ToastContainer)', render: ToastShowcase },
+  'tour-overlay':    { title: 'TourOverlay',           render: TourOverlayShowcase },
+  'language-picker': { title: 'LanguagePicker',        render: LanguagePickerShowcase },
+  'data-table':      { title: 'DataTable',             render: DataTableShowcase },
+  'error-boundary':  { title: 'ErrorBoundary',         render: ErrorBoundaryShowcase },
+  'pull-to-refresh': { title: 'PullToRefreshIndicator', render: PullToRefreshShowcase },
+  'add-to-cart-toast': { title: 'AddToCartToast',      render: AddToCartToastShowcase },
+  tokens:            { title: 'Tokens',                render: TokensShowcase },
+  themes:            { title: 'Themes',                render: ThemesShowcase },
 };
 
 // ============================================================
