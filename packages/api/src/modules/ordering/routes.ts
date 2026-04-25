@@ -1676,16 +1676,25 @@ export function customerOrderingRoutes(db: DrizzleDB) {
     return c.json({ data: result.data }, 201);
   });
 
-  // Get order by ID — for status polling
-  router.get('/orders/:id', (c) => {
-    const tenantId = c.var.tenantId;
-    const orderId = c.req.param('id');
-    const order = getOrder(db, tenantId, orderId);
-    if (!order) {
-      return c.json({ error: 'Order not found' }, 404);
+  // Get order by ID — for status polling; requires the customer session that placed the order
+  router.get(
+    '/orders/:id',
+    sessionMiddleware(db) as unknown as MiddlewareHandler<TenantEnv>,
+    (c) => {
+      const tenantId = c.var.tenantId;
+      const orderId = c.req.param('id');
+      const session = (c.var as unknown as CustomerEnv['Variables']).session;
+      const order = getOrder(db, tenantId, orderId);
+      if (!order) {
+        return c.json({ error: 'Order not found' }, 404);
+      }
+      // Verify the session owns this order — return 404 to avoid leaking order existence
+      if (order.sessionId !== session.id) {
+        return c.json({ error: 'Order not found' }, 404);
+      }
+      return c.json({ data: order });
     }
-    return c.json({ data: order });
-  });
+  );
 
   // --- Order Modifications (Customer) ---
 
