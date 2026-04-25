@@ -29,11 +29,36 @@ export type DeliveryStatus = 'received' | 'preparing' | 'on-way' | 'delivered';
 
 export type OrderStatus = DineInStatus | DeliveryStatus;
 
+/**
+ * Alias status IDs from the platform's 5-step ORDER_STATUSES set
+ * (`pending | confirmed | preparing | ready | delivered`) to the tracker's
+ * internal step IDs. This lets the customer confirmation page pass the raw
+ * order status without a manual mapping at the call site.
+ *
+ * Dine-in mapping:  pending/confirmed → received, preparing → preparing,
+ *                   ready → ready, delivered → served.
+ * Delivery mapping: pending/confirmed → received, preparing → preparing,
+ *                   ready → on-way, delivered → delivered.
+ */
+export type PlatformOrderStatus =
+  | 'pending'
+  | 'confirmed'
+  | 'preparing'
+  | 'ready'
+  | 'delivered'
+  | 'cancelled';
+
+export type AnyOrderStatus = OrderStatus | PlatformOrderStatus;
+
 export interface OrderTrackerProps {
   /** The data-theme attribute value; drives CSS custom property cascade. */
   theme?: string;
-  /** Current order status — must be a valid ID for the chosen `type`. */
-  status?: OrderStatus;
+  /**
+   * Current order status. Accepts both the tracker's internal IDs
+   * (`received | preparing | ready | served | on-way | delivered`) and the
+   * platform's 5-step IDs (`pending | confirmed | preparing | ready | delivered | cancelled`).
+   */
+  status?: AnyOrderStatus;
   /** Dine-in shows Ready/Served; delivery shows On the way/Delivered. */
   type?: OrderType;
   /** Displayed order reference number. */
@@ -66,6 +91,51 @@ const DELIVERY_STEPS: Step[] = [
 ];
 
 // ---------------------------------------------------------------------------
+// Status alias resolver
+// ---------------------------------------------------------------------------
+
+/**
+ * Map a platform 5-step status to the tracker's internal step ID.
+ * For statuses already in the tracker vocabulary (`received`, `serving`, etc.)
+ * the value is returned unchanged.
+ */
+function resolveStatus(raw: AnyOrderStatus, type: OrderType): OrderStatus {
+  if (type === 'delivery') {
+    switch (raw) {
+      case 'pending':
+      case 'confirmed':
+        return 'received';
+      case 'preparing':
+        return 'preparing';
+      case 'ready':
+        return 'on-way';
+      case 'delivered':
+        return 'delivered';
+      case 'cancelled':
+        return 'received'; // show first step greyed-out for cancelled
+      default:
+        return raw as OrderStatus;
+    }
+  }
+  // dine-in (default)
+  switch (raw) {
+    case 'pending':
+    case 'confirmed':
+      return 'received';
+    case 'preparing':
+      return 'preparing';
+    case 'ready':
+      return 'ready';
+    case 'delivered':
+      return 'served';
+    case 'cancelled':
+      return 'received'; // show first step greyed-out for cancelled
+    default:
+      return raw as OrderStatus;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
@@ -78,7 +148,8 @@ export function OrderTracker({
 }: OrderTrackerProps) {
   const t = useT();
   const steps = type === 'delivery' ? DELIVERY_STEPS : DINE_IN_STEPS;
-  const idx = steps.findIndex((s) => s.id === status);
+  const resolvedStatus = resolveStatus(status, type);
+  const idx = steps.findIndex((s) => s.id === resolvedStatus);
   const currentLabel = idx >= 0 ? t(steps[idx].labelKey) : '';
   const defaultEta = type === 'delivery' ? t('ETA 18 min') : t('Est. 8 min');
   const etaDisplay = eta ?? defaultEta;

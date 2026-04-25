@@ -1,5 +1,5 @@
 export { OrderTracker } from './OrderTracker';
-export type { OrderTrackerProps, OrderType, OrderStatus, DineInStatus, DeliveryStatus } from './OrderTracker';
+export type { OrderTrackerProps, OrderType, OrderStatus, DineInStatus, DeliveryStatus, PlatformOrderStatus, AnyOrderStatus } from './OrderTracker';
 
 export { Receipt } from './Receipt';
 export type { ReceiptProps, ReceiptLineItem } from './Receipt';
