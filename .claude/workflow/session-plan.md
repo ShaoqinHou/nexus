@@ -101,8 +101,57 @@ The real shakedown of the commit-review loop.
 - [~] **6.2** Final full-app E2E delegated to a99ff3e273025cf5e (in flight). Re-walks zoo + dietary fix verification + tenant theme assertion.
 - [x] **6.3** STATUS.md updated with the in-flight feature list + commit map (commit d27a498). Will receive final amendment after the 3 in-flight agents return.
 - [~] **6.4** Phase markers above show actual state. Phase 3.4 in flight; Phase 5 second pass in flight; Phase 6 closing once both return.
-- [ ] **6.5** Stop the persistent watchdog (`mcp__scheduled-tasks` task `nexus-design-workflow-v2-watchdog`) once Phase 6.4 hits all `[x]`.
-- [ ] **6.6** Final summary appended below.
+- [x] **6.5** Watchdog `nexus-design-workflow-v2-watchdog` disabled at session close. Persistent task remains in `~/.claude/scheduled-tasks/` but `enabled: false` — re-arm for follow-up sessions if needed.
+- [x] **6.6** Final summary appended below.
+
+---
+
+## Final Summary
+
+**28 commits on `feat/design-workflow-v2`. All gates green at session close.**
+
+### What landed (by phase)
+
+| Phase | Outcome | Key commits |
+|---|---|---|
+| 0 | Branch + plan + watchdog set up | 331daf5 |
+| 1 | 7 new design-system standards (S-DESIGN-REFERENCE etc.); reviewer/fixer/rules/CLAUDE.md trap registry extended | 50789e8 |
+| 2 | Review-loop shakedown — 3 pilot commits + 1 fix; bundle imported, design-token linter shipped, hit-target tokens added, .mjs ESM rename | 978d28b, 5881d15, 6a02f0c, b71ab14 |
+| 3.1 | `components/registry.json` — 12 primitives + 12 patterns indexed | db10841 |
+| 3.2 | `/design/*` zoo at `routes/__design/Zoo.tsx`, dev-only, **24/24 showcases** wired (16 base + 4 themed + tokens + themes + ImageUpload/Toast/TourOverlay/LanguagePicker/DataTable/ErrorBoundary/PullToRefresh/AddToCartToast) | 723085a, 9ee7023, 37b1472 |
+| 3.3 | 10 cuisine themes + ThemeProvider extended (`themeId`, `data-theme`, brand override props) + Google Fonts | 071c918, 22ee128 |
+| 3.4 | Themed components OrderTracker / Receipt / PromoCard / CheckoutSummary as NEW files in `components/patterns/themed/` | ed95718 |
+| 3.5 | `dietary-icons.svg` sprite (30 symbols) + `<DietaryIcon>` primitive | 1610ad4 |
+| 3.6 | Self-hosted Inter + JetBrains Mono variable woff2 + `@font-face` | 1610ad4 |
+| 3.7 | CustomerShell wired to `tenant.settings.theme` + `brandColor` (nested ThemeProvider, schema patched) | 116a0d2 |
+| 4 | Sweep: 153 hit-target violations → 0 (mechanical); 63 hex/rgba violations → 0 (legitimate `// lint-override` / `/* lint-override */` on palette math, print windows, keyframes) | 76992ec, b0d970c, 02c2a64, a72161f |
+| 5 | E2E ran twice. First pass: 7 PASS / 1 FAIL → fixed S-DIETARY-SPRITE in customer menu (commit 0dcf4ad). Re-verify pass: zoo + dietary fix + tenant theme attribute all confirmed in DOM. | 0dcf4ad |
+| 5.x | Latent CartContext HMR bug surfaced (two-context-instances when zoo's add-to-cart-toast showcase opened in second tab). Fix: extracted `CartContext.ts` as a leaf module (no platform deps). | f7b76f1 |
+| 6 | STATUS.md + session-plan.md final, watchdog disabled | b4f7fff, this commit |
+
+### Final gates
+
+- **Tests**: 181/181 API + 22/22 web ✓
+- **Design-token lint**: 0 violations / 90 files ✓
+- **TypeScript**: 0 errors web + api ✓
+- **Vite production build**: 3.5s, success with `--base /nexus/` ✓
+- **Reviewer batch verdict**: PASS on 76992ec / b0d970c / 0dcf4ad (3 NOTE findings, all addressed)
+
+### Outstanding (deferred to follow-up sessions, non-blocking)
+
+1. **`--color-kds-preparing` token pair** — KitchenDisplay's violet station hue is currently `// lint-override` because no semantic token matches. Reviewer F-352e6d8d. Needs design judgment on the hex values.
+2. **`dev:all` Windows MINGW race** — when both api + web boot concurrently via `&`, web sometimes silent-fails. Workaround: two terminals.
+3. **ThemeSettings.tsx merchant UI** — data flow for cuisine theme is wired; UI dropdown for it isn't surfaced yet (the `theme` field in tenant settings can be set programmatically via the API but not via the merchant settings page).
+
+### Commit-review hook note
+
+The PostToolUse `commit-review.sh` hook never fired in this autonomous session — diagnosed as a worktree-cwd issue (the shell ran from a worktree subdir, not the repo root). The Reviewer/Fixer agents were invoked manually via `Agent({ subagent_type: 'reviewer'/'general-purpose', ... })` instead. Workaround documented in this file's Notes section. Hook needs investigation in a follow-up session.
+
+### Branch ready for human review + merge
+
+`feat/design-workflow-v2` is mergeable to `main` once the human (you) reviews the diff. Suggested merge strategy: squash-merge or merge-with-history. Recommend reviewing in this order: Phase 1 standards → reference bundle → Zoo.tsx → ThemeProvider → CustomerShell wiring → CartContext extraction → sweep diffs.
+
+Session closed at 2026-04-25.
 
 ---
 
