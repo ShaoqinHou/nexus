@@ -686,5 +686,16 @@
   "Option deleted": "オプションを削除しました",
   "Failed to delete option": "オプションの削除に失敗しました",
   "OFF": "OFF",
-  "Thank you for dining with us!": "ご来店ありがとうございました！"
+  "Thank you for dining with us!": "ご来店ありがとうございました！",
+  "Cuisine Theme": "料理テーマ",
+  "Default (Classic)": "デフォルト（クラシック）",
+  "Trattoria": "トラットリア",
+  "Izakaya": "居酒屋",
+  "Bubble Tea": "タピオカミルクティー",
+  "Counter": "カフェカウンター",
+  "Taqueria": "タケリア",
+  "Curry House": "カレーハウス",
+  "Sichuan": "四川料理",
+  "Cantonese": "広東料理",
+  "Wok": "中華料理"
 }
