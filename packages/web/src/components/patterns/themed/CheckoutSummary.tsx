@@ -9,12 +9,15 @@
  * restaurant preset's CSS custom properties throughout the component. All colour
  * references use `var(--color-*)` tokens — no hardcoded values.
  *
- * This is a NEW DISPLAY-ONLY component for future integration. It does not wire
- * mutations directly. Pass an `onPlaceOrder` callback to handle the button click.
+ * Precomputed-total bridge: pass `precomputedTotal` (and optionally
+ * `precomputedSubtotal`, `discountAmount`, `discountLabel`, `taxLabel`) to
+ * override local computation. This is used by CartSheet which already has
+ * finalTotal / discountAmount from `useCartOrder` (promos, etc.).
  *
  * Typical usage: cart sheet confirmation step, checkout page sidebar.
  */
 
+import { formatPrice } from '@web/lib/format';
 import { useT } from '@web/lib/i18n';
 
 // ---------------------------------------------------------------------------
@@ -39,20 +42,29 @@ export interface CheckoutSummaryProps {
   deliveryFee?: number;
   /** Tax rate as a decimal, e.g. 0.0875. Pass 0 or omit to hide the tax row. */
   taxRate?: number;
+  /**
+   * Override the computed total with a pre-calculated value (e.g. from
+   * `useCartOrder`'s `finalTotal` which accounts for promos). When provided,
+   * local subtotal + tax + delivery computation is bypassed for the total line.
+   */
+  precomputedTotal?: number;
+  /**
+   * Override the displayed subtotal. When provided alongside `precomputedTotal`,
+   * the subtotal row shows this value instead of the locally-computed one.
+   */
+  precomputedSubtotal?: number;
+  /** Discount amount to display (e.g. promo savings). Only shown when > 0. */
+  discountAmount?: number;
+  /** Label for the discount row. Defaults to "Discount". */
+  discountLabel?: string;
+  /** Label for the tax row. Defaults to "Tax". */
+  taxLabel?: string;
   /** Called when the user clicks the place-order button. */
   onPlaceOrder?: () => void;
   /** Loading state — disables and dims the CTA button when true. */
   loading?: boolean;
   /** Override for the place-order button label. Defaults to "Place order · $X.XX". */
   ctaLabel?: string;
-}
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function formatMoney(value: number): string {
-  return value.toFixed(2);
 }
 
 // ---------------------------------------------------------------------------
@@ -64,16 +76,27 @@ export function CheckoutSummary({
   items,
   deliveryFee = 0,
   taxRate = 0,
+  precomputedTotal,
+  precomputedSubtotal,
+  discountAmount = 0,
+  discountLabel,
+  taxLabel,
   onPlaceOrder,
   loading = false,
   ctaLabel,
 }: CheckoutSummaryProps) {
   const t = useT();
-  const subtotal = items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
-  const taxAmount = subtotal * taxRate;
-  const total = subtotal + deliveryFee + taxAmount;
 
-  const buttonLabel = ctaLabel ?? `${t('Place order')} · $${formatMoney(total)}`;
+  const localSubtotal = items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
+  const subtotal = precomputedSubtotal ?? localSubtotal;
+  const taxAmount = subtotal * taxRate;
+  const localTotal = subtotal + deliveryFee + taxAmount;
+  const total = precomputedTotal ?? localTotal;
+
+  const resolvedDiscountLabel = discountLabel ?? t('Discount');
+  const resolvedTaxLabel = taxLabel ?? t('Tax');
+
+  const buttonLabel = ctaLabel ?? `${t('Place order')} · ${formatPrice(total)}`;
 
   return (
     <div
@@ -115,7 +138,7 @@ export function CheckoutSummary({
             {item.quantity}× {item.name}
           </div>
           <div style={{ fontFamily: 'var(--font-mono)' }}>
-            ${formatMoney(item.quantity * item.unitPrice)}
+            {formatPrice(item.quantity * item.unitPrice)}
           </div>
         </div>
       ))}
@@ -140,7 +163,7 @@ export function CheckoutSummary({
         }}
       >
         <div>{t('Subtotal')}</div>
-        <div style={{ fontFamily: 'var(--font-mono)' }}>${formatMoney(subtotal)}</div>
+        <div style={{ fontFamily: 'var(--font-mono)' }}>{formatPrice(subtotal)}</div>
       </div>
 
       {deliveryFee > 0 && (
@@ -154,7 +177,22 @@ export function CheckoutSummary({
           }}
         >
           <div>{t('Delivery')}</div>
-          <div style={{ fontFamily: 'var(--font-mono)' }}>${formatMoney(deliveryFee)}</div>
+          <div style={{ fontFamily: 'var(--font-mono)' }}>{formatPrice(deliveryFee)}</div>
+        </div>
+      )}
+
+      {discountAmount > 0 && (
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            fontSize: 12,
+            color: 'var(--color-success)',
+            marginBottom: 4,
+          }}
+        >
+          <div>{resolvedDiscountLabel}</div>
+          <div style={{ fontFamily: 'var(--font-mono)' }}>-{formatPrice(discountAmount)}</div>
         </div>
       )}
 
@@ -168,8 +206,8 @@ export function CheckoutSummary({
             marginBottom: 14,
           }}
         >
-          <div>{t('Tax')}</div>
-          <div style={{ fontFamily: 'var(--font-mono)' }}>${formatMoney(taxAmount)}</div>
+          <div>{resolvedTaxLabel}</div>
+          <div style={{ fontFamily: 'var(--font-mono)' }}>{formatPrice(taxAmount)}</div>
         </div>
       )}
 
@@ -181,11 +219,11 @@ export function CheckoutSummary({
           fontSize: 16,
           fontWeight: 700,
           marginBottom: 18,
-          marginTop: taxRate > 0 || deliveryFee > 0 ? 0 : 14,
+          marginTop: taxRate > 0 || deliveryFee > 0 || discountAmount > 0 ? 0 : 14,
         }}
       >
         <div>{t('Total')}</div>
-        <div style={{ fontFamily: 'var(--font-mono)' }}>${formatMoney(total)}</div>
+        <div style={{ fontFamily: 'var(--font-mono)' }}>{formatPrice(total)}</div>
       </div>
 
       {/* Place order CTA */}

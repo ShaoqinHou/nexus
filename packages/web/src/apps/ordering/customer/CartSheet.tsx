@@ -17,6 +17,8 @@ import { useT } from '@web/lib/i18n';
 import { useCart } from '@web/apps/ordering/customer/CartContext';
 import { useCartOrder } from '@web/apps/ordering/customer/useCartOrder';
 import type { Order } from '@web/apps/ordering/types';
+import { CheckoutSummary } from '@web/components/patterns/themed/CheckoutSummary';
+import type { CheckoutLineItem } from '@web/components/patterns/themed/CheckoutSummary';
 
 interface CartSheetProps {
   tenantSlug: string;
@@ -459,88 +461,52 @@ export function CartSheet({
                   </div>
                 )}
 
-                {/* Price breakdown */}
-                <div className="space-y-1">
-                  {(() => {
-                    const effectiveRate = taxRate ?? 0;
-                    const effectiveLabel = taxLabel || 'Tax';
-                    const hasTax = effectiveRate > 0;
-                    const showSubtotal = !!appliedPromo || (hasTax && !taxInclusive);
+                {/* Price breakdown + place order CTA */}
+                {(() => {
+                  const effectiveRate = taxRate ?? 0;
+                  const hasTax = effectiveRate > 0;
 
-                    // Estimate tax on finalTotal (pre-tax for exclusive, included for inclusive)
-                    let estimatedTax = 0;
-                    let displayTotal = finalTotal;
-                    if (hasTax) {
-                      if (taxInclusive) {
-                        estimatedTax = finalTotal - (finalTotal / (1 + effectiveRate / 100));
-                      } else {
-                        estimatedTax = finalTotal * (effectiveRate / 100);
-                        displayTotal = finalTotal + estimatedTax;
+                  // Compute displayTotal with tax if exclusive
+                  let displayTotal = finalTotal;
+                  if (hasTax && !taxInclusive) {
+                    displayTotal = Math.round(finalTotal * (1 + effectiveRate / 100) * 100) / 100;
+                  }
+
+                  const summaryItems: CheckoutLineItem[] = items.map((cartItem) => {
+                    const isCombo = !!cartItem.comboDealId;
+                    const modifierTotal = isCombo
+                      ? 0
+                      : (cartItem.modifiers ?? []).reduce((sum, m) => sum + m.price, 0);
+                    return {
+                      name: cartItem.name,
+                      quantity: cartItem.quantity,
+                      unitPrice: cartItem.price + modifierTotal,
+                    };
+                  });
+
+                  const ctaLabel = addToOrderId
+                    ? `${t('Add to Order')} · ${formatPrice(displayTotal)}`
+                    : `${t('Place Order')} · ${formatPrice(displayTotal)}`;
+
+                  return (
+                    <CheckoutSummary
+                      items={summaryItems}
+                      precomputedTotal={displayTotal}
+                      precomputedSubtotal={totalPrice}
+                      discountAmount={appliedPromo ? discountAmount : 0}
+                      discountLabel={t('Discount')}
+                      taxLabel={
+                        hasTax
+                          ? `${taxInclusive ? t('Incl.') : t('Est.')} ${taxLabel ?? 'Tax'} (${effectiveRate}%)`
+                          : undefined
                       }
-                      estimatedTax = Math.round(estimatedTax * 100) / 100;
-                      displayTotal = Math.round(displayTotal * 100) / 100;
-                    }
-
-                    return (
-                      <>
-                        {showSubtotal && (
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-text-secondary">{t('Subtotal')}</span>
-                            <span className="text-sm text-text">
-                              {formatPrice(totalPrice)}
-                            </span>
-                          </div>
-                        )}
-                        {appliedPromo && (
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-success">{t('Discount')}</span>
-                            <span className="text-sm font-medium text-success">
-                              -{formatPrice(discountAmount)}
-                            </span>
-                          </div>
-                        )}
-                        {hasTax && !taxInclusive && (
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-text-secondary">
-                              {t('Est.')} {effectiveLabel} ({effectiveRate}%)
-                            </span>
-                            <span className="text-sm text-text">
-                              {formatPrice(estimatedTax)}
-                            </span>
-                          </div>
-                        )}
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-text-secondary">{t('Total')}</span>
-                          <span className="text-lg font-bold text-text">
-                            {formatPrice(displayTotal)}
-                          </span>
-                        </div>
-                        {hasTax && taxInclusive && (
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-text-tertiary">
-                              {t('Incl.')} {effectiveLabel} ({effectiveRate}%)
-                            </span>
-                            <span className="text-xs text-text-tertiary">
-                              {formatPrice(estimatedTax)}
-                            </span>
-                          </div>
-                        )}
-                      </>
-                    );
-                  })()}
-                </div>
-
-                {/* Place order button */}
-                <Button
-                  variant="primary"
-                  size="lg"
-                  className="w-full"
-                  onClick={handlePlaceOrder}
-                  loading={placeOrderMutation.isPending}
-                  disabled={items.length === 0}
-                >
-                  {addToOrderId ? t('Add to Order') : t('Place Order')}
-                </Button>
+                      taxRate={hasTax && !taxInclusive ? effectiveRate / 100 : 0}
+                      onPlaceOrder={handlePlaceOrder}
+                      loading={placeOrderMutation.isPending}
+                      ctaLabel={ctaLabel}
+                    />
+                  );
+                })()}
               </div>
             </>
           )}
