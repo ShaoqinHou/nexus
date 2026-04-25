@@ -15,7 +15,6 @@ import { useCallWaiter } from '@web/apps/ordering/hooks/useTables';
 import { useToast } from '@web/platform/ToastProvider';
 import { useT, useLocale } from '@web/lib/i18n';
 import type { MenuCategory, MenuItem, ModifierGroup, ComboDeal } from '@web/apps/ordering/types';
-import type { DietaryTag } from '@web/apps/ordering/types';
 import { ALLERGENS } from '@web/apps/ordering/types';
 
 interface PublicMenuItem extends MenuItem {

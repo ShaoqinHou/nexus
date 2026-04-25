@@ -172,16 +172,16 @@ function printDailyReport(summary: DailySummary, tenantName: string, t: (key: st
   @page { margin: 20px; }
   body { font-family: Arial, sans-serif; font-size: 13px; max-width: 500px; margin: 0 auto; padding: 20px; }
   h1 { font-size: 18px; margin-bottom: 4px; }
-  h2 { font-size: 14px; margin: 16px 0 8px; border-bottom: 1px solid #ccc; padding-bottom: 4px; } // lint-override: daily report print window — CSS tokens don't propagate; raw hex intentional
+  h2 { font-size: 14px; margin: 16px 0 8px; border-bottom: 1px solid #ccc; padding-bottom: 4px; } /* lint-override: print window — CSS vars don't propagate */
   table { width: 100%; border-collapse: collapse; margin: 8px 0; }
   td, th { padding: 4px 8px; text-align: left; }
   .right { text-align: right; }
   .bold { font-weight: bold; }
-  .muted { color: #666; } // lint-override: daily report print window — muted gray; no token propagation
+  .muted { color: #666; } /* lint-override: print window — muted gray */
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .stat { padding: 8px; border: 1px solid #ddd; border-radius: 4px; } // lint-override: daily report print window — card border; no token propagation
+  .stat { padding: 8px; border: 1px solid #ddd; border-radius: 4px; } /* lint-override: print window — card border */
   .stat-value { font-size: 20px; font-weight: bold; }
-  .stat-label { font-size: 11px; color: #666; } // lint-override: daily report print window — muted gray; no token propagation
+  .stat-label { font-size: 11px; color: #666; } /* lint-override: print window — muted gray */
 </style></head><body>
   <h1>${tenantName} - ${t('Daily Report')}</h1>
   <p class="muted">${summary.date}</p>
