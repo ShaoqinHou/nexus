@@ -441,7 +441,7 @@ export function OrderConfirmation({
               onClick={() => handleCancelItem(item.id, item.name)}
               disabled={cancelItems.isPending}
               className="min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] flex items-center justify-center text-danger hover:text-danger/80 hover:bg-danger/10 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger focus-visible:ring-offset-2"
-              aria-label={`Request cancellation for ${item.name}`}
+              aria-label={`${t('Request cancellation for')} ${item.name}`}
             >
               <X className="h-5 w-5" />
             </button>

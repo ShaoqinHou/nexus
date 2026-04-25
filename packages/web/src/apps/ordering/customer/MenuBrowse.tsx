@@ -901,8 +901,8 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
               {publicPromotions.map((promo) => {
                 const discountStr =
                   promo.type === 'percentage'
-                    ? `${promo.discountValue}% OFF`
-                    : `$${promo.discountValue} OFF`;
+                    ? `${promo.discountValue}% ${t('OFF')}`
+                    : `${formatPrice(promo.discountValue)} ${t('OFF')}`;
                 const firstCode = promo.codes[0]?.code;
                 return (
                   <div key={promo.id} className="shrink-0">

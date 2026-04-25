@@ -54,10 +54,12 @@ describe('CheckoutSummary', () => {
         />,
       );
 
-      expect(screen.getByText('Subtotal')).toBeInTheDocument();
-      // $40.00 should appear somewhere in the document
-      const allText = document.body.textContent ?? '';
-      expect(allText).toContain('40.00');
+      // Scope the assertion to the Subtotal ROW so a coincidental '40.00'
+      // elsewhere in the DOM (line items, etc.) can't pass this test.
+      // `getByText` returns the label DIV; .parentElement is the flex row
+      // that holds both the label and the price column.
+      const subtotalRow = screen.getByText('Subtotal').parentElement;
+      expect(subtotalRow?.textContent).toContain('40.00');
     });
 
     it('shows discount row when discountAmount > 0', () => {
@@ -71,9 +73,8 @@ describe('CheckoutSummary', () => {
         />,
       );
 
-      expect(screen.getByText('Promo discount')).toBeInTheDocument();
-      const allText = document.body.textContent ?? '';
-      expect(allText).toContain('5.00');
+      const discountRow = screen.getByText('Promo discount').parentElement;
+      expect(discountRow?.textContent).toContain('5.00');
     });
 
     it('hides discount row when discountAmount is 0', () => {
@@ -113,8 +114,8 @@ describe('CheckoutSummary', () => {
         />,
       );
 
-      const allText = document.body.textContent ?? '';
-      expect(allText).toContain('42.99');
+      const totalRow = screen.getByText('Total').parentElement;
+      expect(totalRow?.textContent).toContain('42.99');
     });
 
     it('disables and shows loading text when loading=true', () => {

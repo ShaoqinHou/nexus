@@ -283,7 +283,7 @@ export function Receipt({
             textAlign: 'right',
           }}
         >
-          ({t('includes')} {Math.round(taxRate * 100)}% {effectiveTaxLabel})
+          ({t('Includes')} {Math.round(taxRate * 100)}% {effectiveTaxLabel})
         </div>
       )}
 

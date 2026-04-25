@@ -147,9 +147,10 @@ describe('Receipt', () => {
     );
 
     // formatPrice uses the module-level currency symbol (defaults to '$').
-    // $10.00 appears twice: once for the line item, once for the Total.
-    const priceEls = screen.getAllByText('$10.00');
-    expect(priceEls.length).toBeGreaterThanOrEqual(1);
+    // $10.00 appears exactly twice: once for the line item, once for the Total
+    // (no tax row when taxRate=0). toHaveLength catches both missing AND extra
+    // renders, where toBeGreaterThanOrEqual(1) would silently pass on either.
+    expect(screen.getAllByText('$10.00')).toHaveLength(2);
   });
 
   it('uses custom taxLabel in the tax row', () => {
