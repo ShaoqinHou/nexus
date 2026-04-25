@@ -104,8 +104,8 @@ const KITCHEN_COLUMNS: {
   {
     status: 'preparing',
     label: 'Preparing',
-    colorClass: 'border-[#7c3aed]', // lint-override: "Preparing" station uses violet — distinct from warning/success/danger; no semantic token maps to this KDS-specific state
-    headerBg: 'bg-[#ede9fe] text-[#7c3aed] dark:bg-[#2e1065] dark:text-[#a78bfa]', // lint-override: violet station tints — KDS-specific status color with no design-system token equivalent
+    colorClass: 'border-kds-preparing-fg',
+    headerBg: 'bg-kds-preparing text-kds-preparing-fg',
   },
   {
     status: 'ready',

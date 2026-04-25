@@ -105,6 +105,10 @@
   --color-info: #2563eb;
   --color-info-light: #dbeafe;
 
+  /* KDS station colours */
+  --color-kds-preparing: #ede9fe;
+  --color-kds-preparing-fg: #7c3aed;
+
   /* Brand (overridable per tenant) */
   --color-brand: #2563eb;
   --color-brand-hover: #1d4ed8;
@@ -150,6 +154,10 @@
   --color-warning-light: #451a03;
   --color-info: #3b82f6;
   --color-info-light: #1e3a5f;
+
+  /* KDS station colours */
+  --color-kds-preparing: #2e1065;
+  --color-kds-preparing-fg: #a78bfa;
 }
 
 @theme {
@@ -175,6 +183,8 @@
   --color-warning-light: var(--color-warning-light);
   --color-info: var(--color-info);
   --color-info-light: var(--color-info-light);
+  --color-kds-preparing: var(--color-kds-preparing);
+  --color-kds-preparing-fg: var(--color-kds-preparing-fg);
   --color-brand: var(--color-brand);
   --color-brand-hover: var(--color-brand-hover);
   --font-sans: var(--font-sans);
