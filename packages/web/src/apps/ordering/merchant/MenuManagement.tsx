@@ -876,7 +876,7 @@ function MenuItemCard({
                 </p>
               )}
             </div>
-            <p className="text-sm font-semibold text-text shrink-0">
+            <p className="text-sm font-semibold text-text font-mono tabular-nums shrink-0">
               {formatPrice(item.price)}
             </p>
           </div>

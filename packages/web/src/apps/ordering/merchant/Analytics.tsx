@@ -264,7 +264,7 @@ function DailySummarySection({ summary, tenantName }: { summary: DailySummary; t
                     {summary.paymentBreakdown.paid.count} {t('orders')}
                   </span>
                 </div>
-                <span className="text-sm font-semibold text-text">
+                <span className="text-sm font-semibold text-text font-mono tabular-nums">
                   {formatPrice(summary.paymentBreakdown.paid.amount)}
                 </span>
               </div>
@@ -275,7 +275,7 @@ function DailySummarySection({ summary, tenantName }: { summary: DailySummary; t
                     {summary.paymentBreakdown.unpaid.count} {t('orders')}
                   </span>
                 </div>
-                <span className="text-sm font-semibold text-text">
+                <span className="text-sm font-semibold text-text font-mono tabular-nums">
                   {formatPrice(summary.paymentBreakdown.unpaid.amount)}
                 </span>
               </div>
@@ -286,7 +286,7 @@ function DailySummarySection({ summary, tenantName }: { summary: DailySummary; t
                     {summary.paymentBreakdown.refunded.count} {t('orders')}
                   </span>
                 </div>
-                <span className="text-sm font-semibold text-text">
+                <span className="text-sm font-semibold text-text font-mono tabular-nums">
                   {formatPrice(summary.paymentBreakdown.refunded.amount)}
                 </span>
               </div>

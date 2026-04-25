@@ -659,7 +659,7 @@ function SplitPaymentPanel({
           {payments.map((p) => (
             <div key={p.id} className="flex items-center justify-between text-xs bg-bg-muted rounded-md px-2 py-1.5">
               <div className="flex items-center gap-2 min-w-0">
-                <span className="font-semibold text-text">{formatPrice(p.amount)}</span>
+                <span className="font-semibold text-text font-mono tabular-nums">{formatPrice(p.amount)}</span>
                 <span className="text-text-secondary">{t(PAYMENT_METHOD_LABELS[p.method])}</span>
                 {p.paidBy && <span className="text-text-tertiary truncate">({p.paidBy})</span>}
               </div>
@@ -678,10 +678,10 @@ function SplitPaymentPanel({
           ))}
           <div className="flex items-center justify-between text-xs pt-1 border-t border-border">
             <span className="text-text-secondary">
-              {t('Paid')}: <span className="font-semibold text-text">{formatPrice(roundedTotalPaid)}</span> / {formatPrice(order.total)}
+              {t('Paid')}: <span className="font-semibold text-text font-mono tabular-nums">{formatPrice(roundedTotalPaid)}</span> / <span className="font-mono tabular-nums">{formatPrice(order.total)}</span>
             </span>
             {remaining > 0 && (
-              <span className="text-warning font-semibold">
+              <span className="text-warning font-semibold font-mono tabular-nums">
                 {t('Remaining')}: {formatPrice(remaining)}
               </span>
             )}
@@ -940,11 +940,11 @@ function OrderCard({
                           </div>
                         )}
                       </td>
-                      <td className="py-3 px-2 text-center text-text-secondary">
+                      <td className="py-3 px-2 text-center text-text-secondary font-mono tabular-nums">
                         {item.quantity}
                       </td>
                       <td className={[
-                        'py-3 px-4 text-right',
+                        'py-3 px-4 text-right font-mono tabular-nums',
                         isItemCancelled ? 'text-text-tertiary line-through' : 'text-text',
                       ].join(' ')}>
                         {formatPrice(item.price * item.quantity)}
@@ -966,7 +966,7 @@ function OrderCard({
                   <td className="pt-2 font-semibold text-text" colSpan={3}>
                     {t('Total')}
                   </td>
-                  <td className="pt-2 text-right font-semibold text-text">
+                  <td className="pt-2 text-right font-semibold text-text font-mono tabular-nums">
                     {formatPrice(order.total)}
                   </td>
                 </tr>

@@ -370,10 +370,10 @@ function KitchenOrderCard({
       {/* Header — table number + time + total */}
       <div className="flex items-center justify-between px-4 py-3 bg-bg-muted border-b border-border">
         <div className="flex items-center gap-2">
-          <span className="text-3xl font-black text-text leading-none">
+          <span className="text-3xl font-black text-text leading-none font-mono tabular-nums">
             T{order.tableNumber}
           </span>
-          <span className="text-sm font-semibold text-text-secondary">
+          <span className="text-sm font-semibold text-text-secondary font-mono tabular-nums">
             {formatPrice(order.total)}
           </span>
           <button
@@ -511,7 +511,7 @@ function KitchenOrderCard({
       {/* Total */}
       <div className="px-4 pb-2">
         <p className="text-xs text-text-tertiary">
-          {order.items.length} item{order.items.length !== 1 ? 's' : ''} &middot; {formatPrice(order.total)}
+          {order.items.length} item{order.items.length !== 1 ? 's' : ''} &middot; <span className="font-mono tabular-nums">{formatPrice(order.total)}</span>
         </p>
       </div>
 
