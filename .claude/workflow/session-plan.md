@@ -73,7 +73,7 @@ The real shakedown of the commit-review loop.
 - [x] **3.1** registry.json at `packages/web/src/components/registry.json` — 12 primitives + 8 patterns + theme manifest (commit db10841).
 - [x] **3.2** `/design/*` zoo at `packages/web/src/routes/__design/Zoo.tsx`, dev-only, ~627 lines. 12 of 20 showcases wired (Button, Badge, Card, Dialog, Input, Toggle, Select, DietaryIcon, EmptyState, FormField, StatusBadge, ConfirmButton) + Tokens + Themes foundations. Sidebar auto-reads registry.json, marks unfinished ones "(todo)". Chrome toolbar: theme picker + dark toggle. Type-check: 0 errors. (commit 723085a)
 - [x] **3.3** 10 themes copied to `packages/web/src/platform/theme/themes/*.css` + `themes.css` aggregator + Google Fonts (Fraunces, Noto Serif SC, Noto Sans SC). ThemeProvider extended with `themeId`/`setThemeId`/`THEME_IDS` + `initialThemeId` prop for customer pinning. (commits 071c918, 22ee128)
-- [ ] **3.4** **DEFERRED** until Phase 4 sweep completes. Themed components OrderTracker/Receipt/PromoCard/CheckoutSummary are NEW visual treatments of concepts that already exist in the ordering app; porting them is a retheme, not a new-feature, and depends on Phase 4 token cleanup finishing first so they don't re-introduce drift. Re-scope TBD when Phase 4 is done.
+- [~] **3.4** Themed components (OrderTracker/Receipt/PromoCard/CheckoutSummary) — IN FLIGHT via background agent a559c38bc289c5d97. Approach: create NEW files in `components/patterns/themed/` rather than replace existing customer-flow components. Existing flow keeps working; themed versions are available for opt-in swap-in. Registry + barrel updated, tsc + test gates required to pass before commit.
 - [x] **3.5** `packages/web/public/dietary-icons.svg` (30-symbol sprite) + `<DietaryIcon name="..." size="sm|md|lg" />` primitive in `components/ui/DietaryIcon.tsx`. Exported from UI barrel. (commit 1610ad4)
 - [x] **3.6** Self-hosted fonts at `packages/web/public/fonts/Inter-Variable.woff2` + `JetBrainsMono-Variable.woff2`. `@font-face` declarations added to `tokens.css`. (commit 1610ad4)
 - [x] **3.7** Per-tenant `--color-brand` runtime override — ThemeProvider now accepts `brandColor` + `brandColorHover` props and applies inline style on `<html>` (overrides theme defaults at higher specificity). CustomerShell wiring to read from tenant settings still pending (follow-up task — the provider contract is ready).
@@ -88,17 +88,21 @@ The real shakedown of the commit-review loop.
 
 ## Phase 5 — E2E verification (review ON)
 
-- [~] **5.1-5.6** Delegated to background subagent (agent ID a1cc8862f35873886). Scope: zoo index → Button showcase → Themes showcase → theme picker (classic→sichuan→bubble-tea) → dark toggle → DietaryIcon showcase → merchant login (demo/password123) → customer flow at /order/demo?table=1 → browser console error scan. Screenshots + prose report expected back.
-- [ ] **5.7** Consolidate agent's E2E report into `.claude/workflow/scratch/e2e-<timestamp>.md` — handled by the agent itself or follow-up.
+- [x] **5.1-5.6** First pass via agent a1cc8862f35873886 (DONE). Verdict: 7 PASS, 1 FAIL, 1 minor note.
+      - PASS: zoo index, Button showcase, Themes showcase, theme picker, dark toggle, DietaryIcon (30 symbols rendering as `<use>` elements), merchant login.
+      - FAIL: customer menu rendered dietary tags as text-only spans (S-DIETARY-SPRITE violation). Fixed in commit `0dcf4ad` — see Phase 4 notes.
+      - Minor: stale aria-label on dark toggle (fixed in same commit), `dev:all` Windows race (deferred — workaround is two terminals).
+- [~] **5.8** Re-verification via agent a99ff3e273025cf5e — confirms the dietary fix shows icons in browser, customer page has `data-theme` attribute (CustomerShell wiring active), all 8 new zoo showcases render. IN FLIGHT.
+- [x] **5.x verifier**: tests + tsc + lint + build — ALL GREEN (agent ac0c8cb91c6233ac0). 203/203 API + 22/22 web tests pass; 0 design-token violations across 83 files; 0 tsc errors web/api; vite production build succeeds in 3.50s.
 
 ## Phase 6 — Consolidation + final walkthrough
 
-- [ ] **6.1** Merge any `auto-fix/*` branches from Reviewer loop.
-- [ ] **6.2** Final full-app E2E: boot → merchant → customer → back. One clean pass top-to-bottom.
-- [ ] **6.3** Update STATUS.md with what shipped.
-- [ ] **6.4** Mark all phases `[x]` here.
-- [ ] **6.5** `CronDelete` the watchdog.
-- [ ] **6.6** Final summary at tail of this file.
+- n/a **6.1** No `auto-fix/*` branches were created — Fixer never ran (review hook didn't fire in this session; Reviewer was invoked manually as Agent calls and findings were addressed inline).
+- [~] **6.2** Final full-app E2E delegated to a99ff3e273025cf5e (in flight). Re-walks zoo + dietary fix verification + tenant theme assertion.
+- [x] **6.3** STATUS.md updated with the in-flight feature list + commit map (commit d27a498). Will receive final amendment after the 3 in-flight agents return.
+- [~] **6.4** Phase markers above show actual state. Phase 3.4 in flight; Phase 5 second pass in flight; Phase 6 closing once both return.
+- [ ] **6.5** Stop the persistent watchdog (`mcp__scheduled-tasks` task `nexus-design-workflow-v2-watchdog`) once Phase 6.4 hits all `[x]`.
+- [ ] **6.6** Final summary appended below.
 
 ---
 
