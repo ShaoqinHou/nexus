@@ -40,7 +40,11 @@ interface ThemeContextValue {
   theme: Mode;
   /** Toggle light <-> dark. */
   toggleTheme: () => void;
-  /** Active cuisine theme ID (data-theme attribute on <html>). */
+  /**
+   * Active cuisine theme ID.
+   * When a nested ThemeProvider is used (initialThemeId provided), this value
+   * is scoped to the wrapper div — NOT applied to <html>.
+   */
   themeId: ThemeId;
   /** Set the cuisine theme. Set to 'classic' to reset. */
   setThemeId: (id: ThemeId) => void;
@@ -77,11 +81,12 @@ interface ThemeProviderProps {
    */
   initialThemeId?: ThemeId;
   /**
-   * Per-tenant brand-color override. When present, applied as inline style
-   * (`--color-brand`, `--color-brand-hover`) on <html> — layered ON TOP of
-   * the theme's default brand so a single Sichuan restaurant can pick its
-   * own shade of red without editing the theme. Pass the hex string (e.g.
-   * `#b8262b`); the hover shade is derived by lib/theme palette logic.
+   * Per-tenant brand-color override. When present and this is a customer-scoped
+   * provider (initialThemeId set), applied as inline CSS custom properties on
+   * the wrapper <div data-theme> — NOT on <html>. Layered ON TOP of the theme's
+   * default brand so a single Sichuan restaurant can pick its own shade of red
+   * without editing the theme. Pass the hex string (e.g. `#b8262b`); the hover
+   * shade is derived by lib/theme palette logic.
    */
   brandColor?: string | null;
   /** Optional pre-computed brand-hover override (if the caller already knows it). */
@@ -99,6 +104,13 @@ export function ThemeProvider({
     initialThemeId ?? getInitialThemeId
   );
 
+  /**
+   * Whether this instance is a customer-scoped (nested) provider.
+   * When true, cuisine theme and brand colors are applied to a wrapper <div>,
+   * NOT to <html> — preventing theme cascade into merchant routes.
+   */
+  const isCustomerScoped = initialThemeId !== undefined;
+
   // Keep state in sync if the parent changes initialThemeId (e.g. customer
   // shell re-reads tenant settings on navigation). Only applies when the
   // caller is driving us — if the merchant console is letting the user
@@ -109,7 +121,7 @@ export function ThemeProvider({
     }
   }, [initialThemeId, themeId]);
 
-  // Apply light/dark class.
+  // Apply light/dark class to <html> — always app-wide regardless of scope.
   useEffect(() => {
     if (typeof document === 'undefined') return;
     const root = document.documentElement;
@@ -125,40 +137,18 @@ export function ThemeProvider({
     }
   }, [mode]);
 
-  // Apply data-theme attribute.
+  // Outer (merchant) provider: persist themeId to localStorage but do NOT
+  // touch data-theme on <html>. The merchant console stays neutral (classic
+  // CSS default), satisfying S-THEMED-COMPONENT.
   useEffect(() => {
+    if (isCustomerScoped) return; // customer scope uses wrapper div (see render)
     if (typeof document === 'undefined') return;
-    document.documentElement.setAttribute('data-theme', themeId);
-    // Only persist to localStorage when the caller hasn't pinned the theme.
-    if (!initialThemeId) {
-      try {
-        localStorage.setItem(THEME_STORAGE_KEY, themeId);
-      } catch {
-        // no-op
-      }
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, themeId);
+    } catch {
+      // no-op
     }
-  }, [themeId, initialThemeId]);
-
-  // Apply brand-color override via inline style on <html>. Theme-level
-  // --color-brand is overridden at higher specificity by this inline style,
-  // which is exactly what we want — tenant brand beats theme default.
-  useEffect(() => {
-    if (typeof document === 'undefined') return;
-    const root = document.documentElement;
-    if (brandColor) {
-      root.style.setProperty('--color-brand', brandColor);
-      root.style.setProperty('--color-primary', brandColor);
-      if (brandColorHover) {
-        root.style.setProperty('--color-brand-hover', brandColorHover);
-        root.style.setProperty('--color-primary-hover', brandColorHover);
-      }
-    } else {
-      root.style.removeProperty('--color-brand');
-      root.style.removeProperty('--color-primary');
-      root.style.removeProperty('--color-brand-hover');
-      root.style.removeProperty('--color-primary-hover');
-    }
-  }, [brandColor, brandColorHover]);
+  }, [themeId, isCustomerScoped]);
 
   const toggleTheme = useCallback(() => {
     setMode((prev) => (prev === 'light' ? 'dark' : 'light'));
@@ -173,6 +163,34 @@ export function ThemeProvider({
     [mode, toggleTheme, themeId, setThemeId]
   );
 
+  // Customer-scoped: wrap children in a <div data-theme="…"> so the cuisine
+  // theme cascade is confined to customer routes only. Brand-color overrides
+  // are applied as inline CSS custom properties on the same wrapper element —
+  // they never reach <html>, so the merchant console stays unaffected.
+  if (isCustomerScoped) {
+    const brandStyle: CSSProperties = brandColor
+      ? ({
+          ['--color-brand' as never]: brandColor,
+          ['--color-primary' as never]: brandColor,
+          ...(brandColorHover
+            ? {
+                ['--color-brand-hover' as never]: brandColorHover,
+                ['--color-primary-hover' as never]: brandColorHover,
+              }
+            : {}),
+        } as CSSProperties)
+      : {};
+
+    return (
+      <ThemeContext.Provider value={value}>
+        <div data-theme={themeId} data-customer-shell style={brandStyle}>
+          {children}
+        </div>
+      </ThemeContext.Provider>
+    );
+  }
+
+  // Outer (merchant) provider: no wrapper div, no data-theme on <html>.
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
