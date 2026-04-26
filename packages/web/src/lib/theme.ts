@@ -157,13 +157,65 @@ function subtractMinutes(time: string, minutes: number): string {
   return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
 }
 
+/**
+ * Compute (day-of-week, "HH:MM") at current real time, expressed in the
+ * given IANA timezone (e.g. "Pacific/Auckland", "America/Los_Angeles").
+ * When `timezone` is undefined or invalid we fall back to the browser's
+ * local zone — same as the legacy behaviour.
+ *
+ * Why this matters: the customer's browser may be in NZST while the
+ * restaurant is in PST. Without a tenant timezone the legacy code asked
+ * "is it 11pm in Auckland?" when the restaurant's hours are written for
+ * Los Angeles. Live E2E (2026-04-26) reproduced this: a customer at NZST
+ * 23:04 saw a US-zone restaurant marked "Closed" outside their NZ-local
+ * hours even though the restaurant was open in PST.
+ */
+function nowInZone(timezone?: string): { day: number; time: string } {
+  const now = new Date();
+  if (!timezone) {
+    return {
+      day: now.getDay(),
+      time: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`,
+    };
+  }
+  try {
+    // Intl is the only way to read wall-clock day/time in an arbitrary IANA zone
+    // without pulling in a date library. Locale 'en-US' gives short weekday
+    // names we can map to 0-6.
+    const fmt = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone,
+      weekday: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+    const parts = fmt.formatToParts(now);
+    const wd = parts.find((p) => p.type === 'weekday')?.value ?? 'Sun';
+    const hour = parts.find((p) => p.type === 'hour')?.value ?? '00';
+    const minute = parts.find((p) => p.type === 'minute')?.value ?? '00';
+    const dayMap: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+    return {
+      day: dayMap[wd] ?? now.getDay(),
+      // hour-2-digit can render '24' on some platforms — clamp to '00'
+      time: `${(hour === '24' ? '00' : hour).padStart(2, '0')}:${minute.padStart(2, '0')}`,
+    };
+  } catch {
+    // Bad/unknown timezone — fall back gracefully.
+    return {
+      day: now.getDay(),
+      time: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`,
+    };
+  }
+}
+
 /** Check if restaurant is currently open based on operating hours */
-export function isOpenNow(hours?: OperatingHoursEntry[]): { open: boolean; nextChange?: string; nextChangeTime?: string } {
+export function isOpenNow(
+  hours?: OperatingHoursEntry[],
+  timezone?: string,
+): { open: boolean; nextChange?: string; nextChangeTime?: string } {
   if (!hours || hours.length === 0) return { open: true }; // No hours set = always open
 
-  const now = new Date();
-  const day = now.getDay();
-  const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  const { day, time } = nowInZone(timezone);
 
   const todayHours = hours.find((h) => h.day === day);
   if (!todayHours) return { open: false, nextChange: 'tomorrow' };
@@ -180,8 +232,9 @@ export function isOpenNow(hours?: OperatingHoursEntry[]): { open: boolean; nextC
 export function isOrderingOpen(
   hours?: OperatingHoursEntry[],
   lastOrderMinutesBefore?: number,
+  timezone?: string,
 ): { open: boolean; orderingClosed: boolean; kitchenClosesAt?: string; nextChange?: string } {
-  const status = isOpenNow(hours);
+  const status = isOpenNow(hours, timezone);
   if (!status.open) return { open: false, orderingClosed: false, nextChange: status.nextChange };
 
   // Restaurant is open — check last-order cutoff
@@ -189,9 +242,7 @@ export function isOrderingOpen(
     return { open: true, orderingClosed: false, nextChange: status.nextChange };
   }
 
-  const now = new Date();
-  const day = now.getDay();
-  const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  const { day, time } = nowInZone(timezone);
 
   const todayHours = hours.find((h) => h.day === day);
   if (!todayHours) return { open: true, orderingClosed: false, nextChange: status.nextChange };

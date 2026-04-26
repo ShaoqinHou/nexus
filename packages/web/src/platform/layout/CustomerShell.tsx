@@ -75,7 +75,10 @@ function RestaurantHero({
           {name}
         </h1>
         {(() => {
-          const status = isOpenNow(settings.operatingHours);
+          // Pass the tenant's timezone so a customer in a different zone sees
+          // the correct open/closed state for the restaurant's local hours.
+          const tenantTz = (settings as { timezone?: string }).timezone;
+          const status = isOpenNow(settings.operatingHours, tenantTz);
           return (
             <div className="flex items-center gap-1.5 mt-1">
               <span className={`h-2 w-2 rounded-full ${status.open ? 'bg-success' : 'bg-danger'}`} />

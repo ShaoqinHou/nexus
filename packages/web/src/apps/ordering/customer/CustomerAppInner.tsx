@@ -71,9 +71,12 @@ export function CustomerAppInner({ tenantSlug, tableNumber, availableLocales }: 
     return () => clearInterval(timer);
   }, []);
 
-  const openStatus = isOpenNow(settings.operatingHours);
+  // Pass the tenant's timezone so a customer browsing from a different zone
+  // sees the correct open/closed state for the restaurant's local hours.
+  const tenantTz = (settings as { timezone?: string }).timezone;
+  const openStatus = isOpenNow(settings.operatingHours, tenantTz);
   const isClosed = !openStatus.open;
-  const orderingStatus = isOrderingOpen(settings.operatingHours, settings.lastOrderMinutesBefore);
+  const orderingStatus = isOrderingOpen(settings.operatingHours, settings.lastOrderMinutesBefore, tenantTz);
   const isOrderingCutoff = orderingStatus.orderingClosed && !isClosed;
 
   // Auto-show customer tour on first visit
