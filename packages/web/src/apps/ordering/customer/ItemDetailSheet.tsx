@@ -196,8 +196,11 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
                   return (
                     <span
                       key={tag}
+                      // Same chip recipe as MenuBrowse — rounded-chip token
+                      // for cuisine-aware shape, no `leading-none` so Inter
+                      // metrics don't push text upward.
                       className={[
-                        'inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-medium leading-none',
+                        'inline-flex items-center gap-1 rounded-[var(--radius-chip)] px-2 py-0.5 text-xs font-medium',
                         dietaryTagColor(tag),
                       ].join(' ')}
                     >
@@ -216,7 +219,7 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
                   return (
                     <span
                       key={allergen}
-                      className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-medium leading-none bg-danger-light text-danger"
+                      className="inline-flex items-center gap-1 rounded-[var(--radius-chip)] px-2 py-0.5 text-xs font-medium bg-danger-light text-danger"
                     >
                       {icon && <DietaryIcon name={icon} size="sm" />}
                       {t(allergen)}

@@ -754,7 +754,7 @@ export function KitchenDisplay() {
           </h1>
           <div
             className={[
-              'flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-full',
+              'flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-[var(--radius-chip)]',
               connected
                 ? 'bg-success-light text-success'
                 : isReconnecting

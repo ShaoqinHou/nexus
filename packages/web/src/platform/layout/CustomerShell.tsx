@@ -42,7 +42,7 @@ function RestaurantHero({
 
       {/* Table number badge */}
       {tableNumber && (
-        <div className="absolute top-3 right-3 rounded-full bg-bg/90 backdrop-blur-sm px-3 py-1 text-xs font-semibold text-text shadow-sm">
+        <div className="absolute top-3 right-3 rounded-[var(--radius-chip)] bg-bg/90 backdrop-blur-sm px-3 py-1 text-xs font-semibold text-text shadow-sm">
           {t('Table')} {tableNumber}
         </div>
       )}

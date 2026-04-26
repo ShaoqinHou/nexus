@@ -56,7 +56,16 @@ const DietaryTagBadges = memo(function DietaryTagBadges({ tags }: { tags: string
           <span
             key={tag}
             className={[
-              'inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-medium leading-none',
+              // Use --radius-chip so chip shape follows cuisine identity
+              // (sharp 0px under counter, pill under trattoria, etc).
+              // Drop `leading-none` — it clipped the line-box to the
+              // font-size with no descent room, and Inter's asymmetric
+              // metrics (ascent > descent) pushed the text up so chips
+              // without icons (e.g. "gluten") visibly drifted vs chips
+              // with icons. Tailwind default `leading-normal` (1.5) lets
+              // glyphs breathe and `inline-flex items-center` then
+              // centers cleanly.
+              'inline-flex items-center gap-1 rounded-[var(--radius-chip)] px-2 py-0.5 text-xs font-medium',
               dietaryTagColor(tag),
             ].join(' ')}
           >
@@ -80,7 +89,8 @@ const AllergenBadges = memo(function AllergenBadges({ allergens }: { allergens: 
         return (
           <span
             key={allergen}
-            className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-medium leading-none bg-danger-light text-danger"
+            // Same chip recipe as DietaryTagBadges — see comment there.
+            className="inline-flex items-center gap-1 rounded-[var(--radius-chip)] px-2 py-0.5 text-xs font-medium bg-danger-light text-danger"
           >
             {icon && <DietaryIcon name={icon} size="sm" />}
             {t(allergen)}
@@ -175,7 +185,7 @@ const MenuItemCard = memo(function MenuItemCard({
           </h3>
           <div className="flex items-center gap-2 shrink-0">
             {isSoldOut && (
-              <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold bg-danger/10 text-danger">
+              <span className="inline-flex items-center rounded-[var(--radius-chip)] px-2 py-0.5 text-xs font-semibold bg-danger/10 text-danger">
                 {t('Sold Out')}
               </span>
             )}
@@ -335,7 +345,7 @@ const ComboCard = memo(function ComboCard({
           {combo.slots.map((slot) => (
             <span
               key={slot.id}
-              className="inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-medium bg-primary-light text-primary"
+              className="inline-flex items-center rounded-[var(--radius-chip)] px-2 py-0.5 text-xs font-medium bg-primary-light text-primary"
             >
               {slot.name}
             </span>
@@ -730,7 +740,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
       <nav className="hidden lg:block w-52 shrink-0 sticky top-0 self-start h-screen overflow-y-auto border-r border-border pt-4 px-3">
         {/* Table number chip */}
         {tableNumber && (
-          <span className="shrink-0 px-2 py-1 rounded-full bg-bg-muted text-xs font-semibold text-text-secondary inline-block mb-3">
+          <span className="shrink-0 px-2 py-1 rounded-[var(--radius-chip)] bg-bg-muted text-xs font-semibold text-text-secondary inline-block mb-3">
             {t('Table')} {tableNumber}
           </span>
         )}
@@ -801,7 +811,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                       type="button"
                       onClick={() => toggleAllergenFilter(allergen)}
                       className={[
-                        'px-2 py-0.5 rounded-full text-xs font-medium border transition-colors',
+                        'px-2 py-0.5 rounded-[var(--radius-chip)] text-xs font-medium border transition-colors',
                         isHidden
                           ? 'bg-danger text-text-inverse border-danger'
                           : 'bg-bg-muted text-text-secondary border-border hover:border-border-strong',
@@ -1048,7 +1058,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                 )}
               </button>
               {tableNumber && (
-                <span className="shrink-0 px-2 py-1 rounded-full bg-bg-muted text-xs font-semibold text-text-secondary">
+                <span className="shrink-0 px-2 py-1 rounded-[var(--radius-chip)] bg-bg-muted text-xs font-semibold text-text-secondary">
                   {t('Table')} {tableNumber}
                 </span>
               )}
@@ -1080,7 +1090,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                       type="button"
                       onClick={() => toggleAllergenFilter(allergen)}
                       className={[
-                        'min-h-[var(--hit-sm)] px-3 py-1 rounded-full text-xs font-medium border transition-colors',
+                        'min-h-[var(--hit-sm)] px-3 py-1 rounded-[var(--radius-chip)] text-xs font-medium border transition-colors',
                         isHidden
                           ? 'bg-danger text-text-inverse border-danger'
                           : 'bg-bg-muted text-text-secondary border-border hover:border-border-strong',

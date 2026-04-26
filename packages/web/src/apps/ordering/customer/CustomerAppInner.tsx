@@ -284,7 +284,7 @@ export function CustomerAppInner({ tenantSlug, tableNumber, availableLocales }: 
                   <button
                     key={o.id}
                     onClick={() => setView({ type: 'confirmation', orderId: o.id })}
-                    className="text-xs px-3 py-1 rounded-full bg-primary/10 text-primary font-medium"
+                    className="text-xs px-3 py-1 rounded-[var(--radius-chip)] bg-primary/10 text-primary font-medium"
                   >
                     #{o.id.slice(-6).toUpperCase()}
                   </button>

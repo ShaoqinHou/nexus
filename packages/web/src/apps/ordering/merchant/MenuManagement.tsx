@@ -350,7 +350,7 @@ function ItemDialog({
                   type="button"
                   onClick={() => toggleTag(tag)}
                   className={[
-                    'min-h-[var(--hit-sm)] px-2.5 py-2.5 rounded-full text-xs font-medium border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+                    'min-h-[var(--hit-sm)] px-2.5 py-2.5 rounded-[var(--radius-chip)] text-xs font-medium border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
                     isSelected
                       ? 'bg-primary text-text-inverse border-primary'
                       : 'bg-bg-muted text-text-secondary border-border hover:border-border-strong',
@@ -375,7 +375,7 @@ function ItemDialog({
                   type="button"
                   onClick={() => toggleAllergen(allergen)}
                   className={[
-                    'min-h-[var(--hit-sm)] px-2.5 py-2.5 rounded-full text-xs font-medium border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+                    'min-h-[var(--hit-sm)] px-2.5 py-2.5 rounded-[var(--radius-chip)] text-xs font-medium border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
                     isSelected
                       ? 'bg-warning text-text-inverse border-warning'
                       : 'bg-bg-muted text-text-secondary border-border hover:border-border-strong',
@@ -886,7 +886,7 @@ function MenuItemCard({
               {parseTags(item.tags).map((tag) => (
                 <span
                   key={tag}
-                  className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-bg-muted text-text-secondary"
+                  className="inline-flex items-center rounded-[var(--radius-chip)] px-2 py-0.5 text-xs font-medium bg-bg-muted text-text-secondary"
                 >
                   {t(tag)}
                 </span>

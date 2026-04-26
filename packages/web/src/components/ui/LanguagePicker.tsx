@@ -36,7 +36,7 @@ export function LanguagePicker({ availableLocales }: LanguagePickerProps) {
       <select
         value={locale}
         onChange={(e) => setLocale(e.target.value as Locale)}
-        className="appearance-none bg-bg-surface text-text text-xs font-medium border border-border rounded-full pl-7 pr-6 py-1.5 min-h-[32px] cursor-pointer hover:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-colors"
+        className="appearance-none bg-bg-surface text-text text-xs font-medium border border-border rounded-[var(--radius-chip)] pl-7 pr-6 py-1.5 min-h-[32px] cursor-pointer hover:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-colors"
         aria-label={t('Select language')}
       >
         {locales.map((loc) => (
