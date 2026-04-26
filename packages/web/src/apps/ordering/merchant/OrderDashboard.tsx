@@ -83,8 +83,9 @@ function ElapsedBadge({ createdAt }: { createdAt: string }) {
 
   if (mins >= 15) {
     return (
-      <span className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-xs font-semibold text-danger bg-danger/10 animate-pulse">
-        !{label}
+      <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold text-danger bg-danger/10 animate-pulse">
+        <AlertTriangle className="h-3 w-3 shrink-0" />
+        {label}
       </span>
     );
   }

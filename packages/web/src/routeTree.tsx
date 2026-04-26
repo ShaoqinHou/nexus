@@ -243,13 +243,19 @@ const tenantCatchAllRoute = createRoute({
 });
 
 // --- Kitchen Display route (full-screen, no PlatformShell) ---
+// Even though Kitchen has its own full-screen layout (no sidebar/topbar),
+// it still represents the merchant's branded surface and must reflect the
+// tenant's cuisine theme. We wrap it in MerchantThemeShell so the same
+// data-theme cascade flows through, just like every other merchant route.
 function KitchenLocaleShell() {
   const { tenant } = useTenant();
   const settings = tenant?.settings ? (typeof tenant.settings === 'string' ? JSON.parse(tenant.settings) : tenant.settings) : {};
   const primaryLocale = SUPPORTED_LOCALES.includes(settings?.primaryLocale as Locale) ? settings.primaryLocale as Locale : undefined;
   return (
     <LocaleProvider defaultLocale={primaryLocale}>
-      <SuspenseWrap><KitchenDisplay /></SuspenseWrap>
+      <MerchantThemeShell>
+        <SuspenseWrap><KitchenDisplay /></SuspenseWrap>
+      </MerchantThemeShell>
     </LocaleProvider>
   );
 }
