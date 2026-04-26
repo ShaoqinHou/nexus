@@ -81,6 +81,15 @@
    tenant-scoped wrapper <div data-theme>. Compound form kept as fallback
    for the case where both classes land on the same element. */
 .dark [data-theme="bubble-tea"], [data-theme="bubble-tea"].dark {
+  /* Semantic-light dark variants — cuisine themes set tinted light-mode
+     versions of these tokens, but without an explicit dark override the
+     light tints leak into dark mode (the wrapper element wins over the
+     html.dark cascade since it has its own --color-*-light value).
+     Re-anchor to the canonical dark tints from tokens.css. */
+  --color-success-light: #052e16;
+  --color-warning-light: #451a03;
+  --color-danger-light: #450a0a;
+  --color-info-light: #1e3a5f;
   --color-bg:          #1f1a1d;
   --color-bg-surface:  #2a232a;
   --color-bg-muted:    #382f38;

@@ -81,6 +81,11 @@
    <html> and `data-theme` is on a wrapper <div>. Compound form kept
    as a fallback. */
 .dark [data-theme="izakaya"], [data-theme="izakaya"].dark {
+  /* Semantic-light dark variants — see other cuisine themes. */
+  --color-success-light: #052e16;
+  --color-warning-light: #451a03;
+  --color-danger-light: #450a0a;
+  --color-info-light: #1e3a5f;
   --color-bg:          #1a1714;  /* sumi ink */
   --color-bg-surface:  #221e1a;  /* lifted ink */
   --color-bg-muted:    #2d2823;  /* charcoal */
