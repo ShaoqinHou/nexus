@@ -471,25 +471,76 @@ function CheckoutSummaryShowcase() {
 }
 
 function ThemesShowcase() {
+  // Per-theme parity check — mirrors the bundle's Theme Comparison.html.
+  // Each card is wrapped in `data-theme={id}` so the components inside use
+  // their TARGET theme's tokens (--color-bg-elevated, --font-display,
+  // --radius-btn, --radius-card, --radius-chip). Counter renders sharp
+  // 0px buttons, trattoria/taqueria/curry-house render pill buttons,
+  // izakaya renders dark intimate ink+amber, sichuan renders cinnabar +
+  // gold, etc — all from the same Button/Badge/Card primitives.
+  //
+  // This is what the user's "preview cards used to use the active theme's
+  // shape" complaint was — fixed by the data-theme wrapper here AND by
+  // moving primitives to --radius-btn/card/chip semantic tokens.
   return (
     <>
-      <Section title="All 10 themes (live)">
+      <Section title="Cuisine theme matrix — every primitive, every theme, side by side">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {THEME_IDS.map((id) => (
             <div
               key={id}
               data-theme={id}
-              className="rounded-lg border border-border bg-bg-elevated p-4"
+              className="rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] p-4"
             >
               <div className="flex items-center justify-between mb-3">
-                <span className="nx-label">{id}</span>
+                <span
+                  style={{
+                    color: 'var(--color-text)',
+                    fontFamily: 'var(--font-display)',
+                    fontWeight: 'var(--font-display-weight)',
+                    letterSpacing: 'var(--font-display-tracking)',
+                  }}
+                  className="text-base"
+                >
+                  {id}
+                </span>
                 <Badge variant="default">theme</Badge>
               </div>
-              <div className="flex flex-wrap gap-2">
+              {/* Buttons — shape comes from target --radius-btn */}
+              <div className="flex flex-wrap gap-2 mb-3">
                 <Button size="sm">Primary</Button>
                 <Button size="sm" variant="secondary">Secondary</Button>
-                <Badge variant="success">OK</Badge>
-                <Badge variant="error">ERR</Badge>
+                <Button size="sm" variant="ghost">Ghost</Button>
+                <Button size="sm" variant="destructive">Destroy</Button>
+              </div>
+              {/* Badges — shape comes from target --radius-chip */}
+              <div className="flex flex-wrap gap-2 mb-3">
+                <Badge variant="success">success</Badge>
+                <Badge variant="warning">warning</Badge>
+                <Badge variant="error">error</Badge>
+                <Badge variant="info">info</Badge>
+              </div>
+              {/* Palette strip — bg / surface / brand / accent / text /
+                  semantic — mirrors the swatch row at the bottom of each
+                  bundle phone-frame in Theme Comparison.html */}
+              <div className="flex gap-1.5">
+                {[
+                  '--color-bg',
+                  '--color-bg-surface',
+                  '--color-brand',
+                  '--color-accent',
+                  '--color-text',
+                  '--color-success',
+                  '--color-warning',
+                  '--color-danger',
+                ].map((v) => (
+                  <div
+                    key={v}
+                    className="w-5 h-5 rounded-sm border border-[var(--color-border)]"
+                    style={{ backgroundColor: `var(${v})` }}
+                    title={v}
+                  />
+                ))}
               </div>
             </div>
           ))}

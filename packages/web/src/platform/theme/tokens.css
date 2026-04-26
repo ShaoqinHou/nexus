@@ -80,6 +80,7 @@
   --color-bg-surface: #f9fafb;
   --color-bg-muted: #f3f4f6;
   --color-bg-elevated: #ffffff;
+  --color-bg-strong: #111827;  /* inverse panel bg, used for hero blocks */
 
   /* Text */
   --color-text: #111827;
@@ -115,17 +116,35 @@
   /* Brand (overridable per tenant) */
   --color-brand: #2563eb;
   --color-brand-hover: #1d4ed8;
+  --color-brand-light: #dbeafe;
+
+  /* Accent — per-cuisine non-semantic highlight (matcha, gold, olive, etc).
+     Defaults to amber for the classic-fallback rendering of pre-tenant
+     chrome (login). Each cuisine theme overrides in its own [data-theme] block. */
+  --color-accent: #f59e0b;
+  --color-accent-light: #fef3c7;
 
   /* Typography */
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
+  /* Display font carries cuisine identity. Default to Inter for the
+     un-themed pre-tenant chrome; cuisines override per CSS file. */
+  --font-display: 'Inter', system-ui, sans-serif;
+  --font-display-weight: 700;
+  --font-display-tracking: -0.01em;
 
   /* Radius */
   --radius-sm: 0.25rem;
   --radius-md: 0.375rem;
   --radius-lg: 0.5rem;
   --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
   --radius-full: 9999px;
+  /* Semantic shape tokens — cuisines override (counter sets to 0px,
+     trattoria/taqueria set --radius-btn + --radius-chip to --radius-full). */
+  --radius-card: var(--radius-lg);
+  --radius-btn: var(--radius-md);
+  --radius-chip: var(--radius-full);
 
   /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -168,6 +187,7 @@
   --color-bg-surface: var(--color-bg-surface);
   --color-bg-muted: var(--color-bg-muted);
   --color-bg-elevated: var(--color-bg-elevated);
+  --color-bg-strong: var(--color-bg-strong);
   --color-text: var(--color-text);
   --color-text-secondary: var(--color-text-secondary);
   --color-text-tertiary: var(--color-text-tertiary);
@@ -190,13 +210,37 @@
   --color-kds-preparing-fg: var(--color-kds-preparing-fg);
   --color-brand: var(--color-brand);
   --color-brand-hover: var(--color-brand-hover);
+  --color-brand-light: var(--color-brand-light);
+  /* Per-theme accent — each cuisine theme picks its own (matcha for
+     bubble-tea, gold for sichuan, olive for trattoria, vermillion for
+     izakaya, etc). Used for badge backgrounds, promo decoration, and
+     non-semantic highlights. NEVER re-themed at the platform level. */
+  --color-accent: var(--color-accent);
+  --color-accent-light: var(--color-accent-light);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
+  /* Display font carries cuisine identity (Fraunces serif for trattoria,
+     Noto Serif SC for sichuan/cantonese, JetBrains Mono for izakaya/counter,
+     Inter for classic). Pair with --font-display-weight + tracking for
+     full headline tone. */
+  --font-display: var(--font-display);
+  --font-display-weight: var(--font-display-weight);
+  --font-display-tracking: var(--font-display-tracking);
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);
   --radius-lg: var(--radius-lg);
   --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
   --radius-full: var(--radius-full);
+  /* Semantic shape tokens — let cuisine themes express their identity.
+     Counter sets these to 0px (sharp brutalist), trattoria/taqueria/
+     curry-house set --radius-btn + --radius-chip to --radius-full (pill),
+     classic stays medium-rounded. Components MUST use these instead of
+     hardcoded `rounded-md`/`rounded-full` so the cuisine's shape language
+     actually surfaces. */
+  --radius-card: var(--radius-card);
+  --radius-btn: var(--radius-btn);
+  --radius-chip: var(--radius-chip);
   --shadow-sm: var(--shadow-sm);
   --shadow-md: var(--shadow-md);
   --shadow-lg: var(--shadow-lg);

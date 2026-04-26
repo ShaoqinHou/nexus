@@ -24,7 +24,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           id={inputId}
           className={[
-            'w-full h-12 rounded-md border px-3 py-3 text-sm text-text bg-bg placeholder:text-text-tertiary',
+            // Inputs share the button-radius token so a pill-shaped theme
+            // (trattoria, taqueria, curry-house, bubble-tea) renders pill-
+            // shaped form controls and a sharp theme (counter) renders
+            // sharp inputs — same shape language across interactive UI.
+            'w-full h-12 rounded-[var(--radius-btn)] border px-3 py-3 text-sm text-text bg-bg placeholder:text-text-tertiary',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
             'disabled:opacity-50 disabled:cursor-not-allowed',
             'transition-colors',

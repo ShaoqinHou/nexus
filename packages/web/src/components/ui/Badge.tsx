@@ -24,7 +24,11 @@ export function Badge({
   return (
     <span
       className={[
-        'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
+        // --radius-chip varies per cuisine: counter=0 (square brutalist),
+        // izakaya/sichuan/cantonese set to --radius-sm (slightly rounded),
+        // bubble-tea/trattoria/taqueria/curry-house set to --radius-full
+        // (pill). Hardcoded `rounded-full` flattened all themes to pill.
+        'inline-flex items-center rounded-[var(--radius-chip)] px-2.5 py-0.5 text-xs font-medium',
         variantClasses[variant],
         className,
       ].join(' ')}

@@ -16,7 +16,6 @@ import { useTenant } from '@web/platform/tenant/TenantProvider';
 import { useTheme } from '@web/platform/theme/ThemeProvider';
 import { useToast } from '@web/platform/ToastProvider';
 import {
-  generatePalette,
   type TenantThemeSettings,
   type OperatingHoursEntry,
 } from '@web/lib/theme';
@@ -86,21 +85,37 @@ interface CuisineThemeCardProps {
 
 function CuisineThemeCard({ theme, isActive, onClick }: CuisineThemeCardProps) {
   const t = useT();
+  // Wrap the entire card in its TARGET cuisine theme. The card body uses
+  // var(--color-bg-elevated), var(--font-display), var(--radius-card) etc.
+  // — those tokens now resolve from the target theme, not from the
+  // currently-applied console theme. Result: the cuisine grid shows each
+  // theme's actual surface, typography, and shape language at a glance,
+  // exactly like the bundle's THEME COMPARISON canvas. Previously every
+  // card used the active theme's tokens and so all 10 looked identical
+  // except for the swatch row.
   return (
     <button
       type="button"
       onClick={onClick}
+      data-theme={theme.id}
       className={[
-        'relative flex flex-col gap-2 p-3 rounded-lg border-2 transition-all text-left active:scale-[0.98]',
-        'hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+        'relative flex flex-col gap-2 p-3 border-2 transition-all text-left active:scale-[0.98]',
+        // The card itself adopts the target cuisine's --radius-card so a
+        // sharp theme (counter) shows a square card, a pill theme
+        // (trattoria) shows a rounded card.
+        'rounded-[var(--radius-card)] bg-[var(--color-bg-elevated)] hover:shadow-md',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2',
         isActive
-          ? 'border-primary bg-primary-light shadow-sm'
-          : 'border-border bg-bg-surface hover:border-border-strong',
+          ? 'border-[var(--color-primary)] shadow-sm'
+          : 'border-[var(--color-border)] hover:border-[var(--color-border-strong)]',
       ].join(' ')}
     >
       {isActive && (
-        <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
-          <Check className="h-2.5 w-2.5 text-text-inverse" />
+        <div
+          className="absolute top-2 right-2 w-4 h-4 rounded-full flex items-center justify-center"
+          style={{ backgroundColor: 'var(--color-primary)' }}
+        >
+          <Check className="h-2.5 w-2.5" style={{ color: 'var(--color-text-inverse)' }} />
         </div>
       )}
       {/* Swatch row: bg / brand / accent / text — 4 chips */}
@@ -116,51 +131,96 @@ function CuisineThemeCard({ theme, isActive, onClick }: CuisineThemeCardProps) {
           />
         ))}
       </div>
-      {/* Mini layout mock: header strip + button stub */}
-      <div className="w-full h-7 rounded overflow-hidden flex flex-col gap-0.5">
-        <div className="h-4 w-full rounded-sm" style={{ backgroundColor: theme.swatches[1] }} />
+      {/* Mini layout mock: header strip + button-shape stub. Shape uses the
+          target theme's --radius-btn so pill/sharp/rounded all render
+          authentically inside the card preview. */}
+      <div
+        className="w-full h-7 overflow-hidden flex flex-col gap-0.5"
+        style={{ borderRadius: 'var(--radius-card)' }}
+      >
+        <div
+          className="h-4 w-full"
+          style={{ backgroundColor: theme.swatches[1], borderRadius: 'var(--radius-btn)' }}
+        />
         <div className="flex gap-1">
-          <div className="h-2.5 flex-1 rounded-sm" style={{ backgroundColor: theme.swatches[0], border: `1px solid rgba(0,0,0,0.08)` /* lint-override: alpha border on mini mock */ }} />
-          <div className="h-2.5 w-6 rounded-sm" style={{ backgroundColor: theme.swatches[2] }} />
+          <div
+            className="h-2.5 flex-1"
+            style={{
+              backgroundColor: theme.swatches[0],
+              border: `1px solid rgba(0,0,0,0.08)`, // lint-override: alpha border on mini mock
+              borderRadius: 'var(--radius-chip)',
+            }}
+          />
+          <div
+            className="h-2.5 w-6"
+            style={{ backgroundColor: theme.swatches[2], borderRadius: 'var(--radius-chip)' }}
+          />
         </div>
       </div>
       <div>
-        <p className="text-xs font-semibold text-text leading-tight">{t(theme.name)}</p>
-        <p className="text-[10px] text-text-tertiary leading-tight mt-0.5">{t(theme.vibe)}</p>
+        {/* Name uses the target theme's display font + tracking + weight so
+            the typographic identity (Fraunces serif for trattoria, JetBrains
+            mono for izakaya/counter, Noto Serif SC for sichuan) shows up
+            inside its own card. */}
+        <p
+          className="text-xs leading-tight"
+          style={{
+            color: 'var(--color-text)',
+            fontFamily: 'var(--font-display)',
+            fontWeight: 'var(--font-display-weight)',
+            letterSpacing: 'var(--font-display-tracking)',
+          }}
+        >
+          {t(theme.name)}
+        </p>
+        <p
+          className="text-[10px] leading-tight mt-0.5"
+          style={{ color: 'var(--color-text-tertiary)', fontFamily: 'var(--font-sans)' }}
+        >
+          {t(theme.vibe)}
+        </p>
       </div>
     </button>
   );
 }
 
-// --- Derived Palette Chips ---
+// --- Active Theme Palette Readout ---
+//
+// Replaces the legacy "Derived Palette" chips that always showed the same
+// brand-derived shades regardless of which cuisine was selected. Each chip
+// here uses `var(--color-*)` directly, so the swatches resolve via the
+// active cuisine theme cascade — Sichuan shows cinnabar + gold + cream,
+// Trattoria shows terracotta + olive + paper, Izakaya shows amber +
+// vermillion + ink, etc. Mirrors the bundle's per-theme palette strip
+// shown at the bottom of each phone-frame in Theme Comparison.html.
+//
+// Brand override (the merchant's chosen accent) layers on top via the
+// wrapper inline style — so when the user picks a different brand colour
+// the "Brand" chip flips accordingly while the rest of the palette stays
+// faithful to the cuisine identity.
 
-interface DerivedPaletteChipsProps {
-  brandColor: string;
-  isDark: boolean;
-}
-
-function DerivedPaletteChips({ brandColor, isDark }: DerivedPaletteChipsProps) {
+function ActiveThemePalette() {
   const t = useT();
-  const palette = generatePalette(brandColor, isDark);
-
-  const chips: Array<{ label: string; color: string }> = [
-    { label: t('Brand'), color: palette.brand },
-    { label: t('Hover'), color: palette.brandHover },
-    { label: t('Primary'), color: palette.primary },
-    { label: t('Light'), color: palette.primaryLight },
-    { label: t('On Brand'), color: palette.textOnBrand === '#ffffff' ? '#ffffff' : '#111827' }, // lint-override: text-on-brand is either white or dark — pure contrast logic
+  const chips: Array<{ label: string; var: string }> = [
+    { label: t('Background'), var: 'var(--color-bg)' },
+    { label: t('Surface'),    var: 'var(--color-bg-surface)' },
+    { label: t('Brand'),      var: 'var(--color-brand)' },
+    { label: t('Accent'),     var: 'var(--color-accent)' },
+    { label: t('Text'),       var: 'var(--color-text)' },
+    { label: t('Success'),    var: 'var(--color-success)' },
+    { label: t('Warning'),    var: 'var(--color-warning)' },
+    { label: t('Danger'),     var: 'var(--color-danger)' },
   ];
-
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="text-xs font-medium text-text-secondary">{t('Derived Palette')}</span>
-      <div className="flex gap-2">
+      <span className="text-xs font-medium text-text-secondary">{t('Theme palette')}</span>
+      <div className="flex gap-2 flex-wrap">
         {chips.map((chip) => (
           <div key={chip.label} className="flex flex-col items-center gap-1">
             <div
               className="w-8 h-8 rounded-md border border-border-strong shrink-0"
-              style={{ backgroundColor: chip.color }}
-              title={chip.color}
+              style={{ backgroundColor: chip.var }}
+              title={chip.label}
             />
             <span className="text-[10px] text-text-tertiary text-center leading-tight">{chip.label}</span>
           </div>
@@ -269,10 +329,8 @@ function formStateToSettings(form: FormState): Partial<TenantThemeSettings> {
 export function ThemeSettings() {
   const t = useT();
   const { tenantSlug } = useTenant();
-  const { theme: appTheme, setThemeId, themeId: activeThemeId } = useTheme();
+  const { setThemeId, themeId: activeThemeId } = useTheme();
   const { toast } = useToast();
-  const isDark = appTheme === 'dark';
-
   const { data: savedSettings, isLoading } = useTenantSettings(tenantSlug);
   const updateMutation = useUpdateTenantSettings(tenantSlug);
 
@@ -458,7 +516,7 @@ export function ThemeSettings() {
                 title={form.brandColor}
               />
             </div>
-            <DerivedPaletteChips brandColor={form.brandColor} isDark={isDark} />
+            <ActiveThemePalette />
             <p className="text-xs text-text-tertiary">
               {t('Your brand color overlays the cuisine theme. Pick a shade that complements it.')}
             </p>

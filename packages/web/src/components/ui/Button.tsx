@@ -46,7 +46,12 @@ export function Button({
       disabled={isDisabled}
       className={[
         'inline-flex items-center justify-center gap-2 font-medium transition-all',
-        'rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+        // --radius-btn carries cuisine identity: counter=0px (sharp brutalist),
+        // trattoria/taqueria/curry-house/bubble-tea=9999px (pill), classic=6px
+        // (medium rounded). Hardcoded `rounded-md` flattened all themes to the
+        // same shape — using the semantic token here makes the button shape
+        // actually flip per cuisine, matching the bundle's intent.
+        'rounded-[var(--radius-btn)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
         'active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed',
         variantClasses[variant],
         sizeClasses[size],

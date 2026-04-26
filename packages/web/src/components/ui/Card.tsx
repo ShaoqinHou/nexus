@@ -9,7 +9,12 @@ export function Card({ children, className = '', ...props }: CardProps) {
   return (
     <div
       className={[
-        'rounded-lg border border-border bg-bg-elevated shadow-sm',
+        // --radius-card flips per cuisine: counter=0px, izakaya/sichuan=3-5px
+        // (sharp), classic=8px, trattoria/taqueria/curry-house=10-12px,
+        // bubble-tea=12px+, wok=12px. Hardcoded `rounded-lg` flattened
+        // everything; the semantic token makes the card shape itself a
+        // theme-carrying signal.
+        'rounded-[var(--radius-card)] border border-border bg-bg-elevated shadow-sm',
         className,
       ].join(' ')}
       {...props}
