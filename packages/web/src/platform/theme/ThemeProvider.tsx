@@ -9,6 +9,7 @@ import {
   type ReactNode,
   type CSSProperties,
 } from 'react';
+import { generatePalette } from '@web/lib/theme';
 
 type Mode = 'light' | 'dark';
 
@@ -193,12 +194,14 @@ export function ThemeProvider({
     const body = document.body;
     body.dataset.theme = themeId;
     if (brandColor) {
+      const palette = generatePalette(brandColor, mode === 'dark');
+      const hover = brandColorHover ?? palette.brandHover;
       body.style.setProperty('--color-brand', brandColor);
       body.style.setProperty('--color-primary', brandColor);
-      if (brandColorHover) {
-        body.style.setProperty('--color-brand-hover', brandColorHover);
-        body.style.setProperty('--color-primary-hover', brandColorHover);
-      }
+      body.style.setProperty('--color-brand-hover', hover);
+      body.style.setProperty('--color-primary-hover', hover);
+      body.style.setProperty('--color-primary-light', palette.primaryLight);
+      body.style.setProperty('--color-brand-light', palette.primaryLight);
     }
     return () => {
       // Cleanup on unmount or before next effect run — restore body to
@@ -208,8 +211,10 @@ export function ThemeProvider({
       body.style.removeProperty('--color-primary');
       body.style.removeProperty('--color-brand-hover');
       body.style.removeProperty('--color-primary-hover');
+      body.style.removeProperty('--color-primary-light');
+      body.style.removeProperty('--color-brand-light');
     };
-  }, [isTenantScoped, themeId, brandColor, brandColorHover]);
+  }, [isTenantScoped, themeId, brandColor, brandColorHover, mode]);
 
   const toggleTheme = useCallback(() => {
     setMode((prev) => (prev === 'light' ? 'dark' : 'light'));
@@ -235,18 +240,30 @@ export function ThemeProvider({
   // staff get the same branded experience customers do (per
   // S-THEMED-COMPONENT updated 2026-04-26).
   if (isTenantScoped) {
-    const brandStyle: CSSProperties = brandColor
-      ? ({
-          ['--color-brand' as never]: brandColor,
-          ['--color-primary' as never]: brandColor,
-          ...(brandColorHover
-            ? {
-                ['--color-brand-hover' as never]: brandColorHover,
-                ['--color-primary-hover' as never]: brandColorHover,
-              }
-            : {}),
-        } as CSSProperties)
-      : {};
+    // Derive the FULL primary palette from the brand override so every
+    // brand-driven token (including --color-primary-light, used by
+    // bg-primary-light status badges) follows the merchant's chosen
+    // brand color. Without this, picking brand=#111827 (modern-minimal
+    // dark gray) under a sichuan theme leaves --color-primary-light at
+    // sichuan's amber-red default → dark-gray text on dark amber-red
+    // background = unreadable contrast.
+    //
+    // mode-aware: light mode generates a 93%-lightness primary-light;
+    // dark mode generates an 18%-lightness primary-light. Both produce
+    // legible contrast against the brand text color.
+    const brandStyle: CSSProperties = (() => {
+      if (!brandColor) return {};
+      const palette = generatePalette(brandColor, mode === 'dark');
+      const hover = brandColorHover ?? palette.brandHover;
+      return {
+        ['--color-brand' as never]: brandColor,
+        ['--color-primary' as never]: brandColor,
+        ['--color-brand-hover' as never]: hover,
+        ['--color-primary-hover' as never]: hover,
+        ['--color-primary-light' as never]: palette.primaryLight,
+        ['--color-brand-light' as never]: palette.primaryLight,
+      } as CSSProperties;
+    })();
 
     return (
       <ThemeContext.Provider value={value}>
