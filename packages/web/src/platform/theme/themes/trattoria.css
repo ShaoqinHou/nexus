@@ -78,7 +78,10 @@
   --theme-vibe: 'Warm, hand-crafted, generous';
 }
 
-[data-theme="trattoria"].dark {
+/* Dark variant — descendant form first so .dark on <html> activates the
+   tenant-scoped wrapper <div data-theme>. Compound form kept as fallback
+   for the case where both classes land on the same element. */
+.dark [data-theme="trattoria"], [data-theme="trattoria"].dark {
   --color-bg:          #1f1814;
   --color-bg-surface:  #2a2018;
   --color-bg-muted:    #382b22;

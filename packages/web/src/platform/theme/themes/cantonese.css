@@ -67,7 +67,10 @@
   --theme-vibe: 'Refined, tea-house elegance';
 }
 
-[data-theme="cantonese"].dark {
+/* Dark variant — descendant form first so .dark on <html> activates the
+   tenant-scoped wrapper <div data-theme>. Compound form kept as fallback
+   for the case where both classes land on the same element. */
+.dark [data-theme="cantonese"], [data-theme="cantonese"].dark {
   --color-bg: #0f1a14; --color-bg-surface: #18261d; --color-bg-muted: #223329;
   --color-bg-elevated: #18261d;
   --color-text: #ede5d0; --color-text-secondary: #a8b8a8; --color-text-tertiary: #6a7a6a;

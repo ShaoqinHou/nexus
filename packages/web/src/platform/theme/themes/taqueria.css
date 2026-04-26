@@ -66,7 +66,10 @@
   --theme-vibe: 'Warm, vibrant, street-food energy';
 }
 
-[data-theme="taqueria"].dark {
+/* Dark variant — descendant form first so .dark on <html> activates the
+   tenant-scoped wrapper <div data-theme>. Compound form kept as fallback
+   for the case where both classes land on the same element. */
+.dark [data-theme="taqueria"], [data-theme="taqueria"].dark {
   --color-bg: #1f1408; --color-bg-surface: #2a1c0e; --color-bg-muted: #3a2816;
   --color-bg-elevated: #2a1c0e;
   --color-text: #f7ecd4; --color-text-secondary: #c9a97d; --color-text-tertiary: #8e7250;

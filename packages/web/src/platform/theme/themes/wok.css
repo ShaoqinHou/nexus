@@ -68,7 +68,10 @@
   --theme-vibe: 'Bold, fast, franchise-ready';
 }
 
-[data-theme="wok"].dark {
+/* Dark variant — descendant form first so .dark on <html> activates the
+   tenant-scoped wrapper <div data-theme>. Compound form kept as fallback
+   for the case where both classes land on the same element. */
+.dark [data-theme="wok"], [data-theme="wok"].dark {
   --color-bg: #1a0a08; --color-bg-surface: #261410; --color-bg-muted: #3a1e18;
   --color-bg-elevated: #261410;
   --color-text: #fef4ec; --color-text-secondary: #d4b8a4; --color-text-tertiary: #8a7060;

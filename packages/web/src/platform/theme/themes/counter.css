@@ -77,7 +77,10 @@
   --theme-vibe: 'High-contrast, dense, editorial';
 }
 
-[data-theme="counter"].dark {
+/* Dark variant — descendant form first so .dark on <html> activates the
+   tenant-scoped wrapper <div data-theme>. Compound form kept as fallback
+   for the case where both classes land on the same element. */
+.dark [data-theme="counter"], [data-theme="counter"].dark {
   --color-bg:          #0a0a0a;
   --color-bg-surface:  #161616;
   --color-bg-muted:    #222222;

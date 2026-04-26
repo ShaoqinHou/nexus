@@ -78,7 +78,11 @@
   --theme-vibe: 'Clean, neutral, professional';
 }
 
-[data-theme="classic"].dark, [data-theme="classic"] .dark {
+/* Dark variant — must match when `.dark` is on <html> (ancestor) and
+   `data-theme` is on a tenant-scoped wrapper <div>. Compound form kept
+   for the case where both classes land on the same element (e.g. zoo
+   theme switcher applying both). */
+.dark [data-theme="classic"], [data-theme="classic"].dark {
   --color-bg:          #0f172a;
   --color-bg-surface:  #1e293b;
   --color-bg-muted:    #334155;

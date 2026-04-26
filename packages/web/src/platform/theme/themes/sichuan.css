@@ -77,7 +77,10 @@
   --theme-vibe: 'Bold, hot, dramatic';
 }
 
-[data-theme="sichuan"].dark {
+/* Dark variant — descendant form first so .dark on <html> activates the
+   tenant-scoped wrapper <div data-theme>. Compound form kept as fallback
+   for the case where both classes land on the same element. */
+.dark [data-theme="sichuan"], [data-theme="sichuan"].dark {
   --color-bg:          #1a0e0a;
   --color-bg-surface:  #261612;
   --color-bg-muted:    #3a201a;

@@ -146,6 +146,49 @@ describe('ThemeProvider — tenant-scoped customer mode', () => {
   });
 });
 
+describe('ThemeProvider — live preview ping-pong regression', () => {
+  // Regression for the ping-pong loop discovered 2026-04-26 during live E2E:
+  //   1. ThemeSettings calls setThemeId('sichuan') for live preview.
+  //   2. ThemeProvider's sync-from-prop effect re-fired because themeId
+  //      was in its dep array, saw initialThemeId !== themeId, and reverted.
+  //   3. ThemeSettings effect re-fired because activeThemeId changed,
+  //      called setThemeId('sichuan') again. Loop.
+  // Fix: ThemeProvider tracks the previous initialThemeId via useRef and
+  // only reacts when the prop actually changes — local setThemeId calls
+  // (live preview) are honoured.
+  it('honours local setThemeId calls when initialThemeId prop is unchanged', async () => {
+    function Toggler() {
+      const { themeId, setThemeId } = useTheme();
+      return (
+        <div>
+          <div data-testid="active" data-theme-id={themeId} />
+          <button onClick={() => setThemeId('sichuan')}>Pick sichuan</button>
+        </div>
+      );
+    }
+
+    const { getByText, getByTestId } = render(
+      <ThemeProvider initialThemeId="classic" scope="customer">
+        <Toggler />
+      </ThemeProvider>,
+      { wrapper: Wrapper },
+    );
+
+    expect(getByTestId('active').dataset.themeId).toBe('classic');
+
+    // Simulate the live-preview interaction.
+    getByText('Pick sichuan').click();
+
+    // After local setThemeId, the wrapper should reflect the new theme
+    // and STAY there. Before the fix, the sync-from-prop effect reverted
+    // it back to 'classic' on the next microtask.
+    await Promise.resolve();
+    expect(getByTestId('active').dataset.themeId).toBe('sichuan');
+    await Promise.resolve();
+    expect(getByTestId('active').dataset.themeId).toBe('sichuan');
+  });
+});
+
 describe('ThemeProvider — tenant-scoped merchant mode', () => {
   it('renders a wrapper div with data-theme + scope="merchant" when scope=merchant given', () => {
     const { container } = render(

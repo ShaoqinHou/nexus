@@ -3,6 +3,7 @@ import {
   useContext,
   useState,
   useEffect,
+  useRef,
   useCallback,
   useMemo,
   type ReactNode,
@@ -119,15 +120,32 @@ export function ThemeProvider({
    */
   const isTenantScoped = initialThemeId !== undefined;
 
-  // Keep state in sync if the parent changes initialThemeId (e.g. tenant
-  // settings refetch on save). Only applies when the caller is driving us —
-  // local interactive setThemeId calls (e.g. ThemeSettings live preview)
-  // still flip state immediately and are honoured.
+  // Keep state in sync ONLY when the parent's initialThemeId actually
+  // changes (e.g. tenant settings refetched). We track the previous prop
+  // via a ref so the effect doesn't re-fire when our local themeId state
+  // changes from a setThemeId call.
+  //
+  // Why a ref instead of just dropping `themeId` from the dep array:
+  // dropping it would cause an exhaustive-deps lint warning AND would
+  // miss the legitimate case where the prop changes back to its previous
+  // value (the comparison would still hold because we re-read state).
+  // The ref makes the "did the prop change since last render" intent
+  // explicit and stops the ping-pong loop where:
+  //   1. user picks 'sichuan' in Settings → setThemeId('sichuan')
+  //   2. effect re-fires (themeId changed), sees prop is still 'classic'
+  //      → reverts to 'classic'
+  //   3. ThemeSettings effect re-fires (activeThemeId changed) → loops.
+  // S-THEMED-COMPONENT preview model: live preview is local state, not
+  // tenant-state; the parent prop only takes precedence on actual save.
+  const prevInitialRef = useRef<ThemeId | undefined>(initialThemeId);
   useEffect(() => {
-    if (initialThemeId && initialThemeId !== themeId) {
-      setThemeIdState(initialThemeId);
+    if (initialThemeId !== prevInitialRef.current) {
+      prevInitialRef.current = initialThemeId;
+      if (initialThemeId !== undefined) {
+        setThemeIdState(initialThemeId);
+      }
     }
-  }, [initialThemeId, themeId]);
+  }, [initialThemeId]);
 
   // Apply light/dark class to <html> — always app-wide regardless of scope.
   useEffect(() => {
@@ -157,6 +175,41 @@ export function ThemeProvider({
       // no-op
     }
   }, [themeId, isTenantScoped]);
+
+  // Tenant-scoped: mirror data-theme + brand-color overrides onto
+  // `document.body` so portal-mounted overlays (Dialog, TourOverlay,
+  // anything using createPortal(..., document.body)) inherit the
+  // cuisine cascade. Without this, dialogs render in classic colors
+  // over a sichuan-themed merchant chrome.
+  //
+  // Why body and not html: the outer (global) provider relies on
+  // `<html>` staying neutral so the login page renders in classic. We
+  // only want the cuisine theme reaching portals, and body is the
+  // closest shared ancestor between the wrapper <div> and any
+  // body-mounted portal sibling.
+  useEffect(() => {
+    if (!isTenantScoped) return;
+    if (typeof document === 'undefined') return;
+    const body = document.body;
+    body.dataset.theme = themeId;
+    if (brandColor) {
+      body.style.setProperty('--color-brand', brandColor);
+      body.style.setProperty('--color-primary', brandColor);
+      if (brandColorHover) {
+        body.style.setProperty('--color-brand-hover', brandColorHover);
+        body.style.setProperty('--color-primary-hover', brandColorHover);
+      }
+    }
+    return () => {
+      // Cleanup on unmount or before next effect run — restore body to
+      // its pre-tenant neutral state.
+      delete body.dataset.theme;
+      body.style.removeProperty('--color-brand');
+      body.style.removeProperty('--color-primary');
+      body.style.removeProperty('--color-brand-hover');
+      body.style.removeProperty('--color-primary-hover');
+    };
+  }, [isTenantScoped, themeId, brandColor, brandColorHover]);
 
   const toggleTheme = useCallback(() => {
     setMode((prev) => (prev === 'light' ? 'dark' : 'light'));

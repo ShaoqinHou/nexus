@@ -77,7 +77,10 @@
   --theme-vibe: 'Playful, soft, sweet';
 }
 
-[data-theme="bubble-tea"].dark {
+/* Dark variant — descendant form first so .dark on <html> activates the
+   tenant-scoped wrapper <div data-theme>. Compound form kept as fallback
+   for the case where both classes land on the same element. */
+.dark [data-theme="bubble-tea"], [data-theme="bubble-tea"].dark {
   --color-bg:          #1f1a1d;
   --color-bg-surface:  #2a232a;
   --color-bg-muted:    #382f38;
