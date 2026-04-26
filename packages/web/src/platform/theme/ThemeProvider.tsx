@@ -196,10 +196,12 @@ export function ThemeProvider({
     if (brandColor) {
       const palette = generatePalette(brandColor, mode === 'dark');
       const hover = brandColorHover ?? palette.brandHover;
+      // Raw brand for accent fills; mode-aware palette for text on neutral
+      // surfaces. See in-render brandStyle comment for full rationale.
       body.style.setProperty('--color-brand', brandColor);
-      body.style.setProperty('--color-primary', brandColor);
+      body.style.setProperty('--color-primary', palette.primary);
       body.style.setProperty('--color-brand-hover', hover);
-      body.style.setProperty('--color-primary-hover', hover);
+      body.style.setProperty('--color-primary-hover', palette.primaryHover);
       body.style.setProperty('--color-primary-light', palette.primaryLight);
       body.style.setProperty('--color-brand-light', palette.primaryLight);
     }
@@ -241,25 +243,35 @@ export function ThemeProvider({
   // S-THEMED-COMPONENT updated 2026-04-26).
   if (isTenantScoped) {
     // Derive the FULL primary palette from the brand override so every
-    // brand-driven token (including --color-primary-light, used by
-    // bg-primary-light status badges) follows the merchant's chosen
-    // brand color. Without this, picking brand=#111827 (modern-minimal
-    // dark gray) under a sichuan theme leaves --color-primary-light at
-    // sichuan's amber-red default → dark-gray text on dark amber-red
-    // background = unreadable contrast.
+    // brand-driven token follows the merchant's chosen brand color and
+    // remains readable in both light and dark modes.
     //
-    // mode-aware: light mode generates a 93%-lightness primary-light;
-    // dark mode generates an 18%-lightness primary-light. Both produce
-    // legible contrast against the brand text color.
+    // Distinction:
+    //   --color-brand        = raw brand hex (used as accent fill on
+    //                          hero banners, CTAs, brand chips)
+    //   --color-primary      = mode-aware brand for readable text on
+    //                          neutral surfaces. light mode keeps the
+    //                          raw brand (lightness 35-55); dark mode
+    //                          lightens to 55-70 so text-primary stays
+    //                          legible against dark surfaces even when
+    //                          the merchant picked a very dark brand
+    //                          (e.g. #111827).
+    //   --color-primary-light = badge background. Light mode l=93,
+    //                          dark mode l=18. Always pairs with the
+    //                          mode-aware --color-primary for contrast.
+    //
+    // Without splitting brand from primary, picking brand=#111827 under
+    // a dark mode tenant chrome left text-primary as raw #111827 against
+    // the dark-tinted primary-light (l=18) → both dark-blue, unreadable.
     const brandStyle: CSSProperties = (() => {
       if (!brandColor) return {};
       const palette = generatePalette(brandColor, mode === 'dark');
       const hover = brandColorHover ?? palette.brandHover;
       return {
         ['--color-brand' as never]: brandColor,
-        ['--color-primary' as never]: brandColor,
+        ['--color-primary' as never]: palette.primary,
         ['--color-brand-hover' as never]: hover,
-        ['--color-primary-hover' as never]: hover,
+        ['--color-primary-hover' as never]: palette.primaryHover,
         ['--color-primary-light' as never]: palette.primaryLight,
         ['--color-brand-light' as never]: palette.primaryLight,
       } as CSSProperties;
