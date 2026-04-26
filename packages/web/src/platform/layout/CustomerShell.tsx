@@ -174,7 +174,10 @@ export function CustomerShell() {
     // Nested ThemeProvider — overrides the outer provider for all customer views.
     // initialThemeId pins the cuisine theme from tenant settings.
     // brandColor / brandColorHover layer the tenant's brand on top of the theme default.
+    // scope="customer" tags the wrapper for selector targeting; merchant routes
+    // use scope="merchant" via routeTree.MerchantThemeShell.
     <ThemeProvider
+      scope="customer"
       initialThemeId={tenantThemeId}
       brandColor={tenantBrandColor}
       brandColorHover={tenantBrandColorHover}

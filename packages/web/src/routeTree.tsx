@@ -5,7 +5,7 @@ import {
   redirect,
   Outlet,
 } from '@tanstack/react-router';
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, type ReactNode } from 'react';
 import { PlatformShell } from '@web/platform/layout/PlatformShell';
 import { CustomerShell } from '@web/platform/layout/CustomerShell';
 import { TenantProvider, useTenant } from '@web/platform/tenant/TenantProvider';
@@ -13,6 +13,8 @@ import { TourProvider } from '@web/platform/TourProvider';
 import { AuthGuard } from '@web/platform/auth/AuthGuard';
 import { LocaleProvider } from '@web/platform/LocaleProvider';
 import { SUPPORTED_LOCALES, useT, type Locale } from '@web/lib/i18n';
+import { ThemeProvider, isThemeId, useTheme } from '@web/platform/theme/ThemeProvider';
+import { generatePalette, type TenantThemeSettings } from '@web/lib/theme';
 
 // Lazy-loaded page components — each becomes its own chunk
 const LoginPage = lazy(() => import('@web/platform/auth/LoginPage').then(m => ({ default: m.LoginPage })));
@@ -81,6 +83,39 @@ const indexRoute = createRoute({
   },
 });
 
+/**
+ * Wraps merchant chrome in a tenant-scoped ThemeProvider so the cuisine
+ * theme cascades into the sidebar/topbar/page content. Mirrors the
+ * customer-scoped wrapper inside CustomerShell — staff and customers
+ * see the same branded surface for the same restaurant.
+ *
+ * Per S-THEMED-COMPONENT (updated 2026-04-26), merchant chrome reflects
+ * the tenant's chosen cuisine theme. The merchant ThemeSettings page
+ * is the single source of truth: editing it live-previews on the
+ * merchant chrome itself (no separate preview pane needed).
+ */
+function MerchantThemeShell({ children }: { children: ReactNode }) {
+  const { tenant } = useTenant();
+  const { theme: mode } = useTheme();
+  const settings = (tenant?.settings ?? {}) as TenantThemeSettings;
+  const tenantThemeId = isThemeId(settings.theme) ? settings.theme : 'classic';
+  const tenantBrandColor = settings.brandColor ?? null;
+  const tenantBrandColorHover = tenantBrandColor
+    ? generatePalette(tenantBrandColor, mode === 'dark').brandHover
+    : null;
+
+  return (
+    <ThemeProvider
+      scope="merchant"
+      initialThemeId={tenantThemeId}
+      brandColor={tenantBrandColor}
+      brandColorHover={tenantBrandColorHover}
+    >
+      {children}
+    </ThemeProvider>
+  );
+}
+
 // Inner wrapper that reads tenant locale (must be inside TenantProvider)
 function StaffLocaleShell() {
   const { tenant } = useTenant();
@@ -89,9 +124,11 @@ function StaffLocaleShell() {
 
   return (
     <LocaleProvider defaultLocale={primaryLocale}>
-      <TourProvider tenantSlug={tenant?.slug ?? ''}>
-        <PlatformShell />
-      </TourProvider>
+      <MerchantThemeShell>
+        <TourProvider tenantSlug={tenant?.slug ?? ''}>
+          <PlatformShell />
+        </TourProvider>
+      </MerchantThemeShell>
     </LocaleProvider>
   );
 }

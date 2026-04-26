@@ -181,7 +181,7 @@ with its variants visible, plus dark-mode and theme toggles. Zoo routes are **de
 - `--color-brand` and `--color-brand-hover` are overridable per-tenant at runtime via
   inline style on the customer shell wrapper — this is how a single Sichuan restaurant
   can pick a slightly different red from the theme default.
-- Customer-facing surfaces re-skin by theme. The merchant console defaults to `classic` but has a Vendor Theme Studio at `/t/<slug>/ordering/settings` where the merchant can PREVIEW cuisine themes against representative customer screens before committing. The merchant's chrome layout follows the bundle's `Shell.jsx` spec and uses the same design-system primitives as the customer.
+- **Both customer AND merchant chrome re-skin by theme.** Each is wrapped in a `<ThemeProvider initialThemeId={tenantTheme} scope="…">` — `customer` for `CustomerShell`, `merchant` for `routeTree.MerchantThemeShell`. The merchant `Settings` page (`/t/<slug>/ordering/settings`) is the single source of truth: editing the cuisine theme live-previews on the merchant console itself, since the staff member is looking at the same theme cascade their customers will see. The pre-tenant outer `ThemeProvider` in `main.tsx` stays neutral (no `data-theme` on `<html>`) so login + tenant picker render in classic. The merchant's chrome layout follows the bundle's `Shell.jsx` spec and uses the same design-system primitives as the customer.
 
 ## Iconography
 

@@ -75,13 +75,14 @@ function getInitialThemeId(): ThemeId {
 interface ThemeProviderProps {
   children: ReactNode;
   /**
-   * Override the initial theme ID. Used by the customer shell to pin to a
-   * tenant's chosen cuisine theme regardless of localStorage. Omit for the
-   * merchant console where the staff member controls it interactively.
+   * Override the initial theme ID. Used by tenant-scoped shells (both
+   * customer AND merchant) to pin to a tenant's chosen cuisine theme
+   * regardless of localStorage. Omit for the global outer provider in
+   * main.tsx where pre-tenant routes (login) use localStorage default.
    */
   initialThemeId?: ThemeId;
   /**
-   * Per-tenant brand-color override. When present and this is a customer-scoped
+   * Per-tenant brand-color override. When present and this is a tenant-scoped
    * provider (initialThemeId set), applied as inline CSS custom properties on
    * the wrapper <div data-theme> — NOT on <html>. Layered ON TOP of the theme's
    * default brand so a single Sichuan restaurant can pick its own shade of red
@@ -91,6 +92,12 @@ interface ThemeProviderProps {
   brandColor?: string | null;
   /** Optional pre-computed brand-hover override (if the caller already knows it). */
   brandColorHover?: string | null;
+  /**
+   * Tag the wrapper for selector targeting. 'customer' marks the customer
+   * shell, 'merchant' marks the merchant chrome. Both render the same
+   * wrapper structure — the tag only affects the data-attribute.
+   */
+  scope?: 'customer' | 'merchant';
 }
 
 export function ThemeProvider({
@@ -98,6 +105,7 @@ export function ThemeProvider({
   initialThemeId,
   brandColor,
   brandColorHover,
+  scope,
 }: ThemeProviderProps) {
   const [mode, setMode] = useState<Mode>(getInitialMode);
   const [themeId, setThemeIdState] = useState<ThemeId>(
@@ -105,16 +113,16 @@ export function ThemeProvider({
   );
 
   /**
-   * Whether this instance is a customer-scoped (nested) provider.
+   * Whether this instance is a tenant-scoped (nested) provider.
    * When true, cuisine theme and brand colors are applied to a wrapper <div>,
-   * NOT to <html> — preventing theme cascade into merchant routes.
+   * NOT to <html> — keeping global pre-tenant chrome (login page) neutral.
    */
-  const isCustomerScoped = initialThemeId !== undefined;
+  const isTenantScoped = initialThemeId !== undefined;
 
-  // Keep state in sync if the parent changes initialThemeId (e.g. customer
-  // shell re-reads tenant settings on navigation). Only applies when the
-  // caller is driving us — if the merchant console is letting the user
-  // pick interactively, we respect the local state.
+  // Keep state in sync if the parent changes initialThemeId (e.g. tenant
+  // settings refetch on save). Only applies when the caller is driving us —
+  // local interactive setThemeId calls (e.g. ThemeSettings live preview)
+  // still flip state immediately and are honoured.
   useEffect(() => {
     if (initialThemeId && initialThemeId !== themeId) {
       setThemeIdState(initialThemeId);
@@ -137,18 +145,18 @@ export function ThemeProvider({
     }
   }, [mode]);
 
-  // Outer (merchant) provider: persist themeId to localStorage but do NOT
-  // touch data-theme on <html>. The merchant console stays neutral (classic
-  // CSS default), satisfying S-THEMED-COMPONENT.
+  // Outer (global) provider: persist themeId to localStorage but do NOT
+  // touch data-theme on <html>. The pre-tenant chrome stays neutral
+  // (classic CSS default).
   useEffect(() => {
-    if (isCustomerScoped) return; // customer scope uses wrapper div (see render)
+    if (isTenantScoped) return; // tenant scope uses wrapper div (see render)
     if (typeof document === 'undefined') return;
     try {
       localStorage.setItem(THEME_STORAGE_KEY, themeId);
     } catch {
       // no-op
     }
-  }, [themeId, isCustomerScoped]);
+  }, [themeId, isTenantScoped]);
 
   const toggleTheme = useCallback(() => {
     setMode((prev) => (prev === 'light' ? 'dark' : 'light'));
@@ -163,11 +171,17 @@ export function ThemeProvider({
     [mode, toggleTheme, themeId, setThemeId]
   );
 
-  // Customer-scoped: wrap children in a <div data-theme="…"> so the cuisine
-  // theme cascade is confined to customer routes only. Brand-color overrides
-  // are applied as inline CSS custom properties on the same wrapper element —
-  // they never reach <html>, so the merchant console stays unaffected.
-  if (isCustomerScoped) {
+  // Tenant-scoped: wrap children in a <div data-theme="…"> so the cuisine
+  // theme cascade applies to all descendants (merchant chrome OR customer
+  // pages). Brand-color overrides are applied as inline CSS custom
+  // properties on the same wrapper — they never reach <html>, so global
+  // pre-tenant chrome is untouched.
+  //
+  // Both customer AND merchant shells wrap with the same component now —
+  // the merchant chrome reflects the tenant's chosen cuisine theme so
+  // staff get the same branded experience customers do (per
+  // S-THEMED-COMPONENT updated 2026-04-26).
+  if (isTenantScoped) {
     const brandStyle: CSSProperties = brandColor
       ? ({
           ['--color-brand' as never]: brandColor,
@@ -183,14 +197,19 @@ export function ThemeProvider({
 
     return (
       <ThemeContext.Provider value={value}>
-        <div data-theme={themeId} data-customer-shell style={brandStyle}>
+        <div
+          data-theme={themeId}
+          data-themed-scope={scope ?? 'customer'}
+          style={brandStyle}
+        >
           {children}
         </div>
       </ThemeContext.Provider>
     );
   }
 
-  // Outer (merchant) provider: no wrapper div, no data-theme on <html>.
+  // Outer (global) provider: no wrapper div, no data-theme on <html>.
+  // Used by main.tsx so login + pre-tenant routes get a neutral classic look.
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 

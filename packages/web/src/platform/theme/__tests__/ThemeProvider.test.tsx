@@ -39,9 +39,9 @@ afterEach(() => {
   localStorage.clear();
 });
 
-describe('ThemeProvider — outer (merchant) mode', () => {
+describe('ThemeProvider — outer (global) mode', () => {
   it('does NOT set data-theme on <html> when no initialThemeId is given', () => {
-    // No initialThemeId → merchant / outer provider.
+    // No initialThemeId → outer / global provider (login + pre-tenant chrome).
     render(
       <ThemeProvider>
         <ThemeConsumer />
@@ -79,60 +79,48 @@ describe('ThemeProvider — outer (merchant) mode', () => {
   });
 });
 
-describe('ThemeProvider — customer-scoped (nested) mode', () => {
-  it('renders a wrapper div with data-theme when initialThemeId is provided', () => {
+describe('ThemeProvider — tenant-scoped customer mode', () => {
+  it('renders a wrapper div with data-theme + scope="customer" when initialThemeId + scope provided', () => {
     const { container } = render(
-      <ThemeProvider initialThemeId="sichuan">
+      <ThemeProvider initialThemeId="sichuan" scope="customer">
         <ThemeConsumer />
       </ThemeProvider>,
       { wrapper: Wrapper },
     );
 
-    const wrapperDiv = container.querySelector('[data-customer-shell]');
+    const wrapperDiv = container.querySelector('[data-themed-scope="customer"]');
     expect(wrapperDiv).not.toBeNull();
     expect(wrapperDiv?.getAttribute('data-theme')).toBe('sichuan');
   });
 
-  it('does NOT set data-theme on <html> when initialThemeId is provided', () => {
-    render(
-      <ThemeProvider initialThemeId="sichuan">
+  it('defaults scope to "customer" when only initialThemeId is provided', () => {
+    const { container } = render(
+      <ThemeProvider initialThemeId="izakaya">
         <ThemeConsumer />
       </ThemeProvider>,
       { wrapper: Wrapper },
     );
 
-    // <html> must stay clean — merchant routes share the same <html>.
-    expect(document.documentElement.dataset.theme).toBeUndefined();
+    const wrapperDiv = container.querySelector('[data-themed-scope]');
+    expect(wrapperDiv?.getAttribute('data-themed-scope')).toBe('customer');
   });
 
-  it('wraps correctly when nested inside an outer ThemeProvider', () => {
-    // Mirrors real usage: outer (merchant) provider in main.tsx wraps
-    // the customer-scoped nested provider inside CustomerShell.
-    const { container } = render(
-      <ThemeProvider>
-        <div data-testid="merchant-area">merchant content</div>
-        <ThemeProvider initialThemeId="izakaya">
-          <ThemeConsumer />
-        </ThemeProvider>
+  it('does NOT set data-theme on <html> when initialThemeId is provided', () => {
+    render(
+      <ThemeProvider initialThemeId="sichuan" scope="customer">
+        <ThemeConsumer />
       </ThemeProvider>,
       { wrapper: Wrapper },
     );
 
-    // <html> must NOT have data-theme from either provider.
+    // <html> must stay clean — pre-tenant routes share the same <html>.
     expect(document.documentElement.dataset.theme).toBeUndefined();
-
-    // The nested provider's wrapper div carries the customer theme.
-    const wrapperDiv = container.querySelector('[data-customer-shell]');
-    expect(wrapperDiv?.getAttribute('data-theme')).toBe('izakaya');
-
-    // Merchant content is NOT inside the theme wrapper.
-    const merchantArea = screen.getByTestId('merchant-area');
-    expect(merchantArea.closest('[data-customer-shell]')).toBeNull();
   });
 
   it('applies brand-color overrides as inline styles on the wrapper div (not <html>)', () => {
     const { container } = render(
       <ThemeProvider
+        scope="customer"
         initialThemeId="sichuan"
         brandColor="#b8262b"
         brandColorHover="#8b1a1e"
@@ -142,7 +130,7 @@ describe('ThemeProvider — customer-scoped (nested) mode', () => {
       { wrapper: Wrapper },
     );
 
-    const wrapperDiv = container.querySelector<HTMLElement>('[data-customer-shell]');
+    const wrapperDiv = container.querySelector<HTMLElement>('[data-themed-scope="customer"]');
     expect(wrapperDiv).not.toBeNull();
 
     // Brand vars are on the wrapper, not on <html>.
@@ -155,5 +143,64 @@ describe('ThemeProvider — customer-scoped (nested) mode', () => {
     const htmlStyle = document.documentElement.style;
     expect(htmlStyle.getPropertyValue('--color-brand')).toBe('');
     expect(htmlStyle.getPropertyValue('--color-primary')).toBe('');
+  });
+});
+
+describe('ThemeProvider — tenant-scoped merchant mode', () => {
+  it('renders a wrapper div with data-theme + scope="merchant" when scope=merchant given', () => {
+    const { container } = render(
+      <ThemeProvider initialThemeId="cantonese" scope="merchant">
+        <ThemeConsumer />
+      </ThemeProvider>,
+      { wrapper: Wrapper },
+    );
+
+    const wrapperDiv = container.querySelector('[data-themed-scope="merchant"]');
+    expect(wrapperDiv).not.toBeNull();
+    expect(wrapperDiv?.getAttribute('data-theme')).toBe('cantonese');
+  });
+
+  it('keeps merchant brand override on the wrapper div (not <html>)', () => {
+    const { container } = render(
+      <ThemeProvider
+        scope="merchant"
+        initialThemeId="cantonese"
+        brandColor="#1f6b4a"
+        brandColorHover="#155538"
+      >
+        <ThemeConsumer />
+      </ThemeProvider>,
+      { wrapper: Wrapper },
+    );
+
+    const wrapperDiv = container.querySelector<HTMLElement>('[data-themed-scope="merchant"]');
+    expect(wrapperDiv).not.toBeNull();
+    expect(wrapperDiv!.style.getPropertyValue('--color-brand')).toBe('#1f6b4a');
+    expect(document.documentElement.style.getPropertyValue('--color-brand')).toBe('');
+  });
+
+  it('nests cleanly inside an outer ThemeProvider — outer stays neutral', () => {
+    // Mirrors real usage: outer (global) provider in main.tsx wraps the
+    // tenant-scoped nested provider for either customer OR merchant.
+    const { container } = render(
+      <ThemeProvider>
+        <div data-testid="login-area">login content</div>
+        <ThemeProvider initialThemeId="izakaya" scope="merchant">
+          <ThemeConsumer />
+        </ThemeProvider>
+      </ThemeProvider>,
+      { wrapper: Wrapper },
+    );
+
+    // <html> must NOT have data-theme from either provider.
+    expect(document.documentElement.dataset.theme).toBeUndefined();
+
+    // Nested provider wrapper carries the cuisine theme.
+    const wrapperDiv = container.querySelector('[data-themed-scope="merchant"]');
+    expect(wrapperDiv?.getAttribute('data-theme')).toBe('izakaya');
+
+    // Outer (login) content is NOT inside the theme wrapper.
+    const loginArea = screen.getByTestId('login-area');
+    expect(loginArea.closest('[data-themed-scope]')).toBeNull();
   });
 });

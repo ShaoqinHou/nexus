@@ -122,11 +122,11 @@ export const staffOnboardingSteps: TourStep[] = [
   },
   {
     id: 'pick-preset',
-    target: '[data-tour="theme-presets"]',
+    target: '[data-tour="cuisine-themes"]',
     type: 'info',
     title: 'Choose a Theme',
     description:
-      'Pick a preset that matches your restaurant style. You can customize colors, fonts, and upload your logo.',
+      'Pick the cuisine theme that fits your restaurant. The whole console reskins live so you see exactly what your customers will see.',
     placement: 'bottom',
     route: '/ordering/settings',
   },
