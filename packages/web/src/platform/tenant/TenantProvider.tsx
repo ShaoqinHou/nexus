@@ -7,9 +7,7 @@ import {
 } from 'react';
 import { apiClient } from '@web/lib/api';
 import { setCurrencySymbol, currencyCodeToSymbol } from '@web/lib/format';
-import { applyTenantTheme, clearTenantTheme } from '@web/lib/theme';
 import type { TenantThemeSettings } from '@web/lib/theme';
-import { useTheme } from '@web/platform/theme/ThemeProvider';
 
 interface TenantSettings extends TenantThemeSettings {
   currency?: string;
@@ -41,8 +39,19 @@ export function TenantProvider({ tenantSlug, children }: TenantProviderProps) {
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { theme } = useTheme();
 
+  // Fetch tenant ONCE per slug change. Previously this effect's deps
+  // included `theme` (light/dark mode) because applyTenantTheme needed
+  // to know isDark — so every dark-mode toggle triggered a network round
+  // trip plus a full re-render with loading=true, briefly flashing the
+  // classic theme between unmount and re-fetch.
+  //
+  // Brand-color / font / radius / shadow tokens now flow through the
+  // ThemeProvider wrapper (data-theme cascade + brand inline override on
+  // both wrapper and document.body). The old applyTenantTheme path that
+  // wrote to <html> is redundant under the new architecture — we drop it
+  // entirely. Only currency remains a side-effect since it's a global
+  // module-level setting (lib/format).
   useEffect(() => {
     let cancelled = false;
 
@@ -56,10 +65,7 @@ export function TenantProvider({ tenantSlug, children }: TenantProviderProps) {
         );
         if (!cancelled) {
           setTenant(data);
-
-          // Apply full tenant theme (brand color, font, radius, shadows)
           if (data.settings) {
-            applyTenantTheme(data.settings as TenantThemeSettings, theme === 'dark');
             setCurrencySymbol(currencyCodeToSymbol(data.settings.currency));
           }
         }
@@ -80,10 +86,8 @@ export function TenantProvider({ tenantSlug, children }: TenantProviderProps) {
 
     return () => {
       cancelled = true;
-      // Reset all tenant theme overrides on unmount
-      clearTenantTheme();
     };
-  }, [tenantSlug, theme]);
+  }, [tenantSlug]);
 
   return (
     <TenantContext.Provider value={{ tenant, tenantSlug, loading, error }}>

@@ -65,14 +65,23 @@ async function request<T>(
     }
 
     // Auto-logout on 401 (expired/invalid JWT).
-    // Skip on customer QR routes (/order/...) — those use cookie sessions,
-    // not staff JWTs, so a 401 there must not redirect the customer to /login
-    // even if a staff token happens to be present in localStorage.
-    const isCustomerRoute = window.location.pathname.startsWith('/order/');
+    // Skip on customer QR routes — those use cookie sessions, not staff JWTs,
+    // so a 401 there must not redirect the customer to /login even if a
+    // staff token happens to be present in localStorage.
+    //
+    // Subpath-aware: under prod we deploy at /nexus/, so the customer path
+    // is `/nexus/order/...`. Use BASE_URL-relative comparison so the dev
+    // server (`/`) and prod (`/nexus/`) both detect customer routes
+    // correctly. Same fix on the redirect target — bare `/login` would
+    // hop to the parent CV site under subpath deployment.
+    const base = import.meta.env.BASE_URL || '/';
+    const path = window.location.pathname;
+    const relative = path.startsWith(base) ? path.slice(base.length - 1) : path;
+    const isCustomerRoute = relative.startsWith('/order/');
     if (response.status === 401 && getAuthToken() && !isCustomerRoute) {
       localStorage.removeItem('nexus_token');
       localStorage.removeItem('nexus_user');
-      window.location.href = '/login';
+      window.location.href = `${base}login`.replace(/\/+/g, '/');
     }
 
     throw new ApiClientError(errorMessage, response.status, errorCode);
