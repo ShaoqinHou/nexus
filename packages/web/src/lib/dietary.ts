@@ -78,6 +78,18 @@ const ALLERGEN_TO_ICON: Record<string, DietaryIconName> = {
   sesame: 'contains-sesame',
   pork: 'contains-pork',
   alcohol: 'contains-alcohol',
+  // Added 2026-04-27: gluten/wheat/fish/sulphites previously fell back to
+  // text-only chips because the sprite had no matching symbol. Without an
+  // icon those chips visibly differed from icon-bearing siblings even at
+  // identical 20px height (Inter glyph centring + lack of the 16px icon
+  // mass made them look smaller). New `di-contains-{gluten,fish,sulphites}`
+  // symbols added to dietary-icons.svg; map them here so every allergen
+  // tag always renders icon + text uniformly.
+  gluten: 'contains-gluten',
+  wheat: 'contains-gluten',
+  fish: 'contains-fish',
+  sulphites: 'contains-sulphites',
+  sulfites: 'contains-sulphites',
 };
 
 /**

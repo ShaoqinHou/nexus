@@ -41,6 +41,9 @@ export type DietaryIconName =
   | 'contains-sesame'
   | 'contains-pork'
   | 'contains-alcohol'
+  | 'contains-gluten'
+  | 'contains-fish'
+  | 'contains-sulphites'
   // Spice levels
   | 'spice-1'
   | 'spice-2'
@@ -52,7 +55,11 @@ export type DietaryIconName =
   | 'chefs-pick'
   | 'house-special'
   | 'hot'
-  | 'cold';
+  | 'cold'
+  // Order types — for Kitchen Display + Order Dashboard glance-recognition
+  | 'dine-in'
+  | 'takeaway'
+  | 'delivery';
 
 type Size = 'sm' | 'md' | 'lg';
 

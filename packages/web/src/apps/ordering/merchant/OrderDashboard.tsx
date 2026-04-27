@@ -18,6 +18,7 @@ import {
   CardContent,
   Input,
   Select,
+  DietaryIcon,
 } from '@web/components/ui';
 import { StatusBadge, EmptyState, ConfirmButton } from '@web/components/patterns';
 import { formatPrice, timeAgo } from '@web/lib/format';
@@ -808,10 +809,19 @@ function OrderCard({
       >
         <CardContent className="flex items-center justify-between gap-3 sm:gap-4 py-4">
           <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-            <div className="shrink-0 h-10 w-10 rounded-full bg-bg-muted flex items-center justify-center">
+            {/* Order-type avatar — number-in-circle plus a small dine-in
+                marker. Future order types (takeaway / delivery) will swap
+                the marker icon, keeping the at-a-glance recognition. */}
+            <div className="relative shrink-0 h-10 w-10 rounded-full bg-bg-muted flex items-center justify-center">
               <span className="text-sm font-bold text-text font-mono">
                 {order.tableNumber}
               </span>
+              <DietaryIcon
+                name="dine-in"
+                size="sm"
+                className="absolute -bottom-1 -right-1 h-3.5 w-3.5 p-0.5 bg-bg-elevated rounded-full text-primary border border-border"
+                accessibleLabel={t('Dine-in')}
+              />
             </div>
             <div className="min-w-0">
               <p className="text-sm font-medium text-text">

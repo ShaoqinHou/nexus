@@ -226,4 +226,54 @@
     <path d="M5 8l7 4 7-4M12 12v8"></path>
   </symbol>
 
+  <!-- Gluten / wheat allergen — warning triangle with a wheat ear inside.
+       Mirrors the contains-* convention used elsewhere in the sprite so
+       no allergen label ever renders icon-less alongside ones that do. -->
+  <symbol id="di-contains-gluten" viewBox="0 0 24 24">
+    <path d="M12 4l9 16H3z"></path>
+    <path d="M12 11v7"></path>
+    <path d="M12 13c-1 0-1.6-.6-2-1.5M12 13c1 0 1.6-.6 2-1.5"></path>
+    <path d="M12 15c-1 0-1.6-.6-2-1.5M12 15c1 0 1.6-.6 2-1.5"></path>
+  </symbol>
+
+  <!-- Fish allergen — warning triangle with a fish silhouette inside. -->
+  <symbol id="di-contains-fish" viewBox="0 0 24 24">
+    <path d="M12 4l9 16H3z"></path>
+    <path d="M9 15c0-1 1.2-2 3-2s3 1 3 2-1.2 2-3 2-3-1-3-2z"></path>
+    <path d="M15 15l2-1v2z"></path>
+    <circle cx="11" cy="15" r="0.4" class="fill"></circle>
+  </symbol>
+
+  <!-- Sulphites allergen — warning triangle with an SO2 dot pattern. -->
+  <symbol id="di-contains-sulphites" viewBox="0 0 24 24">
+    <path d="M12 4l9 16H3z"></path>
+    <circle cx="10" cy="14" r="0.8" class="fill"></circle>
+    <circle cx="12" cy="16" r="0.8" class="fill"></circle>
+    <circle cx="14" cy="14" r="0.8" class="fill"></circle>
+  </symbol>
+
+  <!-- Order-type icons — used by Kitchen Display + OrderDashboard to mark
+       whether an order is dine-in, takeaway, or delivery at a glance.
+       Stroke-based outlines, same line weight as the other sprite icons. -->
+  <symbol id="di-dine-in" viewBox="0 0 24 24">
+    <!-- Plate ring with knife + fork suggested by simplified strokes. -->
+    <circle cx="12" cy="14" r="6"></circle>
+    <path d="M5 4v6c0 1.5 1 2 1.5 2H8M19 4v6c0 1.5-1 2-1.5 2H16"></path>
+  </symbol>
+
+  <symbol id="di-takeaway" viewBox="0 0 24 24">
+    <!-- Takeaway bag with handles + vertical fold lines. -->
+    <path d="M6 8h12l-1 12H7z"></path>
+    <path d="M9 8c0-2 1.5-4 3-4s3 2 3 4"></path>
+    <path d="M11 12v4M13 12v4"></path>
+  </symbol>
+
+  <symbol id="di-delivery" viewBox="0 0 24 24">
+    <!-- Scooter profile — two wheels + rider's frame. -->
+    <circle cx="6" cy="17" r="3"></circle>
+    <circle cx="18" cy="17" r="3"></circle>
+    <path d="M6 17l3-9h6l3 9"></path>
+    <path d="M9 8h-3"></path>
+  </symbol>
+
 </svg>

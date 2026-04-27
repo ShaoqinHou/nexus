@@ -18,7 +18,7 @@ import {
   ORDER_FLOW_LABELS,
 } from '@nexus/shared';
 import type { OrderStatus } from '@nexus/shared';
-import { Button } from '@web/components/ui';
+import { Button, DietaryIcon } from '@web/components/ui';
 import { ConfirmButton } from '@web/components/patterns';
 import { apiClient } from '@web/lib/api';
 import { formatPrice, timeAgo } from '@web/lib/format';
@@ -370,6 +370,16 @@ function KitchenOrderCard({
       {/* Header — table number + time + total */}
       <div className="flex items-center justify-between px-4 py-3 bg-bg-muted border-b border-border">
         <div className="flex items-center gap-2">
+          {/* Order-type marker — dine-in for table-based orders. Once
+              takeaway/delivery enter the data model, the icon switches to
+              `takeaway` / `delivery` and the kitchen reads the order type
+              at a single glance. */}
+          <DietaryIcon
+            name="dine-in"
+            size="md"
+            className="text-primary shrink-0"
+            accessibleLabel={t('Dine-in')}
+          />
           <span className="text-3xl font-black text-text leading-none font-mono tabular-nums">
             T{order.tableNumber}
           </span>
