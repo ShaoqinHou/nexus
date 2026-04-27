@@ -6,7 +6,7 @@ import { useT } from '@web/lib/i18n';
 import { formatPrice, formatPriceDelta, parseTags } from '@web/lib/format';
 import { useCart } from '@web/apps/ordering/customer/CartContext';
 import type { MenuItem, ModifierGroup, ModifierOption } from '@web/apps/ordering/types';
-import { dietaryIconName, allergenIconName, dietaryTagColor } from '@web/lib/dietary';
+import { allergenIconName, dietaryTagColor } from '@web/lib/dietary';
 
 interface ItemDetailSheetProps {
   item: MenuItem;
@@ -191,41 +191,44 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
             )}
             {item.tags && (
               <div className="flex flex-wrap gap-1 mt-1.5">
-                {parseTags(item.tags).map((tag) => {
-                  const icon = dietaryIconName(tag);
-                  return (
-                    <span
-                      key={tag}
-                      // Same chip recipe as MenuBrowse — rounded-chip token
-                      // for cuisine-aware shape, no `leading-none` so Inter
-                      // metrics don't push text upward.
-                      className={[
-                        'inline-flex items-center gap-1 rounded-[var(--radius-chip)] px-2 py-0.5 text-xs font-medium',
-                        dietaryTagColor(tag),
-                      ].join(' ')}
-                    >
-                      {icon && <DietaryIcon name={icon} size="sm" />}
-                      {t(tag)}
-                    </span>
-                  );
-                })}
+                {parseTags(item.tags).map((tag) => (
+                  <span
+                    key={tag}
+                    // Text-only chip — same recipe as MenuBrowse so chip
+                    // appearance is consistent across all surfaces.
+                    className={[
+                      'inline-flex items-center justify-center rounded-[var(--radius-chip)] px-2 py-0.5 text-xs font-medium',
+                      dietaryTagColor(tag),
+                    ].join(' ')}
+                  >
+                    {t(tag)}
+                  </span>
+                ))}
               </div>
             )}
             {item.allergens && parseTags(item.allergens).length > 0 && (
-              <div className="flex flex-wrap items-center gap-1 mt-1.5">
-                <span className="text-xs font-semibold text-danger">{t('Allergens:')}</span>
-                {parseTags(item.allergens).map((allergen) => {
-                  const icon = allergenIconName(allergen);
-                  return (
-                    <span
-                      key={allergen}
-                      className="inline-flex items-center gap-1 rounded-[var(--radius-chip)] px-2 py-0.5 text-xs font-medium bg-danger-light text-danger"
-                    >
-                      {icon && <DietaryIcon name={icon} size="sm" />}
-                      {t(allergen)}
-                    </span>
-                  );
-                })}
+              // Allergens row — RICH icon panel for the item-detail context.
+              // This is the dedicated allergen warnings list, not an inline
+              // tag chip. Each allergen renders the contains-* sprite icon
+              // at 24px with the allergen name beside it. The icons have
+              // room to breathe here (item detail has plenty of width)
+              // and the warning-triangle shape carries clear meaning.
+              <div className="mt-2">
+                <p className="text-xs font-semibold text-danger mb-1">{t('Allergens:')}</p>
+                <div className="flex flex-wrap gap-3">
+                  {parseTags(item.allergens).map((allergen) => {
+                    const icon = allergenIconName(allergen);
+                    return (
+                      <div
+                        key={allergen}
+                        className="flex items-center gap-1.5 text-danger"
+                      >
+                        {icon && <DietaryIcon name={icon} size="md" />}
+                        <span className="text-xs font-medium">{t(allergen)}</span>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
             <p className="text-base font-semibold text-primary mt-1">

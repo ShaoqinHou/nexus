@@ -3,10 +3,10 @@ import { useQuery } from '@tanstack/react-query';
 import { Plus, Minus, UtensilsCrossed, Package, Search, X, AlertTriangle, ArrowUp, Moon, Sun, BellRing, Receipt } from 'lucide-react';
 import { apiClient } from '@web/lib/api';
 import { formatPrice, parseTags } from '@web/lib/format';
-import { Button, DietaryIcon } from '@web/components/ui';
+import { Button } from '@web/components/ui';
 import { EmptyState, PullToRefreshIndicator } from '@web/components/patterns';
 import { PromoCard } from '@web/components/patterns/themed/PromoCard';
-import { dietaryIconName, allergenIconName, dietaryTagColor } from '@web/lib/dietary';
+import { dietaryTagColor } from '@web/lib/dietary';
 import { useCart } from '@web/apps/ordering/customer/CartContext';
 import { ItemDetailSheet } from '@web/apps/ordering/customer/ItemDetailSheet';
 import { ComboSheet } from '@web/apps/ordering/customer/ComboSheet';
@@ -51,25 +51,30 @@ const DietaryTagBadges = memo(function DietaryTagBadges({ tags }: { tags: string
   return (
     <div className="flex flex-wrap gap-1.5 mt-1">
       {parsed.map((tag) => {
-        const icon = dietaryIconName(tag);
+        // INLINE CHIPS ARE TEXT-ONLY. Earlier iterations added a 16px
+        // <DietaryIcon> next to the text. With chip = 20px tall x ~50-90px
+        // wide, the icon + 4px gap + ~8px x-padding meant text was visually
+        // pushed to the right half of the chip — readers perceived the chip
+        // as "too long" with "uncentered text". Even worse, when a tag
+        // (e.g. "gluten") had no matching sprite symbol the icon area
+        // collapsed and that chip looked smaller than its siblings.
+        //
+        // Solution: drop icons from these tiny inline chips. Text reads
+        // dead-centre, all chips look identical regardless of which tag
+        // they represent. The DietaryIcon primitive is still used in
+        // larger contexts (ItemDetailSheet's Allergens row, kitchen
+        // ticket print template, dietary-icon zoo page) where 24-32px
+        // icons have room to breathe.
         return (
           <span
             key={tag}
             className={[
-              // Use --radius-chip so chip shape follows cuisine identity
-              // (sharp 0px under counter, pill under trattoria, etc).
-              // Drop `leading-none` — it clipped the line-box to the
-              // font-size with no descent room, and Inter's asymmetric
-              // metrics (ascent > descent) pushed the text up so chips
-              // without icons (e.g. "gluten") visibly drifted vs chips
-              // with icons. Tailwind default `leading-normal` (1.5) lets
-              // glyphs breathe and `inline-flex items-center` then
-              // centers cleanly.
-              'inline-flex items-center gap-1 rounded-[var(--radius-chip)] px-2 py-0.5 text-xs font-medium',
+              // --radius-chip so chip shape follows cuisine identity
+              // (sharp under counter, pill under trattoria, etc).
+              'inline-flex items-center justify-center rounded-[var(--radius-chip)] px-2 py-0.5 text-xs font-medium',
               dietaryTagColor(tag),
             ].join(' ')}
           >
-            {icon && <DietaryIcon name={icon} size="sm" />}
             {t(tag)}
           </span>
         );
@@ -85,14 +90,14 @@ const AllergenBadges = memo(function AllergenBadges({ allergens }: { allergens: 
   return (
     <div className="flex flex-wrap gap-1 mt-1">
       {parsed.map((allergen) => {
-        const icon = allergenIconName(allergen);
         return (
           <span
             key={allergen}
-            // Same chip recipe as DietaryTagBadges — see comment there.
-            className="inline-flex items-center gap-1 rounded-[var(--radius-chip)] px-2 py-0.5 text-xs font-medium bg-danger-light text-danger"
+            // Text-only chip recipe — see DietaryTagBadges comment for why
+            // we dropped the icon from inline chips. Allergen-icon sprite
+            // still rendered on the item-detail Allergens row at 24px.
+            className="inline-flex items-center justify-center rounded-[var(--radius-chip)] px-2 py-0.5 text-xs font-medium bg-danger-light text-danger"
           >
-            {icon && <DietaryIcon name={icon} size="sm" />}
             {t(allergen)}
           </span>
         );
