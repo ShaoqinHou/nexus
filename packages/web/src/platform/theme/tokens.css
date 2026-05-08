@@ -1,6 +1,6 @@
 @import 'tailwindcss';
 
-/* Self-hosted variable fonts per Claude Design § VISUAL FOUNDATIONS.
+/* Self-hosted variable fonts per the design-system reference bundle.
    Inter powers all UI; JetBrains Mono handles code-adjacent text
    (tenant slugs, order IDs, IDs in receipts). woff2 sources live under
    packages/web/public/fonts/ and are referenced via absolute paths so
@@ -106,7 +106,7 @@
   --color-info: #2563eb;
   --color-info-light: #dbeafe;
 
-  /* KDS station colours — nexus-specific extension to the Claude Design bundle.
+  /* KDS station colours — Nexus-specific extension to the design-system reference bundle.
      The bundle predates the kitchen-display preparing-station tint; this pair
      resolves S-DARK-MODE for that single non-semantic accent without re-theming
      it per cuisine (see S-THEMED-COMPONENT — semantic + KDS tokens stay stable). */
@@ -151,7 +151,7 @@
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
 
-  /* Hit targets — per Claude Design § VISUAL FOUNDATIONS.
+  /* Hit targets — per the design-system reference bundle.
      44/48/52 match Button size sm/md/lg. 44 is the WCAG 2.1 AA floor.
      Fixed across themes and modes — ergonomics, not aesthetics. */
   --hit-sm: 44px;

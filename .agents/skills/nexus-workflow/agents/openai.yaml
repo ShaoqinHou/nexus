@@ -1,0 +1,4 @@
+interface:
+  display_name: "Nexus Workflow"
+  short_description: "Run the Nexus Codex workflow and bookkeeping process."
+  default_prompt: "Use nexus-workflow to start or resume Nexus work."

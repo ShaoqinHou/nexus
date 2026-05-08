@@ -1,7 +1,7 @@
 /* ============================================================
    Nexus Cuisine Themes — aggregator
    ------------------------------------------------------------
-   Ten canonical theme identities from the Claude Design bundle.
+   Ten canonical theme identities from the design-system reference bundle.
    Apply via `data-theme="<id>"` on a wrapper element — the cascade
    re-resolves every var(--color-*), every token, live. No JS
    re-render needed.

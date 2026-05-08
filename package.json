@@ -14,9 +14,19 @@
     "db:generate": "npm run db:generate --workspace=packages/api",
     "db:seed": "npm run db:seed --workspace=packages/api",
     "db:studio": "npm run db:studio --workspace=packages/api",
-    "lint:design": "node .claude/scripts/check-design-tokens.mjs",
-    "lint:design:quiet": "node .claude/scripts/check-design-tokens.mjs --quiet",
-    "lint:design:json": "node .claude/scripts/check-design-tokens.mjs --format=json"
+    "lint:design": "node .codex/scripts/check-design-tokens.mjs",
+    "lint:design:quiet": "node .codex/scripts/check-design-tokens.mjs --quiet",
+    "lint:design:json": "node .codex/scripts/check-design-tokens.mjs --format=json",
+    "workflow:status": "node .codex/scripts/nexus-workflow.mjs status",
+    "workflow:dashboard": "node .codex/scripts/nexus-workflow.mjs dashboard",
+    "workflow:validate": "node .codex/scripts/nexus-workflow.mjs validate",
+    "workflow:review-check": "node .codex/scripts/nexus-workflow.mjs review-check",
+    "workflow:verify-check": "node .codex/scripts/nexus-workflow.mjs verify-check",
+    "workflow:audit-check": "node .codex/scripts/nexus-workflow.mjs audit-check",
+    "workflow:commit-gate": "node .codex/scripts/nexus-workflow.mjs validate --commit-gate",
+    "workflow:release-gate": "node .codex/scripts/nexus-workflow.mjs validate --release-gate",
+    "workflow:full": "node .codex/scripts/nexus-workflow.mjs validate --full",
+    "workflow:design-zoo": "node .codex/scripts/validate-design-zoo.mjs"
   },
   "dependencies": {
     "sharp": "^0.34.5"

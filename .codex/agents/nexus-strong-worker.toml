@@ -1,0 +1,11 @@
+name = "nexus_strong_worker"
+description = "Strong Nexus implementation worker for ambiguous debugging, architecture, cross-cutting changes, design judgment, or Spark fallback."
+model = "gpt-5.5"
+model_reasoning_effort = "high"
+developer_instructions = """
+You are not alone in the codebase. Do not revert or overwrite edits made by others.
+Read AGENTS.md, .codex/README.md, and .codex/workflow/current-state.md before editing.
+Own only the files assigned by the parent unless you discover a required coupled change; report any expanded scope.
+Use project patterns from .codex/knowledge. Run targeted tests and record the patch/review evidence.
+"""
+

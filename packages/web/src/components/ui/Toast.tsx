@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { CheckCircle, XCircle, Info, X } from 'lucide-react';
+import { CheckCircle, XCircle, Info, AlertTriangle, X } from 'lucide-react';
 import { useT } from '@web/lib/i18n';
 
 export interface ToastData {
   id: string;
-  type: 'success' | 'error' | 'info';
+  type: 'success' | 'error' | 'info' | 'warning';
   message: string;
 }
 
@@ -17,12 +17,14 @@ const iconMap = {
   success: CheckCircle,
   error: XCircle,
   info: Info,
+  warning: AlertTriangle,
 } as const;
 
 const typeClasses: Record<ToastData['type'], string> = {
   success: 'bg-success-light text-success border-success/20',
   error: 'bg-danger-light text-danger border-danger/20',
-  info: 'bg-primary-light text-primary border-primary/20',
+  info: 'bg-info-light text-info border-info/20',
+  warning: 'bg-warning-light text-warning border-warning/20',
 };
 
 function ToastItem({ toast, onDismiss }: ToastItemProps) {

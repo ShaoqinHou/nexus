@@ -2,7 +2,7 @@ import { createContext, useContext } from 'react';
 
 // ---------------------------------------------------------------------------
 // Lightweight i18n — no framework, just a t() function + locale JSON files
-// GLM generates the translations, Claude reviews them
+// Translations are model-assisted and require human/agent review before commit.
 // ---------------------------------------------------------------------------
 
 export const SUPPORTED_LOCALES = ['en', 'zh', 'ja', 'ko', 'fr'] as const;

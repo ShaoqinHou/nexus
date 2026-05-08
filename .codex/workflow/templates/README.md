@@ -1,0 +1,10 @@
+# Record Templates
+
+These templates describe the expected content of durable workflow records. Prefer the workflow script commands because they add stable IDs and frontmatter, but use these shapes when writing or reviewing records by hand.
+
+- `patch.md`: meaningful implementation slice.
+- `review.md`: focused code/design/pattern review.
+- `test.md`: command, browser, server, or historical-case verification.
+- `pattern-proposal.md`: evidence-based durable-guidance candidate.
+- `deployment.md`: server deployment or validation event.
+

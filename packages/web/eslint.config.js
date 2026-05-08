@@ -20,7 +20,7 @@ export default [
         {
           selector: "Literal[value=/^#[0-9a-fA-F]{3,8}$/]",
           message:
-            'hardcoded-hex-chrome: Use a design token (var(--color-*) or Tailwind semantic class) instead of a hex literal. See .claude/rules/design-system.md.',
+            'hardcoded-hex-chrome: Use a design token (var(--color-*) or Tailwind semantic class) instead of a hex literal. See .codex/knowledge/design-system.md.',
         },
       ],
     },

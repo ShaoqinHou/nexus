@@ -1,0 +1,8 @@
+{
+  "worktreeHash": "cb71f1536fb57562",
+  "verdict": "pass",
+  "reviewer": "codex-focused-reviewer+lead",
+  "reviewedAt": "2026-05-08T17:45:07.251Z",
+  "reviewRecord": ".codex/workflow/records/reviews/REVIEW-20260508T174507Z-review-pass-staged-worktree.md",
+  "notes": "Final staged tree review pass. Focused reviewer returned no findings after tokenizer hook fix; staged tree includes workflow migration, archive move, dashboard, records, and Toast design-system continuation."
+}

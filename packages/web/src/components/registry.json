@@ -133,7 +133,7 @@
       "kind": "ui",
       "purpose": "Toast notification renderer. Mounted via ToastProvider + useToast(). Exports ToastContainer + ToastData type.",
       "propsShape": {
-        "toasts": "ToastData[]",
+        "toasts": "Array<{ id: string; type: 'success' | 'error' | 'info' | 'warning'; message: string }>",
         "onDismiss": "(id: string) => void"
       },
       "exports": ["ToastContainer", "ToastData"],

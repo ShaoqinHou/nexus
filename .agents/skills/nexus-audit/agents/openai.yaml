@@ -1,0 +1,4 @@
+interface:
+  display_name: "Nexus Audit"
+  short_description: "Audit Nexus project patterns and consistency."
+  default_prompt: "Use nexus-audit to audit Nexus patterns and consistency."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Nexus Review"
+  short_description: "Review Nexus changes against project standards."
+  default_prompt: "Use nexus-review to review the current Nexus changes."

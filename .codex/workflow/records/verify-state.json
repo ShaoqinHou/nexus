@@ -1,0 +1,8 @@
+{
+  "worktreeHash": "cb71f1536fb57562",
+  "verdict": "pass",
+  "verifier": "codex-lead",
+  "verifiedAt": "2026-05-08T17:45:07.703Z",
+  "verifyRecord": ".codex/workflow/records/tests/TEST-20260508T174507Z-verification-pass-staged-worktree.md",
+  "notes": "Final staged tree verification pass. Full local validation already passed after behavior changes; staging introduced no source changes beyond those reviewed."
+}

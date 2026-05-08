@@ -1,0 +1,1124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nexus Workflow Dashboard</title>
+  <style>
+    :root { color-scheme: light; --bg:#f6f7f9; --panel:#fff; --text:#17202a; --muted:#627084; --line:#dde3ea; --brand:#185b57; --accent:#b7772d; --risk:#b42318; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; background:var(--bg); color:var(--text); line-height:1.45; }
+    header { padding:28px 32px 18px; background:var(--panel); border-bottom:1px solid var(--line); }
+    h1 { margin:0 0 8px; font-size:28px; letter-spacing:0; }
+    h2 { margin:0 0 14px; font-size:18px; letter-spacing:0; }
+    h3 { margin:18px 0 8px; font-size:15px; letter-spacing:0; }
+    p { margin:8px 0; }
+    pre { white-space:pre-wrap; overflow:auto; background:#f2f5f7; border:1px solid var(--line); padding:10px; border-radius:6px; font-size:12px; }
+    code { background:#eef3f5; padding:1px 4px; border-radius:4px; }
+    a { color:var(--brand); text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    .meta { color:var(--muted); font-size:13px; }
+    .layout { display:grid; grid-template-columns:260px 1fr; min-height:calc(100vh - 92px); }
+    nav { position:sticky; top:0; height:100vh; padding:18px; border-right:1px solid var(--line); background:#eef2f4; overflow:auto; }
+    nav a { display:block; padding:7px 9px; border-radius:6px; color:var(--text); font-size:14px; }
+    nav a:hover { background:#fff; text-decoration:none; }
+    main { padding:22px; max-width:1180px; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:12px; margin:16px 0 22px; }
+    .card, .panel, .record { background:var(--panel); border:1px solid var(--line); border-radius:8px; }
+    .card { padding:14px; }
+    .card strong { display:block; font-size:24px; }
+    .panel { padding:18px; margin:0 0 18px; }
+    .record { padding:12px; margin:10px 0; }
+    .record-top { display:flex; justify-content:space-between; gap:12px; align-items:baseline; }
+    .record-top span, .path, .muted { color:var(--muted); font-size:12px; }
+    .pill { display:inline-block; margin-top:8px; padding:2px 8px; border-radius:999px; background:#e9f2ef; color:var(--brand); font-size:12px; }
+    .warn { border-left:4px solid var(--accent); }
+    .risk { border-left:4px solid var(--risk); }
+    .zoo-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:10px; }
+    @media (max-width: 820px) { .layout { grid-template-columns:1fr; } nav { position:static; height:auto; border-right:0; border-bottom:1px solid var(--line); } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Nexus Workflow Dashboard</h1>
+    <div class="meta">Generated 2026-05-08T17:43:03.785Z · branch codex/native-workflow · worktree 398ef3a3ae818e5e</div>
+  </header>
+  <div class="layout">
+    <nav>
+      <a href="#overview">Overview</a>
+      <a href="#current">Current State</a>
+      <a href="#zoo">Design Zoo/Gym</a>
+      <a href="#patterns">Patterns</a>
+      <a href="#design">Design System</a>
+      <a href="#records">Records</a>
+      <a href="#decisions">Decisions</a>
+      <a href="#pattern-proposals">Pattern Proposals</a>
+      <a href="#patches">Patches</a>
+      <a href="#reviews">Reviews</a>
+      <a href="#tests">Tests</a>
+      <a href="#deployments">Deployments</a>
+      <a href="#risks">Risks</a>
+      <a href="#deployment">Deployment</a>
+    </nav>
+    <main>
+      <section id="overview" class="panel">
+        <h2>Overview</h2>
+        <div class="grid">
+          <div class="card"><span class="meta">Decisions</span><strong>1</strong></div>
+<div class="card"><span class="meta">Pattern Proposals</span><strong>3</strong></div>
+<div class="card"><span class="meta">Patches</span><strong>2</strong></div>
+<div class="card"><span class="meta">Reviews</span><strong>2</strong></div>
+<div class="card"><span class="meta">Tests</span><strong>17</strong></div>
+<div class="card"><span class="meta">Deployments</span><strong>0</strong></div>
+<div class="card"><span class="meta">Zoo Pages</span><strong>24/24</strong></div>
+        </div>
+        <div class="grid">
+          <div class="card"><span class="meta">Review Gate</span><strong>needed</strong></div>
+          <div class="card"><span class="meta">Verify Gate</span><strong>needed</strong></div>
+          <div class="card"><span class="meta">Audit Gate</span><strong>needed</strong></div>
+        </div>
+        <p class="meta">Last patch trigger: 2026-05-08T17:41:22.258Z · patch PATCH-20260508T174121Z-codex-native-workflow-migration-claude-workflow-</p>
+        <pre>## codex/native-workflow
+ D .claude/agents/fixer.md
+ D .claude/agents/reviewer.md
+ D .claude/hooks/check-edited-file.sh
+ D .claude/hooks/commit-review.sh
+ D .claude/hooks/inject-rules.sh
+ D .claude/hooks/log-bash-failure.sh
+ D .claude/hooks/run-tests.sh
+ D .claude/hooks/safe-commit.sh
+ D .claude/hooks/session-start.sh
+ D .claude/hooks/stop-nudge-verify.sh
+ D .claude/rules/architecture.md
+ D .claude/rules/design-system.md
+ D .claude/rules/import-boundaries.md
+ D .claude/rules/tech-conventions.md
+ D .claude/rules/testing.md
+ D .claude/scheduled_tasks.lock
+ D .claude/scripts/check-design-tokens.mjs
+ D .claude/scripts/test-hook-from-worktree.sh
+ D .claude/settings.json
+ D .claude/settings.local.json
+ D .claude/skills/build/SKILL.md
+ D .claude/skills/commit-review/SKILL.md
+ D .claude/skills/consistency-audit/SKILL.md
+ D .claude/skills/consistency-audit/references/audit-layers.md
+ D .claude/skills/new-module/SKILL.md
+ D .claude/skills/test/SKILL.md
+ D .claude/skills/verify/SKILL.md
+ D .claude/workflow/CLAUDE.md
+ D .claude/workflow/CONTINUATION-SESSION-COMPLETE.md
+ D .claude/workflow/SESSION-SUMMARY.md
+ D .claude/workflow/STATUS.md
+ D .claude/workflow/archive/mobile-review-2026-04/DETAILED-REVIEWS.md
+ D .claude/workflow/archive/mobile-review-2026-04/SUMMARY.md
+ D .claude/workflow/design/.gitkeep
+ D .claude/workflow/design/archive/image-optimization-COMPLETED-2026-04.md
+ D .claude/workflow/design/archive/mobile-ux-improvements-COMPLETED-2026-04.md
+ D .claude/workflow/design/i18n-multi-language.md
+ D .claude/workflow/design/image-optimization.md
+ D .claude/workflow/design/mobile-ux-improvements.md
+ D .claude/workflow/design/standards.md
+ D .claude/workflow/design/v2-restaurant-operations.md
+ D .claude/workflow/e2e/merchant-retheme-plan.md
+ D .claude/workflow/e2e/tool-usage-brief.md
+ D .claude/workflow/e2e/user-stories.md
+ D .claude/workflow/i18n-audit-full.txt
+ D .claude/workflow/i18n-violations-data.txt
+ D .claude/workflow/i18n-violations.txt
+ D .claude/workflow/issues.md
+ D .claude/workflow/mobile-review/COMPREHENSIVE-MOBILE-UX-STATUS.md
+ D .claude/workflow/mobile-review/CONTINUATION-SESSION-SUMMARY.md
+ D .claude/workflow/mobile-review/FINAL-REVIEW.md
+ D .claude/workflow/mobile-review/FULL-SESSION-SUMMARY.md
+ D .claude/workflow/mobile-review/IMPLEMENTATION-PLAN-CORRECTED.md
+ D .claude/workflow/mobile-review/IMPLEMENTATION-PLAN.md
+ D .claude/workflow/mobile-review/MOBILE-UX-CYCLE-SUMMARY.md
+ D .claude/workflow/mobile-review/PHASE-3-POLISH-SUMMARY.md
+ D .claude/workflow/mobile-review/PHASE1-COMPLETE.md
+ D .claude/workflow/mobile-review/SESSION-SUMMARY-PHASE-3.md
+ D .claude/workflow/mobile-review/STAFF-FACING-PHASE-1-SUMMARY.md
+ D .claude/workflow/mobile-review/STAFF-UI-REVIEW.md
+ D .claude/workflow/mobile-review/STAFF-UX-IMPROVEMENTS-SUMMARY.md
+ D .claude/workflow/mobile-review/research/checklist.md
+ D .claude/workflow/mobile-review/research/standards.md
+ D .claude/workflow/mobile-review/reviews/customer/customer-01-menu-closed-review.md
+ D .claude/workflow/mobile-review/reviews/customer/customer-02-menu-browse-review.md
+ D .claude/workflow/mobile-review/reviews/customer/customer-03-item-detail-review.md
+ D .claude/workflow/mobile-review/reviews/customer/customer-04-combo-review.md
+ D .claude/workflow/mobile-review/reviews/customer/customer-05-cart-review.md
+ D .claude/workflow/mobile-review/reviews/customer/customer-06-confirmation-review.md
+ D .claude/workflow/mobile-review/reviews/customer/customer-07-menu-scroll-review.md
+ D .claude/workflow/mobile-review/reviews/customer/customer-08-search-review.md
+ D .claude/workflow/mobile-review/reviews/customer/customer-09-allergen-review.md
+ D .claude/workflow/mobile-review/reviews/customer/customer-10-dark-review.md
+ D .claude/workflow/mobile-review/reviews/customer/customer-all-screens-summary.md
+ D .claude/workflow/mobile-review/reviews/customer/patterns-analysis.md
+ D .claude/workflow/mobile-review/reviews/staff-part-2-summary.md
+ D .claude/workflow/mobile-review/reviews/staff/INDEX.md
+ D .claude/workflow/mobile-review/reviews/staff/staff-01-login-review.md
+ D .claude/workflow/mobile-review/reviews/staff/staff-03-orders-dashboard-review.md
+ D .claude/workflow/mobile-review/reviews/staff/staff-04-menu-mgmt-review.md
+ D .claude/workflow/mobile-review/reviews/staff/staff-05-combos-review.md
+ D .claude/workflow/mobile-review/reviews/staff/staff-06-modifiers-review.md
+ D .claude/workflow/mobile-review/reviews/staff/staff-07-promotions-review.md
+ D .claude/workflow/mobile-review/reviews/staff/staff-08-qr-codes-review.md
+ D .claude/workflow/mobile-review/reviews/staff/staff-09-analytics-review.md
+ D .claude/workflow/mobile-review/reviews/staff/staff-10-staff-mgmt-review.md
+ D .claude/workflow/mobile-review/reviews/staff/staff-11-theme-settings-review.md
+ D .claude/workflow/mobile-review/reviews/staff/staff-12-kitchen-display-review.md
+ D .claude/workflow/mobile-review/reviews/staff/staff-13-order-detail-review.md
+ D .claude/workflow/mobile-review/reviews/staff/staff-14-sidebar-drawer-open-review.md
+ D .claude/workflow/mobile-review/reviews/staff/staff-15-orders-360w-review.md
+ D .claude/workflow/mobile-review/reviews/staff/staff-16-edit-item-modal-review.md
+ D .claude/workflow/mobile-review/reviews/staff/staff-part-1-summary.md
+ D .claude/workflow/mobile-review/screenshots/customer/01-menu-closed.png
+ D .claude/workflow/mobile-review/screenshots/customer/02-menu-browse-top.png
+ D .claude/workflow/mobile-review/screenshots/customer/03-item-detail-sheet.png
+ D .claude/workflow/mobile-review/screenshots/customer/04-combo-sheet.png
+ D .claude/workflow/mobile-review/screenshots/customer/05-cart-sheet.png
+ D .claude/workflow/mobile-review/screenshots/customer/06-order-confirmation.png
+ D .claude/workflow/mobile-review/screenshots/customer/07-menu-mid-scroll.png
+ D .claude/workflow/mobile-review/screenshots/customer/08-search-overlay.png
+ D .claude/workflow/mobile-review/screenshots/customer/09-allergen-filter.png
+ D .claude/workflow/mobile-review/screenshots/customer/10-menu-dark.png
+ D .claude/workflow/mobile-review/screenshots/staff/01-login.png
+ D .claude/workflow/mobile-review/screenshots/staff/03-orders-dashboard.png
+ D .claude/workflow/mobile-review/screenshots/staff/04-menu-mgmt-full.png
+ D .claude/workflow/mobile-review/screenshots/staff/04-menu-mgmt.png
+ D .claude/workflow/mobile-review/screenshots/staff/05-combos.png
+ D .claude/workflow/mobile-review/screenshots/staff/06-modifiers.png
+ D .claude/workflow/mobile-review/screenshots/staff/07-promotions.png
+ D .claude/workflow/mobile-review/screenshots/staff/08-qr-codes.png
+ D .claude/workflow/mobile-review/screenshots/staff/09-analytics.png
+ D .claude/workflow/mobile-review/screenshots/staff/10-staff-mgmt.png
+ D .claude/workflow/mobile-review/screenshots/staff/11-theme-settings.png
+ D .claude/workflow/mobile-review/screenshots/staff/12-kitchen-display.png
+ D .claude/workflow/mobile-review/screenshots/staff/13-order-detail.png
+ D .claude/workflow/mobile-review/screenshots/staff/14-sidebar-drawer-open.png
+ D .claude/workflow/mobile-review/screenshots/staff/15-orders-360w.png
+ D .claude/workflow/mobile-review/screenshots/staff/16-edit-item-modal.png
+ D .claude/workflow/mobile-review/staff-menu-management-after.png
+ D .claude/workflow/mobile-review/staff-modifiers-after.png
+ D .claude/workflow/mobile-review/staff-orders-dashboard-after.png
+ D .claude/workflow/mobile-review/staff-orders-dashboard-before.png
+ D .claude/workflow/mobile-ux-hook-implementation-summary.md
+ D .claude/workflow/mobile-ux-hook-proposal.md
+ D .claude/workflow/scratch/.gitignore
+ D .claude/workflow/scratch/README.md
+ D .claude/workflow/session-plan.md
+ M .gitignore
+ D .mcp.json
+ D CLAUDE.md
+ M README.md
+ M package.json
+ M packages/web/eslint.config.js
+ M packages/web/src/apps/ordering/merchant/ThemeSettings.tsx
+ M packages/web/src/components/registry.json
+ M packages/web/src/components/ui/Toast.tsx
+ M packages/web/src/lib/i18n.ts
+ M packages/web/src/platform/theme/ThemeProvider.tsx
+ M packages/web/src/platform/theme/themes.css
+ M packages/web/src/platform/theme/themes/cantonese.css
+ M packages/web/src/platform/theme/themes/classic.css
+ M packages/web/src/platform/theme/themes/counter.css
+ M packages/web/src/platform/theme/themes/curry-house.css
+ M packages/web/src/platform/theme/themes/izakaya.css
+ M packages/web/src/platform/theme/themes/sichuan.css
+ M packages/web/src/platform/theme/themes/taqueria.css
+ M packages/web/src/platform/theme/themes/trattoria.css
+ M packages/web/src/platform/theme/themes/wok.css
+ M packages/web/src/platform/theme/tokens.css
+ M packages/web/src/routes/__design/Zoo.tsx
+?? .agents/
+?? .codex/
+?? AGENTS.md
+?? WORKFLOW.md
+?? packages/web/src/components/ui/__tests__/</pre>
+      </section>
+      <section id="current" class="panel"><h1>Current State</h1>
+<p>Updated: 2026-05-09</p>
+<h2>Original Request</h2>
+<p>The user asked for a real Codex-native adaptation of the old Claude Code workflow, not a rename. The full request is preserved at:</p>
+<ul>
+<li>`.codex/workflow/briefs/2026-05-09-original-user-brief.md`</li>
+</ul>
+<h2>First Required Answer</h2>
+<p>Design system directory inside this project: yes.</p>
+<p>Evidence checked:</p>
+<ul>
+<li>`C:\Users\housh\.codex\worktrees\7514\nexus\design`</li>
+<li>`C:\Users\housh\.codex\worktrees\7514\nexus\design\reference\v1\nexus-design-system`</li>
+<li>`C:\Users\housh\.codex\worktrees\7514\nexus\packages\web\src\platform\theme`</li>
+<li>`C:\Users\housh\.codex\worktrees\7514\nexus\packages\web\src\components\patterns\themed`</li>
+<li>`C:\Users\housh\.codex\worktrees\7514\nexus\packages\web\src\routes\__design`</li>
+</ul>
+<h2>Active Goal</h2>
+<p>Build and validate a reusable Codex-native workflow that preserves the useful intent of the Claude setup:</p>
+<ul>
+<li>context-isolated research and worker agents,</li>
+<li>clear model routing with Spark allowed only for narrow slices,</li>
+<li>project pattern guidance,</li>
+<li>focused post-change review,</li>
+<li>durable records and resumable handovers,</li>
+<li>realistic workflow tests,</li>
+<li>server/deployment validation,</li>
+<li>continued design-system completion work after workflow migration.</li>
+</ul>
+<h2>Current Phase</h2>
+<p>Codex workflow migration is implemented and locally release-gated on branch `codex/native-workflow`. Commit, push, and final server deployment validation are still pending.</p>
+<p>Implemented workflow pieces:</p>
+<ul>
+<li>`.codex/` workflow root with compact state, knowledge files, records, templates, research, scripts, hooks, agents, archived Claude material, and generated dashboard.</li>
+<li>`WORKFLOW.md` and `AGENTS.md` project entry points.</li>
+<li>Thin hook policy: hooks inject/invalidate/block/remind only; review, verification, audit, and pattern judgment stay in agents/skills/records.</li>
+<li>Dynamic pattern discovery: `record-pattern` creates evidence-based proposals before durable guidance is promoted.</li>
+<li>Dashboard/wiki/visualizer: `.codex/dashboard/index.html` summarizes state, records, gates, risks, deployment notes, and Design Zoo/Gym registry coverage.</li>
+<li>Active Claude workflow files are archived under `.codex/archive/claude-code-2026-05-09/`.</li>
+<li>Design-system continuation work: Toast now has semantic `info` styling, `warning` support, registry coverage, tests, and Design Zoo validation.</li>
+</ul>
+<p>Latest gate records for current worktree hash `3fcb9e6e46c5b3ee`:</p>
+<ul>
+<li>`PATCH-20260508T174121Z-codex-native-workflow-migration-claude-workflow-`</li>
+<li>`REVIEW-20260508T174152Z-review-pass-worktree`</li>
+<li>`TEST-20260508T174152Z-verification-pass-worktree`</li>
+<li>`REVIEW-20260508T174152Z-audit-pass-worktree`</li>
+</ul>
+<p>Latest validation records:</p>
+<ul>
+<li>`TEST-20260508T174135Z-full-local-validation-after-workflow-review-fixe`</li>
+<li>`TEST-20260508T174136Z-pretooluse-commit-hook-windows-command-matrix`</li>
+<li>`TEST-20260508T171614Z-reusable-design-zoo-validator`</li>
+<li>`TEST-20260508T171820Z-server-pre-deploy-validation`</li>
+</ul>
+<p>Historical/model-routing evidence:</p>
+<ul>
+<li>`TEST-20260508T170320Z-historical-hard-case-routing-analysis-c4a438e`</li>
+<li>`TEST-20260508T170615Z-spark-worker-toast-warning-slice`</li>
+<li>`TEST-20260508T171755Z-spark-routing-guard-broad-theme-task`</li>
+<li>`PATTERN-PROPOSAL-20260508T170332Z-pattern-accepted-theme-cascade-changes-require-s`</li>
+</ul>
+<h2>Important Git Note</h2>
+<p>Plain `git` may misread this linked worktree if it resolves the submodule common git dir. The reliable command form is:</p>
+<p>```bash</p>
+<p>git --git-dir=C:/Users/housh/Documents/monoWeb/.git/modules/nexus/worktrees/nexus --work-tree=C:/Users/housh/.codex/worktrees/7514/nexus status --short --branch</p>
+<p>```</p>
+<p>The earlier large dirty-tree report came from using the submodule common git dir directly and should not be treated as the current worktree state.</p>
+<h2>Next Required Work</h2>
+<ul>
+<li>Regenerate `.codex/dashboard/index.html` after this state update.</li>
+<li>Commit and push `codex/native-workflow`.</li>
+<li>Deploy or otherwise validate the final branch on the server using the conventions in `.codex/knowledge/deployment.md`.</li>
+<li>Record deployment evidence under `.codex/workflow/records/deployments/`, update this file with the final commit/deployment result, and run the release gate again.</li>
+</ul></section>
+      <section id="zoo" class="panel">
+        <h2>Design Zoo / Gym</h2>
+        <p>The production component gym is the dev-only app route at <code>http://localhost:5173/design</code>. It reads real source components through <code>packages/web/src/routes/__design/Zoo.tsx</code>; this dashboard reads <code>packages/web/src/components/registry.json</code> so coverage is visible here too.</p>
+        <p><a href="http://localhost:5173/design">Open local zoo index</a> after running <code>npm run dev:web</code> or <code>npm run dev:all</code>.</p>
+        <div class="record">
+          <strong>Registry coverage</strong>
+          <p class="path">24 of 24 registry entries declare a zoo route.</p>
+        </div>
+        <div class="zoo-grid">
+          
+            <article class="record">
+              <div class="record-top">
+                <strong>Button</strong>
+                <span>ui</span>
+              </div>
+              <p class="path">packages/web/src/components/ui/Button.tsx</p>
+              <p><a href="http://localhost:5173/design/button">/design/button</a></p>
+              <p>Primary action control with four variants and three token-sized touch targets.</p>
+            </article>
+          
+
+            <article class="record">
+              <div class="record-top">
+                <strong>Badge</strong>
+                <span>ui</span>
+              </div>
+              <p class="path">packages/web/src/components/ui/Badge.tsx</p>
+              <p><a href="http://localhost:5173/design/badge">/design/badge</a></p>
+              <p>Small status label; rounded-full pill. Exports BadgeVariant type.</p>
+            </article>
+          
+
+            <article class="record">
+              <div class="record-top">
+                <strong>Card</strong>
+                <span>ui</span>
+              </div>
+              <p class="path">packages/web/src/components/ui/Card.tsx</p>
+              <p><a href="http://localhost:5173/design/card">/design/card</a></p>
+              <p>Elevated content container. Composition: CardHeader + CardTitle + CardContent + CardFooter.</p>
+            </article>
+          
+
+            <article class="record">
+              <div class="record-top">
+                <strong>Dialog</strong>
+                <span>ui</span>
+              </div>
+              <p class="path">packages/web/src/components/ui/Dialog.tsx</p>
+              <p><a href="http://localhost:5173/design/dialog">/design/dialog</a></p>
+              <p>Modal dialog with overlay, title, optional footer. z-50 budget.</p>
+            </article>
+          
+
+            <article class="record">
+              <div class="record-top">
+                <strong>Input</strong>
+                <span>ui</span>
+              </div>
+              <p class="path">packages/web/src/components/ui/Input.tsx</p>
+              <p><a href="http://localhost:5173/design/input">/design/input</a></p>
+              <p>Text input with label, error, helperText slots. Focus ring tied to --color-primary.</p>
+            </article>
+          
+
+            <article class="record">
+              <div class="record-top">
+                <strong>Toggle</strong>
+                <span>ui</span>
+              </div>
+              <p class="path">packages/web/src/components/ui/Toggle.tsx</p>
+              <p><a href="http://localhost:5173/design/toggle">/design/toggle</a></p>
+              <p>Boolean switch. 200ms slide animation. ON uses --color-primary.</p>
+            </article>
+          
+
+            <article class="record">
+              <div class="record-top">
+                <strong>Select</strong>
+                <span>ui</span>
+              </div>
+              <p class="path">packages/web/src/components/ui/Select.tsx</p>
+              <p><a href="http://localhost:5173/design/select">/design/select</a></p>
+              <p>Dropdown with options array. Keyboard navigable. z-20 menu.</p>
+            </article>
+          
+
+            <article class="record">
+              <div class="record-top">
+                <strong>ImageUpload</strong>
+                <span>ui</span>
+              </div>
+              <p class="path">packages/web/src/components/ui/ImageUpload.tsx</p>
+              <p><a href="http://localhost:5173/design/image-upload">/design/image-upload</a></p>
+              <p>Drag-drop image upload with progress indicator, preview, and remove. Calls API client directly (internal i18n + api lib import).</p>
+            </article>
+          
+
+            <article class="record">
+              <div class="record-top">
+                <strong>Toast</strong>
+                <span>ui</span>
+              </div>
+              <p class="path">packages/web/src/components/ui/Toast.tsx</p>
+              <p><a href="http://localhost:5173/design/toast">/design/toast</a></p>
+              <p>Toast notification renderer. Mounted via ToastProvider + useToast(). Exports ToastContainer + ToastData type.</p>
+            </article>
+          
+
+            <article class="record">
+              <div class="record-top">
+                <strong>TourOverlay</strong>
+                <span>ui</span>
+              </div>
+              <p class="path">packages/web/src/components/ui/TourOverlay.tsx</p>
+              <p><a href="http://localhost:5173/design/tour-overlay">/design/tour-overlay</a></p>
+              <p>Onboarding step highlighter with spotlight hole + next/prev controls. Uses i18n for step text.</p>
+            </article>
+          
+
+            <article class="record">
+              <div class="record-top">
+                <strong>LanguagePicker</strong>
+                <span>ui</span>
+              </div>
+              <p class="path">packages/web/src/components/ui/LanguagePicker.tsx</p>
+              <p><a href="http://localhost:5173/design/language-picker">/design/language-picker</a></p>
+              <p>Locale switcher dropdown — cycles through en/zh/ja/ko/fr. Uses useT() hook to display localized names.</p>
+            </article>
+          
+
+            <article class="record">
+              <div class="record-top">
+                <strong>DietaryIcon</strong>
+                <span>ui</span>
+              </div>
+              <p class="path">packages/web/src/components/ui/DietaryIcon.tsx</p>
+              <p><a href="http://localhost:5173/design/dietary-icon">/design/dietary-icon</a></p>
+              <p>The ONE sanctioned way to render dietary / allergen / spice / promo markers in Nexus UI. Emoji / unicode alternatives are banned (S-DIETARY-SPRITE).</p>
+            </article>
+          
+
+            <article class="record">
+              <div class="record-top">
+                <strong>DataTable</strong>
+                <span>pattern</span>
+              </div>
+              <p class="path">packages/web/src/components/patterns/DataTable.tsx</p>
+              <p><a href="http://localhost:5173/design/data-table">/design/data-table</a></p>
+              <p>Sortable, filterable table with generic row typing. Header click toggles sort.</p>
+            </article>
+          
+
+            <article class="record">
+              <div class="record-top">
+                <strong>FormField</strong>
+                <span>pattern</span>
+              </div>
+              <p class="path">packages/web/src/components/patterns/FormField.tsx</p>
+              <p><a href="http://localhost:5173/design/form-field">/design/form-field</a></p>
+              <p>Label + input + error wrapper. Composes Input under a label with gap-1.5.</p>
+            </article>
+          
+
+            <article class="record">
+              <div class="record-top">
+                <strong>StatusBadge</strong>
+                <span>pattern</span>
+              </div>
+              <p class="path">packages/web/src/components/patterns/StatusBadge.tsx</p>
+              <p><a href="http://localhost:5173/design/status-badge">/design/status-badge</a></p>
+              <p>Order-status / generic-status badge that maps status enum to Badge variant + capitalized label.</p>
+            </article>
+          
+
+            <article class="record">
+              <div class="record-top">
+                <strong>EmptyState</strong>
+                <span>pattern</span>
+              </div>
+              <p class="path">packages/web/src/components/patterns/EmptyState.tsx</p>
+              <p><a href="http://localhost:5173/design/empty-state">/design/empty-state</a></p>
+              <p>No-data placeholder. Icon → title → context → single CTA button.</p>
+            </article>
+          
+
+            <article class="record">
+              <div class="record-top">
+                <strong>ConfirmButton</strong>
+                <span>pattern</span>
+              </div>
+              <p class="path">packages/web/src/components/patterns/ConfirmButton.tsx</p>
+              <p><a href="http://localhost:5173/design/confirm-button">/design/confirm-button</a></p>
+              <p>Two-click destructive action with 3s auto-reset. S-CONFIRM-DESTRUCTIVE requires this for delete/cancel/remove actions.</p>
+            </article>
+          
+
+            <article class="record">
+              <div class="record-top">
+                <strong>ErrorBoundary</strong>
+                <span>pattern</span>
+              </div>
+              <p class="path">packages/web/src/components/patterns/ErrorBoundary.tsx</p>
+              <p><a href="http://localhost:5173/design/error-boundary">/design/error-boundary</a></p>
+              <p>React error boundary fallback — catches thrown errors in a subtree and shows a recoverable message. Only class component in codebase (React API requires class).</p>
+            </article>
+          
+
+            <article class="record">
+              <div class="record-top">
+                <strong>PullToRefreshIndicator</strong>
+                <span>pattern</span>
+              </div>
+              <p class="path">packages/web/src/components/patterns/PullToRefreshIndicator.tsx</p>
+              <p><a href="http://localhost:5173/design/pull-to-refresh">/design/pull-to-refresh</a></p>
+              <p>Mobile pull-to-refresh visual indicator. Shows loading spinner once pull distance exceeds threshold.</p>
+            </article>
+          
+
+            <article class="record">
+              <div class="record-top">
+                <strong>AddToCartToast</strong>
+                <span>pattern</span>
+              </div>
+              <p class="path">packages/web/src/components/patterns/AddToCartToast.tsx</p>
+              <p><a href="http://localhost:5173/design/add-to-cart-toast">/design/add-to-cart-toast</a></p>
+              <p>Customer-flow confirmation pill — slides up briefly after an item is added to cart. Uses slide-up-fade keyframe.</p>
+            </article>
+          
+
+            <article class="record">
+              <div class="record-top">
+                <strong>OrderTracker</strong>
+                <span>pattern</span>
+              </div>
+              <p class="path">packages/web/src/components/patterns/themed/OrderTracker.tsx</p>
+              <p><a href="http://localhost:5173/design/order-tracker">/design/order-tracker</a></p>
+              <p>Themed order status timeline. Horizontal step tracker with connector lines and pulsing active bubble. Supports dine-in (Received→Preparing→Ready→Served) and delivery (Received→Preparing→On the way→Delivered) modes. data-theme wrapper drives full theme cascade.</p>
+            </article>
+          
+
+            <article class="record">
+              <div class="record-top">
+                <strong>Receipt</strong>
+                <span>pattern</span>
+              </div>
+              <p class="path">packages/web/src/components/patterns/themed/Receipt.tsx</p>
+              <p><a href="http://localhost:5173/design/receipt">/design/receipt</a></p>
+              <p>Themed visual receipt block for the customer confirmation screen (NOT a print template). Monospace font, dashed dividers, itemised line items, subtotal/tax/tip rows, bold total, and a thank-you footer. data-theme wrapper drives full theme cascade.</p>
+            </article>
+          
+
+            <article class="record">
+              <div class="record-top">
+                <strong>PromoCard</strong>
+                <span>pattern</span>
+              </div>
+              <p class="path">packages/web/src/components/patterns/themed/PromoCard.tsx</p>
+              <p><a href="http://localhost:5173/design/promo-card">/design/promo-card</a></p>
+              <p>Themed promotion banner with primary-colour background, decorative accent circle, large discount headline, and mono-font promo-code chip. All props are optional — render any subset. data-theme wrapper drives full theme cascade.</p>
+            </article>
+          
+
+            <article class="record">
+              <div class="record-top">
+                <strong>CheckoutSummary</strong>
+                <span>pattern</span>
+              </div>
+              <p class="path">packages/web/src/components/patterns/themed/CheckoutSummary.tsx</p>
+              <p><a href="http://localhost:5173/design/checkout-summary">/design/checkout-summary</a></p>
+              <p>Themed cart/order summary block: itemised line items, divider, per-line cost breakdown (subtotal / delivery / tax), bold total, and a full-width place-order CTA that mirrors the total in its label. Display-only — pass onPlaceOrder for the mutation. data-theme wrapper drives full theme cascade.</p>
+            </article>
+          
+        </div>
+      </section>
+      <section id="patterns" class="panel"><h1>Nexus Patterns And Traps</h1>
+<p>This file captures durable project knowledge that coding and review agents should use before editing.</p>
+<h2>Highest-Priority Invariants</h2>
+<ul>
+<li>Every tenant-scoped DB query filters by `tenantId`.</li>
+<li>Every backend module follows `routes.ts -&gt; service.ts -&gt; schema.ts`.</li>
+<li>Routes validate and delegate; services receive typed params and do not read Hono context.</li>
+<li>Frontend app modules do not import from other app modules.</li>
+<li>`components/ui` primitives do not import from apps or platform.</li>
+<li>User-visible strings use `t()` and locale keys exist in `en`, `zh`, `ja`, `ko`, and `fr`.</li>
+<li>Server state uses TanStack Query and module query-key factories.</li>
+<li>Customer cart state uses `sessionStorage` through `CartProvider`, not `localStorage`.</li>
+<li>Business data is soft-deleted unless the table is a disposable join/session table.</li>
+<li>Order items snapshot name, price, and modifiers at order creation time.</li>
+</ul>
+<h2>Design-System Traps</h2>
+<ul>
+<li>Do not edit `design/reference/v&lt;N&gt;/`; add `v&lt;N+1&gt;/` for a new export.</li>
+<li>Do not import from `design/reference/` in production code.</li>
+<li>New UI primitives and patterns need a `components/registry.json` entry and a `/design/*` zoo showcase.</li>
+<li>Zoo pages import real components and must not redefine them inline.</li>
+<li>Use semantic shape tokens: `--radius-card`, `--radius-btn`, `--radius-chip`.</li>
+<li>Use hit target tokens: `--hit-sm`, `--hit-md`, `--hit-lg`.</li>
+<li>Use Lucide for generic UI icons.</li>
+<li>Use `DietaryIcon` and `/dietary-icons.svg` for dietary/allergen/spice/promo markers.</li>
+<li>Portal content must inherit the tenant theme. `ThemeProvider` mirrors tenant theme vars onto `document.body`.</li>
+<li>Merchant routes, including full-screen kitchen views, must wrap in `MerchantThemeShell`.</li>
+<li>Subpath deploys require `import.meta.env.BASE_URL` aware route/API logic.</li>
+</ul>
+<h2>How To Extend This File</h2>
+<p>Durable rules need evidence. Do not add a pattern here just because a previous prompt said it or because one local file happened to use it.</p>
+<p>Use the dynamic discovery path:</p>
+<p>1. Create a proposal:</p>
+<p>   `node .codex/scripts/nexus-workflow.mjs record-pattern --summary &quot;&lt;finding&gt;&quot; --evidence &quot;&lt;files/tests/reviews&gt;&quot; --guidance &quot;&lt;candidate rule&gt;&quot;`</p>
+<p>2. Verify the finding against source code, design references, tests, git history, or repeated review failures.</p>
+<p>3. If accepted, add a short rule here or in another `knowledge/` file and cite the proposal or decision record.</p>
+<p>4. If rejected or one-off, keep the proposal/review record as history without promoting it into durable guidance.</p>
+<p>Reviewers and auditors should ask whether each new issue is a one-off defect, a repeated mistake, or evidence of an undocumented invariant.</p></section>
+      <section id="design" class="panel"><h1>Design-System Knowledge</h1>
+<h2>Source Of Truth</h2>
+<p>The frozen design reference is:</p>
+<ul>
+<li>`design/reference/v1/nexus-design-system/`</li>
+</ul>
+<p>Primary reference files:</p>
+<ul>
+<li>`design/reference/v1/nexus-design-system/project/DESIGN-SYSTEM.md`</li>
+<li>`design/reference/v1/nexus-design-system/project/themes/THEME-GUIDE.md`</li>
+<li>reference CSS and JSX under `design/reference/v1/nexus-design-system/project/`</li>
+</ul>
+<p>Production implementation is under:</p>
+<ul>
+<li>`packages/web/src/platform/theme/`</li>
+<li>`packages/web/src/components/ui/`</li>
+<li>`packages/web/src/components/patterns/`</li>
+<li>`packages/web/src/components/patterns/themed/`</li>
+<li>`packages/web/src/routes/__design/Zoo.tsx`</li>
+</ul>
+<h2>Runtime Contract</h2>
+<ul>
+<li>`tokens.css` defines base CSS custom properties.</li>
+<li>`themes.css` aggregates the 10 cuisine theme files.</li>
+<li>`.dark` lives on `&lt;html&gt;`.</li>
+<li>Cuisine theme identity lives on tenant-scoped wrappers via `data-theme`.</li>
+<li>Pre-tenant routes stay neutral and should not set `data-theme` on `&lt;html&gt;`.</li>
+<li>Tenant brand overrides layer as CSS variables on the tenant wrapper and on `body` for portals.</li>
+<li>Dark cuisine selectors must support `.dark [data-theme=&quot;&lt;id&gt;&quot;]`; compound `[data-theme=&quot;&lt;id&gt;&quot;].dark` may exist only as compatibility fallback.</li>
+<li>Cuisine themes must not rely on `.light` inversion; the platform does not set a `.light` class.</li>
+<li>`initialThemeId` is a prop-sync signal for saved tenant settings, not a reason to overwrite local live-preview state on every render.</li>
+<li>Body-mounted portals must inherit tenant theme variables and must clean them up when tenant-scoped providers unmount.</li>
+</ul>
+<p>Evidence: `PATTERN-PROPOSAL-20260508T170332Z-pattern-accepted-theme-cascade-changes-require-s`.</p>
+<h2>Canonical Theme IDs</h2>
+<ul>
+<li>`classic`</li>
+<li>`trattoria`</li>
+<li>`izakaya`</li>
+<li>`bubble-tea`</li>
+<li>`counter`</li>
+<li>`taqueria`</li>
+<li>`curry-house`</li>
+<li>`sichuan`</li>
+<li>`cantonese`</li>
+<li>`wok`</li>
+</ul>
+<h2>Current Known Gaps To Verify</h2>
+<ul>
+<li>Reference bundle includes themed `EmptyState` and `Toast`; production currently has themed `OrderTracker`, `Receipt`, `PromoCard`, and `CheckoutSummary`.</li>
+<li>Theme semantic-token policy changed over time. Current implementation and reference re-theme semantic variants per cuisine; reviews should follow the current standards, not stale comments.</li>
+<li>Existing tests do not fully prove visual contrast, all-theme differentiation, dark mode, portal inheritance, or portal cleanup ordering.</li>
+</ul>
+<h2>Routing And Review Heuristics</h2>
+<ul>
+<li>Spark is acceptable for narrow component parity slices with explicit files and tests, such as adding one missing Toast variant.</li>
+<li>Strong-model implementation or review is required for cuisine cascade, tenant theme scope, body portals, live-preview synchronization, route/basepath behavior, cross-app imports, or visual judgment.</li>
+<li>Theme cascade changes require both code tests and browser evidence. At minimum check `/design` across a non-classic theme in dark mode, a body-mounted portal, and return to neutral pre-tenant chrome.</li>
+</ul>
+<h2>Design Zoo / Gym</h2>
+<p>The live component gym is the dev-only route:</p>
+<ul>
+<li>`/design`</li>
+<li>`/design/:slug`</li>
+</ul>
+<p>It is implemented in `packages/web/src/routes/__design/Zoo.tsx` and should import real components, never copies. The registry file `packages/web/src/components/registry.json` is the machine-readable source that lists every primitive/pattern and its `zooRoute`.</p>
+<p>The Codex workflow dashboard also surfaces the zoo route list so the guide app links directly to each local gym page. When validating design-system work, check both:</p>
+<ul>
+<li>the static workflow dashboard at `.codex/dashboard/index.html`;</li>
+<li>the running app zoo at `http://localhost:5173/design`.</li>
+<li>the reusable interaction check: `npm run workflow:design-zoo` with the web dev server running.</li>
+</ul></section>
+      <section id="records" class="panel">
+        <h2>Record Index</h2>
+        <p class="muted">Records are markdown files under .codex/workflow/records. This dashboard is a generated browser view; the markdown remains the source of truth.</p>
+      </section>
+      
+    <section id="decisions" class="panel">
+      <h2>Decisions</h2>
+      
+        <article class="record">
+          <div class="record-top">
+            <strong>Workflow mechanism split</strong>
+            <span>2026-05-08T16:38:32.282Z</span>
+          </div>
+          
+          <p class="path">.codex/workflow/records/decisions/DECISION-20260508T163832Z-workflow-mechanism-split.md</p>
+          <pre>Skills are lightweight discovery/reminder entry points, not enforcement. AGENTS.md and .codex/knowledge carry durable guidance; .codex/scripts provide deterministic checks/bookkeeping; Codex hooks are thin triggers that inject state, invalidate gates, or block unsafe commits, but they do not perform review/verification/audit judgment. Review, verification, audit, and pattern promotion remain agent/skill workflows with explicit records. .codex/agents provide isolated roles/model defaults; .codex/dashboard visualizes records for humans and future agents.</pre>
+        </article>
+      
+    </section>
+  
+
+    <section id="pattern-proposals" class="panel">
+      <h2>Pattern-proposals</h2>
+      
+        <article class="record">
+          <div class="record-top">
+            <strong>Pattern proposed Browser validation locators need exact names when component names overlap</strong>
+            <span>2026-05-08T17:16:29.334Z</span>
+          </div>
+          <span class="pill">proposed</span>
+          <p class="path">.codex/workflow/records/pattern-proposals/PATTERN-PROPOSAL-20260508T171629Z-pattern-proposed-browser-validation-locators-nee.md</p>
+          <pre>Status: proposed
+Reporter: codex
+
+Summary: Browser validation locators need exact names when component names overlap
+
+Evidence: npm run workflow:design-zoo initially failed because getByRole link name Toast also matched AddToCartToast; fixed in .codex/scripts/validate-design-zoo.mjs with exact: true; TEST-20260508T171614Z-reusable-design-zoo-validator.
+
+Proposed guidance: For zoo/dashboard browser checks, use exact accessible names or scoped locators when names are substrings of other component names.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Pattern accepted Theme cascade changes require strong-model review and portal evidence</strong>
+            <span>2026-05-08T17:03:32.769Z</span>
+          </div>
+          <span class="pill">accepted</span>
+          <p class="path">.codex/workflow/records/pattern-proposals/PATTERN-PROPOSAL-20260508T170332Z-pattern-accepted-theme-cascade-changes-require-s.md</p>
+          <pre>Status: accepted
+Reporter: codex
+
+Summary: Theme cascade changes require strong-model review and portal evidence
+
+Evidence: Historical commit c4a438e12f9; ThemeProvider.tsx body mirror and initialThemeId sync; theme CSS descendant dark selectors; TEST-20260508T170320Z-historical-hard-case-routing-analysis-c4a438e.
+
+Proposed guidance: For cuisine theme cascade changes, verify .dark descendant selectors, no .light-only inversion, tenant wrapper/body portal mirroring and cleanup, and live-preview prop sync. Route this class to a strong model/reviewer, not Spark.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Pattern accepted Hooks stay as thin workflow triggers</strong>
+            <span>2026-05-08T16:51:57.452Z</span>
+          </div>
+          <span class="pill">accepted</span>
+          <p class="path">.codex/workflow/records/pattern-proposals/PATTERN-PROPOSAL-20260508T165157Z-pattern-accepted-hooks-stay-as-thin-workflow-tri.md</p>
+          <pre>Status: accepted
+Reporter: codex
+
+Summary: Hooks stay as thin workflow triggers
+
+Evidence: User reminder during migration; .codex/hooks.json only dispatches events; DECISION-20260508T163832Z-workflow-mechanism-split.md records mechanism split; .codex/scripts/nexus-workflow.mjs hook handlers only inject/invalidate/block/remind.
+
+Proposed guidance: Keep Codex hooks as compact dispatch/gate triggers. Review, verification, audit, and project judgment belong in agents, skills, knowledge files, and explicit records.</pre>
+        </article>
+      
+    </section>
+  
+
+    <section id="patches" class="panel">
+      <h2>Patches</h2>
+      
+        <article class="record">
+          <div class="record-top">
+            <strong>Codex-native workflow migration, Claude workflow archive, and design-system Toast continuation</strong>
+            <span>2026-05-08T17:41:21.965Z</span>
+          </div>
+          
+          <p class="path">.codex/workflow/records/patches/PATCH-20260508T174121Z-codex-native-workflow-migration-claude-workflow-.md</p>
+          <pre>Summary: Codex-native workflow migration, Claude workflow archive, and design-system Toast continuation
+
+Files:
+- .agents/skills/nexus-audit/SKILL.md
+- .agents/skills/nexus-audit/agents/openai.yaml
+- .agents/skills/nexus-review/SKILL.md
+- .agents/skills/nexus-review/agents/openai.yaml
+- .agents/skills/nexus-verify/SKILL.md</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Design-system toast semantic parity</strong>
+            <span>2026-05-08T17:07:13.546Z</span>
+          </div>
+          
+          <p class="path">.codex/workflow/records/patches/PATCH-20260508T170713Z-design-system-toast-semantic-parity.md</p>
+          <pre>Summary: Design-system toast semantic parity
+
+Files:
+- packages/web/src/components/ui/Toast.tsx
+- packages/web/src/components/ui/__tests__/Toast.test.tsx
+- packages/web/src/components/registry.json
+- packages/web/src/routes/__design/Zoo.tsx
+</pre>
+        </article>
+      
+    </section>
+  
+
+    <section id="reviews" class="panel">
+      <h2>Reviews</h2>
+      
+        <article class="record">
+          <div class="record-top">
+            <strong>Review pass worktree</strong>
+            <span>2026-05-08T17:41:52.003Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260508T174152Z-review-pass-worktree.md</p>
+          <pre>Scope: worktree
+Verdict: pass
+Reviewer: codex-focused-reviewer+lead
+Worktree hash: 3fcb9e6e46c5b3ee
+
+Notes: Focused review found hook false-positive/false-negative issues, they were fixed, and re-review returned no findings. Prior focused review also verified post-tool invalidation, workflow verification relevance, substantive hash coverage, and verify/audit skill record instructions.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Audit pass worktree</strong>
+            <span>2026-05-08T17:41:52.953Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260508T174152Z-audit-pass-worktree.md</p>
+          <pre>Scope: worktree
+Verdict: pass
+Auditor: codex-lead
+Worktree hash: 3fcb9e6e46c5b3ee
+
+Notes: Workflow audit passed against saved brief: original brief preserved; AGENTS.md/WORKFLOW.md/.codex root created; old Claude active files archived; hooks are thin triggers; skills are lightweight reminders; deterministic gates are script-backed; pattern discovery uses evidence records; design zoo/gym is linked in dashboard and script; model routing/fallback was tested with Spark-suitable and strong-model cases; server pre-deploy details captured.</pre>
+        </article>
+      
+    </section>
+  
+
+    <section id="tests" class="panel">
+      <h2>Tests</h2>
+      
+        <article class="record">
+          <div class="record-top">
+            <strong>Verification pass worktree</strong>
+            <span>2026-05-08T17:41:52.512Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/tests/TEST-20260508T174152Z-verification-pass-worktree.md</p>
+          <pre>Scope: worktree
+Verdict: pass
+Verifier: codex-lead
+Worktree hash: 3fcb9e6e46c5b3ee
+
+Notes: Latest full local validation passed: workflow script syntax, design-zoo script syntax, workflow validate, lint:design:quiet, API tests 6/187, web tests 10/87, production build, workflow:design-zoo. Hook matrix passed for Windows git invocation detection and false-positive avoidance.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>PreToolUse commit hook Windows command matrix</strong>
+            <span>2026-05-08T17:41:36.054Z</span>
+          </div>
+          
+          <p class="path">.codex/workflow/records/tests/TEST-20260508T174136Z-pretooluse-commit-hook-windows-command-matrix.md</p>
+          <pre>Passed tokenizer matrix: DENY git commit, git.exe commit, quoted git commit, PowerShell call operator, git -C commit, git --git-dir/--work-tree commit, chained Write-Host ok; git commit, cmd /c quoted git commit. ALLOW echo git commit, Write-Host git commit, git status commit, Write-Host nope. Focused reviewer rechecked and returned no findings.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Full local validation after workflow review fixes</strong>
+            <span>2026-05-08T17:41:35.975Z</span>
+          </div>
+          
+          <p class="path">.codex/workflow/records/tests/TEST-20260508T174135Z-full-local-validation-after-workflow-review-fixe.md</p>
+          <pre>Passed on 2026-05-09 local time: node --check .codex/scripts/nexus-workflow.mjs; node --check .codex/scripts/validate-design-zoo.mjs; node .codex/scripts/nexus-workflow.mjs validate; npm run lint:design:quiet; npm run test --workspace=packages/api (6 files, 187 tests); npm run test --workspace=packages/web (10 files, 87 tests); npm run build; npm run workflow:design-zoo. Known non-failing output: existing ThemeProvider act warning and Vite empty vendor-react chunk warning. Design zoo result confirmed /design/toast, active toasts 5, htmlDark 1, selectedTheme sichuan, warningVisible true.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review finding regression fixes</strong>
+            <span>2026-05-08T17:28:07.098Z</span>
+          </div>
+          
+          <p class="path">.codex/workflow/records/tests/TEST-20260508T172807Z-review-finding-regression-fixes.md</p>
+          <pre>Fixed focused-review findings: PostToolUse now ignores Bash events without parsed patch files; commit hook detects git commit with options such as --git-dir/--work-tree; workflow files including AGENTS.md, WORKFLOW.md, .codex/README.md, .codex/config.toml, hooks, scripts, agents, skills, knowledge, templates, and research now require verification; verify/audit skills now mention record-verify/record-audit. Regression checks: node --check nexus-workflow ok; validate ok; verify-check now reports 51 verification-relevant files and fails until evidence; pre-tool-use deny works for git --git-dir ... --work-tree ... commit; post-tool-use read-only Bash leaves review-state unchanged.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Hook command subdirectory dispatch</strong>
+            <span>2026-05-08T17:22:18.862Z</span>
+          </div>
+          
+          <p class="path">.codex/workflow/records/tests/TEST-20260508T172218Z-hook-command-subdirectory-dispatch.md</p>
+          <pre>Updated .codex/hooks.json commands to locate .codex/scripts/nexus-workflow.mjs by walking up from session cwd instead of relying on git rev-parse, because this linked worktree resolves git root incorrectly. Validated hooks.json parses and SessionStart dispatch works from packages/web/src.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Server pre-deploy validation</strong>
+            <span>2026-05-08T17:18:20.443Z</span>
+          </div>
+          
+          <p class="path">.codex/workflow/records/tests/TEST-20260508T171820Z-server-pre-deploy-validation.md</p>
+          <pre>SSH read-only check succeeded for root@134.199.148.87 using ~/.ssh/DIOkii. Server repo /root/monoWeb/nexus exists at commit 1cbd123 on main with package-lock.json modified. systemd nexus-api is active; ExecStart=/usr/bin/npx tsx packages/api/src/index.ts; port 3010 listening. Hosted web https://cv.rehou.games/nexus/ returned 200. API health https://cv.rehou.games/nexus/api/platform/health returned 200; /nexus/api/health returned 404 because health lives under /api/platform/health.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Spark routing guard broad theme task</strong>
+            <span>2026-05-08T17:17:55.238Z</span>
+          </div>
+          
+          <p class="path">.codex/workflow/records/tests/TEST-20260508T171755Z-spark-routing-guard-broad-theme-task.md</p>
+          <pre>Spark worker Mill read routing guidance and refused a broad theme cascade/body portal/live-preview/browser validation task. It identified Spark allowed=no, escalation target nexus_strong_worker/lead, and required review/verify/audit plus targeted theme tests and browser checks. This validates the negative routing path.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Reusable design-zoo validator</strong>
+            <span>2026-05-08T17:16:14.481Z</span>
+          </div>
+          
+          <p class="path">.codex/workflow/records/tests/TEST-20260508T171614Z-reusable-design-zoo-validator.md</p>
+          <pre>Added npm run workflow:design-zoo. First run failed because getByRole('link', { name: 'Toast' }) also matched AddToCartToast; fixed with exact: true. Final run passed against http://127.0.0.1:5173: active toasts=5, html.dark=1, selectedTheme=sichuan, warningVisible=true.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Design Zoo browser validation</strong>
+            <span>2026-05-08T17:13:09.212Z</span>
+          </div>
+          
+          <p class="path">.codex/workflow/records/tests/TEST-20260508T171309Z-design-zoo-browser-validation.md</p>
+          <pre>Vite dev server at http://127.0.0.1:5173. Browser DOM validation found /design index title, Toast link, /design/toast warning initial toast, + Warning button, info toast, and ToastContainer explanatory text. Browser plugin click timed out on CDP, so project Playwright runtime performed the interaction: clicked + Warning, confirmed Ingredient threshold reached, toggled dark mode, selected sichuan theme, confirmed warning toast stayed visible; html.dark count=1, selectedTheme=sichuan, active toast count=5.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Full local web validation</strong>
+            <span>2026-05-08T17:09:02.104Z</span>
+          </div>
+          
+          <p class="path">.codex/workflow/records/tests/TEST-20260508T170902Z-full-local-web-validation.md</p>
+          <pre>npm run test --workspace=packages/web passed 10 files / 87 tests, including new Toast tests. npm run build passed production web build; Vite emitted existing-style warning Generated an empty chunk: vendor-react. npm run lint:design:quiet passed.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Local API and theme regression tests</strong>
+            <span>2026-05-08T17:06:26.705Z</span>
+          </div>
+          
+          <p class="path">.codex/workflow/records/tests/TEST-20260508T170626Z-local-api-and-theme-regression-tests.md</p>
+          <pre>After npm ci, npm run test --workspace=packages/api passed 6 files / 187 tests. npm run test --workspace=packages/web -- src/platform/theme/__tests__/ThemeProvider.test.tsx passed 1 file / 11 tests; React emitted an existing act(...) warning in the live-preview ping-pong regression test but the test passed. npm run lint:design:quiet passed.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Spark worker toast warning slice</strong>
+            <span>2026-05-08T17:06:15.647Z</span>
+          </div>
+          
+          <p class="path">.codex/workflow/records/tests/TEST-20260508T170615Z-spark-worker-toast-warning-slice.md</p>
+          <pre>Spark worker Hooke implemented warning ToastData type, warning icon/classes, zoo warning demo, registry propsShape, and focused Toast test. Lead review added adjacent fix for info toasts to use bg-info-light/text-info/border-info instead of primary tokens. Targeted test passed: npm run test --workspace=packages/web -- src/components/ui/__tests__/Toast.test.tsx (2 tests). lint:design:quiet and workflow validate passed.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Historical hard-case routing analysis c4a438e</strong>
+            <span>2026-05-08T17:03:20.323Z</span>
+          </div>
+          
+          <p class="path">.codex/workflow/records/tests/TEST-20260508T170320Z-historical-hard-case-routing-analysis-c4a438e.md</p>
+          <pre>Strong-model explorer analyzed commit c4a438e12f9. Result: route to stronger model/reviewer, not Spark, because the fix spans CSS selector semantics, React provider state sync, body-mounted portals, tenant scoping, ThemeSettings live preview, and E2E browser behavior. Suggested focused checks: descendant dark selectors, no .light inversion, body portal mirroring/cleanup, initialThemeId sync behavior, ThemeSettings feedback loop, and browser checks for /design and tenant shells.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Dashboard browser validation</strong>
+            <span>2026-05-08T16:56:07.935Z</span>
+          </div>
+          
+          <p class="path">.codex/workflow/records/tests/TEST-20260508T165607Z-dashboard-browser-validation.md</p>
+          <pre>Served .codex/dashboard/index.html from http://127.0.0.1:8765 after file:// was blocked by browser policy. Browser DOM validation found title Nexus Workflow Dashboard plus Overview, Pattern Proposals, Design Zoo / Gym, Review Gate, accepted hook pattern, and localhost /design link. Screenshot capture timed out in the browser plugin, so DOM validation is the recorded evidence.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Dynamic pattern proposal command</strong>
+            <span>2026-05-08T16:52:07.191Z</span>
+          </div>
+          
+          <p class="path">.codex/workflow/records/tests/TEST-20260508T165207Z-dynamic-pattern-proposal-command.md</p>
+          <pre>record-pattern created accepted proposal PATTERN-PROPOSAL-20260508T165157Z-pattern-accepted-hooks-stay-as-thin-workflow-tri with evidence, candidate guidance, status, and files; dashboard includes pattern-proposals in its record index.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Hook invalidation dry run</strong>
+            <span>2026-05-08T16:49:37.919Z</span>
+          </div>
+          
+          <p class="path">.codex/workflow/records/tests/TEST-20260508T164937Z-hook-invalidation-dry-run.md</p>
+          <pre>Manual PostToolUse payload for apply_patch updated patch-state.json and invalidated review/verify/audit gates without creating a durable patch record, matching the thin-hook policy.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Workflow negative gate test</strong>
+            <span>2026-05-08T16:49:09.987Z</span>
+          </div>
+          
+          <p class="path">.codex/workflow/records/tests/TEST-20260508T164909Z-workflow-negative-gate-test.md</p>
+          <pre>review-check, verify-check, audit-check, validate --commit-gate, and validate --release-gate all failed as expected before evidence records existed for worktree hash 4379f8bf9e55ae86.</pre>
+        </article>
+      
+    </section>
+  
+
+    <section id="deployments" class="panel">
+      <h2>Deployments</h2>
+      <p class="muted">No records yet.</p>
+    </section>
+  
+      <section id="risks" class="panel risk"><h1>Risks</h1>
+<h2>Open</h2>
+<ul>
+<li>Codex project-local hooks load only when the project `.codex/` layer is trusted.</li>
+<li>Hook interception is incomplete; deterministic scripts and lead review discipline remain necessary.</li>
+<li>Full deployment of this branch is still pending.</li>
+<li>Server repo `/root/monoWeb/nexus` had a pre-existing `package-lock.json` modification on 2026-05-09. Deployment must preserve or deliberately resolve that dirty state.</li>
+<li>`ThemeProvider.test.tsx` currently passes but emits a React `act(...)` warning in the live-preview ping-pong regression test.</li>
+</ul>
+<h2>Closed</h2>
+<ul>
+<li>The initial large dirty-worktree report was caused by using the submodule common git dir, not the linked worktree git dir.</li>
+<li>Spark worker usefulness has positive and negative evidence: narrow Toast warning slice succeeded; broad theme cascade task was refused/escalated.</li>
+<li>Server access and pre-deployment health were validated on 2026-05-09; final deployment remains open.</li>
+</ul></section>
+      <section id="deployment" class="panel"><h1>Deployment Knowledge</h1>
+<p>Primary production target discovered from the neighboring monoWeb root:</p>
+<ul>
+<li>Public app: `https://cv.rehou.games/nexus/`</li>
+<li>Server: `134.199.148.87`</li>
+<li>SSH user: `root`</li>
+<li>SSH key: `~/.ssh/DIOkii`</li>
+<li>Server repo path: `/root/monoWeb/nexus`</li>
+<li>Static frontend path: `/var/www/cv.rehou.games/nexus/`</li>
+<li>API systemd service: `nexus-api`</li>
+<li>Production API port: `3010`</li>
+</ul>
+<p>Do not print secrets or private key material.</p>
+<h2>Local Commands</h2>
+<p>```bash</p>
+<p>npm install</p>
+<p>npm run db:push</p>
+<p>npm run db:seed</p>
+<p>npm run dev:all</p>
+<p>npm test</p>
+<p>npm run build</p>
+<p>npm run lint:design</p>
+<p>bash scripts/smoke-test.sh</p>
+<p>```</p>
+<h2>Production Build</h2>
+<p>The frontend is served from `/nexus/`, so production Vite builds must use:</p>
+<p>```bash</p>
+<p>cd packages/web</p>
+<p>MSYS_NO_PATHCONV=1 npx vite build --base /nexus/</p>
+<p>```</p>
+<h2>Deployment Shape</h2>
+<p>The server copy should be updated through the real repo and static assets copied into the nginx-served folder. The API service then restarts.</p>
+<p>Server validation must confirm:</p>
+<ul>
+<li>`/root/monoWeb/nexus` has the intended commit or files.</li>
+<li>`/var/www/cv.rehou.games/nexus/` has fresh built assets.</li>
+<li>`systemctl status nexus-api` is healthy after restart.</li>
+<li>`https://cv.rehou.games/nexus/` returns HTML.</li>
+<li>`https://cv.rehou.games/nexus/api/platform/health` returns 200.</li>
+</ul>
+<p>Known risk: do not skip production `db:push` when schema changes are present.</p>
+<p>Known server state on 2026-05-09:</p>
+<ul>
+<li>`/root/monoWeb/nexus` was at commit `1cbd123` on `main`.</li>
+<li>`nexus-api` was active on port `3010`.</li>
+<li>The server worktree had an existing `package-lock.json` modification. Do not overwrite it blindly during deployment.</li>
+</ul></section>
+    </main>
+  </div>
+</body>
+</html>

@@ -588,9 +588,10 @@ function ImageUploadShowcase() {
 
 function ToastShowcase() {
   const [toasts, setToasts] = useState<ToastData[]>([
-    { id: '1', type: 'success', message: 'Order confirmed — table 7 is ready.' },
-    { id: '2', type: 'error',   message: 'Failed to save menu item. Try again.' },
-    { id: '3', type: 'info',    message: 'Kitchen display connected.' },
+    { id: '1', type: 'warning', message: 'Stock is low on Sichuan peppercorns.' },
+    { id: '2', type: 'success', message: 'Order confirmed — table 7 is ready.' },
+    { id: '3', type: 'error',   message: 'Failed to save menu item. Try again.' },
+    { id: '4', type: 'info',    message: 'Kitchen display connected.' },
   ]);
 
   const dismiss = (id: string) =>
@@ -599,6 +600,7 @@ function ToastShowcase() {
   const addToast = (type: ToastData['type']) => {
     const id = String(Date.now());
     const messages: Record<ToastData['type'], string> = {
+      warning: 'Ingredient threshold reached.',
       success: 'Item saved successfully.',
       error:   'Something went wrong.',
       info:    'New order received.',
@@ -610,6 +612,9 @@ function ToastShowcase() {
     <>
       <Section title="Live demo — add / dismiss toasts">
         <div className="flex flex-wrap gap-2 mb-4">
+          <Button size="sm" variant="secondary" onClick={() => addToast('warning')}>
+            + Warning
+          </Button>
           <Button size="sm" variant="secondary" onClick={() => addToast('success')}>
             + Success
           </Button>
@@ -1031,7 +1036,7 @@ function ZooIndex() {
         showcase imports the real component. Change a primitive in{' '}
         <code className="nx-code">components/ui/</code> and its showcase updates
         on save. Referenced by <code className="nx-code">
-          .claude/workflow/design/standards.md § S-ZOO-PAGE
+          .codex/knowledge/design-system.md § Zoo
         </code>.
       </p>
     </>

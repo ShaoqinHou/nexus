@@ -44,7 +44,7 @@ const LANGUAGE_CONFIG = [
   { code: 'fr', label: 'Français (French)', flag: '\u{1F1EB}\u{1F1F7}', description: 'French' },
 ] as const;
 
-// --- Cuisine Theme Data (10 canonical themes from Claude Design bundle) ---
+// --- Cuisine Theme Data (10 canonical themes from the design-system reference bundle) ---
 // Swatches: [bg, brand, accent, text] — mirrors the bundle spec tile layout.
 // lint-override block: these are design-spec swatch values, not app chrome.
 

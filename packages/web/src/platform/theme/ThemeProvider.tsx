@@ -14,7 +14,7 @@ import { generatePalette } from '@web/lib/theme';
 type Mode = 'light' | 'dark';
 
 /**
- * Canonical cuisine theme IDs from the Claude Design bundle. Each maps to a
+ * Canonical cuisine theme IDs from the design-system reference bundle. Each maps to a
  * [data-theme="<id>"] block in platform/theme/themes/*.css. Classic is the
  * merchant-console default and the fallback when no tenant theme is set.
  */
