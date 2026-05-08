@@ -41,7 +41,7 @@
 <body>
   <header>
     <h1>Nexus Workflow Dashboard</h1>
-    <div class="meta">Generated 2026-05-08T17:43:03.785Z · branch codex/native-workflow · worktree 398ef3a3ae818e5e</div>
+    <div class="meta">Generated 2026-05-08T17:50:45.063Z · branch codex/native-workflow · worktree 335347afeac44d92</div>
   </header>
   <div class="layout">
     <nav>
@@ -66,10 +66,10 @@
         <div class="grid">
           <div class="card"><span class="meta">Decisions</span><strong>1</strong></div>
 <div class="card"><span class="meta">Pattern Proposals</span><strong>3</strong></div>
-<div class="card"><span class="meta">Patches</span><strong>2</strong></div>
-<div class="card"><span class="meta">Reviews</span><strong>2</strong></div>
-<div class="card"><span class="meta">Tests</span><strong>17</strong></div>
-<div class="card"><span class="meta">Deployments</span><strong>0</strong></div>
+<div class="card"><span class="meta">Patches</span><strong>3</strong></div>
+<div class="card"><span class="meta">Reviews</span><strong>6</strong></div>
+<div class="card"><span class="meta">Tests</span><strong>19</strong></div>
+<div class="card"><span class="meta">Deployments</span><strong>1</strong></div>
 <div class="card"><span class="meta">Zoo Pages</span><strong>24/24</strong></div>
         </div>
         <div class="grid">
@@ -77,164 +77,12 @@
           <div class="card"><span class="meta">Verify Gate</span><strong>needed</strong></div>
           <div class="card"><span class="meta">Audit Gate</span><strong>needed</strong></div>
         </div>
-        <p class="meta">Last patch trigger: 2026-05-08T17:41:22.258Z · patch PATCH-20260508T174121Z-codex-native-workflow-migration-claude-workflow-</p>
-        <pre>## codex/native-workflow
- D .claude/agents/fixer.md
- D .claude/agents/reviewer.md
- D .claude/hooks/check-edited-file.sh
- D .claude/hooks/commit-review.sh
- D .claude/hooks/inject-rules.sh
- D .claude/hooks/log-bash-failure.sh
- D .claude/hooks/run-tests.sh
- D .claude/hooks/safe-commit.sh
- D .claude/hooks/session-start.sh
- D .claude/hooks/stop-nudge-verify.sh
- D .claude/rules/architecture.md
- D .claude/rules/design-system.md
- D .claude/rules/import-boundaries.md
- D .claude/rules/tech-conventions.md
- D .claude/rules/testing.md
- D .claude/scheduled_tasks.lock
- D .claude/scripts/check-design-tokens.mjs
- D .claude/scripts/test-hook-from-worktree.sh
- D .claude/settings.json
- D .claude/settings.local.json
- D .claude/skills/build/SKILL.md
- D .claude/skills/commit-review/SKILL.md
- D .claude/skills/consistency-audit/SKILL.md
- D .claude/skills/consistency-audit/references/audit-layers.md
- D .claude/skills/new-module/SKILL.md
- D .claude/skills/test/SKILL.md
- D .claude/skills/verify/SKILL.md
- D .claude/workflow/CLAUDE.md
- D .claude/workflow/CONTINUATION-SESSION-COMPLETE.md
- D .claude/workflow/SESSION-SUMMARY.md
- D .claude/workflow/STATUS.md
- D .claude/workflow/archive/mobile-review-2026-04/DETAILED-REVIEWS.md
- D .claude/workflow/archive/mobile-review-2026-04/SUMMARY.md
- D .claude/workflow/design/.gitkeep
- D .claude/workflow/design/archive/image-optimization-COMPLETED-2026-04.md
- D .claude/workflow/design/archive/mobile-ux-improvements-COMPLETED-2026-04.md
- D .claude/workflow/design/i18n-multi-language.md
- D .claude/workflow/design/image-optimization.md
- D .claude/workflow/design/mobile-ux-improvements.md
- D .claude/workflow/design/standards.md
- D .claude/workflow/design/v2-restaurant-operations.md
- D .claude/workflow/e2e/merchant-retheme-plan.md
- D .claude/workflow/e2e/tool-usage-brief.md
- D .claude/workflow/e2e/user-stories.md
- D .claude/workflow/i18n-audit-full.txt
- D .claude/workflow/i18n-violations-data.txt
- D .claude/workflow/i18n-violations.txt
- D .claude/workflow/issues.md
- D .claude/workflow/mobile-review/COMPREHENSIVE-MOBILE-UX-STATUS.md
- D .claude/workflow/mobile-review/CONTINUATION-SESSION-SUMMARY.md
- D .claude/workflow/mobile-review/FINAL-REVIEW.md
- D .claude/workflow/mobile-review/FULL-SESSION-SUMMARY.md
- D .claude/workflow/mobile-review/IMPLEMENTATION-PLAN-CORRECTED.md
- D .claude/workflow/mobile-review/IMPLEMENTATION-PLAN.md
- D .claude/workflow/mobile-review/MOBILE-UX-CYCLE-SUMMARY.md
- D .claude/workflow/mobile-review/PHASE-3-POLISH-SUMMARY.md
- D .claude/workflow/mobile-review/PHASE1-COMPLETE.md
- D .claude/workflow/mobile-review/SESSION-SUMMARY-PHASE-3.md
- D .claude/workflow/mobile-review/STAFF-FACING-PHASE-1-SUMMARY.md
- D .claude/workflow/mobile-review/STAFF-UI-REVIEW.md
- D .claude/workflow/mobile-review/STAFF-UX-IMPROVEMENTS-SUMMARY.md
- D .claude/workflow/mobile-review/research/checklist.md
- D .claude/workflow/mobile-review/research/standards.md
- D .claude/workflow/mobile-review/reviews/customer/customer-01-menu-closed-review.md
- D .claude/workflow/mobile-review/reviews/customer/customer-02-menu-browse-review.md
- D .claude/workflow/mobile-review/reviews/customer/customer-03-item-detail-review.md
- D .claude/workflow/mobile-review/reviews/customer/customer-04-combo-review.md
- D .claude/workflow/mobile-review/reviews/customer/customer-05-cart-review.md
- D .claude/workflow/mobile-review/reviews/customer/customer-06-confirmation-review.md
- D .claude/workflow/mobile-review/reviews/customer/customer-07-menu-scroll-review.md
- D .claude/workflow/mobile-review/reviews/customer/customer-08-search-review.md
- D .claude/workflow/mobile-review/reviews/customer/customer-09-allergen-review.md
- D .claude/workflow/mobile-review/reviews/customer/customer-10-dark-review.md
- D .claude/workflow/mobile-review/reviews/customer/customer-all-screens-summary.md
- D .claude/workflow/mobile-review/reviews/customer/patterns-analysis.md
- D .claude/workflow/mobile-review/reviews/staff-part-2-summary.md
- D .claude/workflow/mobile-review/reviews/staff/INDEX.md
- D .claude/workflow/mobile-review/reviews/staff/staff-01-login-review.md
- D .claude/workflow/mobile-review/reviews/staff/staff-03-orders-dashboard-review.md
- D .claude/workflow/mobile-review/reviews/staff/staff-04-menu-mgmt-review.md
- D .claude/workflow/mobile-review/reviews/staff/staff-05-combos-review.md
- D .claude/workflow/mobile-review/reviews/staff/staff-06-modifiers-review.md
- D .claude/workflow/mobile-review/reviews/staff/staff-07-promotions-review.md
- D .claude/workflow/mobile-review/reviews/staff/staff-08-qr-codes-review.md
- D .claude/workflow/mobile-review/reviews/staff/staff-09-analytics-review.md
- D .claude/workflow/mobile-review/reviews/staff/staff-10-staff-mgmt-review.md
- D .claude/workflow/mobile-review/reviews/staff/staff-11-theme-settings-review.md
- D .claude/workflow/mobile-review/reviews/staff/staff-12-kitchen-display-review.md
- D .claude/workflow/mobile-review/reviews/staff/staff-13-order-detail-review.md
- D .claude/workflow/mobile-review/reviews/staff/staff-14-sidebar-drawer-open-review.md
- D .claude/workflow/mobile-review/reviews/staff/staff-15-orders-360w-review.md
- D .claude/workflow/mobile-review/reviews/staff/staff-16-edit-item-modal-review.md
- D .claude/workflow/mobile-review/reviews/staff/staff-part-1-summary.md
- D .claude/workflow/mobile-review/screenshots/customer/01-menu-closed.png
- D .claude/workflow/mobile-review/screenshots/customer/02-menu-browse-top.png
- D .claude/workflow/mobile-review/screenshots/customer/03-item-detail-sheet.png
- D .claude/workflow/mobile-review/screenshots/customer/04-combo-sheet.png
- D .claude/workflow/mobile-review/screenshots/customer/05-cart-sheet.png
- D .claude/workflow/mobile-review/screenshots/customer/06-order-confirmation.png
- D .claude/workflow/mobile-review/screenshots/customer/07-menu-mid-scroll.png
- D .claude/workflow/mobile-review/screenshots/customer/08-search-overlay.png
- D .claude/workflow/mobile-review/screenshots/customer/09-allergen-filter.png
- D .claude/workflow/mobile-review/screenshots/customer/10-menu-dark.png
- D .claude/workflow/mobile-review/screenshots/staff/01-login.png
- D .claude/workflow/mobile-review/screenshots/staff/03-orders-dashboard.png
- D .claude/workflow/mobile-review/screenshots/staff/04-menu-mgmt-full.png
- D .claude/workflow/mobile-review/screenshots/staff/04-menu-mgmt.png
- D .claude/workflow/mobile-review/screenshots/staff/05-combos.png
- D .claude/workflow/mobile-review/screenshots/staff/06-modifiers.png
- D .claude/workflow/mobile-review/screenshots/staff/07-promotions.png
- D .claude/workflow/mobile-review/screenshots/staff/08-qr-codes.png
- D .claude/workflow/mobile-review/screenshots/staff/09-analytics.png
- D .claude/workflow/mobile-review/screenshots/staff/10-staff-mgmt.png
- D .claude/workflow/mobile-review/screenshots/staff/11-theme-settings.png
- D .claude/workflow/mobile-review/screenshots/staff/12-kitchen-display.png
- D .claude/workflow/mobile-review/screenshots/staff/13-order-detail.png
- D .claude/workflow/mobile-review/screenshots/staff/14-sidebar-drawer-open.png
- D .claude/workflow/mobile-review/screenshots/staff/15-orders-360w.png
- D .claude/workflow/mobile-review/screenshots/staff/16-edit-item-modal.png
- D .claude/workflow/mobile-review/staff-menu-management-after.png
- D .claude/workflow/mobile-review/staff-modifiers-after.png
- D .claude/workflow/mobile-review/staff-orders-dashboard-after.png
- D .claude/workflow/mobile-review/staff-orders-dashboard-before.png
- D .claude/workflow/mobile-ux-hook-implementation-summary.md
- D .claude/workflow/mobile-ux-hook-proposal.md
- D .claude/workflow/scratch/.gitignore
- D .claude/workflow/scratch/README.md
- D .claude/workflow/session-plan.md
- M .gitignore
- D .mcp.json
- D CLAUDE.md
- M README.md
- M package.json
- M packages/web/eslint.config.js
- M packages/web/src/apps/ordering/merchant/ThemeSettings.tsx
- M packages/web/src/components/registry.json
- M packages/web/src/components/ui/Toast.tsx
- M packages/web/src/lib/i18n.ts
- M packages/web/src/platform/theme/ThemeProvider.tsx
- M packages/web/src/platform/theme/themes.css
- M packages/web/src/platform/theme/themes/cantonese.css
- M packages/web/src/platform/theme/themes/classic.css
- M packages/web/src/platform/theme/themes/counter.css
- M packages/web/src/platform/theme/themes/curry-house.css
- M packages/web/src/platform/theme/themes/izakaya.css
- M packages/web/src/platform/theme/themes/sichuan.css
- M packages/web/src/platform/theme/themes/taqueria.css
- M packages/web/src/platform/theme/themes/trattoria.css
- M packages/web/src/platform/theme/themes/wok.css
- M packages/web/src/platform/theme/tokens.css
- M packages/web/src/routes/__design/Zoo.tsx
-?? .agents/
-?? .codex/
-?? AGENTS.md
-?? WORKFLOW.md
-?? packages/web/src/components/ui/__tests__/</pre>
+        <p class="meta">Last patch trigger: 2026-05-08T17:43:48.693Z · patch PATCH-20260508T174348Z-refresh-compact-workflow-state-and-dashboard-aft</p>
+        <pre>## codex/native-workflow...origin/codex/native-workflow
+ M .codex/knowledge/deployment.md
+ M .codex/workflow/current-state.md
+ M .codex/workflow/records/risks.md
+?? .codex/workflow/records/deployments/DEPLOYMENT-20260508T175020Z-server-deployment-validation-for-codex-native-wo.md</pre>
       </section>
       <section id="current" class="panel"><h1>Current State</h1>
 <p>Updated: 2026-05-09</p>
@@ -266,7 +114,7 @@
 <li>continued design-system completion work after workflow migration.</li>
 </ul>
 <h2>Current Phase</h2>
-<p>Codex workflow migration is implemented and locally release-gated on branch `codex/native-workflow`. Commit, push, and final server deployment validation are still pending.</p>
+<p>Codex workflow migration is implemented, locally release-gated, committed, pushed, and deployed for validation on branch `codex/native-workflow`.</p>
 <p>Implemented workflow pieces:</p>
 <ul>
 <li>`.codex/` workflow root with compact state, knowledge files, records, templates, research, scripts, hooks, agents, archived Claude material, and generated dashboard.</li>
@@ -291,6 +139,20 @@
 <li>`TEST-20260508T171614Z-reusable-design-zoo-validator`</li>
 <li>`TEST-20260508T171820Z-server-pre-deploy-validation`</li>
 </ul>
+<p>Server deployment validation:</p>
+<ul>
+<li>Record: `DEPLOYMENT-20260508T175020Z-server-deployment-validation-for-codex-native-wo`</li>
+<li>Branch pushed and deployed: `codex/native-workflow`</li>
+<li>Deployed commit validated on server: `cf069ce`</li>
+<li>Server repo: `/root/monoWeb/nexus`</li>
+<li>Public web check: `https://cv.rehou.games/nexus/` returned 200.</li>
+<li>API health check: `https://cv.rehou.games/nexus/api/platform/health` returned 200.</li>
+<li>API service: `nexus-api` active after restart.</li>
+<li>Workflow file present on server: `.codex/scripts/nexus-workflow.mjs`</li>
+<li>Server workflow validation: `node .codex/scripts/nexus-workflow.mjs validate` passed.</li>
+<li>Static build correction: server rebuild used `npx vite build --base /nexus/`; hosted `index.html` referenced `/nexus/assets/`.</li>
+<li>Preserved server dirty state: pre-existing `package-lock.json` modification remains and was backed up to `/root/monoWeb/deploy-backups/nexus/package-lock-local-20260509-codex-native-workflow.diff`.</li>
+</ul>
 <p>Historical/model-routing evidence:</p>
 <ul>
 <li>`TEST-20260508T170320Z-historical-hard-case-routing-analysis-c4a438e`</li>
@@ -307,9 +169,8 @@
 <h2>Next Required Work</h2>
 <ul>
 <li>Regenerate `.codex/dashboard/index.html` after this state update.</li>
-<li>Commit and push `codex/native-workflow`.</li>
-<li>Deploy or otherwise validate the final branch on the server using the conventions in `.codex/knowledge/deployment.md`.</li>
-<li>Record deployment evidence under `.codex/workflow/records/deployments/`, update this file with the final commit/deployment result, and run the release gate again.</li>
+<li>Commit and push the deployment evidence update.</li>
+<li>Pull the deployment-evidence commit on the server so the workflow records are present there too. Rebuild is optional unless source files changed.</li>
 </ul></section>
       <section id="zoo" class="panel">
         <h2>Design Zoo / Gym</h2>
@@ -781,6 +642,24 @@ Proposed guidance: Keep Codex hooks as compact dispatch/gate triggers. Review, v
       
         <article class="record">
           <div class="record-top">
+            <strong>Refresh compact workflow state and dashboard after local gate validation</strong>
+            <span>2026-05-08T17:43:48.318Z</span>
+          </div>
+          
+          <p class="path">.codex/workflow/records/patches/PATCH-20260508T174348Z-refresh-compact-workflow-state-and-dashboard-aft.md</p>
+          <pre>Summary: Refresh compact workflow state and dashboard after local gate validation
+
+Files:
+- .agents/skills/nexus-audit/SKILL.md
+- .agents/skills/nexus-audit/agents/openai.yaml
+- .agents/skills/nexus-review/SKILL.md
+- .agents/skills/nexus-review/agents/openai.yaml
+- .agents/skills/nexus-verify/SKILL.md</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
             <strong>Codex-native workflow migration, Claude workflow archive, and design-system Toast continuation</strong>
             <span>2026-05-08T17:41:21.965Z</span>
           </div>
@@ -822,6 +701,70 @@ Files:
       
         <article class="record">
           <div class="record-top">
+            <strong>Audit pass staged-worktree</strong>
+            <span>2026-05-08T17:45:08.137Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260508T174508Z-audit-pass-staged-worktree.md</p>
+          <pre>Scope: staged-worktree
+Verdict: pass
+Auditor: codex-lead
+Worktree hash: cb71f1536fb57562
+
+Notes: Final staged tree audit pass. Workflow mechanisms match saved brief: thin hooks, script-backed gates, lightweight skills, evidence-based dynamic patterns, dashboard/wiki, design zoo, model routing records, and server pre-deploy record.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review pass staged-worktree</strong>
+            <span>2026-05-08T17:45:07.251Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260508T174507Z-review-pass-staged-worktree.md</p>
+          <pre>Scope: staged-worktree
+Verdict: pass
+Reviewer: codex-focused-reviewer+lead
+Worktree hash: cb71f1536fb57562
+
+Notes: Final staged tree review pass. Focused reviewer returned no findings after tokenizer hook fix; staged tree includes workflow migration, archive move, dashboard, records, and Toast design-system continuation.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Audit pass worktree</strong>
+            <span>2026-05-08T17:43:50.244Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260508T174350Z-audit-pass-worktree.md</p>
+          <pre>Scope: worktree
+Verdict: pass
+Auditor: codex-lead
+Worktree hash: 398ef3a3ae818e5e
+
+Notes: State/dashboard refresh keeps the saved brief, gates, records, design zoo, and archive pointers discoverable.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review pass worktree</strong>
+            <span>2026-05-08T17:43:49.150Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260508T174349Z-review-pass-worktree.md</p>
+          <pre>Scope: worktree
+Verdict: pass
+Reviewer: codex-focused-reviewer+lead
+Worktree hash: 398ef3a3ae818e5e
+
+Notes: Follow-up state/dashboard refresh after the no-findings focused review. No behavior changes beyond the compact handover and generated dashboard.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
             <strong>Review pass worktree</strong>
             <span>2026-05-08T17:41:52.003Z</span>
           </div>
@@ -857,6 +800,38 @@ Notes: Workflow audit passed against saved brief: original brief preserved; AGEN
     <section id="tests" class="panel">
       <h2>Tests</h2>
       
+        <article class="record">
+          <div class="record-top">
+            <strong>Verification pass staged-worktree</strong>
+            <span>2026-05-08T17:45:07.702Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/tests/TEST-20260508T174507Z-verification-pass-staged-worktree.md</p>
+          <pre>Scope: staged-worktree
+Verdict: pass
+Verifier: codex-lead
+Worktree hash: cb71f1536fb57562
+
+Notes: Final staged tree verification pass. Full local validation already passed after behavior changes; staging introduced no source changes beyond those reviewed.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Verification pass worktree</strong>
+            <span>2026-05-08T17:43:49.631Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/tests/TEST-20260508T174349Z-verification-pass-worktree.md</p>
+          <pre>Scope: worktree
+Verdict: pass
+Verifier: codex-lead
+Worktree hash: 398ef3a3ae818e5e
+
+Notes: Carries forward full local validation already recorded for the same code changes; follow-up patch only refreshed current-state/dashboard records.</pre>
+        </article>
+      
+
         <article class="record">
           <div class="record-top">
             <strong>Verification pass worktree</strong>
@@ -1053,7 +1028,17 @@ Notes: Latest full local validation passed: workflow script syntax, design-zoo s
 
     <section id="deployments" class="panel">
       <h2>Deployments</h2>
-      <p class="muted">No records yet.</p>
+      
+        <article class="record">
+          <div class="record-top">
+            <strong>Server deployment validation for Codex-native workflow</strong>
+            <span>2026-05-08T17:50:20.520Z</span>
+          </div>
+          
+          <p class="path">.codex/workflow/records/deployments/DEPLOYMENT-20260508T175020Z-server-deployment-validation-for-codex-native-wo.md</p>
+          <pre>Validated on 2026-05-09. Pushed branch codex/native-workflow and deployed commit cf069ce to /root/monoWeb/nexus on 134.199.148.87. Server workflow validate passed. Initial production build failed because node_modules was stale and missing @fontsource-variable/fraunces; npm ci fixed it. Initial npm run build produced root /assets URLs; corrected by rebuilding packages/web with npx vite build --base /nexus/. Synced packages/web/dist to /var/www/cv.rehou.games/nexus, restarted nexus-api, service active. Hosted checks: https://cv.rehou.games/nexus/ returned 200, https://cv.rehou.games/nexus/api/platform/health returned 200, deployed index referenced /nexus/assets/ and asset assets/index-BXPaLsHH.js. Preserved pre-existing dirty package-lock.json; backup diff saved on server at /root/monoWeb/deploy-backups/nexus/package-lock-local-20260509-codex-native-workflow.diff. Server npm ci reported audit findings; not remediated in this migration.</pre>
+        </article>
+      
     </section>
   
       <section id="risks" class="panel risk"><h1>Risks</h1>
@@ -1061,15 +1046,15 @@ Notes: Latest full local validation passed: workflow script syntax, design-zoo s
 <ul>
 <li>Codex project-local hooks load only when the project `.codex/` layer is trusted.</li>
 <li>Hook interception is incomplete; deterministic scripts and lead review discipline remain necessary.</li>
-<li>Full deployment of this branch is still pending.</li>
 <li>Server repo `/root/monoWeb/nexus` had a pre-existing `package-lock.json` modification on 2026-05-09. Deployment must preserve or deliberately resolve that dirty state.</li>
 <li>`ThemeProvider.test.tsx` currently passes but emits a React `act(...)` warning in the live-preview ping-pong regression test.</li>
+<li>Server `npm ci` reported audit findings. They were pre-existing dependency audit findings and were not remediated as part of the workflow migration.</li>
 </ul>
 <h2>Closed</h2>
 <ul>
 <li>The initial large dirty-worktree report was caused by using the submodule common git dir, not the linked worktree git dir.</li>
 <li>Spark worker usefulness has positive and negative evidence: narrow Toast warning slice succeeded; broad theme cascade task was refused/escalated.</li>
-<li>Server access and pre-deployment health were validated on 2026-05-09; final deployment remains open.</li>
+<li>Server access, deployment, service restart, and hosted health checks were validated on 2026-05-09 for commit `cf069ce`.</li>
 </ul></section>
       <section id="deployment" class="panel"><h1>Deployment Knowledge</h1>
 <p>Primary production target discovered from the neighboring monoWeb root:</p>
@@ -1101,6 +1086,7 @@ Notes: Latest full local validation passed: workflow script syntax, design-zoo s
 <p>cd packages/web</p>
 <p>MSYS_NO_PATHCONV=1 npx vite build --base /nexus/</p>
 <p>```</p>
+<p>Server evidence on 2026-05-09 confirmed why this matters: a plain `npm run build` produced root `/assets/` URLs in the deployed HTML. The corrected deployment rebuilt with `npx vite build --base /nexus/`, after which `/var/www/cv.rehou.games/nexus/index.html` referenced `/nexus/assets/`.</p>
 <h2>Deployment Shape</h2>
 <p>The server copy should be updated through the real repo and static assets copied into the nginx-served folder. The API service then restarts.</p>
 <p>Server validation must confirm:</p>
@@ -1114,9 +1100,11 @@ Notes: Latest full local validation passed: workflow script syntax, design-zoo s
 <p>Known risk: do not skip production `db:push` when schema changes are present.</p>
 <p>Known server state on 2026-05-09:</p>
 <ul>
-<li>`/root/monoWeb/nexus` was at commit `1cbd123` on `main`.</li>
+<li>Before this migration deployment, `/root/monoWeb/nexus` was at commit `1cbd123` on `main`.</li>
+<li>After deployment validation, `/root/monoWeb/nexus` was on branch `codex/native-workflow` at commit `cf069ce`.</li>
 <li>`nexus-api` was active on port `3010`.</li>
 <li>The server worktree had an existing `package-lock.json` modification. Do not overwrite it blindly during deployment.</li>
+<li>Server `node_modules` was stale and missing `@fontsource-variable/fraunces`; `npm ci` fixed the install before the production build.</li>
 </ul></section>
     </main>
   </div>

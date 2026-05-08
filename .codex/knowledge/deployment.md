@@ -35,6 +35,8 @@ cd packages/web
 MSYS_NO_PATHCONV=1 npx vite build --base /nexus/
 ```
 
+Server evidence on 2026-05-09 confirmed why this matters: a plain `npm run build` produced root `/assets/` URLs in the deployed HTML. The corrected deployment rebuilt with `npx vite build --base /nexus/`, after which `/var/www/cv.rehou.games/nexus/index.html` referenced `/nexus/assets/`.
+
 ## Deployment Shape
 
 The server copy should be updated through the real repo and static assets copied into the nginx-served folder. The API service then restarts.
@@ -51,6 +53,8 @@ Known risk: do not skip production `db:push` when schema changes are present.
 
 Known server state on 2026-05-09:
 
-- `/root/monoWeb/nexus` was at commit `1cbd123` on `main`.
+- Before this migration deployment, `/root/monoWeb/nexus` was at commit `1cbd123` on `main`.
+- After deployment validation, `/root/monoWeb/nexus` was on branch `codex/native-workflow` at commit `cf069ce`.
 - `nexus-api` was active on port `3010`.
 - The server worktree had an existing `package-lock.json` modification. Do not overwrite it blindly during deployment.
+- Server `node_modules` was stale and missing `@fontsource-variable/fraunces`; `npm ci` fixed the install before the production build.

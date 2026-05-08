@@ -1,8 +1,8 @@
 {
-  "worktreeHash": "cb71f1536fb57562",
+  "worktreeHash": "512baa650dff5428",
   "verdict": "pass",
-  "reviewer": "codex-focused-reviewer+lead",
-  "reviewedAt": "2026-05-08T17:45:07.251Z",
-  "reviewRecord": ".codex/workflow/records/reviews/REVIEW-20260508T174507Z-review-pass-staged-worktree.md",
-  "notes": "Final staged tree review pass. Focused reviewer returned no findings after tokenizer hook fix; staged tree includes workflow migration, archive move, dashboard, records, and Toast design-system continuation."
+  "reviewer": "codex-lead",
+  "reviewedAt": "2026-05-08T17:51:39.339Z",
+  "reviewRecord": ".codex/workflow/records/reviews/REVIEW-20260508T175139Z-review-pass-staged-deployment-evidence.md",
+  "notes": "Final staged review for deployment evidence commit. Only workflow/deployment records, dashboard, risks, and deployment knowledge changed after commit cf069ce."
 }

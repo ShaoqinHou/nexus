@@ -1,8 +1,8 @@
 {
-  "worktreeHash": "cb71f1536fb57562",
+  "worktreeHash": "512baa650dff5428",
   "verdict": "pass",
   "verifier": "codex-lead",
-  "verifiedAt": "2026-05-08T17:45:07.703Z",
-  "verifyRecord": ".codex/workflow/records/tests/TEST-20260508T174507Z-verification-pass-staged-worktree.md",
-  "notes": "Final staged tree verification pass. Full local validation already passed after behavior changes; staging introduced no source changes beyond those reviewed."
+  "verifiedAt": "2026-05-08T17:51:39.711Z",
+  "verifyRecord": ".codex/workflow/records/tests/TEST-20260508T175139Z-verification-pass-staged-deployment-evidence.md",
+  "notes": "Final staged verification for deployment evidence commit. Server validation evidence remains: cf069ce deployed, web 200, API health 200, nexus-api active, /nexus/assets/ base confirmed."
 }

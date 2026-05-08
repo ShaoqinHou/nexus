@@ -35,7 +35,7 @@ Build and validate a reusable Codex-native workflow that preserves the useful in
 
 ## Current Phase
 
-Codex workflow migration is implemented and locally release-gated on branch `codex/native-workflow`. Commit, push, and final server deployment validation are still pending.
+Codex workflow migration is implemented, locally release-gated, committed, pushed, and deployed for validation on branch `codex/native-workflow`.
 
 Implemented workflow pieces:
 
@@ -61,6 +61,20 @@ Latest validation records:
 - `TEST-20260508T171614Z-reusable-design-zoo-validator`
 - `TEST-20260508T171820Z-server-pre-deploy-validation`
 
+Server deployment validation:
+
+- Record: `DEPLOYMENT-20260508T175020Z-server-deployment-validation-for-codex-native-wo`
+- Branch pushed and deployed: `codex/native-workflow`
+- Deployed commit validated on server: `cf069ce`
+- Server repo: `/root/monoWeb/nexus`
+- Public web check: `https://cv.rehou.games/nexus/` returned 200.
+- API health check: `https://cv.rehou.games/nexus/api/platform/health` returned 200.
+- API service: `nexus-api` active after restart.
+- Workflow file present on server: `.codex/scripts/nexus-workflow.mjs`
+- Server workflow validation: `node .codex/scripts/nexus-workflow.mjs validate` passed.
+- Static build correction: server rebuild used `npx vite build --base /nexus/`; hosted `index.html` referenced `/nexus/assets/`.
+- Preserved server dirty state: pre-existing `package-lock.json` modification remains and was backed up to `/root/monoWeb/deploy-backups/nexus/package-lock-local-20260509-codex-native-workflow.diff`.
+
 Historical/model-routing evidence:
 
 - `TEST-20260508T170320Z-historical-hard-case-routing-analysis-c4a438e`
@@ -81,6 +95,5 @@ The earlier large dirty-tree report came from using the submodule common git dir
 ## Next Required Work
 
 - Regenerate `.codex/dashboard/index.html` after this state update.
-- Commit and push `codex/native-workflow`.
-- Deploy or otherwise validate the final branch on the server using the conventions in `.codex/knowledge/deployment.md`.
-- Record deployment evidence under `.codex/workflow/records/deployments/`, update this file with the final commit/deployment result, and run the release gate again.
+- Commit and push the deployment evidence update.
+- Pull the deployment-evidence commit on the server so the workflow records are present there too. Rebuild is optional unless source files changed.
