@@ -51,7 +51,7 @@ Workflow simplification and boundary hardening are implemented and should be jud
 - made the visual Zoo/Gym capture fail closed when requested theme or mode is not reflected in the DOM,
 - regenerated the dashboard/public guide/Zoo guide from the current workflow and design-system records,
 - completed an additional high-level workflow audit with parallel reviewers and captured the portability/generalization assessment in `.codex/workflow/research/workflow-portability-audit-2026-05-10.md`,
-- fixed the final audit findings by adding `.codex/knowledge/verification.md` to deterministic guide-hash and required-file inputs, including workflow research reports in guide freshness, keeping `workflow:status` cheap while moving record-history validation to `workflow:health` and release gates, and documenting deployed Zoo/Gym image-load validation.
+- fixed the final audit findings by adding `.codex/knowledge/verification.md` to deterministic guide-hash and required-file inputs, including workflow research reports in guide freshness, keeping `workflow:status` cheap while moving record-history validation to `workflow:health` and release gates, and adding a checked-in deployed Zoo/Gym image-load validation command.
 
 ## How To Resume
 

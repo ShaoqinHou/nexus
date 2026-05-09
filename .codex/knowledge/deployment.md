@@ -79,6 +79,12 @@ Deploy it by copying `.codex/dashboard/public.html` to `/var/www/cv.rehou.games/
 
 Workflow-guide deployment checks should fetch the public Zoo/Gym HTML, extract screenshot image paths, request those image URLs, and fail if any return a non-2xx response. Counting `.jpg` references is not sufficient deployment proof.
 
+Use the checked-in workflow command instead of an inline one-off script:
+
+```bash
+npm run workflow:public-guide-deployed-check
+```
+
 Known risk: do not skip production `db:push` when schema changes are present.
 
 Known server state on 2026-05-09:

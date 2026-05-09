@@ -34,6 +34,7 @@ Other workflow commands are helpers for creating evidence records or diagnosing 
 - `agents/*.toml` defines project-scoped Codex subagents.
 - `scripts/nexus-workflow.mjs` is the deterministic workflow helper.
 - `scripts/audit-deps.mjs` runs `npm audit` with an explicit expiring baseline for known dev-only advisories.
+- `scripts/check-public-guide-images.mjs` validates the deployed public workflow guide and Zoo/Gym screenshot image responses.
 - `scripts/check-production-zoo-bundle.mjs` checks production build output does not ship the interactive dev-only Zoo route/chunk.
 - `scripts/validate-design-zoo.mjs` validates the running `/design` zoo through Playwright.
 - `scripts/capture-design-zoo-visuals.mjs` captures the live `/design` zoo into the deployable visual guide at `dashboard/zoo/index.html`.
