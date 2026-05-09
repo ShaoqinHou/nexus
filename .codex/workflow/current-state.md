@@ -35,7 +35,7 @@ Build and validate a reusable Codex-native workflow that preserves the useful in
 
 ## Current Phase
 
-Codex workflow migration and the second hardening pass are complete at branch HEAD. The current local hardening pass adds a production-safe visual Zoo/Gym surface, hook/config enforcement checks, dependency-audit policy, CI gates, state-cache/history evidence validation, and dev-only Zoo route tightening. Local evidence is being refreshed through the deterministic gates; commit, push, and server validation are still required before these additions should be described as deployed.
+Codex workflow migration and the visual Zoo/Gym hardening pass are complete at branch HEAD. The workflow now includes a production-safe visual Zoo/Gym surface, hook/config enforcement checks, dependency-audit policy, CI gates, state-cache/history evidence validation, and dev-only Zoo route tightening. Local and server evidence are recorded in the centralized workflow records.
 
 Implemented workflow pieces:
 
@@ -123,6 +123,21 @@ Second hardening pass deployment validation:
 - Server-only `package-lock.json` metadata churn was backed up under `/root/monoWeb/deploy-backups/nexus/` before cleanup; server git status was clean after cleanup and validation.
 - The server should follow branch HEAD rather than a hardcoded final record commit, because record/handover commits can legitimately follow runtime validation.
 
+Final visual Zoo/Gym guide deployment validation:
+
+- Record: `DEPLOYMENT-20260509T113643Z-final-visual-zoo-guide-server-deployment-validat`
+- Server repo: `/root/monoWeb/nexus`
+- Runtime/source commit deployed and rebuilt on server: `54ffb85`
+- Server gates passed: `npm run audit:deps`, `npm run lint:design`, `npm run test --workspace=packages/api`, `npm run test --workspace=packages/web`, `npx vite build --base /nexus/`, `npm run workflow:prod-zoo-bundle-check`, and `npm run workflow:release-gate`.
+- Static deployment copied the `/nexus/` production build, `.codex/dashboard/public.html`, and `.codex/dashboard/zoo/` into `/var/www/cv.rehou.games/nexus/`.
+- Public app check: `https://cv.rehou.games/nexus/` returned 200 and referenced `/nexus/assets/`.
+- API health check: `https://cv.rehou.games/nexus/api/platform/health` returned 200 with `{"status":"ok"}`.
+- API service: `nexus-api` active after restart.
+- Public guide check: `https://cv.rehou.games/nexus/workflow/` returned 200 and linked the visual Zoo/Gym guide.
+- Visual Zoo/Gym guide check: `https://cv.rehou.games/nexus/workflow/zoo/` returned 200, loaded 54 screenshots, and had 0 broken image links in both desktop and mobile Playwright passes.
+- Browser evidence: use `node .codex/scripts/nexus-workflow.mjs status` for the latest hash-bound `GUIDE-BROWSER-*` record.
+- After deployment-record commits, pull branch HEAD on the server again so the server source copy includes the latest records; runtime assets are already deployed from `54ffb85`.
+
 Historical/model-routing evidence:
 
 - `TEST-20260508T170320Z-historical-hard-case-routing-analysis-c4a438e`
@@ -155,12 +170,7 @@ The earlier large dirty-tree report came from using the submodule common git dir
 
 ## Next Required Work
 
-Before final handover for the current hardening pass:
-
-- Commit and push the current local hardening changes.
-- Pull/deploy the branch on the server and validate `https://cv.rehou.games/nexus/workflow/`, `https://cv.rehou.games/nexus/workflow/zoo/`, the app, API health, and server workflow gates.
-
-After deployment, optional follow-ups remain tracked as risks:
+No migration-critical work is currently pending. Optional follow-ups remain tracked as risks:
 
 - Confirm the server remains clean after future dependency installs; the cleaned `package-lock.json` diff backup is at `/root/monoWeb/deploy-backups/nexus/package-lock-local-20260509-before-final-clean.diff` and `.json`.
 - Recheck the dependency audit baseline before 2026-06-09 and remove entries once `drizzle-kit` no longer carries the dev-only transitive advisory.

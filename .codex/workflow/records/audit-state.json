@@ -1,8 +1,8 @@
 {
-  "worktreeHash": "f0888f700b03f04b",
+  "worktreeHash": "807507612dd6074b",
   "verdict": "pass",
   "auditor": "codex-lead",
-  "auditedAt": "2026-05-09T11:24:26.738Z",
-  "auditRecord": ".codex/workflow/records/audits/AUDIT-20260509T112426Z-audit-pass-worktree.md",
-  "notes": "Audit passed for hash f0888f700b03f04b. Checked workflow architecture and prior failure causes: thin hooks only dispatch to run-hook, deterministic kernel owns gates, append-only evidence includes state-cache cross-checks plus commit-by-commit history checks, dependency audit exceptions are precise/current/expiring, design review is required for Zoo/design workflow changes, production build excludes dev-only Zoo, and dynamic pattern proposals were created for Zoo theming and full-page responsive captures. Remaining risks are tracked in current-state/risks."
+  "auditedAt": "2026-05-09T12:32:08.818Z",
+  "auditRecord": ".codex/workflow/records/audits/AUDIT-20260509T123208Z-audit-pass-worktree.md",
+  "notes": "Audit passed for final workflow evidence changes. Root causes fixed: manual guide evidence ordering caused stale guide hashes, staged-new records were misclassified as committed record edits, and review hashes changed on git add. The workflow now has a guide-browser finalizer, summary/dashboard coverage checks, staged-new evidence handling, and content-based worktree hashes."
 }

@@ -31,6 +31,7 @@
     "workflow:records-check": "node .codex/scripts/nexus-workflow.mjs records-check",
     "workflow:guide-check": "node .codex/scripts/nexus-workflow.mjs guide-check",
     "workflow:guide-browser-check": "node .codex/scripts/nexus-workflow.mjs guide-browser-check",
+    "workflow:guide-browser-finalize": "node .codex/scripts/nexus-workflow.mjs guide-browser-finalize",
     "workflow:zoo-check": "node .codex/scripts/nexus-workflow.mjs zoo-check",
     "workflow:capture-zoo-visuals": "node .codex/scripts/capture-design-zoo-visuals.mjs",
     "workflow:zoo-visual-guide": "node .codex/scripts/nexus-workflow.mjs zoo-visual-guide",

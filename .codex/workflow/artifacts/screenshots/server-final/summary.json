@@ -1,0 +1,41 @@
+[
+  {
+    "name": "workflow-guide-server",
+    "target": "https://cv.rehou.games/nexus/workflow/",
+    "viewport": {
+      "width": 1360,
+      "height": 900
+    },
+    "title": "Nexus Workflow Guide",
+    "url": "https://cv.rehou.games/nexus/workflow/",
+    "textSample": "Nexus Workflow Guide\nGenerated 2026-05-09T11:24:42.451Z · branch codex/native-workflow · deploy this file from the current branch HEAD\nWhat This Is\n\nThis is the public-safe guide for the Nexus Codex workflow. The complete internal workflow system lives in the repository under .codex/, with the compa",
+    "imageCount": 0,
+    "brokenImages": 0
+  },
+  {
+    "name": "workflow-zoo-server-desktop",
+    "target": "https://cv.rehou.games/nexus/workflow/zoo/",
+    "viewport": {
+      "width": 1360,
+      "height": 900
+    },
+    "title": "Nexus Design Zoo / Gym",
+    "url": "https://cv.rehou.games/nexus/workflow/zoo/",
+    "textSample": "Nexus Design Zoo / Gym\nVisual Demo Surface · generated 2026-05-09T11:17:20.014Z · captured 2026-05-09T11:17:08.107Z\nCaptured From Real /design Routes\n\nThis page is the deployable visual guide for the dev-only component gym. Screenshots are captured from real Nexus components rendered by packages/web",
+    "imageCount": 54,
+    "brokenImages": 0
+  },
+  {
+    "name": "workflow-zoo-server-mobile",
+    "target": "https://cv.rehou.games/nexus/workflow/zoo/",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "title": "Nexus Design Zoo / Gym",
+    "url": "https://cv.rehou.games/nexus/workflow/zoo/",
+    "textSample": "Nexus Design Zoo / Gym\nVisual Demo Surface · generated 2026-05-09T11:17:20.014Z · captured 2026-05-09T11:17:08.107Z\nCaptured From Real /design Routes\n\nThis page is the deployable visual guide for the dev-only component gym. Screenshots are captured from real Nexus components rendered by packages/web",
+    "imageCount": 54,
+    "brokenImages": 0
+  }
+]

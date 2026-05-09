@@ -1,14 +1,15 @@
 {
-  "guideArtifactHash": "8774d0880331d07600fc0bbb",
+  "guideArtifactHash": "4b4836df506018cfafb1496a",
   "verdict": "pass",
-  "checkedAt": "2026-05-09T11:25:41.092Z",
+  "checkedAt": "2026-05-09T12:32:53.124Z",
   "reviewer": "codex-lead",
-  "guideBrowserRecord": ".codex/workflow/records/guide-browser/GUIDE-BROWSER-20260509T112541Z-guide-browser-pass.md",
+  "guideBrowserRecord": ".codex/workflow/records/guide-browser/GUIDE-BROWSER-20260509T123253Z-guide-browser-pass.md",
   "screenshots": [
-    ".codex/workflow/artifacts/screenshots/visual-zoo-guide/workflow-guide-final.png",
-    ".codex/workflow/artifacts/screenshots/visual-zoo-guide/dashboard-final.png",
-    ".codex/workflow/artifacts/screenshots/visual-zoo-guide/zoo-guide-final-desktop.png",
-    ".codex/workflow/artifacts/screenshots/visual-zoo-guide/zoo-guide-final-mobile.png"
+    ".codex/workflow/artifacts/screenshots/guide-browser-final/dashboard-artifact.jpg",
+    ".codex/workflow/artifacts/screenshots/guide-browser-final/workflow-guide-artifact.jpg",
+    ".codex/workflow/artifacts/screenshots/guide-browser-final/workflow-zoo-artifact-desktop.jpg",
+    ".codex/workflow/artifacts/screenshots/guide-browser-final/workflow-zoo-artifact-mobile.jpg"
   ],
-  "notes": "Final repo Playwright browser validation opened regenerated public guide, internal dashboard, and Zoo/Gym guide after review/verify/audit records. Public guide and dashboard link to Zoo/Gym. Zoo/Gym desktop and mobile pages expose 54 demo cards and load 54 screenshots with zero broken images. In-app Browser plugin remains blocked by missing local Chrome Playwright extension, so repo Playwright was used for repeatable evidence."
+  "summaryFile": ".codex/workflow/artifacts/screenshots/guide-browser-final/summary.json",
+  "notes": "Final generated guide artifact browser validation after review, verification, and audit records. Deterministic proof is in summary.json: internal dashboard, public guide, and visual Zoo/Gym artifacts rendered with expected titles; Zoo desktop/mobile loaded 54 images with 0 broken images. JPEG files are bounded viewport previews for human inspection, not pixel-diff baselines."
 }

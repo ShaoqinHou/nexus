@@ -10,14 +10,20 @@ Use this evidence when `.codex/dashboard/index.html` or `.codex/dashboard/public
 Record with:
 
 ```bash
-node .codex/scripts/nexus-workflow.mjs record-guide-browser --verdict pass --reviewer <name> --screenshots "path1,path2" --notes "<desktop/mobile browser checks>"
+npm run workflow:guide-browser-finalize
 ```
 
 Required evidence:
 
-- public guide desktop screenshot,
-- public guide mobile screenshot,
-- internal dashboard desktop screenshot,
-- internal dashboard mobile screenshot,
-- confirmation that `/design` / Zoo-Gym links and record counts render,
+- deterministic checks for the rendered target, such as title, key text, link targets, image count, broken image count, and relevant HTTP status,
+- `summary.json` with target URL or file URL, viewport, title, image count, and broken image count,
+- representative desktop and mobile screenshot previews for the internal dashboard, public guide, and visual Zoo/Gym guide,
+- confirmation that the workflow guide links the visual Zoo/Gym guide,
+- confirmation that the Zoo/Gym guide renders its expected screenshots,
 - note any browser or screenshot capture limitation.
+
+Screenshot format:
+
+- JPEG previews are acceptable for broad page-render evidence when deterministic checks prove the claim.
+- Use PNG or another lossless artifact for pixel comparison, visual regression baselines, exact color/token debugging, or small UI crops.
+- Prefer viewport screenshots for validation evidence. Use full-page screenshots only when the full-page layout is itself the claim.

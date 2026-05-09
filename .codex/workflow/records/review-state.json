@@ -1,28 +1,28 @@
 {
-  "worktreeHash": "f0888f700b03f04b",
+  "worktreeHash": "807507612dd6074b",
   "verdict": "pass",
   "reviewer": "codex-lead",
-  "reviewedAt": "2026-05-09T11:24:03.296Z",
-  "reviewRecord": ".codex/workflow/records/reviews/REVIEW-20260509T112403Z-review-workflow-pass-worktree.md",
-  "notes": "Workflow review passed for hash f0888f700b03f04b. Verified hooks remain thin run-hook dispatchers, hook-config check enforces commands/matchers/no-prompt config, release gate covers records/routing/review/verify/audit/guide/browser/zoo/dependency/prod-bundle/self-test, append-only history uses git log commit-by-commit with same-branch rewrite self-tests, and CI checkout uses full history.",
+  "reviewedAt": "2026-05-09T12:31:26.912Z",
+  "reviewRecord": ".codex/workflow/records/reviews/REVIEW-20260509T123126Z-review-workflow-pass-worktree.md",
+  "notes": "Workflow review passed for hash 807507612dd6074b. The finalizer prevents manual guide-evidence ordering drift, guide-browser check validates deterministic summary coverage, staged-new evidence records are allowed only when absent from HEAD, committed evidence edits remain blocked, and the review hash is content-based so git add does not invalidate evidence.",
   "kind": "workflow",
-  "patchId": "PATCH-20260509T111917Z-final-corrected-visual-zoo-gym-guide-and-codex-w",
+  "patchId": "PATCH-20260509T123053Z-final-deployment-evidence-screenshot-policy-guid",
   "reviewKinds": {
     "general": {
-      "worktreeHash": "f0888f700b03f04b",
+      "worktreeHash": "807507612dd6074b",
       "verdict": "pass",
       "reviewer": "codex-lead",
-      "reviewedAt": "2026-05-09T11:24:03.287Z",
-      "reviewRecord": ".codex/workflow/records/reviews/REVIEW-20260509T112403Z-review-general-pass-worktree.md",
-      "patchId": "PATCH-20260509T111917Z-final-corrected-visual-zoo-gym-guide-and-codex-w"
+      "reviewedAt": "2026-05-09T12:31:17.052Z",
+      "reviewRecord": ".codex/workflow/records/reviews/REVIEW-20260509T123117Z-review-general-pass-worktree.md",
+      "patchId": "PATCH-20260509T123053Z-final-deployment-evidence-screenshot-policy-guid"
     },
     "workflow": {
-      "worktreeHash": "f0888f700b03f04b",
+      "worktreeHash": "807507612dd6074b",
       "verdict": "pass",
       "reviewer": "codex-lead",
-      "reviewedAt": "2026-05-09T11:24:03.296Z",
-      "reviewRecord": ".codex/workflow/records/reviews/REVIEW-20260509T112403Z-review-workflow-pass-worktree.md",
-      "patchId": "PATCH-20260509T111917Z-final-corrected-visual-zoo-gym-guide-and-codex-w"
+      "reviewedAt": "2026-05-09T12:31:26.912Z",
+      "reviewRecord": ".codex/workflow/records/reviews/REVIEW-20260509T123126Z-review-workflow-pass-worktree.md",
+      "patchId": "PATCH-20260509T123053Z-final-deployment-evidence-screenshot-policy-guid"
     },
     "design": {
       "worktreeHash": "f0888f700b03f04b",

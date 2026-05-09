@@ -28,6 +28,7 @@ MSYS_NO_PATHCONV=1 npx vite build --base /nexus/
 
 For visible or interactive changes:
 
+- read `.codex/knowledge/verification.md` before deciding what evidence to keep,
 - start API and web dev servers,
 - open `http://localhost:5173`,
 - verify visual state, interactions, expected network calls, console errors, and output correctness,
@@ -52,8 +53,9 @@ After meaningful validation:
 node .codex/scripts/nexus-workflow.mjs record-verify --scope worktree --verdict pass --verifier <name> --notes "<commands and results>"
 node .codex/scripts/nexus-workflow.mjs record-test --summary "<gate>" --notes "<commands and results>"
 node .codex/scripts/nexus-workflow.mjs record-deployment --summary "<deploy>" --notes "<server evidence>"
-node .codex/scripts/nexus-workflow.mjs record-guide-browser --verdict pass --reviewer <name> --screenshots "path1,path2" --notes "<guide browser checks>"
+npm run workflow:guide-browser-finalize
 ```
 
 `record-verify` is the gate record. `record-test` and `record-deployment` are supporting evidence.
-`record-guide-browser` is the generated guide visual gate and is checked by `workflow:guide-browser-check`.
+`workflow:guide-browser-finalize` is the generated guide visual gate finalizer and is checked by `workflow:guide-browser-check`.
+Screenshots attached to records are supporting evidence. Use deterministic checks and `summary.json` for pass/fail proof; use JPEG previews for broad page-render evidence and PNG/lossless images for pixel-sensitive work.

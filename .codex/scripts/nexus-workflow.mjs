@@ -4,6 +4,7 @@ import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, 
 import { dirname, join, resolve, relative } from 'node:path';
 import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
+import { pathToFileURL } from 'node:url';
 
 const START = process.cwd();
 const ROOT = findRoot(START);
@@ -213,14 +214,13 @@ function auditRelevantFiles(files = changedFiles()) {
   });
 }
 
-function worktreeHash() {
-  const files = substantiveFiles();
-  const unstagedDiff = files.length ? gitText(['diff', '--', ...files]) : '';
-  const stagedDiff = files.length ? gitText(['diff', '--cached', '--', ...files]) : '';
-  const untracked = files.length
-    ? gitText(['ls-files', '--others', '--exclude-standard', '--', ...files]).split(/\r?\n/).filter(Boolean)
-    : [];
-  const untrackedContent = untracked.map((file) => {
+function worktreeHashFromContent(files, content) {
+  const payload = JSON.stringify({ files, content });
+  return createHash('sha256').update(payload).digest('hex').slice(0, 16);
+}
+
+function worktreeContentEntries(files) {
+  return files.map((file) => {
     const path = join(ROOT, file);
     try {
       const st = statSync(path);
@@ -230,8 +230,11 @@ function worktreeHash() {
       return [file, 'missing'];
     }
   });
-  const payload = JSON.stringify({ files, stagedDiff, unstagedDiff, untrackedContent });
-  return createHash('sha256').update(payload).digest('hex').slice(0, 16);
+}
+
+function worktreeHash() {
+  const files = substantiveFiles();
+  return worktreeHashFromContent(files, worktreeContentEntries(files));
 }
 
 function canonicalTextForHash(buffer) {
@@ -533,6 +536,11 @@ function gitRefExists(ref) {
   return git(['rev-parse', '--verify', '--quiet', ref]).status === 0;
 }
 
+function gitPathExistsAtHead(file) {
+  if (!gitRefExists('HEAD')) return false;
+  return git(['cat-file', '-e', `HEAD:${file}`]).status === 0;
+}
+
 function recordHistoryBase() {
   const configured = process.env.NEXUS_RECORD_BASE;
   if (configured && gitRefExists(configured)) return configured;
@@ -634,15 +642,23 @@ function stateCacheIntegrityProblems() {
   return problems;
 }
 
+function evidenceStatusProblem(entry, trackedAtHead) {
+  if (!entry.file.endsWith('.md') || entry.file.endsWith('/.gitkeep')) return '';
+  if (entry.status === '??') return '';
+  const status = entry.status.padEnd(2, ' ');
+  const isNewStagedRecord = !trackedAtHead && status[0] === 'A' && status[1] !== 'D';
+  if (isNewStagedRecord) return '';
+  return `Existing evidence record changed or was removed: ${entry.status.trim() || entry.status} ${entry.file}. Create a correction record instead of editing committed evidence.`;
+}
+
 function recordIntegrityProblems() {
   const paths = EVIDENCE_RECORD_KINDS.map((kind) => `.codex/workflow/records/${kind}`);
   const entries = gitStatusEntries(paths);
   const statusByFile = gitStatusMap(RECORD_KINDS.map((kind) => `.codex/workflow/records/${kind}`));
   const problems = [];
   for (const entry of entries) {
-    if (!entry.file.endsWith('.md') || entry.file.endsWith('/.gitkeep')) continue;
-    if (entry.status === '??') continue;
-    problems.push(`Existing evidence record changed or was removed: ${entry.status.trim() || entry.status} ${entry.file}. Create a correction record instead of editing committed evidence.`);
+    const problem = evidenceStatusProblem(entry, gitPathExistsAtHead(entry.file));
+    if (problem) problems.push(problem);
   }
   for (const kind of RECORD_KINDS) {
     const dir = join(RECORDS, kind);
@@ -1332,15 +1348,17 @@ function commandRecordGuideBrowser(args) {
     console.error('record-guide-browser requires --verdict pass|fail|partial|blocked');
     process.exit(2);
   }
-  if (verdict === 'pass' && (!args.screenshots || !args.notes)) {
-    console.error('record-guide-browser pass requires --screenshots and --notes.');
+  if (verdict === 'pass' && (!args.screenshots || !args.notes || !args['summary-file'])) {
+    console.error('record-guide-browser pass requires --screenshots, --summary-file, and --notes.');
     process.exit(2);
   }
   const hash = guideArtifactHash();
   const screenshots = args.screenshots ? csv(args.screenshots) : [];
+  const summaryFile = args['summary-file'] || '';
   const missing = screenshots.filter((file) => !existsSync(join(ROOT, file)));
+  if (summaryFile && !existsSync(join(ROOT, summaryFile))) missing.push(summaryFile);
   if (missing.length) {
-    console.error('record-guide-browser screenshots are missing:');
+    console.error('record-guide-browser evidence files are missing:');
     for (const file of missing) console.error(`- ${file}`);
     process.exit(2);
   }
@@ -1349,6 +1367,8 @@ function commandRecordGuideBrowser(args) {
     `Verdict: ${verdict}`,
     `Reviewer: ${args.reviewer || args.verifier || 'unknown'}`,
     `Guide artifact hash: ${hash}`,
+    '',
+    summaryFile ? `Summary file: ${summaryFile}` : 'Summary file: n/a',
     '',
     screenshots.length ? ['Screenshots:', ...screenshots.map((file) => `- ${file}`)].join('\n') : 'Screenshots: n/a',
     '',
@@ -1359,6 +1379,7 @@ function commandRecordGuideBrowser(args) {
     reviewer: args.reviewer || args.verifier || 'unknown',
     guideArtifactHash: hash,
     screenshots,
+    summaryFile,
   });
   saveJson(GUIDE_BROWSER_STATE_FILE, {
     guideArtifactHash: hash,
@@ -1367,10 +1388,54 @@ function commandRecordGuideBrowser(args) {
     reviewer: args.reviewer || args.verifier || 'unknown',
     guideBrowserRecord: relative(ROOT, rec.path).replaceAll('\\', '/'),
     screenshots,
+    summaryFile,
     notes: args.notes || '',
   });
   console.log(`Recorded guide browser ${verdict} for ${hash}`);
   console.log(relative(ROOT, rec.path));
+}
+
+function readGuideBrowserSummary(summaryFile) {
+  if (!summaryFile) return { entries: [], problems: ['guide browser validation pass has no summary file.'] };
+  const path = join(ROOT, summaryFile);
+  if (!existsSync(path)) return { entries: [], problems: [`guide browser summary file is missing: ${summaryFile}`] };
+  try {
+    const parsed = JSON.parse(readFileSync(path, 'utf8'));
+    const entries = Array.isArray(parsed) ? parsed : parsed.entries;
+    if (!Array.isArray(entries)) return { entries: [], problems: [`guide browser summary is not an array or { entries }: ${summaryFile}`] };
+    return { entries, problems: [] };
+  } catch (error) {
+    return { entries: [], problems: [`guide browser summary is invalid JSON: ${summaryFile} (${error.message})`] };
+  }
+}
+
+function guideBrowserSummaryProblems(summaryFile) {
+  const { entries, problems } = readGuideBrowserSummary(summaryFile);
+  if (problems.length) return problems;
+  const requiredNames = [
+    'dashboard-artifact',
+    'workflow-guide-artifact',
+    'workflow-zoo-artifact-desktop',
+    'workflow-zoo-artifact-mobile',
+  ];
+  const names = new Set(entries.map((entry) => entry.name));
+  for (const name of requiredNames) {
+    if (!names.has(name)) problems.push(`guide browser summary is missing required target: ${name}`);
+  }
+  for (const entry of entries) {
+    if (!entry.name || !entry.target || !entry.viewport || !entry.title) problems.push(`guide browser summary entry is incomplete: ${entry.name || '(unnamed)'}`);
+    if (Number(entry.brokenImages || 0) !== 0) problems.push(`guide browser summary entry has broken images: ${entry.name}`);
+  }
+  const dashboard = entries.find((entry) => entry.name === 'dashboard-artifact');
+  const guide = entries.find((entry) => entry.name === 'workflow-guide-artifact');
+  const zoo = entries.filter((entry) => String(entry.name || '').startsWith('workflow-zoo-artifact-'));
+  if (dashboard && dashboard.title !== 'Nexus Workflow Dashboard') problems.push(`dashboard artifact title mismatch: ${dashboard.title}`);
+  if (guide && guide.title !== 'Nexus Workflow Guide') problems.push(`public guide artifact title mismatch: ${guide.title}`);
+  for (const entry of zoo) {
+    if (entry.title !== 'Nexus Design Zoo / Gym') problems.push(`Zoo/Gym artifact title mismatch for ${entry.name}: ${entry.title}`);
+    if (Number(entry.imageCount || 0) < 1) problems.push(`Zoo/Gym artifact has no screenshots in DOM: ${entry.name}`);
+  }
+  return problems;
 }
 
 function guideBrowserProblems() {
@@ -1384,6 +1449,9 @@ function guideBrowserProblems() {
     problems.push('guide browser validation pass has no screenshot evidence.');
   }
   if (state.verdict === 'pass') {
+    problems.push(...guideBrowserSummaryProblems(state.summaryFile));
+  }
+  if (state.verdict === 'pass') {
     problems.push(...evidenceRecordProblems('guide-browser', state.guideBrowserRecord, {
       guideArtifactHash: state.guideArtifactHash,
       verdict: 'pass',
@@ -1393,6 +1461,101 @@ function guideBrowserProblems() {
     if (!existsSync(join(ROOT, file))) problems.push(`guide browser screenshot is missing: ${file}`);
   }
   return problems;
+}
+
+async function captureBrowserTarget(page, outDirRel, target) {
+  const { name, url, viewport, screenshot } = target;
+  await page.setViewportSize(viewport);
+  await page.goto(url, { waitUntil: 'domcontentloaded' });
+  await page.evaluate(() => [...document.images].forEach((img) => { img.loading = 'eager'; }));
+  for (let pass = 0; pass < 3; pass++) {
+    const height = await page.evaluate(() => document.documentElement.scrollHeight);
+    for (let y = 0; y <= height; y += 700) {
+      await page.evaluate((scrollY) => window.scrollTo(0, scrollY), y);
+      await page.waitForTimeout(60);
+    }
+  }
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForFunction(() => [...document.images].every((img) => img.complete && img.naturalWidth > 0), null, { timeout: 30000 }).catch(() => null);
+  await page.screenshot({
+    path: join(ROOT, outDirRel, screenshot),
+    type: 'jpeg',
+    quality: 76,
+    fullPage: false,
+  });
+  return page.evaluate((targetName) => ({
+    name: targetName,
+    target: location.href,
+    viewport: {
+      width: window.innerWidth,
+      height: window.innerHeight,
+    },
+    title: document.title,
+    textSample: document.body.innerText.slice(0, 300),
+    imageCount: document.images.length,
+    brokenImages: [...document.images].filter((img) => !img.complete || img.naturalWidth === 0).length,
+  }), name);
+}
+
+async function commandGuideBrowserFinalize(args = {}) {
+  commandZooVisualGuide({ quiet: true });
+  commandDashboard({ quiet: true });
+  commandPublicGuide({ quiet: true });
+
+  const outDirRel = args['out-dir'] || '.codex/workflow/artifacts/screenshots/guide-browser-final';
+  const outDir = join(ROOT, outDirRel);
+  rmSync(outDir, { recursive: true, force: true });
+  ensureDir(outDir);
+
+  let chromium;
+  try {
+    ({ chromium } = await import('playwright'));
+  } catch (error) {
+    console.error(`guide-browser-finalize requires Playwright: ${error.message}`);
+    process.exit(1);
+  }
+
+  const dashboardUrl = pathToFileURL(join(DASHBOARD_DIR, 'index.html')).href;
+  const publicGuideUrl = pathToFileURL(join(DASHBOARD_DIR, 'public.html')).href;
+  const zooUrl = pathToFileURL(join(ZOO_GUIDE_DIR, 'index.html')).href;
+  const targets = [
+    { name: 'dashboard-artifact', url: dashboardUrl, viewport: { width: 1360, height: 900 }, screenshot: 'dashboard-artifact.jpg' },
+    { name: 'workflow-guide-artifact', url: publicGuideUrl, viewport: { width: 1360, height: 900 }, screenshot: 'workflow-guide-artifact.jpg' },
+    { name: 'workflow-zoo-artifact-desktop', url: zooUrl, viewport: { width: 1360, height: 900 }, screenshot: 'workflow-zoo-artifact-desktop.jpg' },
+    { name: 'workflow-zoo-artifact-mobile', url: zooUrl, viewport: { width: 390, height: 844 }, screenshot: 'workflow-zoo-artifact-mobile.jpg' },
+  ];
+
+  const browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage();
+  const entries = [];
+  try {
+    for (const target of targets) {
+      entries.push(await captureBrowserTarget(page, outDirRel, target));
+    }
+  } finally {
+    await browser.close();
+  }
+
+  const summaryFile = `${outDirRel}/summary.json`;
+  writeFileSync(join(ROOT, summaryFile), `${JSON.stringify(entries, null, 2)}\n`);
+  const summaryProblems = guideBrowserSummaryProblems(summaryFile);
+  if (summaryProblems.length) {
+    console.error('guide browser summary problems:');
+    for (const problem of summaryProblems) console.error(`- ${problem}`);
+    process.exit(1);
+  }
+
+  const screenshots = targets.map((target) => `${outDirRel}/${target.screenshot}`);
+  commandRecordGuideBrowser({
+    verdict: 'pass',
+    reviewer: args.reviewer || 'codex-lead',
+    screenshots: screenshots.join(','),
+    'summary-file': summaryFile,
+    notes: args.notes || 'Final generated guide artifact browser validation. Deterministic proof is in summary.json; JPEG files are bounded viewport previews for human inspection, not pixel-diff baselines.',
+  });
+  if (!args.quiet) {
+    console.log(`Guide browser evidence finalized: ${summaryFile}`);
+  }
 }
 
 function commandGuideBrowserCheck({ quiet = false } = {}) {
@@ -1660,6 +1823,7 @@ function commandPublicGuide(args = {}) {
     '.codex/knowledge/patterns.md',
     '.codex/knowledge/model-routing.md',
     '.codex/knowledge/hooks.md',
+    '.codex/knowledge/verification.md',
     '.codex/knowledge/deployment.md',
   ]);
   const projectNodes = [
@@ -2774,6 +2938,12 @@ function workflowSelfTestChecks() {
     'commit b',
     'A\t.codex/workflow/records/tests/TEST-1.md',
   ].join('\n'), 'fixture-base').length === 0);
+  add('record integrity allows staged new evidence records', evidenceStatusProblem({ status: 'A ', file: '.codex/workflow/records/tests/TEST-NEW.md' }, false) === '');
+  add('record integrity allows staged then modified new evidence records', evidenceStatusProblem({ status: 'AM', file: '.codex/workflow/records/tests/TEST-NEW.md' }, false) === '');
+  add('record integrity rejects modified committed evidence records', evidenceStatusProblem({ status: ' M', file: '.codex/workflow/records/tests/TEST-OLD.md' }, true).includes('Existing evidence record changed'));
+  add('record integrity rejects staged-deleted new evidence records', evidenceStatusProblem({ status: 'AD', file: '.codex/workflow/records/tests/TEST-NEW.md' }, false).includes('Existing evidence record changed'));
+  add('worktree hash is content based independent of staging state', worktreeHashFromContent(['a'], [['a', 'hash']]) === worktreeHashFromContent(['a'], [['a', 'hash']]));
+  add('worktree hash changes when file content changes', worktreeHashFromContent(['a'], [['a', 'hash']]) !== worktreeHashFromContent(['a'], [['a', 'other']]));
   add('guide source hash canonicalizes line endings', createHash('sha256').update(canonicalTextForHash('a\r\nb\r\n')).digest('hex') === createHash('sha256').update(canonicalTextForHash('a\nb\n')).digest('hex'));
   add('guide source hash includes records and gate states', (() => {
     const inputs = publicGuideInputFiles();
@@ -2815,6 +2985,31 @@ function workflowSelfTestChecks() {
     const state = { guideArtifactHash: 'stale', verdict: 'pass', screenshots: ['a.png'] };
     const hash = guideArtifactHash();
     return state.guideArtifactHash !== hash;
+  })());
+  add('guide browser summary accepts required deterministic targets', (() => {
+    const dir = mkdtempSync(join(tmpdir(), 'nexus-guide-summary-'));
+    const summaryPath = join(dir, 'summary.json');
+    const rel = relative(ROOT, summaryPath).replaceAll('\\', '/');
+    writeFileSync(summaryPath, JSON.stringify([
+      { name: 'dashboard-artifact', target: 'file:///dashboard', viewport: { width: 1, height: 1 }, title: 'Nexus Workflow Dashboard', imageCount: 0, brokenImages: 0 },
+      { name: 'workflow-guide-artifact', target: 'file:///public', viewport: { width: 1, height: 1 }, title: 'Nexus Workflow Guide', imageCount: 0, brokenImages: 0 },
+      { name: 'workflow-zoo-artifact-desktop', target: 'file:///zoo', viewport: { width: 1, height: 1 }, title: 'Nexus Design Zoo / Gym', imageCount: 1, brokenImages: 0 },
+      { name: 'workflow-zoo-artifact-mobile', target: 'file:///zoo', viewport: { width: 1, height: 1 }, title: 'Nexus Design Zoo / Gym', imageCount: 1, brokenImages: 0 },
+    ]));
+    const ok = guideBrowserSummaryProblems(rel).length === 0;
+    rmSync(dir, { recursive: true, force: true });
+    return ok;
+  })());
+  add('guide browser summary rejects missing dashboard coverage', (() => {
+    const dir = mkdtempSync(join(tmpdir(), 'nexus-guide-summary-'));
+    const summaryPath = join(dir, 'summary.json');
+    const rel = relative(ROOT, summaryPath).replaceAll('\\', '/');
+    writeFileSync(summaryPath, JSON.stringify([
+      { name: 'workflow-guide-artifact', target: 'file:///public', viewport: { width: 1, height: 1 }, title: 'Nexus Workflow Guide', imageCount: 0, brokenImages: 0 },
+    ]));
+    const ok = guideBrowserSummaryProblems(rel).some((problem) => problem.includes('dashboard-artifact'));
+    rmSync(dir, { recursive: true, force: true });
+    return ok;
   })());
   add('guide browser check rejects missing screenshot files', (() => {
     const current = guideArtifactHash();
@@ -3382,6 +3577,7 @@ else if (command === 'record-review') commandRecordReview(args);
 else if (command === 'record-verify') commandRecordVerification(args);
 else if (command === 'record-audit') commandRecordAudit(args);
 else if (command === 'record-guide-browser') commandRecordGuideBrowser(args);
+else if (command === 'guide-browser-finalize') await commandGuideBrowserFinalize(args);
 else if (command === 'record-test') commandRecordTest(args);
 else if (command === 'record-deployment') commandRecordDeployment(args);
 else if (command === 'record-decision') commandRecordGeneric('decisions', args);

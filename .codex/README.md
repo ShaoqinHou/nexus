@@ -18,6 +18,7 @@ This is the project-local workflow root for Codex sessions.
 - `knowledge/design-system.md` captures the design-system source of truth and invariants.
 - `knowledge/model-routing.md` captures lead/worker routing, Spark limits, strong-worker usage, and fallback rules.
 - `knowledge/hooks.md` captures what hooks do, what they cannot catch, and how deterministic gates cover the gaps.
+- `knowledge/verification.md` captures evidence policy for tests, browser checks, screenshots, and deployment validation.
 - `knowledge/deployment.md` captures server and deployment conventions.
 - `agents/*.toml` defines project-scoped Codex subagents.
 - `scripts/nexus-workflow.mjs` is the deterministic workflow helper.
@@ -29,6 +30,7 @@ This is the project-local workflow root for Codex sessions.
 - `hooks.json` wires Codex lifecycle hooks when project hooks are enabled and trusted.
 - `.github/workflows/nexus-workflow-gates.yml` runs the same workflow gates in CI so enforcement is not hook-only.
 - `workflow/templates/` describes record shapes for humans and agents.
+- `npm run workflow:guide-browser-finalize` is the deterministic final guide-evidence step. Run it after review, verification, and audit records are in place; it regenerates guide artifacts, captures browser evidence, and records the hash-bound guide-browser pass.
 
 ## Workflow Kernel
 
@@ -99,6 +101,12 @@ Pattern proposal, routing, patch, review, test, audit, guide-browser, and deploy
 `.codex/dashboard/index.html` and `.codex/dashboard/public.html` are generated guide artifacts and user-facing workflow surfaces. They are governed by the dedicated guide freshness/content-hash gate and recorded browser validation; their generator, source docs, state files, records, and workflow rules remain part of the substantive review surface.
 
 If final deployment or records create more commits after the runtime build, describe that as "branch HEAD" or link to the deployment record instead of hardcoding a final commit that the next bookkeeping commit can invalidate.
+
+Guide-browser evidence is intentionally generated as one atomic workflow step. Avoid manually recording browser evidence before review, verification, audit, and generated-guide updates are settled; any later guide-affecting record or script change correctly invalidates the previous artifact hash. Use:
+
+```bash
+npm run workflow:guide-browser-finalize
+```
 
 ## Pattern Discovery
 

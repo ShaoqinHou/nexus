@@ -1,8 +1,8 @@
 {
-  "worktreeHash": "f0888f700b03f04b",
+  "worktreeHash": "807507612dd6074b",
   "verdict": "pass",
   "verifier": "codex-lead",
-  "verifiedAt": "2026-05-09T11:24:26.653Z",
-  "verifyRecord": ".codex/workflow/records/tests/TEST-20260509T112426Z-verification-pass-worktree.md",
-  "notes": "Local verification passed for hash f0888f700b03f04b. Commands passed: npm test; npm run build; npm run lint:design; npm run audit:deps; npm run workflow:design-zoo with selectedTheme/bodyTheme=sichuan, zooThemeScopeCount=2, mainHeadingContrast=15.45; npm run workflow:prod-zoo-bundle-check scanning 54 JS assets; npm run workflow:model-routing-check; npm run workflow:hook-config-check; npm run workflow:records-check; npm run workflow:guide-check; npm run workflow:zoo-visual-guide-check; npm run workflow:guide-browser-check. Browser evidence used repo Playwright due missing in-app Chrome extension."
+  "verifiedAt": "2026-05-09T12:31:59.392Z",
+  "verifyRecord": ".codex/workflow/records/tests/TEST-20260509T123159Z-verification-pass-worktree.md",
+  "notes": "Verification for final workflow evidence changes at hash 807507612dd6074b. Passed: workflow:self-test (81 checks), workflow:model-routing-check (15 scenarios), workflow:routing-check, workflow:review-check, workflow:hook-config-check, workflow:dependency-audit-check. The final guide-browser evidence step runs after verification/audit records to avoid stale generated-guide hashes."
 }
