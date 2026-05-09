@@ -1,28 +1,28 @@
 {
-  "worktreeHash": "224679ad265e8e27",
+  "worktreeHash": "a19b694381e8b120",
   "verdict": "pass",
   "reviewer": "codex-lead",
-  "reviewedAt": "2026-05-09T08:17:19.370Z",
-  "reviewRecord": ".codex/workflow/records/reviews/REVIEW-20260509T081719Z-review-workflow-pass-worktree.md",
-  "notes": "Workflow review passed for hash 224679ad265e8e27: deterministic kernel owns gates, hooks remain thin triggers, routing preflight and guide freshness checks are executable, and generated-guide whitespace normalization is self-tested.",
+  "reviewedAt": "2026-05-09T08:31:21.173Z",
+  "reviewRecord": ".codex/workflow/records/reviews/REVIEW-20260509T083121Z-review-workflow-pass-worktree.md",
+  "notes": "Workflow review passed: publicGuideSourceHash canonicalizes CRLF/LF input, routing checks short-circuit for clean worktrees, status uses verify/audit check commands, and self-test covers the new failure modes.",
   "kind": "workflow",
-  "patchId": "PATCH-20260509T081544Z-final-workflow-hardening-scope-after-removing-ge",
+  "patchId": "PATCH-20260509T083033Z-clean-committed-state-release-gate-fix-plus-comp",
   "reviewKinds": {
     "general": {
-      "worktreeHash": "224679ad265e8e27",
+      "worktreeHash": "a19b694381e8b120",
       "verdict": "pass",
       "reviewer": "codex-lead",
-      "reviewedAt": "2026-05-09T08:17:09.682Z",
-      "reviewRecord": ".codex/workflow/records/reviews/REVIEW-20260509T081709Z-review-general-pass-worktree.md",
-      "patchId": "PATCH-20260509T081544Z-final-workflow-hardening-scope-after-removing-ge"
+      "reviewedAt": "2026-05-09T08:31:10.037Z",
+      "reviewRecord": ".codex/workflow/records/reviews/REVIEW-20260509T083110Z-review-general-pass-worktree.md",
+      "patchId": "PATCH-20260509T083033Z-clean-committed-state-release-gate-fix-plus-comp"
     },
     "workflow": {
-      "worktreeHash": "224679ad265e8e27",
+      "worktreeHash": "a19b694381e8b120",
       "verdict": "pass",
       "reviewer": "codex-lead",
-      "reviewedAt": "2026-05-09T08:17:19.370Z",
-      "reviewRecord": ".codex/workflow/records/reviews/REVIEW-20260509T081719Z-review-workflow-pass-worktree.md",
-      "patchId": "PATCH-20260509T081544Z-final-workflow-hardening-scope-after-removing-ge"
+      "reviewedAt": "2026-05-09T08:31:21.173Z",
+      "reviewRecord": ".codex/workflow/records/reviews/REVIEW-20260509T083121Z-review-workflow-pass-worktree.md",
+      "patchId": "PATCH-20260509T083033Z-clean-committed-state-release-gate-fix-plus-comp"
     }
   }
 }

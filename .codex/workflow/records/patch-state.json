@@ -1,6 +1,31 @@
 {
   "events": [
     {
+      "at": "2026-05-09T08:30:33.487Z",
+      "source": "codex-lead",
+      "reason": "patch PATCH-20260509T083033Z-clean-committed-state-release-gate-fix-plus-comp",
+      "files": [
+        ".codex/scripts/nexus-workflow.mjs",
+        ".codex/workflow/current-state.md"
+      ],
+      "worktreeHash": "a19b694381e8b120",
+      "patchId": "PATCH-20260509T083033Z-clean-committed-state-release-gate-fix-plus-comp",
+      "routingId": "ROUTING-20260509T083024Z-clean-committed-state-release-gate-fix-plus-comp",
+      "worker": "codex-lead"
+    },
+    {
+      "at": "2026-05-09T08:28:48.416Z",
+      "source": "codex-lead",
+      "reason": "patch PATCH-20260509T082848Z-fix-clean-committed-state-release-gate-and-cross",
+      "files": [
+        ".codex/scripts/nexus-workflow.mjs"
+      ],
+      "worktreeHash": "1bebd6b7e1b98ab0",
+      "patchId": "PATCH-20260509T082848Z-fix-clean-committed-state-release-gate-and-cross",
+      "routingId": "ROUTING-20260509T082838Z-clean-committed-state-release-gate-and-cross-pla",
+      "worker": "codex-lead"
+    },
+    {
       "at": "2026-05-09T08:15:44.717Z",
       "source": "codex-lead",
       "reason": "patch PATCH-20260509T081544Z-final-workflow-hardening-scope-after-removing-ge",
@@ -1200,23 +1225,16 @@
       "worktreeHash": "4379f8bf9e55ae86"
     }
   ],
-  "worktreeHash": "224679ad265e8e27",
-  "lastChangedAt": "2026-05-09T08:15:44.717Z",
-  "reason": "patch PATCH-20260509T081544Z-final-workflow-hardening-scope-after-removing-ge",
+  "worktreeHash": "a19b694381e8b120",
+  "lastChangedAt": "2026-05-09T08:30:33.487Z",
+  "reason": "patch PATCH-20260509T083033Z-clean-committed-state-release-gate-fix-plus-comp",
   "source": "codex-lead",
   "files": [
     ".codex/scripts/nexus-workflow.mjs",
-    ".codex/README.md",
-    ".codex/knowledge/hooks.md",
-    ".codex/knowledge/model-routing.md",
-    ".codex/dashboard/index.html",
-    ".codex/dashboard/public.html",
-    ".codex/workflow/current-state.md",
-    "AGENTS.md",
-    "package.json"
+    ".codex/workflow/current-state.md"
   ],
-  "patchId": "PATCH-20260509T081544Z-final-workflow-hardening-scope-after-removing-ge",
-  "routingId": "ROUTING-20260509T081535Z-final-workflow-hardening-commit-scope-after-excl",
+  "patchId": "PATCH-20260509T083033Z-clean-committed-state-release-gate-fix-plus-comp",
+  "routingId": "ROUTING-20260509T083024Z-clean-committed-state-release-gate-fix-plus-comp",
   "workers": [
     "codex-lead"
   ]

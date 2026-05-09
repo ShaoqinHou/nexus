@@ -206,6 +206,10 @@ function worktreeHash() {
   return createHash('sha256').update(payload).digest('hex').slice(0, 16);
 }
 
+function canonicalTextForHash(buffer) {
+  return Buffer.from(String(buffer).replace(/\r\n/g, '\n'), 'utf8');
+}
+
 function nowIso() {
   return new Date().toISOString();
 }
@@ -548,6 +552,7 @@ function routingScopeProblemsForState(routingState = {}, files = substantiveFile
   const currentHash = routingState.currentHash || worktreeHash();
   const delegatedWorkers = delegatedWorkersForHash(patchState, currentHash);
   const problems = [];
+  if (!files.length) return problems;
   if (delegatedWorkers.length && (!routingState.route || routingState.status === 'closed')) {
     problems.push(`Delegated worker(s) ${delegatedWorkers.join(', ')} changed the current worktree without an active routing preflight. Record routing before review/commit.`);
   }
@@ -784,7 +789,7 @@ function publicGuideInputFiles() {
 function publicGuideSourceHash() {
   const files = publicGuideInputFiles().map((file) => ({
     file,
-    hash: createHash('sha256').update(readFileSync(join(ROOT, file))).digest('hex'),
+    hash: createHash('sha256').update(canonicalTextForHash(readFileSync(join(ROOT, file), 'utf8'))).digest('hex'),
   }));
   const payload = JSON.stringify({
     version: PUBLIC_GUIDE_VERSION,
@@ -1093,7 +1098,7 @@ function commandDashboard(args = {}) {
 <body>
   <header>
     <h1>Nexus Workflow Dashboard</h1>
-    <div class="meta">Generated ${escapeHtml(generated)} · branch ${escapeHtml(branch)} · worktree ${escapeHtml(hash)}</div>
+    <div class="meta">Generated ${escapeHtml(generated)} · branch ${escapeHtml(branch)}</div>
   </header>
   <div class="layout">
     <nav>
@@ -1425,8 +1430,8 @@ function commandStatus() {
   const guideBrowserOk = commandGuideBrowserCheck({ quiet: true });
   const currentHash = worktreeHash();
   const reviewed = commandReviewCheck({ quiet: true });
-  const verified = verifyState.worktreeHash === currentHash && verifyState.verdict === 'pass';
-  const audited = auditState.worktreeHash === currentHash && auditState.verdict === 'pass';
+  const verified = commandVerifyCheck({ quiet: true });
+  const audited = commandAuditCheck({ quiet: true });
   console.log(`Nexus Codex workflow status`);
   console.log(`root: ${ROOT}`);
   console.log(`branch: ${branch}`);
@@ -2024,6 +2029,7 @@ function workflowSelfTestChecks() {
   add('pattern proposals are protected evidence', EVIDENCE_RECORD_KINDS.includes('pattern-proposals'));
   add('generated guide artifacts use dedicated guide gate', substantiveFiles(['.codex/dashboard/public.html', '.codex/dashboard/index.html']).length === 0);
   add('guide source hash is content based', /^[a-f0-9]{24}$/.test(publicGuideSourceHash()));
+  add('guide source hash canonicalizes line endings', createHash('sha256').update(canonicalTextForHash('a\r\nb\r\n')).digest('hex') === createHash('sha256').update(canonicalTextForHash('a\nb\n')).digest('hex'));
   add('guide source hash includes records and gate states', (() => {
     const inputs = publicGuideInputFiles();
     return inputs.includes('.codex/workflow/records/review-state.json')
@@ -2078,26 +2084,33 @@ function workflowSelfTestChecks() {
     routingId: 'ROUTING-test',
     route: 'lead',
     status: 'active',
-  }, [], {}).length > 0);
+  }, ['.codex/scripts/nexus-workflow.mjs'], {}).length > 0);
   add('routing check rejects stale worktree hash', routingScopeProblemsForState({
     routingId: 'ROUTING-test',
     route: 'lead',
     status: 'active',
     worktreeHash: 'stale',
     currentHash: 'current',
-  }, [], {}).length > 0);
+  }, ['.codex/scripts/nexus-workflow.mjs'], {}).length > 0);
+  add('routing check accepts clean worktree with stale routing state', routingScopeProblemsForState({
+    routingId: 'ROUTING-test',
+    route: 'lead',
+    status: 'active',
+    worktreeHash: 'stale',
+    currentHash: 'current',
+  }, [], {}).length === 0);
   add('routing check accepts hash-bound non-Spark route', routingScopeProblemsForState({
     routingId: 'ROUTING-test',
     route: 'lead',
     status: 'active',
     worktreeHash: 'current',
     currentHash: 'current',
-  }, [], {}).length === 0);
-  add('routing check requires preflight for delegated worker patches', routingScopeProblemsForState({}, [], {
+  }, ['.codex/scripts/nexus-workflow.mjs'], {}).length === 0);
+  add('routing check requires preflight for delegated worker patches', routingScopeProblemsForState({}, ['packages/web/src/components/ui/Toast.tsx'], {
     worktreeHash: worktreeHash(),
     workers: ['nexus_spark_worker'],
   }).length > 0);
-  add('routing check does not require preflight for lead-only patches', routingScopeProblemsForState({}, [], {
+  add('routing check does not require preflight for lead-only patches', routingScopeProblemsForState({}, ['.codex/scripts/nexus-workflow.mjs'], {
     worktreeHash: worktreeHash(),
     workers: ['codex-lead'],
   }).length === 0);
@@ -2140,7 +2153,7 @@ function workflowSelfTestChecks() {
     worktreeHash: 'base',
     currentHash: 'current',
     recordedAt: '2026-05-09T00:09:00.000Z',
-  }, [], {
+  }, ['packages/web/src/components/ui/Toast.tsx'], {
     worktreeHash: 'current',
     routingId: 'ROUTING-test',
     workers: ['nexus_spark_worker'],

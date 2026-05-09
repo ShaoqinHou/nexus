@@ -58,6 +58,7 @@ Hardening pass additions in progress:
 - Generated guide artifacts are treated as user-facing workflow surfaces and must pass dedicated freshness/content-hash and recorded browser validation gates; their generator, source docs, state files, records, and workflow rules remain the substantive review surface.
 - Public guide now includes workflow nodes, project/code structure, design-system flow, curated design docs, Zoo/Gym coverage, model-routing examples, and grouped event history.
 - Public and repo-local guide generation now use source-hash metadata, production token subsets including hit-target tokens, redaction checks, and consistent legacy audit counting.
+- The release gate distinguishes dirty patch state from clean committed branch state, and public guide source hashing is normalized across Windows CRLF and Linux LF checkouts.
 - Model routing scenarios now assert Spark escalation fallback owners, not only escalation route names.
 - Hook runtime heartbeats are written under `.codex/workflow/runtime/` when hooks are active.
 
@@ -91,7 +92,7 @@ Server deployment validation:
 - Public guide deployment: `https://cv.rehou.games/nexus/workflow/` returned 200 after `.codex/dashboard/public.html` was copied to the static workflow path.
 - Preserved server dirty state: pre-existing `package-lock.json` modification remains and was backed up to `/root/monoWeb/deploy-backups/nexus/package-lock-local-20260509-codex-native-workflow.diff`.
 
-Second hardening pass deployment validation is still pending.
+Second hardening pass deployment validation is being refreshed after the clean committed-state gate fix.
 
 Historical/model-routing evidence:
 
@@ -118,9 +119,9 @@ The earlier large dirty-tree report came from using the submodule common git dir
 
 ## Next Required Work
 
-Finish the second hardening pass local gates, focused review, visual guide validation, and server validation. Optional follow-ups remain tracked as risks:
+Finish the clean committed-state follow-up commit, refresh the public guide on the server, and rerun server release-gate validation. Optional follow-ups remain tracked as risks:
 
-- Decide whether to clean or adopt the server's pre-existing dirty `package-lock.json`.
+- Server-only `package-lock.json` metadata churn was backed up before cleanup at `/root/monoWeb/deploy-backups/nexus/package-lock-local-20260509-before-final-clean.diff` and `.json`; confirm the server stays clean after the final pull.
 - Triage pre-existing `npm audit` findings from server `npm ci`.
 - Clean the non-failing React `act(...)` warning in `ThemeProvider.test.tsx`.
 - Remember that Codex hooks are advisory gates unless the project `.codex/` layer is trusted/loaded; deterministic scripts remain the reliable enforcement path.

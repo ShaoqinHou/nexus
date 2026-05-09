@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="nexus-guide-version" content="nexus-public-workflow-guide/v2" />
-  <meta name="nexus-guide-source-hash" content="dd9ebbdd1ec3065f41e3e940" />
-  <meta name="nexus-guide-content-hash" content="14fbe280bd40b4c185abd995" />
+  <meta name="nexus-guide-source-hash" content="1ff4f3b003a5a57c8822ad70" />
+  <meta name="nexus-guide-content-hash" content="53be6f2a08d14b6c2648cf64" />
   <meta name="nexus-token-source" content="packages/web/src/platform/theme/tokens.css" />
   <title>Nexus Workflow Guide</title>
   <style>
@@ -70,7 +70,7 @@
 <body>
   <header>
     <h1>Nexus Workflow Guide</h1>
-    <div class="meta">Generated 2026-05-09T08:18:05.304Z · branch codex/native-workflow · deploy this file from the current branch HEAD</div>
+    <div class="meta">Generated 2026-05-09T08:31:50.679Z · branch codex/native-workflow · deploy this file from the current branch HEAD</div>
   </header>
   <main>
     <section>
@@ -99,13 +99,13 @@
 <div class="node"><strong>.codex/agents</strong><span>7 agent config files</span></div>
 <div class="node"><strong>.agents/skills</strong><span>4 repo skills</span></div>
 <div class="node"><strong>nexus-workflow.mjs</strong><span>deterministic gates and records</span></div>
-<div class="node"><strong>.codex/workflow/records</strong><span>109 indexed records</span></div>
+<div class="node"><strong>.codex/workflow/records</strong><span>117 indexed records</span></div>
       </div>
       <p class="meta">AGENTS.md -> .codex/README.md · .codex/knowledge -> .codex/agents · nexus-workflow.mjs -> .codex/workflow/records</p>
     </div>
 
       <div class="grid">
-        <div class="card"><strong>11</strong><p>routing records</p></div>
+        <div class="card"><strong>13</strong><p>routing records</p></div>
         <div class="card"><strong>15</strong><p>routing scenarios</p></div>
         <div class="card"><strong>7</strong><p>agent configs</p></div>
         <div class="card"><strong>4</strong><p>repo skills</p></div>
@@ -123,8 +123,8 @@
 <div class="node"><strong>packages/web/src/routes</strong><span>1 indexed route files</span></div>
 <div class="node"><strong>packages/web/src/locales</strong><span>5 locale files</span></div>
 <div class="node"><strong>packages/shared</strong><span>2 source files</span></div>
-<div class="node"><strong>.codex workflow</strong><span>145 workflow files</span></div>
-<div class="node"><strong>.codex/workflow/records</strong><span>109 indexed records</span></div>
+<div class="node"><strong>.codex workflow</strong><span>153 workflow files</span></div>
+<div class="node"><strong>.codex/workflow/records</strong><span>117 indexed records</span></div>
       </div>
       <p class="meta">packages/api -> packages/shared · packages/web -> packages/shared · .codex workflow -> .codex/workflow/records</p>
     </div>
@@ -260,11 +260,11 @@
       <div class="grid">
         <div class="card"><strong>1</strong><p>decisions</p></div>
 <div class="card"><strong>5</strong><p>pattern-proposals</p></div>
-<div class="card"><strong>11</strong><p>routing</p></div>
-<div class="card"><strong>19</strong><p>patches</p></div>
-<div class="card"><strong>21</strong><p>reviews</p></div>
-<div class="card"><strong>34</strong><p>tests</p></div>
-<div class="card"><strong>16</strong><p>audits (first-class + legacy)</p></div>
+<div class="card"><strong>13</strong><p>routing</p></div>
+<div class="card"><strong>21</strong><p>patches</p></div>
+<div class="card"><strong>23</strong><p>reviews</p></div>
+<div class="card"><strong>35</strong><p>tests</p></div>
+<div class="card"><strong>17</strong><p>audits (first-class + legacy)</p></div>
 <div class="card"><strong>2</strong><p>deployments</p></div>
       </div>
     </section>
@@ -274,7 +274,11 @@
 
         <h3>Validation</h3>
         <ul class="timeline">
-          <li><strong>audits:</strong> Audit pass worktree <span class="meta">2026-05-09T08:17:40.939Z</span></li>
+          <li><strong>audits:</strong> Audit pass worktree <span class="meta">2026-05-09T08:31:41.425Z</span></li>
+<li><strong>tests:</strong> Verification pass worktree <span class="meta">2026-05-09T08:31:32.546Z</span></li>
+<li><strong>reviews:</strong> Review workflow pass worktree <span class="meta">2026-05-09T08:31:21.172Z</span></li>
+<li><strong>reviews:</strong> Review general pass worktree <span class="meta">2026-05-09T08:31:10.036Z</span></li>
+<li><strong>audits:</strong> Audit pass worktree <span class="meta">2026-05-09T08:17:40.939Z</span></li>
 <li><strong>tests:</strong> Verification pass worktree <span class="meta">2026-05-09T08:17:31.591Z</span></li>
 <li><strong>reviews:</strong> Review workflow pass worktree <span class="meta">2026-05-09T08:17:19.368Z</span></li>
 <li><strong>reviews:</strong> Review general pass worktree <span class="meta">2026-05-09T08:17:09.680Z</span></li>
@@ -342,7 +346,9 @@
 
         <h3>Workflow</h3>
         <ul class="timeline">
-          <li><strong>patches:</strong> Final workflow hardening scope after removing generated TypeScript build metadata from the commit <span class="meta">2026-05-09T08:15:44.373Z</span></li>
+          <li><strong>patches:</strong> Clean committed-state release gate fix plus compact handover refresh <span class="meta">2026-05-09T08:30:33.068Z</span></li>
+<li><strong>patches:</strong> Fix clean committed-state release gate and cross-platform guide hashing <span class="meta">2026-05-09T08:28:48.029Z</span></li>
+<li><strong>patches:</strong> Final workflow hardening scope after removing generated TypeScript build metadata from the commit <span class="meta">2026-05-09T08:15:44.373Z</span></li>
 <li><strong>patches:</strong> generated guide whitespace normalization <span class="meta">2026-05-09T08:07:43.099Z</span></li>
 <li><strong>patches:</strong> deterministic workflow kernel hardening after focused review findings <span class="meta">2026-05-09T07:48:27.529Z</span></li>
 <li><strong>patches:</strong> post-build workflow hardening current hash coverage <span class="meta">2026-05-09T07:35:02.346Z</span></li>
@@ -360,7 +366,9 @@
 
         <h3>Agent Routing</h3>
         <ul class="timeline">
-          <li><strong>routing:</strong> Final workflow hardening commit scope after excluding generated TypeScript build metadata <span class="meta">2026-05-09T08:15:35.188Z</span></li>
+          <li><strong>routing:</strong> Clean committed-state release gate fix plus compact handover refresh <span class="meta">2026-05-09T08:30:24.719Z</span></li>
+<li><strong>routing:</strong> Clean committed-state release gate and cross-platform guide hash fix <span class="meta">2026-05-09T08:28:38.429Z</span></li>
+<li><strong>routing:</strong> Final workflow hardening commit scope after excluding generated TypeScript build metadata <span class="meta">2026-05-09T08:15:35.188Z</span></li>
 <li><strong>routing:</strong> generated guide whitespace normalization <span class="meta">2026-05-09T08:07:34.263Z</span></li>
 <li><strong>patches:</strong> true delegated routing preflight enforcement and participant canonicalization <span class="meta">2026-05-09T07:56:27.174Z</span></li>
 <li><strong>routing:</strong> true delegated routing preflight enforcement and participant canonicalization <span class="meta">2026-05-09T07:56:18.295Z</span></li>

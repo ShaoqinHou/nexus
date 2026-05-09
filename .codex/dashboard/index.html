@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="nexus-guide-version" content="nexus-public-workflow-guide/v2" />
-  <meta name="nexus-guide-source-hash" content="dd9ebbdd1ec3065f41e3e940" />
-  <meta name="nexus-guide-content-hash" content="eeab9046e45ae3093e12b03d" />
+  <meta name="nexus-guide-source-hash" content="1ff4f3b003a5a57c8822ad70" />
+  <meta name="nexus-guide-content-hash" content="718dac8a1b1b6989805cfcb9" />
   <meta name="nexus-token-source" content="packages/web/src/platform/theme/tokens.css" />
   <title>Nexus Workflow Dashboard</title>
   <style>
@@ -81,7 +81,7 @@
 <body>
   <header>
     <h1>Nexus Workflow Dashboard</h1>
-    <div class="meta">Generated 2026-05-09T08:18:05.793Z · branch codex/native-workflow · worktree 224679ad265e8e27</div>
+    <div class="meta">Generated 2026-05-09T08:31:51.062Z · branch codex/native-workflow</div>
   </header>
   <div class="layout">
     <nav>
@@ -107,11 +107,11 @@
         <div class="grid">
           <div class="card"><span class="meta">Decisions</span><strong>1</strong></div>
 <div class="card"><span class="meta">Pattern Proposals</span><strong>5</strong></div>
-<div class="card"><span class="meta">Routing</span><strong>11</strong></div>
-<div class="card"><span class="meta">Patches</span><strong>19</strong></div>
-<div class="card"><span class="meta">Reviews</span><strong>21</strong></div>
-<div class="card"><span class="meta">Tests</span><strong>34</strong></div>
-<div class="card"><span class="meta">Audits</span><strong>16</strong></div>
+<div class="card"><span class="meta">Routing</span><strong>13</strong></div>
+<div class="card"><span class="meta">Patches</span><strong>21</strong></div>
+<div class="card"><span class="meta">Reviews</span><strong>23</strong></div>
+<div class="card"><span class="meta">Tests</span><strong>35</strong></div>
+<div class="card"><span class="meta">Audits</span><strong>17</strong></div>
 <div class="card"><span class="meta">Deployments</span><strong>2</strong></div>
 <div class="card"><span class="meta">Zoo Pages</span><strong>24/24</strong></div>
         </div>
@@ -120,65 +120,23 @@
           <div class="card"><span class="meta">Verify Gate</span><strong>pass</strong></div>
           <div class="card"><span class="meta">Audit Gate</span><strong>pass</strong></div>
         </div>
-        <p class="meta">Last patch trigger: 2026-05-09T08:15:44.717Z · patch PATCH-20260509T081544Z-final-workflow-hardening-scope-after-removing-ge</p>
+        <p class="meta">Last patch trigger: 2026-05-09T08:30:33.487Z · patch PATCH-20260509T083033Z-clean-committed-state-release-gate-fix-plus-comp</p>
         <pre>## codex/native-workflow...origin/codex/native-workflow
- M .agents/skills/nexus-review/SKILL.md
- M .agents/skills/nexus-verify/SKILL.md
- M .agents/skills/nexus-workflow/SKILL.md
- M .codex/README.md
- M .codex/agents/nexus-spark-worker.toml
- M .codex/agents/nexus-strong-worker.toml
- M .codex/config.toml
- M .codex/dashboard/index.html
- M .codex/dashboard/public.html
- M .codex/knowledge/hooks.md
- M .codex/knowledge/model-routing.md
  M .codex/scripts/nexus-workflow.mjs
  M .codex/workflow/current-state.md
  M .codex/workflow/records/audit-state.json
  M .codex/workflow/records/patch-state.json
  M .codex/workflow/records/review-state.json
+ M .codex/workflow/records/routing-state.json
  M .codex/workflow/records/verify-state.json
- M .codex/workflow/templates/README.md
- M .codex/workflow/templates/patch.md
- M .codex/workflow/templates/review.md
- M AGENTS.md
- M package.json
-?? .codex/agents/nexus-auditor.toml
-?? .codex/agents/nexus-verifier.toml
-?? .codex/workflow/artifacts/
-?? .codex/workflow/records/audits/
-?? .codex/workflow/records/guide-browser-state.json
-?? .codex/workflow/records/patches/PATCH-20260509T062357Z-codex-workflow-hardening-after-audit.md
-?? .codex/workflow/records/patches/PATCH-20260509T064305Z-fix-focused-review-workflow-blockers.md
-?? .codex/workflow/records/patches/PATCH-20260509T070015Z-second-hardening-final-blocker-fixes.md
-?? .codex/workflow/records/patches/PATCH-20260509T070957Z-hash-bound-guide-and-gate-hardening.md
-?? .codex/workflow/records/patches/PATCH-20260509T071421Z-final-workflow-gate-stabilization.md
-?? .codex/workflow/records/patches/PATCH-20260509T072300Z-final-guide-browser-screenshot-gate-hardening.md
-?? .codex/workflow/records/patches/PATCH-20260509T073502Z-post-build-workflow-hardening-current-hash-cover.md
-?? .codex/workflow/records/patches/PATCH-20260509T074827Z-deterministic-workflow-kernel-hardening-after-fo.md
-?? .codex/workflow/records/patches/PATCH-20260509T075627Z-true-delegated-routing-preflight-enforcement-and.md
-?? .codex/workflow/records/patches/PATCH-20260509T080743Z-generated-guide-whitespace-normalization.md
-?? .codex/workflow/records/patches/PATCH-20260509T081544Z-final-workflow-hardening-scope-after-removing-ge.md
-?? .codex/workflow/records/pattern-proposals/PATTERN-PROPOSAL-20260509T065619Z-pattern-accepted-generated-workflow-guide-artifa.md
-?? .codex/workflow/records/pattern-proposals/PATTERN-PROPOSAL-20260509T065629Z-pattern-accepted-pattern-proposal-records-are-ap.md
-?? .codex/workflow/records/reviews/REVIEW-20260509T072836Z-review-general-pass-worktree.md
-?? .codex/workflow/records/reviews/REVIEW-20260509T072850Z-review-workflow-pass-worktree.md
-?? .codex/workflow/records/reviews/REVIEW-20260509T080232Z-review-general-pass-worktree.md
-?? .codex/workflow/records/reviews/REVIEW-20260509T080242Z-review-workflow-pass-worktree.md
-?? .codex/workflow/records/reviews/REVIEW-20260509T081117Z-review-general-pass-worktree.md
-?? .codex/workflow/records/reviews/REVIEW-20260509T081127Z-review-workflow-pass-worktree.md
-?? .codex/workflow/records/reviews/REVIEW-20260509T081709Z-review-general-pass-worktree.md
-?? .codex/workflow/records/reviews/REVIEW-20260509T081719Z-review-workflow-pass-worktree.md
-?? .codex/workflow/records/routing-state.json
-?? .codex/workflow/records/routing/
-?? .codex/workflow/records/tests/TEST-20260509T080318Z-verification-pass-worktree.md
-?? .codex/workflow/records/tests/TEST-20260509T081137Z-verification-pass-worktree.md
-?? .codex/workflow/records/tests/TEST-20260509T081731Z-verification-pass-worktree.md
-?? .codex/workflow/scenarios/
-?? .codex/workflow/templates/audit.md
-?? .codex/workflow/templates/guide-browser.md
-?? .codex/workflow/templates/routing.md</pre>
+?? .codex/workflow/records/audits/AUDIT-20260509T083141Z-audit-pass-worktree.md
+?? .codex/workflow/records/patches/PATCH-20260509T082848Z-fix-clean-committed-state-release-gate-and-cross.md
+?? .codex/workflow/records/patches/PATCH-20260509T083033Z-clean-committed-state-release-gate-fix-plus-comp.md
+?? .codex/workflow/records/reviews/REVIEW-20260509T083110Z-review-general-pass-worktree.md
+?? .codex/workflow/records/reviews/REVIEW-20260509T083121Z-review-workflow-pass-worktree.md
+?? .codex/workflow/records/routing/ROUTING-20260509T082838Z-clean-committed-state-release-gate-and-cross-pla.md
+?? .codex/workflow/records/routing/ROUTING-20260509T083024Z-clean-committed-state-release-gate-fix-plus-comp.md
+?? .codex/workflow/records/tests/TEST-20260509T083132Z-verification-pass-worktree.md</pre>
       </section>
       <section id="current" class="panel"><h1>Current State</h1>
 <p>Updated: 2026-05-09</p>
@@ -232,6 +190,7 @@
 <li>Generated guide artifacts are treated as user-facing workflow surfaces and must pass dedicated freshness/content-hash and recorded browser validation gates; their generator, source docs, state files, records, and workflow rules remain the substantive review surface.</li>
 <li>Public guide now includes workflow nodes, project/code structure, design-system flow, curated design docs, Zoo/Gym coverage, model-routing examples, and grouped event history.</li>
 <li>Public and repo-local guide generation now use source-hash metadata, production token subsets including hit-target tokens, redaction checks, and consistent legacy audit counting.</li>
+<li>The release gate distinguishes dirty patch state from clean committed branch state, and public guide source hashing is normalized across Windows CRLF and Linux LF checkouts.</li>
 <li>Model routing scenarios now assert Spark escalation fallback owners, not only escalation route names.</li>
 <li>Hook runtime heartbeats are written under `.codex/workflow/runtime/` when hooks are active.</li>
 </ul>
@@ -265,7 +224,7 @@
 <li>Public guide deployment: `https://cv.rehou.games/nexus/workflow/` returned 200 after `.codex/dashboard/public.html` was copied to the static workflow path.</li>
 <li>Preserved server dirty state: pre-existing `package-lock.json` modification remains and was backed up to `/root/monoWeb/deploy-backups/nexus/package-lock-local-20260509-codex-native-workflow.diff`.</li>
 </ul>
-<p>Second hardening pass deployment validation is still pending.</p>
+<p>Second hardening pass deployment validation is being refreshed after the clean committed-state gate fix.</p>
 <p>Historical/model-routing evidence:</p>
 <ul>
 <li>`TEST-20260508T170320Z-historical-hard-case-routing-analysis-c4a438e`</li>
@@ -286,9 +245,9 @@
 <p>```</p>
 <p>The earlier large dirty-tree report came from using the submodule common git dir directly and should not be treated as the current worktree state.</p>
 <h2>Next Required Work</h2>
-<p>Finish the second hardening pass local gates, focused review, visual guide validation, and server validation. Optional follow-ups remain tracked as risks:</p>
+<p>Finish the clean committed-state follow-up commit, refresh the public guide on the server, and rerun server release-gate validation. Optional follow-ups remain tracked as risks:</p>
 <ul>
-<li>Decide whether to clean or adopt the server's pre-existing dirty `package-lock.json`.</li>
+<li>Server-only `package-lock.json` metadata churn was backed up before cleanup at `/root/monoWeb/deploy-backups/nexus/package-lock-local-20260509-before-final-clean.diff` and `.json`; confirm the server stays clean after the final pull.</li>
 <li>Triage pre-existing `npm audit` findings from server `npm ci`.</li>
 <li>Clean the non-failing React `act(...)` warning in `ThemeProvider.test.tsx`.</li>
 <li>Remember that Codex hooks are advisory gates unless the project `.codex/` layer is trusted/loaded; deterministic scripts remain the reliable enforcement path.</li>
@@ -799,6 +758,42 @@ Proposed guidance: Keep Codex hooks as compact dispatch/gate triggers. Review, v
 
         <article class="record">
           <div class="record-top">
+            <strong>Clean committed-state release gate fix plus compact handover refresh</strong>
+            <span>2026-05-09T08:30:24.719Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/routing/ROUTING-20260509T083024Z-clean-committed-state-release-gate-fix-plus-comp.md</p>
+          <pre>Summary: Clean committed-state release gate fix plus compact handover refresh
+Route: lead
+Worker: codex-lead
+Rejected routes: n/a
+Write scope: .codex/scripts/nexus-workflow.mjs, .codex/workflow/current-state.md
+Verification: workflow self-test; guide/release gates; server release gate after push
+Fallback trigger: Clean branch or server release gate remains stale
+Fallback target: codex-lead</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Clean committed-state release gate and cross-platform guide hash fix</strong>
+            <span>2026-05-09T08:28:38.429Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/routing/ROUTING-20260509T082838Z-clean-committed-state-release-gate-and-cross-pla.md</p>
+          <pre>Summary: Clean committed-state release gate and cross-platform guide hash fix
+Route: lead
+Worker: codex-lead
+Rejected routes: n/a
+Write scope: .codex/scripts/nexus-workflow.mjs
+Verification: workflow self-test; release gate before and after commit; server release gate
+Fallback trigger: Server guide/release gate still disagrees with local clean branch
+Fallback target: codex-lead</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
             <strong>Final workflow hardening commit scope after excluding generated TypeScript build metadata</strong>
             <span>2026-05-09T08:15:35.188Z</span>
           </div>
@@ -999,6 +994,42 @@ Fallback target: n/a</pre>
 
     <section id="patches" class="panel">
       <h2>Patches</h2>
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Clean committed-state release gate fix plus compact handover refresh</strong>
+            <span>2026-05-09T08:30:33.068Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/patches/PATCH-20260509T083033Z-clean-committed-state-release-gate-fix-plus-comp.md</p>
+          <pre>Summary: Clean committed-state release gate fix plus compact handover refresh
+Agent: codex-lead
+Routing: ROUTING-20260509T083024Z-clean-committed-state-release-gate-fix-plus-comp
+
+Files:
+- .codex/scripts/nexus-workflow.mjs
+- .codex/workflow/current-state.md
+</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Fix clean committed-state release gate and cross-platform guide hashing</strong>
+            <span>2026-05-09T08:28:48.029Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/patches/PATCH-20260509T082848Z-fix-clean-committed-state-release-gate-and-cross.md</p>
+          <pre>Summary: Fix clean committed-state release gate and cross-platform guide hashing
+Agent: codex-lead
+Routing: ROUTING-20260509T082838Z-clean-committed-state-release-gate-and-cross-pla
+
+Files:
+- .codex/scripts/nexus-workflow.mjs
+
+Worktree hash after patch: 1bebd6b7e1b98ab0</pre>
+        </article>
+
 
         <article class="record">
           <div class="record-top">
@@ -1345,6 +1376,42 @@ Files:
 
     <section id="reviews" class="panel">
       <h2>Reviews</h2>
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review workflow pass worktree</strong>
+            <span>2026-05-09T08:31:21.172Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T083121Z-review-workflow-pass-worktree.md</p>
+          <pre>Scope: worktree
+Kind: workflow
+Verdict: pass
+Reviewer: codex-lead
+Patch: PATCH-20260509T083033Z-clean-committed-state-release-gate-fix-plus-comp
+Worktree hash: a19b694381e8b120
+
+Reviewed files:</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review general pass worktree</strong>
+            <span>2026-05-09T08:31:10.036Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T083110Z-review-general-pass-worktree.md</p>
+          <pre>Scope: worktree
+Kind: general
+Verdict: pass
+Reviewer: codex-lead
+Patch: PATCH-20260509T083033Z-clean-committed-state-release-gate-fix-plus-comp
+Worktree hash: a19b694381e8b120
+
+Reviewed files:</pre>
+        </article>
+
 
         <article class="record">
           <div class="record-top">
@@ -1702,6 +1769,22 @@ Notes: Focused review found hook false-positive/false-negative issues, they were
 
     <section id="tests" class="panel">
       <h2>Tests</h2>
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Verification pass worktree</strong>
+            <span>2026-05-09T08:31:32.546Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/tests/TEST-20260509T083132Z-verification-pass-worktree.md</p>
+          <pre>Scope: worktree
+Verdict: pass
+Verifier: codex-lead
+Worktree hash: a19b694381e8b120
+
+Notes: Verification for hash a19b694381e8b120: node --check passed; workflow self-test 56 checks passed including clean-worktree routing and CRLF/LF guide hash normalization; routing-check and handover-check passed; diff-check was clean except line-ending warnings.</pre>
+        </article>
+
 
         <article class="record">
           <div class="record-top">
@@ -2161,6 +2244,22 @@ Notes: Latest full local validation passed: workflow script syntax, design-zoo s
 
     <section id="audits" class="panel">
       <h2>Audits</h2>
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Audit pass worktree</strong>
+            <span>2026-05-09T08:31:41.425Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/audits/AUDIT-20260509T083141Z-audit-pass-worktree.md</p>
+          <pre>Scope: worktree
+Verdict: pass
+Auditor: codex-lead
+Worktree hash: a19b694381e8b120
+
+Notes: Audit passed for clean committed-state gate fix: root cause was pre-commit dirty-hash evidence being reused after commit plus platform-specific line endings in guide source hashing. Kernel now treats clean branch state as clean and hashes guide inputs canonically.</pre>
+        </article>
+
 
         <article class="record">
           <div class="record-top">

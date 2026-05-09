@@ -1,8 +1,8 @@
 {
-  "worktreeHash": "224679ad265e8e27",
+  "worktreeHash": "a19b694381e8b120",
   "verdict": "pass",
   "auditor": "codex-lead",
-  "auditedAt": "2026-05-09T08:17:40.939Z",
-  "auditRecord": ".codex/workflow/records/audits/AUDIT-20260509T081740Z-audit-pass-worktree.md",
-  "notes": "Audit passed for hash 224679ad265e8e27: the previous bookkeeping gap cause is handled by hash-bound records plus generated guide freshness/browser gates; hook logic remains trigger-only; final scope excludes generated tsbuildinfo noise."
+  "auditedAt": "2026-05-09T08:31:41.426Z",
+  "auditRecord": ".codex/workflow/records/audits/AUDIT-20260509T083141Z-audit-pass-worktree.md",
+  "notes": "Audit passed for clean committed-state gate fix: root cause was pre-commit dirty-hash evidence being reused after commit plus platform-specific line endings in guide source hashing. Kernel now treats clean branch state as clean and hashes guide inputs canonically."
 }
