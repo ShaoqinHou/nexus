@@ -41,7 +41,7 @@
 <body>
   <header>
     <h1>Nexus Workflow Dashboard</h1>
-    <div class="meta">Generated 2026-05-09T02:02:13.939Z · branch codex/native-workflow · worktree 670f79dd501cd6cb</div>
+    <div class="meta">Generated 2026-05-09T02:08:49.462Z · branch codex/native-workflow · worktree c36ed3a2b12f97eb</div>
   </header>
   <div class="layout">
     <nav>
@@ -66,10 +66,10 @@
         <div class="grid">
           <div class="card"><span class="meta">Decisions</span><strong>1</strong></div>
 <div class="card"><span class="meta">Pattern Proposals</span><strong>3</strong></div>
-<div class="card"><span class="meta">Patches</span><strong>6</strong></div>
-<div class="card"><span class="meta">Reviews</span><strong>18</strong></div>
-<div class="card"><span class="meta">Tests</span><strong>25</strong></div>
-<div class="card"><span class="meta">Deployments</span><strong>1</strong></div>
+<div class="card"><span class="meta">Patches</span><strong>7</strong></div>
+<div class="card"><span class="meta">Reviews</span><strong>22</strong></div>
+<div class="card"><span class="meta">Tests</span><strong>29</strong></div>
+<div class="card"><span class="meta">Deployments</span><strong>2</strong></div>
 <div class="card"><span class="meta">Zoo Pages</span><strong>24/24</strong></div>
         </div>
         <div class="grid">
@@ -77,25 +77,11 @@
           <div class="card"><span class="meta">Verify Gate</span><strong>needed</strong></div>
           <div class="card"><span class="meta">Audit Gate</span><strong>needed</strong></div>
         </div>
-        <p class="meta">Last patch trigger: 2026-05-09T01:40:04.782Z · patch PATCH-20260509T014004Z-make-final-server-head-handover-wording-stable</p>
+        <p class="meta">Last patch trigger: 2026-05-09T02:02:35.023Z · patch PATCH-20260509T020234Z-harden-handover-workflow-model-routing-hooks-gui</p>
         <pre>## codex/native-workflow...origin/codex/native-workflow
- M .codex/README.md
- M .codex/agents/nexus-spark-worker.toml
- M .codex/agents/nexus-strong-worker.toml
- M .codex/dashboard/README.md
- M .codex/dashboard/index.html
- M .codex/knowledge/deployment.md
- M .codex/scripts/nexus-workflow.mjs
  M .codex/workflow/current-state.md
- M .codex/workflow/records/risks.md
- M .codex/workflow/templates/README.md
- M AGENTS.md
- M WORKFLOW.md
- M package.json
-?? .codex/dashboard/public.html
-?? .codex/knowledge/hooks.md
-?? .codex/knowledge/model-routing.md
-?? .codex/workflow/templates/current-state.md</pre>
+?? .codex/workflow/records/deployments/DEPLOYMENT-20260509T020848Z-public-workflow-guide-deployed.md
+?? .codex/workflow/records/tests/TEST-20260509T020848Z-public-guide-url-validation.md</pre>
       </section>
       <section id="current" class="panel"><h1>Current State</h1>
 <p>Updated: 2026-05-09</p>
@@ -166,7 +152,7 @@
 <li>Workflow file present on server: `.codex/scripts/nexus-workflow.mjs`</li>
 <li>Server workflow validation: `node .codex/scripts/nexus-workflow.mjs validate` passed.</li>
 <li>Static build correction: server rebuild used `npx vite build --base /nexus/`; hosted `index.html` referenced `/nexus/assets/`.</li>
-<li>Public guide deployment: `https://cv.rehou.games/nexus/workflow/` should return 200 after `.codex/dashboard/public.html` is copied to the static workflow path.</li>
+<li>Public guide deployment: `https://cv.rehou.games/nexus/workflow/` returned 200 after `.codex/dashboard/public.html` was copied to the static workflow path.</li>
 <li>Preserved server dirty state: pre-existing `package-lock.json` modification remains and was backed up to `/root/monoWeb/deploy-backups/nexus/package-lock-local-20260509-codex-native-workflow.diff`.</li>
 </ul>
 <p>Historical/model-routing evidence:</p>
@@ -660,6 +646,24 @@ Proposed guidance: Keep Codex hooks as compact dispatch/gate triggers. Review, v
       
         <article class="record">
           <div class="record-top">
+            <strong>Harden handover workflow, model routing, hooks guidance, and public guide</strong>
+            <span>2026-05-09T02:02:34.660Z</span>
+          </div>
+          
+          <p class="path">.codex/workflow/records/patches/PATCH-20260509T020234Z-harden-handover-workflow-model-routing-hooks-gui.md</p>
+          <pre>Summary: Harden handover workflow, model routing, hooks guidance, and public guide
+
+Files:
+- .codex/README.md
+- .codex/agents/nexus-spark-worker.toml
+- .codex/agents/nexus-strong-worker.toml
+- .codex/dashboard/README.md
+- .codex/dashboard/index.html</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
             <strong>Make final server-head handover wording stable</strong>
             <span>2026-05-09T01:40:04.418Z</span>
           </div>
@@ -770,6 +774,70 @@ Files:
     <section id="reviews" class="panel">
       <h2>Reviews</h2>
       
+        <article class="record">
+          <div class="record-top">
+            <strong>Audit pass staged-workflow-followup</strong>
+            <span>2026-05-09T02:03:06.298Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T020306Z-audit-pass-staged-workflow-followup.md</p>
+          <pre>Scope: staged-workflow-followup
+Verdict: pass
+Auditor: codex-lead
+Worktree hash: e72bde7e6f0576c6
+
+Notes: Final staged audit confirms workflow files are centralized, public guide is separated from internal dashboard, and release gate includes handover hygiene.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review pass staged-workflow-followup</strong>
+            <span>2026-05-09T02:03:05.490Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T020305Z-review-pass-staged-workflow-followup.md</p>
+          <pre>Scope: staged-workflow-followup
+Verdict: pass
+Reviewer: codex-lead
+Worktree hash: e72bde7e6f0576c6
+
+Notes: Final staged review for handover/hook/model-routing/public-guide follow-up.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Audit pass workflow-followup</strong>
+            <span>2026-05-09T02:02:36.578Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T020236Z-audit-pass-workflow-followup.md</p>
+          <pre>Scope: workflow-followup
+Verdict: pass
+Auditor: codex-lead
+Worktree hash: 670f79dd501cd6cb
+
+Notes: Audit passed: workflow-related files are managed under .codex, not a one-off note; public guide is separated from internal dashboard; hook limitations and model-routing coverage gaps are explicit.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review pass workflow-followup</strong>
+            <span>2026-05-09T02:02:35.684Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T020235Z-review-pass-workflow-followup.md</p>
+          <pre>Scope: workflow-followup
+Verdict: pass
+Reviewer: codex-lead
+Worktree hash: 670f79dd501cd6cb
+
+Notes: Reviewed follow-up against user points: handover check is now centralized in workflow script/release gate; public-safe guide generation added; model-routing docs clarify strong coding worker and Spark failure escalation; hook trust/interception examples moved into .codex/knowledge/hooks.md.</pre>
+        </article>
+      
+
         <article class="record">
           <div class="record-top">
             <strong>Audit pass staged-final-handover-wording</strong>
@@ -1063,6 +1131,60 @@ Notes: Workflow audit passed against saved brief: original brief preserved; AGEN
     <section id="tests" class="panel">
       <h2>Tests</h2>
       
+        <article class="record">
+          <div class="record-top">
+            <strong>Public guide URL validation</strong>
+            <span>2026-05-09T02:08:48.934Z</span>
+          </div>
+          
+          <p class="path">.codex/workflow/records/tests/TEST-20260509T020848Z-public-guide-url-validation.md</p>
+          <pre>Local curl checks: guide=200 for https://cv.rehou.games/nexus/workflow/, web=200 for https://cv.rehou.games/nexus/, api=200 for https://cv.rehou.games/nexus/api/platform/health. Content check found Nexus Workflow Guide, Spark Worker, and Strong Worker text, and no obvious sensitive deployment strings.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Verification pass staged-workflow-followup</strong>
+            <span>2026-05-09T02:03:05.870Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/tests/TEST-20260509T020305Z-verification-pass-staged-workflow-followup.md</p>
+          <pre>Scope: staged-workflow-followup
+Verdict: pass
+Verifier: codex-lead
+Worktree hash: e72bde7e6f0576c6
+
+Notes: Final staged verification carries forward passing syntax, handover, public guide, dashboard, lint, targeted Toast test, and workflow validate checks.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Verification pass workflow-followup</strong>
+            <span>2026-05-09T02:02:36.200Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/tests/TEST-20260509T020236Z-verification-pass-workflow-followup.md</p>
+          <pre>Scope: workflow-followup
+Verdict: pass
+Verifier: codex-lead
+Worktree hash: 670f79dd501cd6cb
+
+Notes: Verification passed with script syntax, handover check, public guide generation, dashboard generation, design token lint, targeted Toast test, and base workflow validation.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Handover public guide and workflow checks</strong>
+            <span>2026-05-09T02:02:35.092Z</span>
+          </div>
+          
+          <p class="path">.codex/workflow/records/tests/TEST-20260509T020235Z-handover-public-guide-and-workflow-checks.md</p>
+          <pre>Passed: node --check .codex/scripts/nexus-workflow.mjs; npm run workflow:handover-check; npm run workflow:public-guide; npm run workflow:dashboard; npm run lint:design:quiet; npm run test --workspace=packages/web -- src/components/ui/__tests__/Toast.test.tsx; node .codex/scripts/nexus-workflow.mjs validate. Public guide generated at .codex/dashboard/public.html with no matches for obvious sensitive strings DIOkii, 134.199.148.87, /root/monoWeb, root@, deploy-backups.</pre>
+        </article>
+      
+
         <article class="record">
           <div class="record-top">
             <strong>Verification pass staged-final-handover-wording</strong>
@@ -1388,6 +1510,17 @@ Notes: Latest full local validation passed: workflow script syntax, design-zoo s
     <section id="deployments" class="panel">
       <h2>Deployments</h2>
       
+        <article class="record">
+          <div class="record-top">
+            <strong>Public workflow guide deployed</strong>
+            <span>2026-05-09T02:08:48.861Z</span>
+          </div>
+          
+          <p class="path">.codex/workflow/records/deployments/DEPLOYMENT-20260509T020848Z-public-workflow-guide-deployed.md</p>
+          <pre>Published .codex/dashboard/public.html to /var/www/cv.rehou.games/nexus/workflow/index.html on the server. Validated https://cv.rehou.games/nexus/workflow/ returned 200, https://cv.rehou.games/nexus/ returned 200, and https://cv.rehou.games/nexus/api/platform/health returned 200. Server branch HEAD b026491, node --check .codex/scripts/nexus-workflow.mjs passed, node .codex/scripts/nexus-workflow.mjs validate passed, and handover-check returned 0 problems. Public guide content included Nexus Workflow Guide, Spark Worker, and Strong Worker; checked no matches for DIOkii, 134.199.148.87, /root/monoWeb, root@, or deploy-backups. Server worktree remained clean except pre-existing package-lock.json.</pre>
+        </article>
+      
+
         <article class="record">
           <div class="record-top">
             <strong>Server deployment validation for Codex-native workflow</strong>

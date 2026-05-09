@@ -1,8 +1,8 @@
 {
-  "worktreeHash": "e72bde7e6f0576c6",
+  "worktreeHash": "93389503192dc6f6",
   "verdict": "pass",
   "auditor": "codex-lead",
-  "auditedAt": "2026-05-09T02:03:06.299Z",
-  "auditRecord": ".codex/workflow/records/reviews/REVIEW-20260509T020306Z-audit-pass-staged-workflow-followup.md",
-  "notes": "Final staged audit confirms workflow files are centralized, public guide is separated from internal dashboard, and release gate includes handover hygiene."
+  "auditedAt": "2026-05-09T02:09:25.762Z",
+  "auditRecord": ".codex/workflow/records/reviews/REVIEW-20260509T020925Z-audit-pass-staged-public-guide-evidence.md",
+  "notes": "Final staged audit for public guide deployment evidence."
 }

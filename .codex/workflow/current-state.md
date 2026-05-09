@@ -75,7 +75,7 @@ Server deployment validation:
 - Workflow file present on server: `.codex/scripts/nexus-workflow.mjs`
 - Server workflow validation: `node .codex/scripts/nexus-workflow.mjs validate` passed.
 - Static build correction: server rebuild used `npx vite build --base /nexus/`; hosted `index.html` referenced `/nexus/assets/`.
-- Public guide deployment: `https://cv.rehou.games/nexus/workflow/` should return 200 after `.codex/dashboard/public.html` is copied to the static workflow path.
+- Public guide deployment: `https://cv.rehou.games/nexus/workflow/` returned 200 after `.codex/dashboard/public.html` was copied to the static workflow path.
 - Preserved server dirty state: pre-existing `package-lock.json` modification remains and was backed up to `/root/monoWeb/deploy-backups/nexus/package-lock-local-20260509-codex-native-workflow.diff`.
 
 Historical/model-routing evidence:

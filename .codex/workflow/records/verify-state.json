@@ -1,8 +1,8 @@
 {
-  "worktreeHash": "e72bde7e6f0576c6",
+  "worktreeHash": "93389503192dc6f6",
   "verdict": "pass",
   "verifier": "codex-lead",
-  "verifiedAt": "2026-05-09T02:03:05.871Z",
-  "verifyRecord": ".codex/workflow/records/tests/TEST-20260509T020305Z-verification-pass-staged-workflow-followup.md",
-  "notes": "Final staged verification carries forward passing syntax, handover, public guide, dashboard, lint, targeted Toast test, and workflow validate checks."
+  "verifiedAt": "2026-05-09T02:09:25.324Z",
+  "verifyRecord": ".codex/workflow/records/tests/TEST-20260509T020925Z-verification-pass-staged-public-guide-evidence.md",
+  "notes": "Final staged verification for public guide deployment evidence; no product/runtime source changed after URL validation."
 }
