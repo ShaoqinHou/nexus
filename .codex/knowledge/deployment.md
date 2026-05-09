@@ -48,6 +48,7 @@ Server validation must confirm:
 - `systemctl status nexus-api` is healthy after restart.
 - `https://cv.rehou.games/nexus/` returns HTML.
 - `https://cv.rehou.games/nexus/api/platform/health` returns 200.
+- When publishing the workflow guide, `https://cv.rehou.games/nexus/workflow/` returns the expected guide and `https://cv.rehou.games/nexus/workflow/zoo/` returns the visual Zoo/Gym guide with all referenced screenshot images loading successfully.
 
 After validating the server, record deployment evidence and run the deployed gate:
 
@@ -75,6 +76,8 @@ npm run workflow:zoo-visual-guide
 ```
 
 Deploy it by copying `.codex/dashboard/public.html` to `/var/www/cv.rehou.games/nexus/workflow/index.html` and `.codex/dashboard/zoo/` to `/var/www/cv.rehou.games/nexus/workflow/zoo/`. Do not publish the full repo-local `.codex/dashboard/index.html` unless intentionally exposing internal deployment paths and record excerpts.
+
+Workflow-guide deployment checks should fetch the public Zoo/Gym HTML, extract screenshot image paths, request those image URLs, and fail if any return a non-2xx response. Counting `.jpg` references is not sufficient deployment proof.
 
 Known risk: do not skip production `db:push` when schema changes are present.
 

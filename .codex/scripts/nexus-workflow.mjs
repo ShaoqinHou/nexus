@@ -1518,6 +1518,7 @@ function publicGuideInputFiles() {
     '.codex/knowledge/hooks.md',
     '.codex/knowledge/model-routing.md',
     '.codex/knowledge/patterns.md',
+    '.codex/knowledge/verification.md',
     '.codex/workflow/current-state.md',
     '.codex/workflow/records/risks.md',
     'packages/web/src/components/registry.json',
@@ -1526,6 +1527,7 @@ function publicGuideInputFiles() {
   for (const dir of [
     '.agents/skills',
     '.codex/agents',
+    '.codex/workflow/research',
     '.codex/workflow/records',
     '.codex/workflow/scenarios',
     '.codex/workflow/templates',
@@ -2209,6 +2211,7 @@ function commandPublicGuide(args = {}) {
     '.codex/knowledge/hooks.md',
     '.codex/knowledge/verification.md',
     '.codex/knowledge/deployment.md',
+    ...listFilesUnder('.codex/workflow/research', 1, 32).filter((file) => file.endsWith('.md')),
   ]);
   const projectNodes = [
     { label: 'packages/api', detail: `${countFilesUnder('packages/api/src')} source files` },
@@ -2864,6 +2867,16 @@ function commandRunCommand(rawArgs = []) {
   }).exitCode;
 }
 
+function cachedGatePass(state, hash, files) {
+  return files.length === 0 || (state.worktreeHash === hash && state.verdict === 'pass');
+}
+
+function cachedRoutingOk(routingState, hash) {
+  if (!routingState.routingId) return true;
+  if (['completed', 'closed', 'escalated'].includes(String(routingState.status || '').toLowerCase())) return true;
+  return routingState.worktreeHash === hash;
+}
+
 function commandStatus({ health = false } = {}) {
   const branch = gitText(['branch', '--show-current']) || '(detached HEAD)';
   const status = gitText(['status', '--short', '--branch']);
@@ -2875,8 +2888,7 @@ function commandStatus({ health = false } = {}) {
   const patchState = loadJson(PATCH_STATE_FILE, {});
   const routingState = loadJson(ROUTING_STATE_FILE, {});
   const handoverOk = commandHandoverCheck({ quiet: true });
-  const recordsOk = commandRecordsCheck({ quiet: true });
-  const routingOk = commandRoutingCheck({ quiet: true });
+  const recordsOk = health ? commandRecordsCheck({ quiet: true }) : null;
   const guideOk = health ? commandGuideCheck({ quiet: true }) : null;
   const guideBrowserOk = health ? commandGuideBrowserCheck({ quiet: true }) : null;
   const zooVisualOk = health ? commandZooVisualGuideCheck({ quiet: true }) : null;
@@ -2886,9 +2898,10 @@ function commandStatus({ health = false } = {}) {
   const prodZooOk = health ? commandProductionZooBundleCheck({ quiet: true }) : null;
   const branchEvidenceOk = health ? commandBranchEvidenceCheck({ quiet: true }) : null;
   const currentHash = worktreeHash();
-  const reviewed = commandReviewCheck({ quiet: true });
-  const verified = commandVerifyCheck({ quiet: true });
-  const audited = commandAuditCheck({ quiet: true });
+  const routingOk = health ? commandRoutingCheck({ quiet: true }) : cachedRoutingOk(routingState, currentHash);
+  const reviewed = health ? commandReviewCheck({ quiet: true }) : cachedGatePass(state, currentHash, substantive);
+  const verified = health ? commandVerifyCheck({ quiet: true }) : cachedGatePass(verifyState, currentHash, substantive);
+  const audited = health ? commandAuditCheck({ quiet: true }) : cachedGatePass(auditState, currentHash, substantive);
   saveJson(join(RUNTIME_DIR, 'session-state.json'), {
     lastStatusAt: nowIso(),
     health,
@@ -2905,7 +2918,7 @@ function commandStatus({ health = false } = {}) {
   console.log(`verified: ${verified ? 'yes' : 'no'}`);
   console.log(`audited: ${audited ? 'yes' : 'no'}`);
   console.log(`handover: ${handoverOk ? 'ok' : 'needs attention'}`);
-  console.log(`records: ${recordsOk ? 'ok' : 'needs attention'}`);
+  console.log(health ? `records: ${recordsOk ? 'ok' : 'needs attention'}` : 'records: deferred (run npm run workflow:health)');
   console.log(`routing: ${routingOk ? 'ok' : 'needs attention'}`);
   if (health) {
     console.log(`guide: ${guideOk ? 'ok' : 'needs attention'}`);
@@ -3809,6 +3822,13 @@ function workflowSelfTestChecks() {
   add('visual zoo guide artifacts are non-substantive but trigger visual gates', substantiveFiles(['.codex/dashboard/zoo/index.html', '.codex/dashboard/zoo/assets/button.jpg']).length === 0
     && zooVisualRelevantFiles(['.codex/dashboard/zoo/index.html', '.codex/dashboard/zoo/assets/button.jpg']).length === 2);
   add('guide source hash is content based', /^[a-f0-9]{24}$/.test(publicGuideSourceHash()));
+  add('verification knowledge participates in public guide source hash', publicGuideInputFiles().includes('.codex/knowledge/verification.md'));
+  add('verification knowledge is required workflow manifest', requiredWorkflowFiles().includes('.codex/knowledge/verification.md'));
+  add('workflow research reports participate in public guide source hash', publicGuideInputFiles().some((file) => file.startsWith('.codex/workflow/research/') && file.endsWith('.md')));
+  add('cheap status gates use cached state instead of full evidence scan', cachedGatePass({ worktreeHash: 'h', verdict: 'pass' }, 'h', ['x'])
+    && !cachedGatePass({ worktreeHash: 'old', verdict: 'pass' }, 'h', ['x'])
+    && cachedRoutingOk({ routingId: 'ROUTING-test', status: 'completed', worktreeHash: 'old' }, 'h')
+    && !cachedRoutingOk({ routingId: 'ROUTING-test', status: 'active', worktreeHash: 'old' }, 'h'));
   add('visual zoo source hash is content based', /^[a-f0-9]{24}$/.test(zooVisualSourceHash()));
   add('hook config pins no-prompt custom permission mode', hookConfigProblems().filter((problem) => problem.includes('approval_policy') || problem.includes('sandbox_mode')).length === 0);
   add('hook config keeps hooks as workflow-kernel triggers', hookConfigProblems().filter((problem) => problem.includes('nexus-workflow.mjs')).length === 0);
@@ -4368,8 +4388,8 @@ function commandSelfTest(args = {}) {
   return true;
 }
 
-function commandValidate(args) {
-  const required = [
+function requiredWorkflowFiles() {
+  return [
     'AGENTS.md',
     'WORKFLOW.md',
     '.codex/README.md',
@@ -4388,6 +4408,7 @@ function commandValidate(args) {
     '.codex/knowledge/model-routing.md',
     '.codex/knowledge/hooks.md',
     '.codex/knowledge/deployment.md',
+    '.codex/knowledge/verification.md',
     '.codex/workflow/scenarios/model-routing.json',
     '.codex/workflow/templates/README.md',
     '.codex/workflow/templates/audit.md',
@@ -4411,6 +4432,10 @@ function commandValidate(args) {
     '.agents/skills/nexus-verify/SKILL.md',
     '.agents/skills/nexus-audit/SKILL.md',
   ];
+}
+
+function commandValidate(args) {
+  const required = requiredWorkflowFiles();
   const missing = required.filter((p) => !existsSync(join(ROOT, p)));
   if (missing.length) {
     console.error('Missing workflow files:');

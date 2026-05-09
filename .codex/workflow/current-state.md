@@ -49,7 +49,9 @@ Workflow simplification and boundary hardening are implemented and should be jud
 - canonicalized text content hashing for worktree/branch evidence so Windows and Linux release gates compute the same branch hash,
 - separated local release readiness from deployment evidence,
 - made the visual Zoo/Gym capture fail closed when requested theme or mode is not reflected in the DOM,
-- regenerated the dashboard/public guide/Zoo guide from the current workflow and design-system records.
+- regenerated the dashboard/public guide/Zoo guide from the current workflow and design-system records,
+- completed an additional high-level workflow audit with parallel reviewers and captured the portability/generalization assessment in `.codex/workflow/research/workflow-portability-audit-2026-05-10.md`,
+- fixed the final audit findings by adding `.codex/knowledge/verification.md` to deterministic guide-hash and required-file inputs, including workflow research reports in guide freshness, keeping `workflow:status` cheap while moving record-history validation to `workflow:health` and release gates, and documenting deployed Zoo/Gym image-load validation.
 
 ## How To Resume
 
@@ -76,12 +78,13 @@ Use the generated guide and append-only records instead of this compact handover
 - public workflow guide: `https://cv.rehou.games/nexus/workflow/`
 - visual Zoo/Gym guide: `https://cv.rehou.games/nexus/workflow/zoo/`
 - local generated dashboard: `.codex/dashboard/index.html`
+- final workflow portability audit: `.codex/workflow/research/workflow-portability-audit-2026-05-10.md`
 - records: `.codex/workflow/records/`
 - risks: `.codex/workflow/records/risks.md`
 
 ## Open Risks
 
-- Check the latest branch-scope patch/review/verification/audit records and release/deployed gates for final closeout status.
-- Check deployment records for the latest server validation target and command evidence.
+- Hooks are configured but this checkout may still show `hook runtime: not seen`; explicit workflow gates remain the enforcement source when Codex project hooks are not loaded in a session.
+- The workflow is reusable as a pattern, but a future extraction should split the generic kernel from the Nexus policy pack before applying it to another project unchanged.
 - Recheck dependency audit baseline before 2026-06-09.
 - Clean the non-failing React `act(...)` warning in `ThemeProvider.test.tsx`.

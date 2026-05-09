@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="nexus-guide-version" content="nexus-public-workflow-guide/v2" />
-  <meta name="nexus-guide-source-hash" content="5cccd10a33523ae82fbb6e26" />
-  <meta name="nexus-guide-content-hash" content="6ecc2e091f8a2a250577b133" />
+  <meta name="nexus-guide-source-hash" content="3ca5d8026c196fe0d1af17a4" />
+  <meta name="nexus-guide-content-hash" content="2f535520290d82048ce692de" />
   <meta name="nexus-token-source" content="packages/web/src/platform/theme/tokens.css" />
   <title>Nexus Workflow Dashboard</title>
   <style>
@@ -81,7 +81,7 @@
 <body>
   <header>
     <h1>Nexus Workflow Dashboard</h1>
-    <div class="meta">Generated 2026-05-09T16:44:14.331Z · branch codex/native-workflow</div>
+    <div class="meta">Generated 2026-05-09T17:16:14.138Z · branch codex/native-workflow</div>
   </header>
   <div class="layout">
     <nav>
@@ -108,10 +108,10 @@
           <div class="card"><span class="meta">Decisions</span><strong>5</strong></div>
 <div class="card"><span class="meta">Pattern Proposals</span><strong>12</strong></div>
 <div class="card"><span class="meta">Routing</span><strong>24</strong></div>
-<div class="card"><span class="meta">Patches</span><strong>31</strong></div>
-<div class="card"><span class="meta">Reviews</span><strong>41</strong></div>
-<div class="card"><span class="meta">Tests</span><strong>42</strong></div>
-<div class="card"><span class="meta">Audits</span><strong>23</strong></div>
+<div class="card"><span class="meta">Patches</span><strong>35</strong></div>
+<div class="card"><span class="meta">Reviews</span><strong>47</strong></div>
+<div class="card"><span class="meta">Tests</span><strong>45</strong></div>
+<div class="card"><span class="meta">Audits</span><strong>25</strong></div>
 <div class="card"><span class="meta">Deployments</span><strong>5</strong></div>
 <div class="card"><span class="meta">Zoo Pages</span><strong>24/24</strong></div>
         </div>
@@ -161,7 +161,9 @@
 <li>canonicalized text content hashing for worktree/branch evidence so Windows and Linux release gates compute the same branch hash,</li>
 <li>separated local release readiness from deployment evidence,</li>
 <li>made the visual Zoo/Gym capture fail closed when requested theme or mode is not reflected in the DOM,</li>
-<li>regenerated the dashboard/public guide/Zoo guide from the current workflow and design-system records.</li>
+<li>regenerated the dashboard/public guide/Zoo guide from the current workflow and design-system records,</li>
+<li>completed an additional high-level workflow audit with parallel reviewers and captured the portability/generalization assessment in `.codex/workflow/research/workflow-portability-audit-2026-05-10.md`,</li>
+<li>fixed the final audit findings by adding `.codex/knowledge/verification.md` to deterministic guide-hash and required-file inputs, including workflow research reports in guide freshness, keeping `workflow:status` cheap while moving record-history validation to `workflow:health` and release gates, and documenting deployed Zoo/Gym image-load validation.</li>
 </ul>
 <h2>How To Resume</h2>
 <p>1. Read `.codex/README.md`.</p>
@@ -181,13 +183,14 @@
 <li>public workflow guide: `https://cv.rehou.games/nexus/workflow/`</li>
 <li>visual Zoo/Gym guide: `https://cv.rehou.games/nexus/workflow/zoo/`</li>
 <li>local generated dashboard: `.codex/dashboard/index.html`</li>
+<li>final workflow portability audit: `.codex/workflow/research/workflow-portability-audit-2026-05-10.md`</li>
 <li>records: `.codex/workflow/records/`</li>
 <li>risks: `.codex/workflow/records/risks.md`</li>
 </ul>
 <h2>Open Risks</h2>
 <ul>
-<li>Check the latest branch-scope patch/review/verification/audit records and release/deployed gates for final closeout status.</li>
-<li>Check deployment records for the latest server validation target and command evidence.</li>
+<li>Hooks are configured but this checkout may still show `hook runtime: not seen`; explicit workflow gates remain the enforcement source when Codex project hooks are not loaded in a session.</li>
+<li>The workflow is reusable as a pattern, but a future extraction should split the generic kernel from the Nexus policy pack before applying it to another project unchanged.</li>
 <li>Recheck dependency audit baseline before 2026-06-09.</li>
 <li>Clean the non-failing React `act(...)` warning in `ThemeProvider.test.tsx`.</li>
 </ul></section>
@@ -1321,6 +1324,78 @@ Fallback target: n/a</pre>
 
         <article class="record">
           <div class="record-top">
+            <strong>final Codex workflow audit fixes, portability report, and updated handover</strong>
+            <span>2026-05-09T17:14:01.061Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/patches/PATCH-20260509T171401Z-final-codex-workflow-audit-fixes-portability-rep.md</p>
+          <pre>Summary: final Codex workflow audit fixes, portability report, and updated handover
+Scope: branch
+Agent: codex-lead
+Routing: n/a
+Branch evidence hash: f0f9bcbf4abf83cf
+
+Files:
+- .agents/skills/nexus-audit/SKILL.md</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>refresh current-state after final workflow audit fixes</strong>
+            <span>2026-05-09T17:12:42.062Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/patches/PATCH-20260509T171242Z-refresh-current-state-after-final-workflow-audit.md</p>
+          <pre>Summary: refresh current-state after final workflow audit fixes
+Scope: worktree
+Agent: codex-lead
+Routing: n/a
+
+
+Files:
+- .codex/workflow/current-state.md</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>correct portability report evidence wording</strong>
+            <span>2026-05-09T17:08:51.859Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/patches/PATCH-20260509T170851Z-correct-portability-report-evidence-wording.md</p>
+          <pre>Summary: correct portability report evidence wording
+Scope: worktree
+Agent: codex-lead
+Routing: n/a
+
+
+Files:
+- .codex/workflow/research/workflow-portability-audit-2026-05-10.md</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>final workflow audit fixes and portability report</strong>
+            <span>2026-05-09T17:04:18.410Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/patches/PATCH-20260509T170418Z-final-workflow-audit-fixes-and-portability-repor.md</p>
+          <pre>Summary: final workflow audit fixes and portability report
+Scope: worktree
+Agent: codex-lead
+Routing: n/a
+
+
+Files:
+- .codex/scripts/nexus-workflow.mjs</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
             <strong>cross-platform branch evidence hashing correction</strong>
             <span>2026-05-09T16:37:42.770Z</span>
           </div>
@@ -1880,6 +1955,114 @@ Files:
 
     <section id="reviews" class="panel">
       <h2>Reviews</h2>
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review integrated pass branch</strong>
+            <span>2026-05-09T17:14:33.548Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T171433Z-review-integrated-pass-branch.md</p>
+          <pre>Scope: branch
+Kind: integrated
+Verdict: pass
+Reviewer: codex-lead
+Patch: PATCH-20260509T171401Z-final-codex-workflow-audit-fixes-portability-rep
+Worktree hash: 515469b118698320
+Branch evidence hash: f0f9bcbf4abf83cf
+</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review design pass branch</strong>
+            <span>2026-05-09T17:14:24.856Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T171424Z-review-design-pass-branch.md</p>
+          <pre>Scope: branch
+Kind: design
+Verdict: pass
+Reviewer: nexus_design_reviewer+codex-lead
+Patch: PATCH-20260509T171401Z-final-codex-workflow-audit-fixes-portability-rep
+Worktree hash: 515469b118698320
+Branch evidence hash: f0f9bcbf4abf83cf
+</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review workflow pass branch</strong>
+            <span>2026-05-09T17:14:16.017Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T171416Z-review-workflow-pass-branch.md</p>
+          <pre>Scope: branch
+Kind: workflow
+Verdict: pass
+Reviewer: nexus_pattern_reviewer+codex-lead
+Patch: PATCH-20260509T171401Z-final-codex-workflow-audit-fixes-portability-rep
+Worktree hash: 515469b118698320
+Branch evidence hash: f0f9bcbf4abf83cf
+</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review general pass branch</strong>
+            <span>2026-05-09T17:14:08.635Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T171408Z-review-general-pass-branch.md</p>
+          <pre>Scope: branch
+Kind: general
+Verdict: pass
+Reviewer: codex-lead+agents
+Patch: PATCH-20260509T171401Z-final-codex-workflow-audit-fixes-portability-rep
+Worktree hash: 515469b118698320
+Branch evidence hash: f0f9bcbf4abf83cf
+</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review workflow pass worktree</strong>
+            <span>2026-05-09T17:13:10.869Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T171310Z-review-workflow-pass-worktree.md</p>
+          <pre>Scope: worktree
+Kind: workflow
+Verdict: pass
+Reviewer: nexus_pattern_reviewer+codex-lead
+Patch: PATCH-20260509T171242Z-refresh-current-state-after-final-workflow-audit
+Worktree hash: 515469b118698320
+
+</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review general pass worktree</strong>
+            <span>2026-05-09T17:13:02.521Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T171302Z-review-general-pass-worktree.md</p>
+          <pre>Scope: worktree
+Kind: general
+Verdict: pass
+Reviewer: codex-lead+agents
+Patch: PATCH-20260509T171242Z-refresh-current-state-after-final-workflow-audit
+Worktree hash: 515469b118698320
+
+</pre>
+        </article>
+
 
         <article class="record">
           <div class="record-top">
@@ -2601,6 +2784,60 @@ Notes: Focused review found hook false-positive/false-negative issues, they were
         <article class="record">
           <div class="record-top">
             <strong>Verification pass branch</strong>
+            <span>2026-05-09T17:16:07.491Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/tests/TEST-20260509T171607Z-verification-pass-branch.md</p>
+          <pre>Scope: branch
+Verdict: pass
+Verifier: codex-lead
+Worktree hash: 515469b118698320
+Branch evidence hash: f0f9bcbf4abf83cf
+Command run ids: final-audit-local-release-gate
+
+Files: .agents/skills/nexus-audit/SKILL.md, .agents/skills/nexus-audit/agents/openai.yaml, .agents/skills/nexus-review/SKILL.md, .agents/skills/nexus-review/agents/openai.yaml, .agents/skills/nexus-verify/SKILL.md, .agents/skills/nexus-verify/agents/openai.yaml, .agents/skills/nexus-workflow/SKILL.md, .agents/skills/nexus-workflow/agents/openai.yaml, .codex/README.md, .codex/agents/nexus-auditor.toml, .codex/agents/nexus-design-reviewer.toml, .codex/agents/nexus-pattern-reviewer.toml, .codex/agents/nexus-researcher.toml, .codex/agents/nexus-spark-worker.toml, .codex/agents/nexus-strong-worker.toml, .codex/agents/nexus-verifier.toml, .codex/config.toml, .codex/hooks.json, .codex/knowledge/deployment.md, .codex/knowledge/design-system.md, .codex/knowledge/hooks.md, .codex/knowledge/model-routing.md, .codex/knowledge/patterns.md, .codex/knowledge/verification.md, .codex/scripts/audit-deps.mjs, .codex/scripts/capture-design-zoo-visuals.mjs, .codex/scripts/check-design-tokens.mjs, .codex/scripts/check-production-zoo-bundle.mjs, .codex/scripts/nexus-workflow.mjs, .codex/scripts/run-hook.mjs, .codex/scripts/validate-design-zoo.mjs, .codex/workflow/current-state.md, .codex/workflow/dependency-audit-baseline.json, .codex/workflow/research/codex-capabilities-2026-05-09.md, .codex/workflow/research/workflow-architecture-audit-2026-05-09.md, .codex/workflow/research/workflow-portability-audit-2026-05-10.md, .codex/workflow/runtime/.gitignore, .codex/workflow/scenarios/model-routing.json, .codex/workflow/state/.gitignore, .codex/workflow/templates/README.md, .codex/workflow/templates/audit.md, .codex/workflow/templates/current-state.md, .codex/workflow/templates/deployment.md, .codex/workflow/templates/guide-browser.md, .codex/workflow/templates/patch.md, .codex/workflow/templates/pattern-proposal.md, .codex/workflow/templates/review.md, .codex/workflow/templates/routing.md, .codex/workflow/templates/test.md, .github/workflows/nexus-workflow-gates.yml, AGENTS.md, WORKFLOW.md, package-lock.json, package.json, packages/api/package.json, packages/web/eslint.config.js, packages/web/src/apps/ordering/merchant/ThemeSettings.tsx, packages/web/src/components/registry.json, packages/web/src/components/ui/Toast.tsx, packages/web/src/components/ui/__tests__/Toast.test.tsx, packages/web/src/lib/i18n.ts, packages/web/src/platform/theme/ThemeProvider.tsx, packages/web/src/platform/theme/themes.css, packages/web/src/platform/theme/themes/cantonese.css, packages/web/src/platform/theme/themes/classic.css, packages/web/src/platform/theme/themes/counter.css, packages/web/src/platform/theme/themes/curry-house.css, packages/web/src/platform/theme/themes/izakaya.css, packages/web/src/platform/theme/themes/sichuan.css, packages/web/src/platform/theme/themes/taqueria.css, packages/web/src/platform/theme/themes/trattoria.css, packages/web/src/platform/theme/themes/wok.css, packages/web/src/platform/theme/tokens.css, packages/web/src/routeTree.tsx, packages/web/src/routes/__design/Zoo.tsx, packages/web/tsconfig.tsbuildinfo</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Verification pass branch</strong>
+            <span>2026-05-09T17:14:43.469Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/tests/TEST-20260509T171443Z-verification-pass-branch.md</p>
+          <pre>Scope: branch
+Verdict: pass
+Verifier: codex-lead
+Worktree hash: 515469b118698320
+Branch evidence hash: f0f9bcbf4abf83cf
+Command run ids: final-audit-closeout-self-test, final-audit-closeout-routing-scenarios, final-audit-closeout-handover-check
+
+Files: .agents/skills/nexus-audit/SKILL.md, .agents/skills/nexus-audit/agents/openai.yaml, .agents/skills/nexus-review/SKILL.md, .agents/skills/nexus-review/agents/openai.yaml, .agents/skills/nexus-verify/SKILL.md, .agents/skills/nexus-verify/agents/openai.yaml, .agents/skills/nexus-workflow/SKILL.md, .agents/skills/nexus-workflow/agents/openai.yaml, .codex/README.md, .codex/agents/nexus-auditor.toml, .codex/agents/nexus-design-reviewer.toml, .codex/agents/nexus-pattern-reviewer.toml, .codex/agents/nexus-researcher.toml, .codex/agents/nexus-spark-worker.toml, .codex/agents/nexus-strong-worker.toml, .codex/agents/nexus-verifier.toml, .codex/config.toml, .codex/hooks.json, .codex/knowledge/deployment.md, .codex/knowledge/design-system.md, .codex/knowledge/hooks.md, .codex/knowledge/model-routing.md, .codex/knowledge/patterns.md, .codex/knowledge/verification.md, .codex/scripts/audit-deps.mjs, .codex/scripts/capture-design-zoo-visuals.mjs, .codex/scripts/check-design-tokens.mjs, .codex/scripts/check-production-zoo-bundle.mjs, .codex/scripts/nexus-workflow.mjs, .codex/scripts/run-hook.mjs, .codex/scripts/validate-design-zoo.mjs, .codex/workflow/current-state.md, .codex/workflow/dependency-audit-baseline.json, .codex/workflow/research/codex-capabilities-2026-05-09.md, .codex/workflow/research/workflow-architecture-audit-2026-05-09.md, .codex/workflow/research/workflow-portability-audit-2026-05-10.md, .codex/workflow/runtime/.gitignore, .codex/workflow/scenarios/model-routing.json, .codex/workflow/state/.gitignore, .codex/workflow/templates/README.md, .codex/workflow/templates/audit.md, .codex/workflow/templates/current-state.md, .codex/workflow/templates/deployment.md, .codex/workflow/templates/guide-browser.md, .codex/workflow/templates/patch.md, .codex/workflow/templates/pattern-proposal.md, .codex/workflow/templates/review.md, .codex/workflow/templates/routing.md, .codex/workflow/templates/test.md, .github/workflows/nexus-workflow-gates.yml, AGENTS.md, WORKFLOW.md, package-lock.json, package.json, packages/api/package.json, packages/web/eslint.config.js, packages/web/src/apps/ordering/merchant/ThemeSettings.tsx, packages/web/src/components/registry.json, packages/web/src/components/ui/Toast.tsx, packages/web/src/components/ui/__tests__/Toast.test.tsx, packages/web/src/lib/i18n.ts, packages/web/src/platform/theme/ThemeProvider.tsx, packages/web/src/platform/theme/themes.css, packages/web/src/platform/theme/themes/cantonese.css, packages/web/src/platform/theme/themes/classic.css, packages/web/src/platform/theme/themes/counter.css, packages/web/src/platform/theme/themes/curry-house.css, packages/web/src/platform/theme/themes/izakaya.css, packages/web/src/platform/theme/themes/sichuan.css, packages/web/src/platform/theme/themes/taqueria.css, packages/web/src/platform/theme/themes/trattoria.css, packages/web/src/platform/theme/themes/wok.css, packages/web/src/platform/theme/tokens.css, packages/web/src/routeTree.tsx, packages/web/src/routes/__design/Zoo.tsx, packages/web/tsconfig.tsbuildinfo</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Verification pass worktree</strong>
+            <span>2026-05-09T17:13:41.937Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/tests/TEST-20260509T171341Z-verification-pass-worktree.md</p>
+          <pre>Scope: worktree
+Verdict: pass
+Verifier: codex-lead
+Worktree hash: 515469b118698320
+
+Command run ids: final-audit-closeout-self-test, final-audit-closeout-routing-scenarios, final-audit-closeout-handover-check
+
+</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Verification pass branch</strong>
             <span>2026-05-09T16:38:31.012Z</span>
           </div>
           <span class="pill">pass</span>
@@ -3187,6 +3424,42 @@ Notes: Latest full local validation passed: workflow script syntax, design-zoo s
         <article class="record">
           <div class="record-top">
             <strong>Audit pass branch</strong>
+            <span>2026-05-09T17:14:54.285Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/audits/AUDIT-20260509T171454Z-audit-pass-branch.md</p>
+          <pre>Scope: branch
+Verdict: pass
+Auditor: codex-lead+agents
+Worktree hash: 515469b118698320
+Branch evidence hash: f0f9bcbf4abf83cf
+Command run ids: final-audit-closeout-self-test, final-audit-closeout-routing-scenarios
+Artifacts: .codex/workflow/research/workflow-portability-audit-2026-05-10.md
+Files: .agents/skills/nexus-audit/SKILL.md, .agents/skills/nexus-audit/agents/openai.yaml, .agents/skills/nexus-review/SKILL.md, .agents/skills/nexus-review/agents/openai.yaml, .agents/skills/nexus-verify/SKILL.md, .agents/skills/nexus-verify/agents/openai.yaml, .agents/skills/nexus-workflow/SKILL.md, .agents/skills/nexus-workflow/agents/openai.yaml, .codex/README.md, .codex/agents/nexus-auditor.toml, .codex/agents/nexus-design-reviewer.toml, .codex/agents/nexus-pattern-reviewer.toml, .codex/agents/nexus-researcher.toml, .codex/agents/nexus-spark-worker.toml, .codex/agents/nexus-strong-worker.toml, .codex/agents/nexus-verifier.toml, .codex/config.toml, .codex/hooks.json, .codex/knowledge/deployment.md, .codex/knowledge/design-system.md, .codex/knowledge/hooks.md, .codex/knowledge/model-routing.md, .codex/knowledge/patterns.md, .codex/knowledge/verification.md, .codex/scripts/audit-deps.mjs, .codex/scripts/capture-design-zoo-visuals.mjs, .codex/scripts/check-design-tokens.mjs, .codex/scripts/check-production-zoo-bundle.mjs, .codex/scripts/nexus-workflow.mjs, .codex/scripts/run-hook.mjs, .codex/scripts/validate-design-zoo.mjs, .codex/workflow/current-state.md, .codex/workflow/dependency-audit-baseline.json, .codex/workflow/research/codex-capabilities-2026-05-09.md, .codex/workflow/research/workflow-architecture-audit-2026-05-09.md, .codex/workflow/research/workflow-portability-audit-2026-05-10.md, .codex/workflow/runtime/.gitignore, .codex/workflow/scenarios/model-routing.json, .codex/workflow/state/.gitignore, .codex/workflow/templates/README.md, .codex/workflow/templates/audit.md, .codex/workflow/templates/current-state.md, .codex/workflow/templates/deployment.md, .codex/workflow/templates/guide-browser.md, .codex/workflow/templates/patch.md, .codex/workflow/templates/pattern-proposal.md, .codex/workflow/templates/review.md, .codex/workflow/templates/routing.md, .codex/workflow/templates/test.md, .github/workflows/nexus-workflow-gates.yml, AGENTS.md, WORKFLOW.md, package-lock.json, package.json, packages/api/package.json, packages/web/eslint.config.js, packages/web/src/apps/ordering/merchant/ThemeSettings.tsx, packages/web/src/components/registry.json, packages/web/src/components/ui/Toast.tsx, packages/web/src/components/ui/__tests__/Toast.test.tsx, packages/web/src/lib/i18n.ts, packages/web/src/platform/theme/ThemeProvider.tsx, packages/web/src/platform/theme/themes.css, packages/web/src/platform/theme/themes/cantonese.css, packages/web/src/platform/theme/themes/classic.css, packages/web/src/platform/theme/themes/counter.css, packages/web/src/platform/theme/themes/curry-house.css, packages/web/src/platform/theme/themes/izakaya.css, packages/web/src/platform/theme/themes/sichuan.css, packages/web/src/platform/theme/themes/taqueria.css, packages/web/src/platform/theme/themes/trattoria.css, packages/web/src/platform/theme/themes/wok.css, packages/web/src/platform/theme/tokens.css, packages/web/src/routeTree.tsx, packages/web/src/routes/__design/Zoo.tsx, packages/web/tsconfig.tsbuildinfo</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Audit pass worktree</strong>
+            <span>2026-05-09T17:13:50.101Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/audits/AUDIT-20260509T171350Z-audit-pass-worktree.md</p>
+          <pre>Scope: worktree
+Verdict: pass
+Auditor: codex-lead+agents
+Worktree hash: 515469b118698320
+
+Command run ids: final-audit-closeout-self-test, final-audit-closeout-routing-scenarios
+Artifacts: .codex/workflow/research/workflow-portability-audit-2026-05-10.md
+</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Audit pass branch</strong>
             <span>2026-05-09T16:38:51.528Z</span>
           </div>
           <span class="pill">pass</span>
@@ -3680,6 +3953,7 @@ Command evidence:
 <li>`systemctl status nexus-api` is healthy after restart.</li>
 <li>`https://cv.rehou.games/nexus/` returns HTML.</li>
 <li>`https://cv.rehou.games/nexus/api/platform/health` returns 200.</li>
+<li>When publishing the workflow guide, `https://cv.rehou.games/nexus/workflow/` returns the expected guide and `https://cv.rehou.games/nexus/workflow/zoo/` returns the visual Zoo/Gym guide with all referenced screenshot images loading successfully.</li>
 </ul>
 <p>After validating the server, record deployment evidence and run the deployed gate:</p>
 <p>```bash</p>
@@ -3700,6 +3974,7 @@ Command evidence:
 <p>npm run workflow:zoo-visual-guide</p>
 <p>```</p>
 <p>Deploy it by copying `.codex/dashboard/public.html` to `/var/www/cv.rehou.games/nexus/workflow/index.html` and `.codex/dashboard/zoo/` to `/var/www/cv.rehou.games/nexus/workflow/zoo/`. Do not publish the full repo-local `.codex/dashboard/index.html` unless intentionally exposing internal deployment paths and record excerpts.</p>
+<p>Workflow-guide deployment checks should fetch the public Zoo/Gym HTML, extract screenshot image paths, request those image URLs, and fail if any return a non-2xx response. Counting `.jpg` references is not sufficient deployment proof.</p>
 <p>Known risk: do not skip production `db:push` when schema changes are present.</p>
 <p>Known server state on 2026-05-09:</p>
 <ul>
