@@ -1,0 +1,1109 @@
+{
+  "schema": "nexus-design-zoo-visual-manifest/v1",
+  "capturedAt": "2026-05-09T11:17:08.107Z",
+  "baseUrl": "http://localhost:5173",
+  "contexts": [
+    {
+      "id": "desktop-light-sichuan",
+      "label": "Desktop light sichuan",
+      "mode": "light",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 1360,
+        "height": 860
+      }
+    },
+    {
+      "id": "mobile-dark-sichuan",
+      "label": "Mobile dark sichuan",
+      "mode": "dark",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      }
+    }
+  ],
+  "targets": [
+    {
+      "slug": "index",
+      "title": "Zoo Index",
+      "kind": "foundation",
+      "route": "/design",
+      "path": "packages/web/src/routes/__design/Zoo.tsx",
+      "purpose": "Entry page for the live component catalog.",
+      "contextId": "desktop-light-sichuan",
+      "contextLabel": "Desktop light sichuan",
+      "mode": "light",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 1360,
+        "height": 860
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design",
+      "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/index.jpg",
+      "sha256": "b4b960037c40cd37265953eff7798cd032bd52278b9ef90762645d8a2d77394c"
+    },
+    {
+      "slug": "tokens",
+      "title": "Token Foundations",
+      "kind": "foundation",
+      "route": "/design/tokens",
+      "path": "packages/web/src/platform/theme/tokens.css",
+      "purpose": "Production token swatches for colors, radii, shadows, and hit targets.",
+      "contextId": "desktop-light-sichuan",
+      "contextLabel": "Desktop light sichuan",
+      "mode": "light",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 1360,
+        "height": 860
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/tokens",
+      "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/tokens.jpg",
+      "sha256": "2aa1915033216fa8593ebada896b4a2ea435640ca100aad807e98b4dc670ea0d"
+    },
+    {
+      "slug": "themes",
+      "title": "Theme Matrix",
+      "kind": "foundation",
+      "route": "/design/themes",
+      "path": "packages/web/src/platform/theme/themes.css",
+      "purpose": "All cuisine themes rendered side by side from real components.",
+      "contextId": "desktop-light-sichuan",
+      "contextLabel": "Desktop light sichuan",
+      "mode": "light",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 1360,
+        "height": 860
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/themes",
+      "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/themes.jpg",
+      "sha256": "6dab43f634178868e354749928cc2168b83bc2ecf923e95bd306c0874559231b"
+    },
+    {
+      "slug": "button",
+      "title": "Button",
+      "kind": "ui",
+      "route": "/design/button",
+      "path": "packages/web/src/components/ui/Button.tsx",
+      "purpose": "Primary action control with four variants and three token-sized touch targets.",
+      "contextId": "desktop-light-sichuan",
+      "contextLabel": "Desktop light sichuan",
+      "mode": "light",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 1360,
+        "height": 860
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/button",
+      "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/button.jpg",
+      "sha256": "897828d7f906849414f7e6e85bd956c797a14a9d0a248e5a72a856d451e6f436"
+    },
+    {
+      "slug": "badge",
+      "title": "Badge",
+      "kind": "ui",
+      "route": "/design/badge",
+      "path": "packages/web/src/components/ui/Badge.tsx",
+      "purpose": "Small status label; rounded-full pill. Exports BadgeVariant type.",
+      "contextId": "desktop-light-sichuan",
+      "contextLabel": "Desktop light sichuan",
+      "mode": "light",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 1360,
+        "height": 860
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/badge",
+      "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/badge.jpg",
+      "sha256": "90fdf3e5393b2a3fd6c560b09531a4556c426e7c6920aabe9b0c2b7d0c0f727c"
+    },
+    {
+      "slug": "card",
+      "title": "Card",
+      "kind": "ui",
+      "route": "/design/card",
+      "path": "packages/web/src/components/ui/Card.tsx",
+      "purpose": "Elevated content container. Composition: CardHeader + CardTitle + CardContent + CardFooter.",
+      "contextId": "desktop-light-sichuan",
+      "contextLabel": "Desktop light sichuan",
+      "mode": "light",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 1360,
+        "height": 860
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/card",
+      "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/card.jpg",
+      "sha256": "fdfc0c8ebf0b9a56d92f3df9587bc9a1137e9e2998034c71dab90b9ab0a659f4"
+    },
+    {
+      "slug": "dialog",
+      "title": "Dialog",
+      "kind": "ui",
+      "route": "/design/dialog",
+      "path": "packages/web/src/components/ui/Dialog.tsx",
+      "purpose": "Modal dialog with overlay, title, optional footer. z-50 budget.",
+      "contextId": "desktop-light-sichuan",
+      "contextLabel": "Desktop light sichuan",
+      "mode": "light",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 1360,
+        "height": 860
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/dialog",
+      "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/dialog.jpg",
+      "sha256": "bdec62b029004a8f152a9caced28a1967898799e501c4d56034e4f528ee5d048"
+    },
+    {
+      "slug": "input",
+      "title": "Input",
+      "kind": "ui",
+      "route": "/design/input",
+      "path": "packages/web/src/components/ui/Input.tsx",
+      "purpose": "Text input with label, error, helperText slots. Focus ring tied to --color-primary.",
+      "contextId": "desktop-light-sichuan",
+      "contextLabel": "Desktop light sichuan",
+      "mode": "light",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 1360,
+        "height": 860
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/input",
+      "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/input.jpg",
+      "sha256": "638a2a7756d95f30c44193ba3baca951ed05b697d7a5f49d40486cff0b3e25fc"
+    },
+    {
+      "slug": "toggle",
+      "title": "Toggle",
+      "kind": "ui",
+      "route": "/design/toggle",
+      "path": "packages/web/src/components/ui/Toggle.tsx",
+      "purpose": "Boolean switch. 200ms slide animation. ON uses --color-primary.",
+      "contextId": "desktop-light-sichuan",
+      "contextLabel": "Desktop light sichuan",
+      "mode": "light",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 1360,
+        "height": 860
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/toggle",
+      "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/toggle.jpg",
+      "sha256": "03387ce0b2ef4b21fb6fb562809b33cc22b8f22f476f8ea7a0eccaaf63500a63"
+    },
+    {
+      "slug": "select",
+      "title": "Select",
+      "kind": "ui",
+      "route": "/design/select",
+      "path": "packages/web/src/components/ui/Select.tsx",
+      "purpose": "Dropdown with options array. Keyboard navigable. z-20 menu.",
+      "contextId": "desktop-light-sichuan",
+      "contextLabel": "Desktop light sichuan",
+      "mode": "light",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 1360,
+        "height": 860
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/select",
+      "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/select.jpg",
+      "sha256": "aa1ecb20b6dececacb32b08f33b3697112c57b5f41e2695c7b602ea3fb76563b"
+    },
+    {
+      "slug": "image-upload",
+      "title": "ImageUpload",
+      "kind": "ui",
+      "route": "/design/image-upload",
+      "path": "packages/web/src/components/ui/ImageUpload.tsx",
+      "purpose": "Drag-drop image upload with progress indicator, preview, and remove. Calls API client directly (internal i18n + api lib import).",
+      "contextId": "desktop-light-sichuan",
+      "contextLabel": "Desktop light sichuan",
+      "mode": "light",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 1360,
+        "height": 860
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/image-upload",
+      "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/image-upload.jpg",
+      "sha256": "c46c2f780a0ecfa64da87ab5220206051ee48973481853b1108ff01437ae7bfc"
+    },
+    {
+      "slug": "toast",
+      "title": "Toast",
+      "kind": "ui",
+      "route": "/design/toast",
+      "path": "packages/web/src/components/ui/Toast.tsx",
+      "purpose": "Toast notification renderer. Mounted via ToastProvider + useToast(). Exports ToastContainer + ToastData type.",
+      "contextId": "desktop-light-sichuan",
+      "contextLabel": "Desktop light sichuan",
+      "mode": "light",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 1360,
+        "height": 860
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/toast",
+      "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/toast.jpg",
+      "sha256": "398815d9f3e7dde87c59e0e6d31c7f6df9765b7dde873fb7f90fe512ae34ca23"
+    },
+    {
+      "slug": "tour-overlay",
+      "title": "TourOverlay",
+      "kind": "ui",
+      "route": "/design/tour-overlay",
+      "path": "packages/web/src/components/ui/TourOverlay.tsx",
+      "purpose": "Onboarding step highlighter with spotlight hole + next/prev controls. Uses i18n for step text.",
+      "contextId": "desktop-light-sichuan",
+      "contextLabel": "Desktop light sichuan",
+      "mode": "light",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 1360,
+        "height": 860
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/tour-overlay",
+      "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/tour-overlay.jpg",
+      "sha256": "30fa631fb40cdc1850ea1630eb8c075709c63757b676f7206243fe01d264aae1"
+    },
+    {
+      "slug": "language-picker",
+      "title": "LanguagePicker",
+      "kind": "ui",
+      "route": "/design/language-picker",
+      "path": "packages/web/src/components/ui/LanguagePicker.tsx",
+      "purpose": "Locale switcher dropdown — cycles through en/zh/ja/ko/fr. Uses useT() hook to display localized names.",
+      "contextId": "desktop-light-sichuan",
+      "contextLabel": "Desktop light sichuan",
+      "mode": "light",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 1360,
+        "height": 860
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/language-picker",
+      "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/language-picker.jpg",
+      "sha256": "ecaee7b8b309ddcb062cb2d27e92d6aebb0105ea9fb908633ed0a15d08e95654"
+    },
+    {
+      "slug": "dietary-icon",
+      "title": "DietaryIcon",
+      "kind": "ui",
+      "route": "/design/dietary-icon",
+      "path": "packages/web/src/components/ui/DietaryIcon.tsx",
+      "purpose": "The ONE sanctioned way to render dietary / allergen / spice / promo markers in Nexus UI. Emoji / unicode alternatives are banned (S-DIETARY-SPRITE).",
+      "contextId": "desktop-light-sichuan",
+      "contextLabel": "Desktop light sichuan",
+      "mode": "light",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 1360,
+        "height": 860
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/dietary-icon",
+      "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/dietary-icon.jpg",
+      "sha256": "625c971922a336bdcf36ead134d4d213017ce97e49ebe902b62cba70db0c80ac"
+    },
+    {
+      "slug": "data-table",
+      "title": "DataTable",
+      "kind": "pattern",
+      "route": "/design/data-table",
+      "path": "packages/web/src/components/patterns/DataTable.tsx",
+      "purpose": "Sortable, filterable table with generic row typing. Header click toggles sort.",
+      "contextId": "desktop-light-sichuan",
+      "contextLabel": "Desktop light sichuan",
+      "mode": "light",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 1360,
+        "height": 860
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/data-table",
+      "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/data-table.jpg",
+      "sha256": "b48ae59cbacffbfa197680c9d4ee8aa3ec515db8726375a8555eb4d06c4e5179"
+    },
+    {
+      "slug": "form-field",
+      "title": "FormField",
+      "kind": "pattern",
+      "route": "/design/form-field",
+      "path": "packages/web/src/components/patterns/FormField.tsx",
+      "purpose": "Label + input + error wrapper. Composes Input under a label with gap-1.5.",
+      "contextId": "desktop-light-sichuan",
+      "contextLabel": "Desktop light sichuan",
+      "mode": "light",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 1360,
+        "height": 860
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/form-field",
+      "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/form-field.jpg",
+      "sha256": "0f77bb03010b136c4e1325704c340f9a3d07b5524015575290389a07fcf54216"
+    },
+    {
+      "slug": "status-badge",
+      "title": "StatusBadge",
+      "kind": "pattern",
+      "route": "/design/status-badge",
+      "path": "packages/web/src/components/patterns/StatusBadge.tsx",
+      "purpose": "Order-status / generic-status badge that maps status enum to Badge variant + capitalized label.",
+      "contextId": "desktop-light-sichuan",
+      "contextLabel": "Desktop light sichuan",
+      "mode": "light",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 1360,
+        "height": 860
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/status-badge",
+      "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/status-badge.jpg",
+      "sha256": "f087d0d8c6d67622dc72f3ee8a2cfa46ebe89f9a986aafafb04dd3aaecb53bf0"
+    },
+    {
+      "slug": "empty-state",
+      "title": "EmptyState",
+      "kind": "pattern",
+      "route": "/design/empty-state",
+      "path": "packages/web/src/components/patterns/EmptyState.tsx",
+      "purpose": "No-data placeholder. Icon → title → context → single CTA button.",
+      "contextId": "desktop-light-sichuan",
+      "contextLabel": "Desktop light sichuan",
+      "mode": "light",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 1360,
+        "height": 860
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/empty-state",
+      "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/empty-state.jpg",
+      "sha256": "a276540b4ea603bea54100cd7e32b87d45bd7ec0f46dc29c6c564ab560d916d1"
+    },
+    {
+      "slug": "confirm-button",
+      "title": "ConfirmButton",
+      "kind": "pattern",
+      "route": "/design/confirm-button",
+      "path": "packages/web/src/components/patterns/ConfirmButton.tsx",
+      "purpose": "Two-click destructive action with 3s auto-reset. S-CONFIRM-DESTRUCTIVE requires this for delete/cancel/remove actions.",
+      "contextId": "desktop-light-sichuan",
+      "contextLabel": "Desktop light sichuan",
+      "mode": "light",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 1360,
+        "height": 860
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/confirm-button",
+      "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/confirm-button.jpg",
+      "sha256": "661b29c0cc6b82d61c20c2e2a4ebafba1dc8595e704df39022e7d953a169d049"
+    },
+    {
+      "slug": "error-boundary",
+      "title": "ErrorBoundary",
+      "kind": "pattern",
+      "route": "/design/error-boundary",
+      "path": "packages/web/src/components/patterns/ErrorBoundary.tsx",
+      "purpose": "React error boundary fallback — catches thrown errors in a subtree and shows a recoverable message. Only class component in codebase (React API requires class).",
+      "contextId": "desktop-light-sichuan",
+      "contextLabel": "Desktop light sichuan",
+      "mode": "light",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 1360,
+        "height": 860
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/error-boundary",
+      "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/error-boundary.jpg",
+      "sha256": "487c9ab76be89597833a1772f3ef131e6a9982f4fa6e11635ab59d21426aa8e4"
+    },
+    {
+      "slug": "pull-to-refresh",
+      "title": "PullToRefreshIndicator",
+      "kind": "pattern",
+      "route": "/design/pull-to-refresh",
+      "path": "packages/web/src/components/patterns/PullToRefreshIndicator.tsx",
+      "purpose": "Mobile pull-to-refresh visual indicator. Shows loading spinner once pull distance exceeds threshold.",
+      "contextId": "desktop-light-sichuan",
+      "contextLabel": "Desktop light sichuan",
+      "mode": "light",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 1360,
+        "height": 860
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/pull-to-refresh",
+      "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/pull-to-refresh.jpg",
+      "sha256": "23e55cb66c0912afded7c9a6f1d08333bd019eb2163b1efa47c38224e80a4dd9"
+    },
+    {
+      "slug": "add-to-cart-toast",
+      "title": "AddToCartToast",
+      "kind": "pattern",
+      "route": "/design/add-to-cart-toast",
+      "path": "packages/web/src/components/patterns/AddToCartToast.tsx",
+      "purpose": "Customer-flow confirmation pill — slides up briefly after an item is added to cart. Uses slide-up-fade keyframe.",
+      "contextId": "desktop-light-sichuan",
+      "contextLabel": "Desktop light sichuan",
+      "mode": "light",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 1360,
+        "height": 860
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/add-to-cart-toast",
+      "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/add-to-cart-toast.jpg",
+      "sha256": "37d9b8d179fd642d5928f15d41d932c6710b277cba813a7ede9eea10ab0f2faa"
+    },
+    {
+      "slug": "order-tracker",
+      "title": "OrderTracker",
+      "kind": "pattern",
+      "route": "/design/order-tracker",
+      "path": "packages/web/src/components/patterns/themed/OrderTracker.tsx",
+      "purpose": "Themed order status timeline. Horizontal step tracker with connector lines and pulsing active bubble. Supports dine-in (Received→Preparing→Ready→Served) and delivery (Received→Preparing→On the way→Delivered) modes. data-theme wrapper drives full theme cascade.",
+      "contextId": "desktop-light-sichuan",
+      "contextLabel": "Desktop light sichuan",
+      "mode": "light",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 1360,
+        "height": 860
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/order-tracker",
+      "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/order-tracker.jpg",
+      "sha256": "a79f68e031e14a5b5fb3e84ad9d263af8b851b494f54e78f92852a529a9acfc4"
+    },
+    {
+      "slug": "receipt",
+      "title": "Receipt",
+      "kind": "pattern",
+      "route": "/design/receipt",
+      "path": "packages/web/src/components/patterns/themed/Receipt.tsx",
+      "purpose": "Themed visual receipt block for the customer confirmation screen (NOT a print template). Monospace font, dashed dividers, itemised line items, subtotal/tax/tip rows, bold total, and a thank-you footer. data-theme wrapper drives full theme cascade.",
+      "contextId": "desktop-light-sichuan",
+      "contextLabel": "Desktop light sichuan",
+      "mode": "light",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 1360,
+        "height": 860
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/receipt",
+      "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/receipt.jpg",
+      "sha256": "9bbd214eef4c2c2ee17700c9239e35a51e3ec24cf1df237897f23ca3f55574fb"
+    },
+    {
+      "slug": "promo-card",
+      "title": "PromoCard",
+      "kind": "pattern",
+      "route": "/design/promo-card",
+      "path": "packages/web/src/components/patterns/themed/PromoCard.tsx",
+      "purpose": "Themed promotion banner with primary-colour background, decorative accent circle, large discount headline, and mono-font promo-code chip. All props are optional — render any subset. data-theme wrapper drives full theme cascade.",
+      "contextId": "desktop-light-sichuan",
+      "contextLabel": "Desktop light sichuan",
+      "mode": "light",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 1360,
+        "height": 860
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/promo-card",
+      "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/promo-card.jpg",
+      "sha256": "42512815f0bdbd4cc31c5ebe9f29717a24f17dbb82e6ab9c119e91821c483df5"
+    },
+    {
+      "slug": "checkout-summary",
+      "title": "CheckoutSummary",
+      "kind": "pattern",
+      "route": "/design/checkout-summary",
+      "path": "packages/web/src/components/patterns/themed/CheckoutSummary.tsx",
+      "purpose": "Themed cart/order summary block: itemised line items, divider, per-line cost breakdown (subtotal / delivery / tax), bold total, and a full-width place-order CTA that mirrors the total in its label. Display-only — pass onPlaceOrder for the mutation. data-theme wrapper drives full theme cascade.",
+      "contextId": "desktop-light-sichuan",
+      "contextLabel": "Desktop light sichuan",
+      "mode": "light",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 1360,
+        "height": 860
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/checkout-summary",
+      "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/checkout-summary.jpg",
+      "sha256": "1f41ace313034169b166b08d95cd0a792e0b750e916fd592c59950bf97fe2167"
+    },
+    {
+      "slug": "index",
+      "title": "Zoo Index",
+      "kind": "foundation",
+      "route": "/design",
+      "path": "packages/web/src/routes/__design/Zoo.tsx",
+      "purpose": "Entry page for the live component catalog.",
+      "contextId": "mobile-dark-sichuan",
+      "contextLabel": "Mobile dark sichuan",
+      "mode": "dark",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design",
+      "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/index.jpg",
+      "sha256": "6f4c27d6abef5e61456afeef413f9d6c34d7afd30243b6d702afb5074e1f59dd"
+    },
+    {
+      "slug": "tokens",
+      "title": "Token Foundations",
+      "kind": "foundation",
+      "route": "/design/tokens",
+      "path": "packages/web/src/platform/theme/tokens.css",
+      "purpose": "Production token swatches for colors, radii, shadows, and hit targets.",
+      "contextId": "mobile-dark-sichuan",
+      "contextLabel": "Mobile dark sichuan",
+      "mode": "dark",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/tokens",
+      "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/tokens.jpg",
+      "sha256": "167e7c536be4fe9bc90c78620286438d6d273406cb78a4919c6a949c91c4809e"
+    },
+    {
+      "slug": "themes",
+      "title": "Theme Matrix",
+      "kind": "foundation",
+      "route": "/design/themes",
+      "path": "packages/web/src/platform/theme/themes.css",
+      "purpose": "All cuisine themes rendered side by side from real components.",
+      "contextId": "mobile-dark-sichuan",
+      "contextLabel": "Mobile dark sichuan",
+      "mode": "dark",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/themes",
+      "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/themes.jpg",
+      "sha256": "c4845c6135dcd89c56f5da3499b81ff86fb2acb1e7f8e50856f544b3124bf0a9"
+    },
+    {
+      "slug": "button",
+      "title": "Button",
+      "kind": "ui",
+      "route": "/design/button",
+      "path": "packages/web/src/components/ui/Button.tsx",
+      "purpose": "Primary action control with four variants and three token-sized touch targets.",
+      "contextId": "mobile-dark-sichuan",
+      "contextLabel": "Mobile dark sichuan",
+      "mode": "dark",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/button",
+      "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/button.jpg",
+      "sha256": "0414b9a1da1d51ee85be81302439d6b958555e427411f163a023c44b6578e0fe"
+    },
+    {
+      "slug": "badge",
+      "title": "Badge",
+      "kind": "ui",
+      "route": "/design/badge",
+      "path": "packages/web/src/components/ui/Badge.tsx",
+      "purpose": "Small status label; rounded-full pill. Exports BadgeVariant type.",
+      "contextId": "mobile-dark-sichuan",
+      "contextLabel": "Mobile dark sichuan",
+      "mode": "dark",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/badge",
+      "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/badge.jpg",
+      "sha256": "67d6c5b3ffef459674c5f91e3cbd7d3008fe40267e7f4454d91f581fdab5210b"
+    },
+    {
+      "slug": "card",
+      "title": "Card",
+      "kind": "ui",
+      "route": "/design/card",
+      "path": "packages/web/src/components/ui/Card.tsx",
+      "purpose": "Elevated content container. Composition: CardHeader + CardTitle + CardContent + CardFooter.",
+      "contextId": "mobile-dark-sichuan",
+      "contextLabel": "Mobile dark sichuan",
+      "mode": "dark",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/card",
+      "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/card.jpg",
+      "sha256": "798fa154eb697faa5602ed25b0d942bc639b54f82e07682dc25b386c1981dc15"
+    },
+    {
+      "slug": "dialog",
+      "title": "Dialog",
+      "kind": "ui",
+      "route": "/design/dialog",
+      "path": "packages/web/src/components/ui/Dialog.tsx",
+      "purpose": "Modal dialog with overlay, title, optional footer. z-50 budget.",
+      "contextId": "mobile-dark-sichuan",
+      "contextLabel": "Mobile dark sichuan",
+      "mode": "dark",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/dialog",
+      "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/dialog.jpg",
+      "sha256": "ad38802a31749650e49032456a3264d4fa2d0d46b9b2a5476b1cf7a5b6369ab9"
+    },
+    {
+      "slug": "input",
+      "title": "Input",
+      "kind": "ui",
+      "route": "/design/input",
+      "path": "packages/web/src/components/ui/Input.tsx",
+      "purpose": "Text input with label, error, helperText slots. Focus ring tied to --color-primary.",
+      "contextId": "mobile-dark-sichuan",
+      "contextLabel": "Mobile dark sichuan",
+      "mode": "dark",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/input",
+      "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/input.jpg",
+      "sha256": "a67f961cdab75dc9560f01a9393f4133fe272b25c6895ba7715083c1b3d21fdb"
+    },
+    {
+      "slug": "toggle",
+      "title": "Toggle",
+      "kind": "ui",
+      "route": "/design/toggle",
+      "path": "packages/web/src/components/ui/Toggle.tsx",
+      "purpose": "Boolean switch. 200ms slide animation. ON uses --color-primary.",
+      "contextId": "mobile-dark-sichuan",
+      "contextLabel": "Mobile dark sichuan",
+      "mode": "dark",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/toggle",
+      "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/toggle.jpg",
+      "sha256": "98e51e3b755f4bb2dae21ffccc52eb71cd82290b2b39eb718a723874d530fe8c"
+    },
+    {
+      "slug": "select",
+      "title": "Select",
+      "kind": "ui",
+      "route": "/design/select",
+      "path": "packages/web/src/components/ui/Select.tsx",
+      "purpose": "Dropdown with options array. Keyboard navigable. z-20 menu.",
+      "contextId": "mobile-dark-sichuan",
+      "contextLabel": "Mobile dark sichuan",
+      "mode": "dark",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/select",
+      "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/select.jpg",
+      "sha256": "0398296e210fb5a42ca0f401e7d6c69d57d067816460c4f27a4293df10c85ccb"
+    },
+    {
+      "slug": "image-upload",
+      "title": "ImageUpload",
+      "kind": "ui",
+      "route": "/design/image-upload",
+      "path": "packages/web/src/components/ui/ImageUpload.tsx",
+      "purpose": "Drag-drop image upload with progress indicator, preview, and remove. Calls API client directly (internal i18n + api lib import).",
+      "contextId": "mobile-dark-sichuan",
+      "contextLabel": "Mobile dark sichuan",
+      "mode": "dark",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/image-upload",
+      "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/image-upload.jpg",
+      "sha256": "b51ad17049b4e16b7059f3e141067adf9c335d74079061fe56ebf06f686598be"
+    },
+    {
+      "slug": "toast",
+      "title": "Toast",
+      "kind": "ui",
+      "route": "/design/toast",
+      "path": "packages/web/src/components/ui/Toast.tsx",
+      "purpose": "Toast notification renderer. Mounted via ToastProvider + useToast(). Exports ToastContainer + ToastData type.",
+      "contextId": "mobile-dark-sichuan",
+      "contextLabel": "Mobile dark sichuan",
+      "mode": "dark",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/toast",
+      "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/toast.jpg",
+      "sha256": "2bdb60d388860732bf645da25e081b70f3098dc8c5a0cb831444bd0d4aecd032"
+    },
+    {
+      "slug": "tour-overlay",
+      "title": "TourOverlay",
+      "kind": "ui",
+      "route": "/design/tour-overlay",
+      "path": "packages/web/src/components/ui/TourOverlay.tsx",
+      "purpose": "Onboarding step highlighter with spotlight hole + next/prev controls. Uses i18n for step text.",
+      "contextId": "mobile-dark-sichuan",
+      "contextLabel": "Mobile dark sichuan",
+      "mode": "dark",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/tour-overlay",
+      "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/tour-overlay.jpg",
+      "sha256": "a03e028d5be8f600665aa0d0e79534c517c7733e49f77ec89c9018ec32ffc947"
+    },
+    {
+      "slug": "language-picker",
+      "title": "LanguagePicker",
+      "kind": "ui",
+      "route": "/design/language-picker",
+      "path": "packages/web/src/components/ui/LanguagePicker.tsx",
+      "purpose": "Locale switcher dropdown — cycles through en/zh/ja/ko/fr. Uses useT() hook to display localized names.",
+      "contextId": "mobile-dark-sichuan",
+      "contextLabel": "Mobile dark sichuan",
+      "mode": "dark",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/language-picker",
+      "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/language-picker.jpg",
+      "sha256": "f49a2506741455b7b6dfcf36927d48e4353114de4c5f5d0aeb7d9b00596200f0"
+    },
+    {
+      "slug": "dietary-icon",
+      "title": "DietaryIcon",
+      "kind": "ui",
+      "route": "/design/dietary-icon",
+      "path": "packages/web/src/components/ui/DietaryIcon.tsx",
+      "purpose": "The ONE sanctioned way to render dietary / allergen / spice / promo markers in Nexus UI. Emoji / unicode alternatives are banned (S-DIETARY-SPRITE).",
+      "contextId": "mobile-dark-sichuan",
+      "contextLabel": "Mobile dark sichuan",
+      "mode": "dark",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/dietary-icon",
+      "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/dietary-icon.jpg",
+      "sha256": "676c3567123682e0e8886d3c08cd85bc64263ecaf43dd258f7575c000de8557d"
+    },
+    {
+      "slug": "data-table",
+      "title": "DataTable",
+      "kind": "pattern",
+      "route": "/design/data-table",
+      "path": "packages/web/src/components/patterns/DataTable.tsx",
+      "purpose": "Sortable, filterable table with generic row typing. Header click toggles sort.",
+      "contextId": "mobile-dark-sichuan",
+      "contextLabel": "Mobile dark sichuan",
+      "mode": "dark",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/data-table",
+      "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/data-table.jpg",
+      "sha256": "a86a54e7f1076cce1d9748f709754fb5fba62ecfd988eeeaac6eca0b005e9816"
+    },
+    {
+      "slug": "form-field",
+      "title": "FormField",
+      "kind": "pattern",
+      "route": "/design/form-field",
+      "path": "packages/web/src/components/patterns/FormField.tsx",
+      "purpose": "Label + input + error wrapper. Composes Input under a label with gap-1.5.",
+      "contextId": "mobile-dark-sichuan",
+      "contextLabel": "Mobile dark sichuan",
+      "mode": "dark",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/form-field",
+      "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/form-field.jpg",
+      "sha256": "8524a24a2a36f6030b15b31228687c9e597e529bfafc8c6081617d9581cebdee"
+    },
+    {
+      "slug": "status-badge",
+      "title": "StatusBadge",
+      "kind": "pattern",
+      "route": "/design/status-badge",
+      "path": "packages/web/src/components/patterns/StatusBadge.tsx",
+      "purpose": "Order-status / generic-status badge that maps status enum to Badge variant + capitalized label.",
+      "contextId": "mobile-dark-sichuan",
+      "contextLabel": "Mobile dark sichuan",
+      "mode": "dark",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/status-badge",
+      "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/status-badge.jpg",
+      "sha256": "89cecde5beef6ab02d60522d49b76b56f2958a58ec9c4fc1c42a398411288631"
+    },
+    {
+      "slug": "empty-state",
+      "title": "EmptyState",
+      "kind": "pattern",
+      "route": "/design/empty-state",
+      "path": "packages/web/src/components/patterns/EmptyState.tsx",
+      "purpose": "No-data placeholder. Icon → title → context → single CTA button.",
+      "contextId": "mobile-dark-sichuan",
+      "contextLabel": "Mobile dark sichuan",
+      "mode": "dark",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/empty-state",
+      "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/empty-state.jpg",
+      "sha256": "84f6b9d76dad17809b0583a5458328a60b6ccdb0886734c31d9c76c64eed5afc"
+    },
+    {
+      "slug": "confirm-button",
+      "title": "ConfirmButton",
+      "kind": "pattern",
+      "route": "/design/confirm-button",
+      "path": "packages/web/src/components/patterns/ConfirmButton.tsx",
+      "purpose": "Two-click destructive action with 3s auto-reset. S-CONFIRM-DESTRUCTIVE requires this for delete/cancel/remove actions.",
+      "contextId": "mobile-dark-sichuan",
+      "contextLabel": "Mobile dark sichuan",
+      "mode": "dark",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/confirm-button",
+      "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/confirm-button.jpg",
+      "sha256": "1dba0911557f51de1d415dc016ab41464aeec8a1d8b0f0d12a4379103dd8e526"
+    },
+    {
+      "slug": "error-boundary",
+      "title": "ErrorBoundary",
+      "kind": "pattern",
+      "route": "/design/error-boundary",
+      "path": "packages/web/src/components/patterns/ErrorBoundary.tsx",
+      "purpose": "React error boundary fallback — catches thrown errors in a subtree and shows a recoverable message. Only class component in codebase (React API requires class).",
+      "contextId": "mobile-dark-sichuan",
+      "contextLabel": "Mobile dark sichuan",
+      "mode": "dark",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/error-boundary",
+      "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/error-boundary.jpg",
+      "sha256": "012f97726cb63fdc4f6ff4e6f1063517ae807eb40389e1b72d9af2bb526eecfb"
+    },
+    {
+      "slug": "pull-to-refresh",
+      "title": "PullToRefreshIndicator",
+      "kind": "pattern",
+      "route": "/design/pull-to-refresh",
+      "path": "packages/web/src/components/patterns/PullToRefreshIndicator.tsx",
+      "purpose": "Mobile pull-to-refresh visual indicator. Shows loading spinner once pull distance exceeds threshold.",
+      "contextId": "mobile-dark-sichuan",
+      "contextLabel": "Mobile dark sichuan",
+      "mode": "dark",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/pull-to-refresh",
+      "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/pull-to-refresh.jpg",
+      "sha256": "9169ac9ce8955fe2af8d6607ab7c01dca8cd918085306a97fa4561f076f3277d"
+    },
+    {
+      "slug": "add-to-cart-toast",
+      "title": "AddToCartToast",
+      "kind": "pattern",
+      "route": "/design/add-to-cart-toast",
+      "path": "packages/web/src/components/patterns/AddToCartToast.tsx",
+      "purpose": "Customer-flow confirmation pill — slides up briefly after an item is added to cart. Uses slide-up-fade keyframe.",
+      "contextId": "mobile-dark-sichuan",
+      "contextLabel": "Mobile dark sichuan",
+      "mode": "dark",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/add-to-cart-toast",
+      "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/add-to-cart-toast.jpg",
+      "sha256": "95b8893ca29d49f904b5cbf05b08bad157258defeed4c3fb7d48f54912210929"
+    },
+    {
+      "slug": "order-tracker",
+      "title": "OrderTracker",
+      "kind": "pattern",
+      "route": "/design/order-tracker",
+      "path": "packages/web/src/components/patterns/themed/OrderTracker.tsx",
+      "purpose": "Themed order status timeline. Horizontal step tracker with connector lines and pulsing active bubble. Supports dine-in (Received→Preparing→Ready→Served) and delivery (Received→Preparing→On the way→Delivered) modes. data-theme wrapper drives full theme cascade.",
+      "contextId": "mobile-dark-sichuan",
+      "contextLabel": "Mobile dark sichuan",
+      "mode": "dark",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/order-tracker",
+      "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/order-tracker.jpg",
+      "sha256": "335eb5673e1e5fbf7a8b92a5729ae1a312287b16b125e2d95d6271467680c9bf"
+    },
+    {
+      "slug": "receipt",
+      "title": "Receipt",
+      "kind": "pattern",
+      "route": "/design/receipt",
+      "path": "packages/web/src/components/patterns/themed/Receipt.tsx",
+      "purpose": "Themed visual receipt block for the customer confirmation screen (NOT a print template). Monospace font, dashed dividers, itemised line items, subtotal/tax/tip rows, bold total, and a thank-you footer. data-theme wrapper drives full theme cascade.",
+      "contextId": "mobile-dark-sichuan",
+      "contextLabel": "Mobile dark sichuan",
+      "mode": "dark",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/receipt",
+      "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/receipt.jpg",
+      "sha256": "21f87b27223f3c8c6b5e302fe7c209648e29d0c16d97cafc0981433b8457e9bb"
+    },
+    {
+      "slug": "promo-card",
+      "title": "PromoCard",
+      "kind": "pattern",
+      "route": "/design/promo-card",
+      "path": "packages/web/src/components/patterns/themed/PromoCard.tsx",
+      "purpose": "Themed promotion banner with primary-colour background, decorative accent circle, large discount headline, and mono-font promo-code chip. All props are optional — render any subset. data-theme wrapper drives full theme cascade.",
+      "contextId": "mobile-dark-sichuan",
+      "contextLabel": "Mobile dark sichuan",
+      "mode": "dark",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/promo-card",
+      "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/promo-card.jpg",
+      "sha256": "076e95428db8eca8cd2f5f1294f3e015c215b4735d74ff741f1d027423f1ec3d"
+    },
+    {
+      "slug": "checkout-summary",
+      "title": "CheckoutSummary",
+      "kind": "pattern",
+      "route": "/design/checkout-summary",
+      "path": "packages/web/src/components/patterns/themed/CheckoutSummary.tsx",
+      "purpose": "Themed cart/order summary block: itemised line items, divider, per-line cost breakdown (subtotal / delivery / tax), bold total, and a full-width place-order CTA that mirrors the total in its label. Display-only — pass onPlaceOrder for the mutation. data-theme wrapper drives full theme cascade.",
+      "contextId": "mobile-dark-sichuan",
+      "contextLabel": "Mobile dark sichuan",
+      "mode": "dark",
+      "theme": "sichuan",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "fullPage": true,
+      "sourceUrl": "http://localhost:5173/design/checkout-summary",
+      "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/checkout-summary.jpg",
+      "sha256": "a5664c27154f4345c3f09a26f98493a33b9b2903fadd96d9705585ce82ed95ac"
+    }
+  ]
+}

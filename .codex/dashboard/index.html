@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="nexus-guide-version" content="nexus-public-workflow-guide/v2" />
-  <meta name="nexus-guide-source-hash" content="8035440017e318562f471282" />
-  <meta name="nexus-guide-content-hash" content="9f73a31c02729438f6adaec2" />
+  <meta name="nexus-guide-source-hash" content="267f02aadb99389d1d4f63f2" />
+  <meta name="nexus-guide-content-hash" content="10f6bf31cdbd4151d94575c4" />
   <meta name="nexus-token-source" content="packages/web/src/platform/theme/tokens.css" />
   <title>Nexus Workflow Dashboard</title>
   <style>
@@ -81,7 +81,7 @@
 <body>
   <header>
     <h1>Nexus Workflow Dashboard</h1>
-    <div class="meta">Generated 2026-05-09T08:36:51.488Z · branch codex/native-workflow</div>
+    <div class="meta">Generated 2026-05-09T11:24:43.124Z · branch codex/native-workflow</div>
   </header>
   <div class="layout">
     <nav>
@@ -106,12 +106,12 @@
         <h2>Overview</h2>
         <div class="grid">
           <div class="card"><span class="meta">Decisions</span><strong>1</strong></div>
-<div class="card"><span class="meta">Pattern Proposals</span><strong>5</strong></div>
-<div class="card"><span class="meta">Routing</span><strong>14</strong></div>
-<div class="card"><span class="meta">Patches</span><strong>22</strong></div>
-<div class="card"><span class="meta">Reviews</span><strong>25</strong></div>
-<div class="card"><span class="meta">Tests</span><strong>36</strong></div>
-<div class="card"><span class="meta">Audits</span><strong>18</strong></div>
+<div class="card"><span class="meta">Pattern Proposals</span><strong>9</strong></div>
+<div class="card"><span class="meta">Routing</span><strong>21</strong></div>
+<div class="card"><span class="meta">Patches</span><strong>27</strong></div>
+<div class="card"><span class="meta">Reviews</span><strong>31</strong></div>
+<div class="card"><span class="meta">Tests</span><strong>39</strong></div>
+<div class="card"><span class="meta">Audits</span><strong>20</strong></div>
 <div class="card"><span class="meta">Deployments</span><strong>3</strong></div>
 <div class="card"><span class="meta">Zoo Pages</span><strong>24/24</strong></div>
         </div>
@@ -120,21 +120,68 @@
           <div class="card"><span class="meta">Verify Gate</span><strong>pass</strong></div>
           <div class="card"><span class="meta">Audit Gate</span><strong>pass</strong></div>
         </div>
-        <p class="meta">Last patch trigger: 2026-05-09T08:35:42.551Z · patch PATCH-20260509T083542Z-final-deployment-evidence-and-compact-handover-r</p>
+        <p class="meta">Last patch trigger: 2026-05-09T11:19:18.026Z · patch PATCH-20260509T111917Z-final-corrected-visual-zoo-gym-guide-and-codex-w</p>
         <pre>## codex/native-workflow...origin/codex/native-workflow
+ M .codex/README.md
+ M .codex/config.toml
+ M .codex/dashboard/index.html
+ M .codex/dashboard/public.html
+ M .codex/hooks.json
+ M .codex/knowledge/deployment.md
+ M .codex/knowledge/design-system.md
+ M .codex/knowledge/hooks.md
+ M .codex/scripts/nexus-workflow.mjs
+ M .codex/scripts/validate-design-zoo.mjs
  M .codex/workflow/current-state.md
  M .codex/workflow/records/audit-state.json
+ M .codex/workflow/records/guide-browser-state.json
  M .codex/workflow/records/patch-state.json
  M .codex/workflow/records/review-state.json
+ M .codex/workflow/records/risks.md
  M .codex/workflow/records/routing-state.json
  M .codex/workflow/records/verify-state.json
-?? .codex/workflow/records/audits/AUDIT-20260509T083637Z-audit-pass-worktree.md
-?? .codex/workflow/records/deployments/DEPLOYMENT-20260509T083458Z-second-hardening-server-validation-after-clean-r.md
-?? .codex/workflow/records/patches/PATCH-20260509T083542Z-final-deployment-evidence-and-compact-handover-r.md
-?? .codex/workflow/records/reviews/REVIEW-20260509T083609Z-review-general-pass-worktree.md
-?? .codex/workflow/records/reviews/REVIEW-20260509T083618Z-review-workflow-pass-worktree.md
-?? .codex/workflow/records/routing/ROUTING-20260509T083532Z-final-deployment-evidence-and-compact-handover-r.md
-?? .codex/workflow/records/tests/TEST-20260509T083628Z-verification-pass-worktree.md</pre>
+ M package-lock.json
+ M package.json
+ M packages/api/package.json
+ M packages/web/src/routeTree.tsx
+ M packages/web/src/routes/__design/Zoo.tsx
+ M packages/web/tsconfig.tsbuildinfo
+?? .codex/dashboard/zoo/
+?? .codex/scripts/audit-deps.mjs
+?? .codex/scripts/capture-design-zoo-visuals.mjs
+?? .codex/scripts/check-production-zoo-bundle.mjs
+?? .codex/scripts/run-hook.mjs
+?? .codex/workflow/artifacts/screenshots/visual-zoo-guide/
+?? .codex/workflow/dependency-audit-baseline.json
+?? .codex/workflow/records/audits/AUDIT-20260509T103847Z-audit-pass-worktree.md
+?? .codex/workflow/records/audits/AUDIT-20260509T112426Z-audit-pass-worktree.md
+?? .codex/workflow/records/guide-browser/
+?? .codex/workflow/records/patches/PATCH-20260509T094545Z-visual-zoo-guide-hook-config-enforcement-depende.md
+?? .codex/workflow/records/patches/PATCH-20260509T103534Z-final-visual-zoo-guide-and-workflow-gate-hardeni.md
+?? .codex/workflow/records/patches/PATCH-20260509T104918Z-final-visual-zoo-gym-guide-hook-config-enforceme.md
+?? .codex/workflow/records/patches/PATCH-20260509T110743Z-final-fixed-visual-zoo-gym-guide-and-codex-workf.md
+?? .codex/workflow/records/patches/PATCH-20260509T111917Z-final-corrected-visual-zoo-gym-guide-and-codex-w.md
+?? .codex/workflow/records/pattern-proposals/PATTERN-PROPOSAL-20260509T094319Z-pattern-accepted-production-design-zoo-uses-capt.md
+?? .codex/workflow/records/pattern-proposals/PATTERN-PROPOSAL-20260509T094331Z-pattern-accepted-dependency-audit-exceptions-mus.md
+?? .codex/workflow/records/pattern-proposals/PATTERN-PROPOSAL-20260509T110401Z-pattern-proposed-pattern-accepted-design-zoo-mus.md
+?? .codex/workflow/records/pattern-proposals/PATTERN-PROPOSAL-20260509T110413Z-pattern-proposed-pattern-accepted-visual-zoo-cap.md
+?? .codex/workflow/records/reviews/REVIEW-20260509T103612Z-review-general-pass-worktree.md
+?? .codex/workflow/records/reviews/REVIEW-20260509T103625Z-review-workflow-pass-worktree.md
+?? .codex/workflow/records/reviews/REVIEW-20260509T103638Z-review-design-pass-worktree.md
+?? .codex/workflow/records/reviews/REVIEW-20260509T112403Z-review-design-pass-worktree.md
+?? .codex/workflow/records/reviews/REVIEW-20260509T112403Z-review-general-pass-worktree.md
+?? .codex/workflow/records/reviews/REVIEW-20260509T112403Z-review-workflow-pass-worktree.md
+?? .codex/workflow/records/routing/ROUTING-20260509T091841Z-visual-zoo-guide-hook-enforcement-and-audit-hard.md
+?? .codex/workflow/records/routing/ROUTING-20260509T094531Z-visual-zoo-guide-hook-enforcement-dependency-aud.md
+?? .codex/workflow/records/routing/ROUTING-20260509T100929Z-visual-zoo-guide-thin-hook-config-dependency-aud.md
+?? .codex/workflow/records/routing/ROUTING-20260509T103519Z-final-visual-zoo-guide-deterministic-state-evide.md
+?? .codex/workflow/records/routing/ROUTING-20260509T104901Z-final-visual-zoo-guide-thin-hook-enforcement-dep.md
+?? .codex/workflow/records/routing/ROUTING-20260509T110725Z-final-fixed-visual-zoo-gym-theming-evidence-appe.md
+?? .codex/workflow/records/routing/ROUTING-20260509T111901Z-final-corrected-visual-zoo-gym-evidence-and-work.md
+?? .codex/workflow/records/tests/TEST-20260509T103830Z-verification-pass-worktree.md
+?? .codex/workflow/records/tests/TEST-20260509T112425Z-final-local-validation-before-commit.md
+?? .codex/workflow/records/tests/TEST-20260509T112426Z-verification-pass-worktree.md
+?? .github/</pre>
       </section>
       <section id="current" class="panel"><h1>Current State</h1>
 <p>Updated: 2026-05-09</p>
@@ -166,7 +213,7 @@
 <li>continued design-system completion work after workflow migration.</li>
 </ul>
 <h2>Current Phase</h2>
-<p>Codex workflow migration and the second hardening pass are complete at branch HEAD. The earlier migration was implemented and deployed, and the follow-up audit converted prose-only guarantees into structured records, executable checks, guide validation, and clean committed-state server validation.</p>
+<p>Codex workflow migration and the second hardening pass are complete at branch HEAD. The current local hardening pass adds a production-safe visual Zoo/Gym surface, hook/config enforcement checks, dependency-audit policy, CI gates, state-cache/history evidence validation, and dev-only Zoo route tightening. Local evidence is being refreshed through the deterministic gates; commit, push, and server validation are still required before these additions should be described as deployed.</p>
 <p>Implemented workflow pieces:</p>
 <ul>
 <li>`.codex/` workflow root with compact state, knowledge files, records, templates, research, scripts, hooks, agents, archived Claude material, and generated dashboard.</li>
@@ -175,13 +222,17 @@
 <li>Dynamic pattern discovery: `record-pattern` creates evidence-based proposals before durable guidance is promoted.</li>
 <li>Dashboard/wiki/visualizer: `.codex/dashboard/index.html` summarizes state, records, gates, risks, deployment notes, and Design Zoo/Gym registry coverage.</li>
 <li>Public-safe workflow guide: `https://cv.rehou.games/nexus/workflow/` generated from `.codex/dashboard/public.html`.</li>
+<li>Production-safe visual Zoo/Gym guide: `.codex/dashboard/zoo/index.html`, intended for `https://cv.rehou.games/nexus/workflow/zoo/`.</li>
 <li>Active Claude workflow files are archived under `.codex/archive/claude-code-2026-05-09/`.</li>
 <li>Design-system continuation work: Toast now has semantic `info` styling, `warning` support, registry coverage, tests, and Design Zoo validation.</li>
 </ul>
 <p>Hardening pass additions:</p>
 <ul>
 <li>Pattern proposal, routing, patch, review, test, audit, and deployment records are append-only after publication; corrections should be new records.</li>
+<li>Mutable state JSON files are treated as cache pointers only; gates now cross-check them against append-only markdown records before trusting patch, routing, review, verification, audit, or guide-browser evidence.</li>
+<li>Record integrity checks committed evidence-record history against the configured base branch when available, so clean CI checkouts can catch old record rewrites rather than only dirty-tree edits.</li>
 <li>Audits are first-class records under `.codex/workflow/records/audits/`.</li>
+<li>Guide-browser validation is a first-class evidence record under `.codex/workflow/records/guide-browser/`; it is excluded from guide source hashing to avoid a self-referential stale-guide loop.</li>
 <li>Routing records are structured and can constrain Spark write scope.</li>
 <li>Review records are typed: `general`, `pattern`, `design`, `workflow`, or `integrated`.</li>
 <li>Release gates include record integrity, hash-bound routing state, public guide safety/freshness, recorded guide browser validation, Zoo/Gym registry consistency, handover hygiene, and workflow self-tests.</li>
@@ -192,6 +243,21 @@
 <li>Model routing scenarios now assert Spark escalation fallback owners, not only escalation route names.</li>
 <li>Hook runtime heartbeats are written under `.codex/workflow/runtime/` when hooks are active.</li>
 </ul>
+<p>Visual-Zoo/hook/dependency hardening additions:</p>
+<ul>
+<li>The local generated workflow guide now has a captured visual Zoo/Gym page with 54 screenshots from the real dev-only `/design` routes: desktop-light-sichuan and mobile-dark-sichuan contexts for every registry-backed page.</li>
+<li>The live `/design` Zoo now applies the selected cuisine theme to a demo wrapper and mirrors it to `document.body`, so body-mounted portal components are actually tested under the selected theme.</li>
+<li>Mobile Zoo layout was made responsive enough for the 390px capture to show real demo content, and screenshots are full-page with non-cropped source evidence in the generated guide.</li>
+<li>`packages/web/src/routeTree.tsx` creates the interactive `/design` route and dynamic import only under `import.meta.env.DEV`; local production build validation found no `Zoo-*.js` chunk.</li>
+<li>`workflow:capture-zoo-visuals`, `workflow:zoo-visual-guide`, and `workflow:zoo-visual-guide-check` generate and gate the visual surface.</li>
+<li>`.codex/config.toml` pins `sandbox_mode = &quot;danger-full-access&quot;` and `approval_policy = &quot;never&quot;` for the project Custom profile, while hooks remain advisory and thin.</li>
+<li>`workflow:hook-config-check` verifies config/hook wiring without putting judgment inside hooks.</li>
+<li>`audit:deps` and `workflow:dependency-audit-check` enforce `npm audit` with an explicit expiring baseline for the remaining dev-only `drizzle-kit` transitive advisories.</li>
+<li>Dependency-audit baseline entries are constrained by package, node path, via chain, effects, directness, root advisory source, current-use checks, and expiry.</li>
+<li>`workflow:prod-zoo-bundle-check` scans production build output to enforce that the interactive dev-only Zoo route/chunk is not shipped.</li>
+<li>`hooks.json` calls only `.codex/scripts/run-hook.mjs &lt;event&gt;`; `workflow:hook-config-check` rejects inline hook command logic and matcher drift.</li>
+<li>`.github/workflows/nexus-workflow-gates.yml` adds a CI backstop for dependency audit, design lint, tests, build, self-test, and release gate.</li>
+</ul>
 <p>Representative gate records from the initial workflow migration:</p>
 <ul>
 <li>`PATCH-20260508T174121Z-codex-native-workflow-migration-claude-workflow-`</li>
@@ -199,12 +265,11 @@
 <li>`TEST-20260508T174152Z-verification-pass-worktree`</li>
 <li>`REVIEW-20260508T174152Z-audit-pass-worktree`</li>
 </ul>
-<p>Latest validation records:</p>
+<p>Validation record navigation:</p>
 <ul>
-<li>`TEST-20260508T174135Z-full-local-validation-after-workflow-review-fixe`</li>
-<li>`TEST-20260508T174136Z-pretooluse-commit-hook-windows-command-matrix`</li>
-<li>`TEST-20260508T171614Z-reusable-design-zoo-validator`</li>
-<li>`TEST-20260508T171820Z-server-pre-deploy-validation`</li>
+<li>Use `node .codex/scripts/nexus-workflow.mjs status` for the current hash and active gate state.</li>
+<li>Use `.codex/workflow/records/patches/`, `routing/`, `reviews/`, `tests/`, `audits/`, `guide-browser/`, and `deployments/` for detailed evidence.</li>
+<li>The generated dashboard and public guide summarize the record history without requiring this handover to name every latest record.</li>
 </ul>
 <p>Server deployment validation:</p>
 <ul>
@@ -248,6 +313,13 @@
 <li>`PATTERN-PROPOSAL-20260509T065619Z-pattern-accepted-generated-workflow-guide-artifa`</li>
 <li>`PATTERN-PROPOSAL-20260509T065629Z-pattern-accepted-pattern-proposal-records-are-ap`</li>
 </ul>
+<p>Visual-Zoo/hook/dependency hardening pattern evidence:</p>
+<ul>
+<li>`PATTERN-PROPOSAL-20260509T094319Z-pattern-accepted-production-design-zoo-uses-capt`</li>
+<li>`PATTERN-PROPOSAL-20260509T094331Z-pattern-accepted-dependency-audit-exceptions-mus`</li>
+<li>`PATTERN-PROPOSAL-20260509T110401Z-pattern-proposed-pattern-accepted-design-zoo-mus`</li>
+<li>`PATTERN-PROPOSAL-20260509T110413Z-pattern-proposed-pattern-accepted-visual-zoo-cap`</li>
+</ul>
 <h2>Important Git Note</h2>
 <p>Plain `git` may misread this linked worktree if it resolves the submodule common git dir. The reliable command form is:</p>
 <p>```bash</p>
@@ -255,10 +327,15 @@
 <p>```</p>
 <p>The earlier large dirty-tree report came from using the submodule common git dir directly and should not be treated as the current worktree state.</p>
 <h2>Next Required Work</h2>
-<p>No mandatory workflow-migration step remains. Optional follow-ups remain tracked as risks:</p>
+<p>Before final handover for the current hardening pass:</p>
+<ul>
+<li>Commit and push the current local hardening changes.</li>
+<li>Pull/deploy the branch on the server and validate `https://cv.rehou.games/nexus/workflow/`, `https://cv.rehou.games/nexus/workflow/zoo/`, the app, API health, and server workflow gates.</li>
+</ul>
+<p>After deployment, optional follow-ups remain tracked as risks:</p>
 <ul>
 <li>Confirm the server remains clean after future dependency installs; the cleaned `package-lock.json` diff backup is at `/root/monoWeb/deploy-backups/nexus/package-lock-local-20260509-before-final-clean.diff` and `.json`.</li>
-<li>Triage pre-existing `npm audit` findings from server `npm ci`.</li>
+<li>Recheck the dependency audit baseline before 2026-06-09 and remove entries once `drizzle-kit` no longer carries the dev-only transitive advisory.</li>
 <li>Clean the non-failing React `act(...)` warning in `ThemeProvider.test.tsx`.</li>
 <li>Remember that Codex hooks are advisory gates unless the project `.codex/` layer is trusted/loaded; deterministic scripts remain the reliable enforcement path.</li>
 </ul></section>
@@ -266,6 +343,7 @@
         <h2>Design Zoo / Gym</h2>
         <p>The production component gym is the dev-only app route at <code>http://localhost:5173/design</code>. It reads real source components through <code>packages/web/src/routes/__design/Zoo.tsx</code>; this dashboard reads <code>packages/web/src/components/registry.json</code> so coverage is visible here too.</p>
         <p><a href="http://localhost:5173/design">Open local zoo index</a> after running <code>npm run dev:web</code> or <code>npm run dev:all</code>.</p>
+        <p><a href="zoo/index.html">Open generated Visual Zoo/Gym Guide</a> for captured previews that can be deployed to <code>https://cv.rehou.games/nexus/workflow/zoo/</code>.</p>
         <div class="record">
           <strong>Registry coverage</strong>
           <p class="path">24 of 24 registry entries declare a zoo route.</p>
@@ -641,11 +719,28 @@
 <li>`/design/:slug`</li>
 </ul>
 <p>It is implemented in `packages/web/src/routes/__design/Zoo.tsx` and should import real components, never copies. The registry file `packages/web/src/components/registry.json` is the machine-readable source that lists every primitive/pattern and its `zooRoute`.</p>
-<p>The Codex workflow dashboard also surfaces the zoo route list so the guide app links directly to each local gym page. When validating design-system work, check both:</p>
+<p>The Zoo is also a tenant-theme test harness. Its selected theme must be applied to a `data-theme` wrapper around the demos, and it must mirror the same theme to `document.body` so body-mounted portals can be inspected under the selected cuisine theme. Evidence: `PATTERN-PROPOSAL-20260509T110401Z-pattern-proposed-pattern-accepted-design-zoo-mus`.</p>
+<p>Production builds must not mount or eagerly ship the interactive Zoo route. `packages/web/src/routeTree.tsx` creates the `/design` routes and dynamic import only inside the `import.meta.env.DEV` branch. Public inspection uses the generated screenshot guide instead.</p>
+<p>Evidence: `PATTERN-PROPOSAL-20260509T094319Z-pattern-accepted-production-design-zoo-uses-capt`.</p>
+<p>After production builds, run `npm run workflow:prod-zoo-bundle-check`. It scans `packages/web/dist/assets/*.js` for `Zoo-*.js` chunks and dev-Zoo markers so this invariant is enforced by CI and the release gate, not just prose.</p>
+<p>The Codex workflow dashboard also surfaces the zoo route list so the guide app links directly to each local gym page. The deployable visual guide is generated from live `/design` screenshots:</p>
+<ul>
+<li>`.codex/dashboard/zoo/index.html`</li>
+<li>`https://cv.rehou.games/nexus/workflow/zoo/`</li>
+<li>default captures cover desktop/light and mobile/dark contexts for every registry-backed page.</li>
+<li>captures are full-page, and the mobile Zoo layout must keep real demo content visible instead of letting navigation chrome consume the viewport.</li>
+<li>generated guide screenshots should preserve source evidence instead of cropping long demos such as the theme matrix.</li>
+<li>the visual guide source hash includes component source files from `packages/web/src/components/`, registry metadata, Zoo route code, and theme files.</li>
+</ul>
+<p>Evidence: `PATTERN-PROPOSAL-20260509T110413Z-pattern-proposed-pattern-accepted-visual-zoo-cap`.</p>
+<p>When validating design-system work, check:</p>
 <ul>
 <li>the static workflow dashboard at `.codex/dashboard/index.html`;</li>
+<li>the deployable visual Zoo/Gym guide at `.codex/dashboard/zoo/index.html`;</li>
 <li>the running app zoo at `http://localhost:5173/design`.</li>
 <li>the reusable interaction check: `npm run workflow:design-zoo` with the web dev server running.</li>
+<li>the visual guide gate: `npm run workflow:zoo-visual-guide-check` after recapturing screenshots.</li>
+<li>the browser evidence gate: `npm run workflow:guide-browser-check`, backed by append-only records under `.codex/workflow/records/guide-browser/`.</li>
 </ul></section>
       <section id="records" class="panel">
         <h2>Record Index</h2>
@@ -670,6 +765,78 @@
 
     <section id="pattern-proposals" class="panel">
       <h2>Pattern-proposals</h2>
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Pattern proposed pattern accepted visual zoo captures must be meaningful responsive full-page evidence</strong>
+            <span>2026-05-09T11:04:13.817Z</span>
+          </div>
+          <span class="pill">proposed</span>
+          <p class="path">.codex/workflow/records/pattern-proposals/PATTERN-PROPOSAL-20260509T110413Z-pattern-proposed-pattern-accepted-visual-zoo-cap.md</p>
+          <pre>Status: proposed
+Reporter: codex
+
+
+
+Summary: pattern accepted visual zoo captures must be meaningful responsive full-page evidence
+
+Evidence: .codex/scripts/capture-design-zoo-visuals.mjs fullPage manifest; packages/web/src/routes/__design/Zoo.tsx responsive layout; .codex/dashboard/zoo/index.html non-cropped scrollable screenshots; Playwright guide browser check with 54 loaded images</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Pattern proposed pattern accepted design zoo must apply selected data-theme to showcase wrapper and body portal scope</strong>
+            <span>2026-05-09T11:04:01.652Z</span>
+          </div>
+          <span class="pill">proposed</span>
+          <p class="path">.codex/workflow/records/pattern-proposals/PATTERN-PROPOSAL-20260509T110401Z-pattern-proposed-pattern-accepted-design-zoo-mus.md</p>
+          <pre>Status: proposed
+Reporter: codex
+
+
+
+Summary: pattern accepted design zoo must apply selected data-theme to showcase wrapper and body portal scope
+
+Evidence: packages/web/src/routes/__design/Zoo.tsx; .codex/scripts/validate-design-zoo.mjs bodyTheme/zooThemeScopeCount; npm run workflow:design-zoo</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Pattern accepted Dependency audit exceptions must be explicit expiring workflow records</strong>
+            <span>2026-05-09T09:43:31.379Z</span>
+          </div>
+          <span class="pill">accepted</span>
+          <p class="path">.codex/workflow/records/pattern-proposals/PATTERN-PROPOSAL-20260509T094331Z-pattern-accepted-dependency-audit-exceptions-mus.md</p>
+          <pre>Status: accepted
+Reporter: codex
+Reviewer: codex-lead
+Decision: Accepted because latest drizzle-kit still carries the dev-only transitive advisory and npm's suggested fix is an unsafe downgrade.
+
+Summary: Dependency audit exceptions must be explicit expiring workflow records
+
+Evidence: npm audit direct high/runtime findings were remediated; npm run audit:deps passes only because .codex/workflow/dependency-audit-baseline.json lists remaining dev-only drizzle-kit advisories with expiry 2026-06-09</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Pattern accepted Production design Zoo uses captured visual guide instead of shipping interactive dev route</strong>
+            <span>2026-05-09T09:43:19.576Z</span>
+          </div>
+          <span class="pill">accepted</span>
+          <p class="path">.codex/workflow/records/pattern-proposals/PATTERN-PROPOSAL-20260509T094319Z-pattern-accepted-production-design-zoo-uses-capt.md</p>
+          <pre>Status: accepted
+Reporter: codex
+Reviewer: codex-lead
+Decision: Accepted after local build, browser screenshot validation, and guide generation.
+
+Summary: Production design Zoo uses captured visual guide instead of shipping interactive dev route
+
+Evidence: packages/web/src/routeTree.tsx creates /design routes only inside import.meta.env.DEV; npm run build emitted no Zoo-*.js chunk; .codex/dashboard/zoo/index.html contains 27 captures from packages/web/src/routes/__design/Zoo.tsx</pre>
+        </article>
+
 
         <article class="record">
           <div class="record-top">
@@ -765,6 +932,132 @@ Proposed guidance: Keep Codex hooks as compact dispatch/gate triggers. Review, v
 
     <section id="routing" class="panel">
       <h2>Routing</h2>
+
+        <article class="record">
+          <div class="record-top">
+            <strong>final corrected visual Zoo/Gym evidence and workflow gate hardening after reviewer fixes</strong>
+            <span>2026-05-09T11:19:01.315Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/routing/ROUTING-20260509T111901Z-final-corrected-visual-zoo-gym-evidence-and-work.md</p>
+          <pre>Summary: final corrected visual Zoo/Gym evidence and workflow gate hardening after reviewer fixes
+Route: lead
+Worker: codex-lead
+Rejected routes: n/a
+Write scope: .codex/scripts/nexus-workflow.mjs, .codex/scripts/audit-deps.mjs, .codex/scripts/capture-design-zoo-visuals.mjs, .codex/scripts/check-production-zoo-bundle.mjs, .codex/scripts/run-hook.mjs, .codex/scripts/validate-design-zoo.mjs, .codex/hooks.json, .codex/config.toml, .codex/dashboard, .codex/workflow/dependency-audit-baseline.json, packages/web/src/routeTree.tsx, packages/web/src/routes/__design/Zoo.tsx, package.json, package-lock.json, packages/api/package.json, .github/workflows/nexus-workflow-gates.yml
+Verification: workflow self-test with append-only history fixtures, records/routing/review/verify/audit gates, design-zoo validator with body portal theme and contrast assertions, visual Zoo screenshot/browser evidence, dependency audit, hook-config check, prod Zoo bundle check, tests/build before commit and server release gate after deploy
+Fallback trigger: If deterministic gates fail, reviewers find gaps, browser images are broken, dark Zoo contrast assertion fails, design-zoo theme assertions fail, production bundle ships dev Zoo, dependency baseline drifts, or deployment validation fails
+Fallback target: nexus_strong_worker</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>final fixed visual Zoo/Gym theming evidence, append-only history checks, dependency-audit precision, thin hooks, CI gates, and production Zoo guard</strong>
+            <span>2026-05-09T11:07:25.217Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/routing/ROUTING-20260509T110725Z-final-fixed-visual-zoo-gym-theming-evidence-appe.md</p>
+          <pre>Summary: final fixed visual Zoo/Gym theming evidence, append-only history checks, dependency-audit precision, thin hooks, CI gates, and production Zoo guard
+Route: lead
+Worker: codex-lead
+Rejected routes: n/a
+Write scope: .codex/scripts/nexus-workflow.mjs, .codex/scripts/audit-deps.mjs, .codex/scripts/capture-design-zoo-visuals.mjs, .codex/scripts/check-production-zoo-bundle.mjs, .codex/scripts/run-hook.mjs, .codex/hooks.json, .codex/config.toml, .codex/dashboard, .codex/workflow/dependency-audit-baseline.json, packages/web/src/routeTree.tsx, packages/web/src/routes/__design/Zoo.tsx, package.json, package-lock.json, packages/api/package.json, .github/workflows/nexus-workflow-gates.yml
+Verification: workflow self-test, records/routing/review/verify/audit gates, design-zoo validator with body portal theme assertion, visual Zoo screenshots/browser evidence, dependency audit, hook-config check, prod Zoo bundle check, tests/build before commit and server release gate after deploy
+Fallback trigger: If deterministic gates fail, reviewers find gaps, browser images are broken, design-zoo theme assertions fail, production bundle ships dev Zoo, dependency baseline drifts, or deployment validation fails
+Fallback target: nexus_strong_worker</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>final visual zoo guide, thin hook enforcement, dependency audit, and deterministic evidence hardening</strong>
+            <span>2026-05-09T10:49:01.802Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/routing/ROUTING-20260509T104901Z-final-visual-zoo-guide-thin-hook-enforcement-dep.md</p>
+          <pre>Summary: final visual zoo guide, thin hook enforcement, dependency audit, and deterministic evidence hardening
+Route: lead
+Worker: codex-lead
+Rejected routes: n/a
+Write scope: .codex/scripts/nexus-workflow.mjs, .codex/scripts/capture-design-zoo-visuals.mjs, .codex/scripts/audit-deps.mjs, .codex/scripts/check-production-zoo-bundle.mjs, .codex/scripts/run-hook.mjs, .codex/hooks.json, .codex/config.toml, .codex/dashboard, .codex/workflow/dependency-audit-baseline.json, packages/web/src/routeTree.tsx, package.json, package-lock.json, packages/api/package.json, .github/workflows/nexus-workflow-gates.yml
+Verification: workflow guide checks, visual zoo screenshot/browser evidence, model-routing check, records/routing/review/verify/audit gates, dependency audit, hook-config check, prod zoo bundle check, tests/build before commit and server release gate after deploy
+Fallback trigger: If deterministic gates fail, reviewers find gaps, browser images are broken, production bundle ships dev Zoo, dependency baseline drifts, or deployment validation fails
+Fallback target: nexus_strong_worker</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Final visual Zoo guide, deterministic state-evidence gates, hook matcher enforcement, dependency audit hardening, CI, and production Zoo bundle guard</strong>
+            <span>2026-05-09T10:35:19.706Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/routing/ROUTING-20260509T103519Z-final-visual-zoo-guide-deterministic-state-evide.md</p>
+          <pre>Summary: Final visual Zoo guide, deterministic state-evidence gates, hook matcher enforcement, dependency audit hardening, CI, and production Zoo bundle guard
+Route: lead
+Worker: codex-lead
+Rejected routes: spark, nexus_spark_worker
+Write scope: .codex/scripts/nexus-workflow.mjs, .codex/scripts/audit-deps.mjs, .codex/scripts/capture-design-zoo-visuals.mjs, .codex/scripts/check-production-zoo-bundle.mjs, .codex/scripts/run-hook.mjs, .codex/hooks.json, .codex/config.toml, .github/workflows/nexus-workflow-gates.yml, package.json, packages/api/package.json, package-lock.json, packages/web/src/routeTree.tsx, .codex/dashboard/zoo
+Verification: lint:design, api tests, web tests, build, design-zoo, capture-zoo-visuals, zoo-visual-guide-check, guide-browser-check, audit:deps, hook-config-check, prod-zoo-bundle-check, self-test, records-check
+Fallback trigger: n/a
+Fallback target: n/a</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Visual Zoo guide, thin-hook config, dependency-audit baseline, CI, and production Zoo bundle hardening</strong>
+            <span>2026-05-09T10:09:29.530Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/routing/ROUTING-20260509T100929Z-visual-zoo-guide-thin-hook-config-dependency-aud.md</p>
+          <pre>Summary: Visual Zoo guide, thin-hook config, dependency-audit baseline, CI, and production Zoo bundle hardening
+Route: lead
+Worker: codex-lead
+Rejected routes: spark, nexus_spark_worker
+Write scope: .codex/scripts/nexus-workflow.mjs, .codex/scripts/audit-deps.mjs, .codex/scripts/capture-design-zoo-visuals.mjs, .codex/scripts/check-production-zoo-bundle.mjs, .codex/scripts/run-hook.mjs, .codex/hooks.json, .codex/config.toml, .github/workflows/nexus-workflow-gates.yml, package.json, packages/web/src/routeTree.tsx
+Verification: workflow:self-test, audit:deps, workflow:hook-config-check, workflow:prod-zoo-bundle-check, workflow:guide-check, workflow:zoo-visual-guide-check, repo Playwright browser rendering
+Fallback trigger: n/a
+Fallback target: n/a</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>visual-zoo-guide-hook-enforcement-dependency-audit-and-dev-route-hardening</strong>
+            <span>2026-05-09T09:45:31.878Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/routing/ROUTING-20260509T094531Z-visual-zoo-guide-hook-enforcement-dependency-aud.md</p>
+          <pre>Summary: visual-zoo-guide-hook-enforcement-dependency-audit-and-dev-route-hardening
+Route: lead
+Worker: codex-lead
+Rejected routes: spark
+Write scope: n/a
+Verification: npm run lint:design; npm run test --workspace=packages/api; npm run test --workspace=packages/web; npm run build; npm run workflow:design-zoo; npm run workflow:zoo-visual-guide-check; npm run workflow:hook-config-check; npm run workflow:dependency-audit-check; browser-rendered screenshots; no production Zoo chunk
+Fallback trigger: If focused review finds architecture, deployment, or dependency-compatibility issues beyond local repair
+Fallback target: nexus_strong_worker</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>visual-zoo-guide-hook-enforcement-and-audit-hardening</strong>
+            <span>2026-05-09T09:18:41.075Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/routing/ROUTING-20260509T091841Z-visual-zoo-guide-hook-enforcement-and-audit-hard.md</p>
+          <pre>Summary: visual-zoo-guide-hook-enforcement-and-audit-hardening
+Route: lead
+Worker: codex-lead
+Rejected routes: spark, strong
+Write scope: n/a
+Verification: npm run workflow:zoo-visual-guide-check; npm run workflow:self-test; npm run workflow:release-gate; npm test; npm run build; npm audit; browser/server checks
+Fallback trigger: If dependency upgrades break broad API/Web behavior or visual surface needs architectural redesign
+Fallback target: nexus_strong_worker</pre>
+        </article>
+
 
         <article class="record">
           <div class="record-top">
@@ -1022,6 +1315,96 @@ Fallback target: n/a</pre>
 
     <section id="patches" class="panel">
       <h2>Patches</h2>
+
+        <article class="record">
+          <div class="record-top">
+            <strong>final corrected visual Zoo/Gym guide and Codex workflow gates after reviewer fixes: readable dark Zoo chrome, portal/theme/contrast validator assertions, full-page responsive captures, commit-by-commit append-only history checks, dependency-audit stale-allowance rejection, CI full-depth gate, thin hooks, and production Zoo bundle guard</strong>
+            <span>2026-05-09T11:19:17.494Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/patches/PATCH-20260509T111917Z-final-corrected-visual-zoo-gym-guide-and-codex-w.md</p>
+          <pre>Summary: final corrected visual Zoo/Gym guide and Codex workflow gates after reviewer fixes: readable dark Zoo chrome, portal/theme/contrast validator assertions, full-page responsive captures, commit-by-commit append-only history checks, dependency-audit stale-allowance rejection, CI full-depth gate, thin hooks, and production Zoo bundle guard
+Agent: codex-lead
+Routing: ROUTING-20260509T111901Z-final-corrected-visual-zoo-gym-evidence-and-work
+
+Files:
+- .codex/README.md
+- .codex/config.toml
+- .codex/dashboard</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>final fixed visual Zoo/Gym guide and Codex workflow gates: real themed Zoo demos and portal proof, responsive full-page captures, append-only history checks, dependency-audit stale-allowance rejection, CI full-depth gate, thin hooks, and production Zoo bundle guard</strong>
+            <span>2026-05-09T11:07:43.130Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/patches/PATCH-20260509T110743Z-final-fixed-visual-zoo-gym-guide-and-codex-workf.md</p>
+          <pre>Summary: final fixed visual Zoo/Gym guide and Codex workflow gates: real themed Zoo demos and portal proof, responsive full-page captures, append-only history checks, dependency-audit stale-allowance rejection, CI full-depth gate, thin hooks, and production Zoo bundle guard
+Agent: codex-lead
+Routing: ROUTING-20260509T110725Z-final-fixed-visual-zoo-gym-theming-evidence-appe
+
+Files:
+- .codex/README.md
+- .codex/config.toml
+- .codex/dashboard</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>final visual Zoo/Gym guide, hook/config enforcement, dependency-audit policy, production Zoo bundle guard, CI gates, append-only evidence hardening, and regenerated guide artifacts</strong>
+            <span>2026-05-09T10:49:18.250Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/patches/PATCH-20260509T104918Z-final-visual-zoo-gym-guide-hook-config-enforceme.md</p>
+          <pre>Summary: final visual Zoo/Gym guide, hook/config enforcement, dependency-audit policy, production Zoo bundle guard, CI gates, append-only evidence hardening, and regenerated guide artifacts
+Agent: codex-lead
+Routing: ROUTING-20260509T104901Z-final-visual-zoo-guide-thin-hook-enforcement-dep
+
+Files:
+- .codex/README.md
+- .codex/config.toml
+- .codex/dashboard</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>final visual Zoo guide and workflow gate hardening</strong>
+            <span>2026-05-09T10:35:34.584Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/patches/PATCH-20260509T103534Z-final-visual-zoo-guide-and-workflow-gate-hardeni.md</p>
+          <pre>Summary: final visual Zoo guide and workflow gate hardening
+Agent: codex-lead
+Routing: ROUTING-20260509T103519Z-final-visual-zoo-guide-deterministic-state-evide
+
+Files:
+- .codex/README.md
+- .codex/config.toml
+- .codex/dashboard/index.html</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>visual Zoo guide, hook config enforcement, dependency audit baseline, CI, and production dev-route hardening</strong>
+            <span>2026-05-09T09:45:45.711Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/patches/PATCH-20260509T094545Z-visual-zoo-guide-hook-config-enforcement-depende.md</p>
+          <pre>Summary: visual Zoo guide, hook config enforcement, dependency audit baseline, CI, and production dev-route hardening
+Agent: codex-lead
+Routing: ROUTING-20260509T094531Z-visual-zoo-guide-hook-enforcement-dependency-aud
+
+Files:
+- .codex/README.md
+- .codex/config.toml
+- .codex/dashboard/index.html</pre>
+        </article>
+
 
         <article class="record">
           <div class="record-top">
@@ -1422,6 +1805,114 @@ Files:
 
     <section id="reviews" class="panel">
       <h2>Reviews</h2>
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review workflow pass worktree</strong>
+            <span>2026-05-09T11:24:03.294Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T112403Z-review-workflow-pass-worktree.md</p>
+          <pre>Scope: worktree
+Kind: workflow
+Verdict: pass
+Reviewer: codex-lead
+Patch: PATCH-20260509T111917Z-final-corrected-visual-zoo-gym-guide-and-codex-w
+Worktree hash: f0888f700b03f04b
+
+Reviewed files:</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review general pass worktree</strong>
+            <span>2026-05-09T11:24:03.286Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T112403Z-review-general-pass-worktree.md</p>
+          <pre>Scope: worktree
+Kind: general
+Verdict: pass
+Reviewer: codex-lead
+Patch: PATCH-20260509T111917Z-final-corrected-visual-zoo-gym-guide-and-codex-w
+Worktree hash: f0888f700b03f04b
+
+Reviewed files:</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review design pass worktree</strong>
+            <span>2026-05-09T11:24:03.291Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T112403Z-review-design-pass-worktree.md</p>
+          <pre>Scope: worktree
+Kind: design
+Verdict: pass
+Reviewer: codex-lead
+Patch: PATCH-20260509T111917Z-final-corrected-visual-zoo-gym-guide-and-codex-w
+Worktree hash: f0888f700b03f04b
+
+Reviewed files:</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review design pass worktree</strong>
+            <span>2026-05-09T10:36:38.823Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T103638Z-review-design-pass-worktree.md</p>
+          <pre>Scope: worktree
+Kind: design
+Verdict: pass
+Reviewer: codex-lead
+Patch: PATCH-20260509T103534Z-final-visual-zoo-guide-and-workflow-gate-hardeni
+Worktree hash: ab37388df8244e29
+
+Reviewed files:</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review workflow pass worktree</strong>
+            <span>2026-05-09T10:36:25.898Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T103625Z-review-workflow-pass-worktree.md</p>
+          <pre>Scope: worktree
+Kind: workflow
+Verdict: pass
+Reviewer: codex-lead
+Patch: PATCH-20260509T103534Z-final-visual-zoo-guide-and-workflow-gate-hardeni
+Worktree hash: ab37388df8244e29
+
+Reviewed files:</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review general pass worktree</strong>
+            <span>2026-05-09T10:36:12.718Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T103612Z-review-general-pass-worktree.md</p>
+          <pre>Scope: worktree
+Kind: general
+Verdict: pass
+Reviewer: codex-lead
+Patch: PATCH-20260509T103534Z-final-visual-zoo-guide-and-workflow-gate-hardeni
+Worktree hash: ab37388df8244e29
+
+Reviewed files:</pre>
+        </article>
+
 
         <article class="record">
           <div class="record-top">
@@ -1851,6 +2342,49 @@ Notes: Focused review found hook false-positive/false-negative issues, they were
 
     <section id="tests" class="panel">
       <h2>Tests</h2>
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Verification pass worktree</strong>
+            <span>2026-05-09T11:24:26.652Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/tests/TEST-20260509T112426Z-verification-pass-worktree.md</p>
+          <pre>Scope: worktree
+Verdict: pass
+Verifier: codex-lead
+Worktree hash: f0888f700b03f04b
+
+Notes: Local verification passed for hash f0888f700b03f04b. Commands passed: npm test; npm run build; npm run lint:design; npm run audit:deps; npm run workflow:design-zoo with selectedTheme/bodyTheme=sichuan, zooThemeScopeCount=2, mainHeadingContrast=15.45; npm run workflow:prod-zoo-bundle-check scanning 54 JS assets; npm run workflow:model-routing-check; npm run workflow:hook-config-check; npm run workflow:records-check; npm run workflow:guide-check; npm run workflow:zoo-visual-guide-check; npm run workflow:guide-browser-check. Browser evidence used repo Playwright due missing in-app Chrome extension.</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>final local validation before commit</strong>
+            <span>2026-05-09T11:24:25.602Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/tests/TEST-20260509T112425Z-final-local-validation-before-commit.md</p>
+          <pre>Passed: npm test (api 187 tests, web 87 tests; existing non-failing React act warning remains), npm run build, npm run lint:design, npm run workflow:design-zoo (bodyTheme=sichuan, zooThemeScopeCount=2, mainHeadingContrast=15.45), npm run audit:deps, npm run workflow:prod-zoo-bundle-check (54 JS assets scanned), workflow self-test (73 checks), guide/guide-browser/zoo visual checks.</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Verification pass worktree</strong>
+            <span>2026-05-09T10:38:30.955Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/tests/TEST-20260509T103830Z-verification-pass-worktree.md</p>
+          <pre>Scope: worktree
+Verdict: pass
+Verifier: codex-lead
+Worktree hash: ab37388df8244e29
+
+Notes: Final local verification passed: lint:design OK (90 files); packages/api tests 6 files / 187 tests passed; packages/web tests 10 files / 87 tests passed with known non-failing ThemeProvider act warning; npm run build passed; workflow:design-zoo passed against localhost:5173 with dark toggle, Sichuan theme, and warning toast; audit:deps and workflow:dependency-audit-check passed with only expiring dev-only drizzle-kit transitive moderate baseline; workflow:prod-zoo-bundle-check passed scanning 54 JS assets; workflow:self-test passed 67 checks; workflow:model-routing-check passed 15 scenarios; workflow:zoo-check, workflow:zoo-visual-guide-check, workflow:hook-config-check, workflow:records-check passed; repo Playwright browser validation loaded 54 visual Zoo images with zero broken images.</pre>
+        </article>
+
 
         <article class="record">
           <div class="record-top">
@@ -2346,6 +2880,38 @@ Notes: Latest full local validation passed: workflow script syntax, design-zoo s
         <article class="record">
           <div class="record-top">
             <strong>Audit pass worktree</strong>
+            <span>2026-05-09T11:24:26.737Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/audits/AUDIT-20260509T112426Z-audit-pass-worktree.md</p>
+          <pre>Scope: worktree
+Verdict: pass
+Auditor: codex-lead
+Worktree hash: f0888f700b03f04b
+
+Notes: Audit passed for hash f0888f700b03f04b. Checked workflow architecture and prior failure causes: thin hooks only dispatch to run-hook, deterministic kernel owns gates, append-only evidence includes state-cache cross-checks plus commit-by-commit history checks, dependency audit exceptions are precise/current/expiring, design review is required for Zoo/design workflow changes, production build excludes dev-only Zoo, and dynamic pattern proposals were created for Zoo theming and full-page responsive captures. Remaining risks are tracked in current-state/risks.</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Audit pass worktree</strong>
+            <span>2026-05-09T10:38:47.879Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/audits/AUDIT-20260509T103847Z-audit-pass-worktree.md</p>
+          <pre>Scope: worktree
+Verdict: pass
+Auditor: codex-lead
+Worktree hash: ab37388df8244e29
+
+Notes: Final workflow audit passed against the user's requested failure modes. Causes fixed rather than patched over: mutable gate state now cross-checks append-only records; guide-browser evidence is a first-class durable record but excluded from guide source hashes to avoid self-referential stale loops; hook-config-check enforces exact thin dispatcher commands and matchers; dependency baseline is path/via/effect/directness/advisory-source constrained; visual Zoo guide hashes component source files and captures desktop-light plus mobile-dark contexts; production /design is dev-only and bundle-scanned; CI backstop added. Remaining risks are tracked in risks.md.</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Audit pass worktree</strong>
             <span>2026-05-09T08:36:37.902Z</span>
           </div>
           <span class="pill">pass</span>
@@ -2677,13 +3243,14 @@ Notes: Workflow audit passed against saved brief: original brief preserved; AGEN
 <li>Hook interception is incomplete; examples and fallback instructions are in `.codex/knowledge/hooks.md`. Deterministic scripts and lead review discipline remain necessary.</li>
 <li>Server repo `/root/monoWeb/nexus` had a pre-existing `package-lock.json` modification on 2026-05-09. Deployment must preserve or deliberately resolve that dirty state.</li>
 <li>`ThemeProvider.test.tsx` currently passes but emits a React `act(...)` warning in the live-preview ping-pong regression test.</li>
-<li>Server `npm ci` reported audit findings. They were pre-existing dependency audit findings and were not remediated as part of the workflow migration.</li>
+<li>Dependency audit now passes through `npm run audit:deps`, but four moderate dev-only Drizzle CLI advisories are temporarily baselined until 2026-06-09 because latest `drizzle-kit` still depends on vulnerable `@esbuild-kit/esm-loader`/`esbuild`. Recheck monthly and remove `.codex/workflow/dependency-audit-baseline.json` entries when upstream fixes.</li>
 </ul>
 <h2>Closed</h2>
 <ul>
 <li>The initial large dirty-worktree report was caused by using the submodule common git dir, not the linked worktree git dir.</li>
 <li>Spark worker usefulness has positive and negative evidence: narrow Toast warning slice succeeded; broad theme cascade task was refused/escalated.</li>
 <li>Server access, deployment, service restart, and hosted health checks were validated on 2026-05-09. Runtime/source deploy was validated at `cf069ce`; later workflow-record commits were fast-forwarded on the server branch.</li>
+<li>Direct dependency audit findings for `@anthropic-ai/sdk`, `drizzle-orm`, `hono`, and `postcss` were remediated on 2026-05-09; the remaining audit surface is explicit, dev-only, and expiring.</li>
 </ul></section>
       <section id="deployment" class="panel"><h1>Deployment Knowledge</h1>
 <p>Primary production target discovered from the neighboring monoWeb root:</p>
@@ -2730,12 +3297,14 @@ Notes: Workflow audit passed against saved brief: original brief preserved; AGEN
 <p>The public-safe workflow guide is deployed to:</p>
 <ul>
 <li>`https://cv.rehou.games/nexus/workflow/`</li>
+<li>`https://cv.rehou.games/nexus/workflow/zoo/` for the deployable visual Zoo/Gym guide</li>
 </ul>
 <p>Generate it with:</p>
 <p>```bash</p>
 <p>npm run workflow:public-guide</p>
+<p>npm run workflow:zoo-visual-guide</p>
 <p>```</p>
-<p>Deploy it by copying `.codex/dashboard/public.html` to `/var/www/cv.rehou.games/nexus/workflow/index.html`. Do not publish the full repo-local `.codex/dashboard/index.html` unless intentionally exposing internal deployment paths and record excerpts.</p>
+<p>Deploy it by copying `.codex/dashboard/public.html` to `/var/www/cv.rehou.games/nexus/workflow/index.html` and `.codex/dashboard/zoo/` to `/var/www/cv.rehou.games/nexus/workflow/zoo/`. Do not publish the full repo-local `.codex/dashboard/index.html` unless intentionally exposing internal deployment paths and record excerpts.</p>
 <p>Known risk: do not skip production `db:push` when schema changes are present.</p>
 <p>Known server state on 2026-05-09:</p>
 <ul>

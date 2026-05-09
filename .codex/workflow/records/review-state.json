@@ -1,28 +1,36 @@
 {
-  "worktreeHash": "77fafee7f163d73e",
+  "worktreeHash": "f0888f700b03f04b",
   "verdict": "pass",
   "reviewer": "codex-lead",
-  "reviewedAt": "2026-05-09T08:36:18.691Z",
-  "reviewRecord": ".codex/workflow/records/reviews/REVIEW-20260509T083618Z-review-workflow-pass-worktree.md",
-  "notes": "Workflow review passed for final handover/deployment record update: current-state avoids self-staling final commit wording, links deployment record, and leaves branch HEAD as the stable server reference.",
+  "reviewedAt": "2026-05-09T11:24:03.296Z",
+  "reviewRecord": ".codex/workflow/records/reviews/REVIEW-20260509T112403Z-review-workflow-pass-worktree.md",
+  "notes": "Workflow review passed for hash f0888f700b03f04b. Verified hooks remain thin run-hook dispatchers, hook-config check enforces commands/matchers/no-prompt config, release gate covers records/routing/review/verify/audit/guide/browser/zoo/dependency/prod-bundle/self-test, append-only history uses git log commit-by-commit with same-branch rewrite self-tests, and CI checkout uses full history.",
   "kind": "workflow",
-  "patchId": "PATCH-20260509T083542Z-final-deployment-evidence-and-compact-handover-r",
+  "patchId": "PATCH-20260509T111917Z-final-corrected-visual-zoo-gym-guide-and-codex-w",
   "reviewKinds": {
     "general": {
-      "worktreeHash": "77fafee7f163d73e",
+      "worktreeHash": "f0888f700b03f04b",
       "verdict": "pass",
       "reviewer": "codex-lead",
-      "reviewedAt": "2026-05-09T08:36:09.357Z",
-      "reviewRecord": ".codex/workflow/records/reviews/REVIEW-20260509T083609Z-review-general-pass-worktree.md",
-      "patchId": "PATCH-20260509T083542Z-final-deployment-evidence-and-compact-handover-r"
+      "reviewedAt": "2026-05-09T11:24:03.287Z",
+      "reviewRecord": ".codex/workflow/records/reviews/REVIEW-20260509T112403Z-review-general-pass-worktree.md",
+      "patchId": "PATCH-20260509T111917Z-final-corrected-visual-zoo-gym-guide-and-codex-w"
     },
     "workflow": {
-      "worktreeHash": "77fafee7f163d73e",
+      "worktreeHash": "f0888f700b03f04b",
       "verdict": "pass",
       "reviewer": "codex-lead",
-      "reviewedAt": "2026-05-09T08:36:18.691Z",
-      "reviewRecord": ".codex/workflow/records/reviews/REVIEW-20260509T083618Z-review-workflow-pass-worktree.md",
-      "patchId": "PATCH-20260509T083542Z-final-deployment-evidence-and-compact-handover-r"
+      "reviewedAt": "2026-05-09T11:24:03.296Z",
+      "reviewRecord": ".codex/workflow/records/reviews/REVIEW-20260509T112403Z-review-workflow-pass-worktree.md",
+      "patchId": "PATCH-20260509T111917Z-final-corrected-visual-zoo-gym-guide-and-codex-w"
+    },
+    "design": {
+      "worktreeHash": "f0888f700b03f04b",
+      "verdict": "pass",
+      "reviewer": "codex-lead",
+      "reviewedAt": "2026-05-09T11:24:03.292Z",
+      "reviewRecord": ".codex/workflow/records/reviews/REVIEW-20260509T112403Z-review-design-pass-worktree.md",
+      "patchId": "PATCH-20260509T111917Z-final-corrected-visual-zoo-gym-guide-and-codex-w"
     }
   }
 }

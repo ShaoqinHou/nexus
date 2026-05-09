@@ -1,0 +1,54 @@
+name: Nexus Workflow Gates
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - codex/**
+
+jobs:
+  workflow-gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Dependency Audit
+        run: npm run audit:deps
+
+      - name: Design Token Lint
+        run: npm run lint:design
+
+      - name: Unit Tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Production Zoo Bundle Check
+        run: npm run workflow:prod-zoo-bundle-check
+
+      - name: Workflow Self-Test
+        run: npm run workflow:self-test
+
+      - name: Workflow Guide Checks
+        run: |
+          npm run workflow:guide-check
+          npm run workflow:zoo-visual-guide-check
+          npm run workflow:hook-config-check
+
+      - name: Workflow Release Gate
+        run: npm run workflow:release-gate

@@ -15,17 +15,22 @@ const AUDIT_STATE_FILE = join(RECORDS, 'audit-state.json');
 const PATCH_STATE_FILE = join(RECORDS, 'patch-state.json');
 const GUIDE_BROWSER_STATE_FILE = join(RECORDS, 'guide-browser-state.json');
 const DASHBOARD_DIR = join(CODEX, 'dashboard');
+const ZOO_GUIDE_DIR = join(DASHBOARD_DIR, 'zoo');
+const ZOO_GUIDE_MANIFEST = join(ZOO_GUIDE_DIR, 'manifest.json');
 const RUNTIME_DIR = join(CODEX, 'workflow', 'runtime');
 const ROUTING_SCENARIOS_FILE = join(CODEX, 'workflow', 'scenarios', 'model-routing.json');
 const ROUTING_STATE_FILE = join(RECORDS, 'routing-state.json');
 const PUBLIC_GUIDE_URL = 'https://cv.rehou.games/nexus/workflow/';
 const PUBLIC_GUIDE_VERSION = 'nexus-public-workflow-guide/v2';
+const ZOO_VISUAL_GUIDE_VERSION = 'nexus-design-zoo-visual-guide/v1';
 const PUBLIC_GUIDE_CONTENT_HASH_PLACEHOLDER = '__NEXUS_GUIDE_CONTENT_HASH__';
-const RECORD_KINDS = ['decisions', 'pattern-proposals', 'routing', 'patches', 'reviews', 'tests', 'audits', 'deployments'];
-const EVIDENCE_RECORD_KINDS = ['pattern-proposals', 'routing', 'patches', 'reviews', 'tests', 'audits', 'deployments'];
+const RECORD_KINDS = ['decisions', 'pattern-proposals', 'routing', 'patches', 'reviews', 'tests', 'audits', 'guide-browser', 'deployments'];
+const EVIDENCE_RECORD_KINDS = ['pattern-proposals', 'routing', 'patches', 'reviews', 'tests', 'audits', 'guide-browser', 'deployments'];
+const GUIDE_RECORD_KINDS = RECORD_KINDS.filter((kind) => kind !== 'guide-browser');
 const SCHEMA_BY_KIND = {
   decisions: 'nexus-decision/v1',
   deployments: 'nexus-deployment/v1',
+  'guide-browser': 'nexus-guide-browser/v1',
   patches: 'nexus-patch/v1',
   'pattern-proposals': 'nexus-pattern-proposal/v1',
   routing: 'nexus-routing/v1',
@@ -36,6 +41,16 @@ const SCHEMA_BY_KIND = {
 const LEGACY_SCHEMA_BY_KIND = {
   patches: ['nexus-patche/v1'],
 };
+const LEGACY_SCHEMA_RECORDS = new Set([
+  '.codex/workflow/records/patches/PATCH-20260508T170713Z-design-system-toast-semantic-parity.md',
+  '.codex/workflow/records/patches/PATCH-20260508T174121Z-codex-native-workflow-migration-claude-workflow-.md',
+  '.codex/workflow/records/patches/PATCH-20260508T174348Z-refresh-compact-workflow-state-and-dashboard-aft.md',
+  '.codex/workflow/records/patches/PATCH-20260508T175045Z-record-deployment-evidence-and-update-workflow-h.md',
+  '.codex/workflow/records/patches/PATCH-20260509T013840Z-correct-final-handover-state-after-server-pull.md',
+  '.codex/workflow/records/patches/PATCH-20260509T014004Z-make-final-server-head-handover-wording-stable.md',
+  '.codex/workflow/records/patches/PATCH-20260509T020234Z-harden-handover-workflow-model-routing-hooks-gui.md',
+  '.codex/workflow/records/patches/PATCH-20260509T020903Z-record-public-guide-deployment-evidence.md',
+]);
 
 function findRoot(start) {
   let dir = resolve(start);
@@ -76,6 +91,14 @@ function parseArgs(argv) {
     }
   }
   return out;
+}
+
+function sortedStringSet(values = []) {
+  return [...new Set((values || []).map(String))].sort();
+}
+
+function sameStringSet(actual = [], expected = []) {
+  return JSON.stringify(sortedStringSet(actual)) === JSON.stringify(sortedStringSet(expected));
 }
 
 function gitDir() {
@@ -129,12 +152,14 @@ function substantiveFiles(files = changedFiles()) {
       f === 'WORKFLOW.md' ||
       f === '.codex/README.md' ||
       f === '.codex/config.toml' ||
+      f.startsWith('.github/workflows/') ||
       f.startsWith('.agents/skills/') ||
       f.startsWith('.codex/agents/') ||
       f.startsWith('.codex/hooks') ||
       f.startsWith('.codex/scripts/') ||
       f.startsWith('.codex/knowledge/') ||
       f.startsWith('.codex/workflow/current-state.md') ||
+      f === '.codex/workflow/dependency-audit-baseline.json' ||
       f.startsWith('.codex/workflow/scenarios/') ||
       f.startsWith('.codex/workflow/templates/') ||
       f.startsWith('.codex/workflow/research/')
@@ -157,6 +182,7 @@ function verificationRelevantFiles(files = changedFiles()) {
       f.startsWith('.codex/scripts/') ||
       f.startsWith('.codex/knowledge/') ||
       f.startsWith('.codex/workflow/current-state.md') ||
+      f === '.codex/workflow/dependency-audit-baseline.json' ||
       f.startsWith('.codex/workflow/scenarios/') ||
       f.startsWith('.codex/workflow/templates/') ||
       f.startsWith('.codex/workflow/research/') ||
@@ -164,6 +190,7 @@ function verificationRelevantFiles(files = changedFiles()) {
       f === 'WORKFLOW.md' ||
       f === '.codex/README.md' ||
       f === '.codex/config.toml' ||
+      f.startsWith('.github/workflows/') ||
       f === 'package.json' ||
       f === 'package-lock.json'
     );
@@ -180,7 +207,8 @@ function auditRelevantFiles(files = changedFiles()) {
       f.startsWith('packages/web/src/platform/') ||
       f.startsWith('packages/web/src/routes/') ||
       f.startsWith('.codex/') ||
-      f.startsWith('.agents/')
+      f.startsWith('.agents/') ||
+      f.startsWith('.github/workflows/')
     );
   });
 }
@@ -245,6 +273,7 @@ function recordPrefix(kind) {
     reviews: 'REVIEW',
     tests: 'TEST',
     audits: 'AUDIT',
+    'guide-browser': 'GUIDE-BROWSER',
   };
   return prefixes[kind] || kind.replace(/s$/, '').toUpperCase();
 }
@@ -269,6 +298,66 @@ function writeRecord(kind, title, body, frontmatter = {}) {
   return { id, path };
 }
 
+function parseRecordFrontmatter(text = '') {
+  const match = String(text).match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  if (!match) return {};
+  const out = {};
+  for (const line of match[1].split(/\r?\n/)) {
+    const item = line.match(/^([A-Za-z0-9_-]+):\s*(.*)$/);
+    if (!item) continue;
+    const [, key, rawValue] = item;
+    try {
+      out[key] = JSON.parse(rawValue);
+    } catch {
+      out[key] = rawValue.replace(/^"|"$/g, '').trim();
+    }
+  }
+  return out;
+}
+
+function recordPathFor(kind, idOrPath = '') {
+  const value = String(idOrPath || '').replaceAll('\\', '/');
+  if (!value) return '';
+  if (value.includes('/')) return join(ROOT, value);
+  return join(RECORDS, kind, `${value}.md`);
+}
+
+function recordFrontmatter(kind, idOrPath = '') {
+  const path = recordPathFor(kind, idOrPath);
+  if (!path || !existsSync(path)) return null;
+  return parseRecordFrontmatter(readFileSync(path, 'utf8'));
+}
+
+function shouldValidateEvidenceReference(kind, idOrPath = '') {
+  const value = String(idOrPath || '').replaceAll('\\', '/');
+  return value.includes('/') || value.startsWith(`${recordPrefix(kind)}-`);
+}
+
+function evidenceRecordProblems(kind, idOrPath, expected = {}, label = `${kind} evidence record`) {
+  const problems = [];
+  if (!idOrPath) {
+    problems.push(`${label} is missing a durable record reference.`);
+    return problems;
+  }
+  const path = recordPathFor(kind, idOrPath);
+  const rel = path ? relative(ROOT, path).replaceAll('\\', '/') : String(idOrPath || '');
+  if (!path || !existsSync(path)) {
+    problems.push(`${label} durable record is missing: ${rel}.`);
+    return problems;
+  }
+  const fm = parseRecordFrontmatter(readFileSync(path, 'utf8'));
+  if (fm.schema !== recordSchema(kind)) problems.push(`${label} ${rel} has schema ${fm.schema || '(missing)'}; expected ${recordSchema(kind)}.`);
+  for (const [key, expectedValue] of Object.entries(expected)) {
+    if (expectedValue === undefined || expectedValue === null) continue;
+    const actualValue = fm[key];
+    const ok = Array.isArray(expectedValue)
+      ? sameStringSet(actualValue || [], expectedValue)
+      : String(actualValue ?? '') === String(expectedValue);
+    if (!ok) problems.push(`${label} ${rel} has ${key}=${JSON.stringify(actualValue ?? '')}; expected ${JSON.stringify(expectedValue)}.`);
+  }
+  return problems;
+}
+
 function invalidateGates(files, reason, source = 'workflow', metadata = {}) {
   const currentHash = worktreeHash();
   const patchState = loadJson(PATCH_STATE_FILE, { events: [] });
@@ -284,6 +373,7 @@ function invalidateGates(files, reason, source = 'workflow', metadata = {}) {
   patchState.source = source;
   patchState.files = files;
   patchState.patchId = metadata.patchId || (previousHash === currentHash ? patchState.patchId : null) || null;
+  patchState.patchRecord = metadata.patchRecord || (previousHash === currentHash ? patchState.patchRecord : null) || null;
   patchState.routingId = metadata.routingId || (previousHash === currentHash ? patchState.routingId : null) || null;
   patchState.workers = workers;
   patchState.events = [
@@ -294,6 +384,7 @@ function invalidateGates(files, reason, source = 'workflow', metadata = {}) {
       files,
       worktreeHash: currentHash,
       patchId: metadata.patchId || null,
+      patchRecord: metadata.patchRecord || null,
       routingId: metadata.routingId || null,
       worker: worker || null,
     },
@@ -407,7 +498,7 @@ function publicHtml(value) {
 function recordCategory(kind, title = '') {
   const text = `${kind} ${title}`.toLowerCase();
   if (kind === 'deployments' || text.includes('server') || text.includes('deploy')) return 'Deployment';
-  if (kind === 'tests' || kind === 'reviews' || text.includes('audit') || text.includes('verify')) return 'Validation';
+  if (kind === 'tests' || kind === 'reviews' || kind === 'guide-browser' || text.includes('audit') || text.includes('verify')) return 'Validation';
   if (kind === 'pattern-proposals' || text.includes('pattern')) return 'Knowledge';
   if (kind === 'routing' || text.includes('routing') || text.includes('spark') || text.includes('worker')) return 'Agent Routing';
   return 'Workflow';
@@ -438,6 +529,111 @@ function gitStatusMap(pathspec = []) {
   return new Map(gitStatusEntries(pathspec).map((entry) => [entry.file, entry.status]));
 }
 
+function gitRefExists(ref) {
+  return git(['rev-parse', '--verify', '--quiet', ref]).status === 0;
+}
+
+function recordHistoryBase() {
+  const configured = process.env.NEXUS_RECORD_BASE;
+  if (configured && gitRefExists(configured)) return configured;
+  for (const ref of ['origin/main', 'main']) {
+    if (gitRefExists(ref)) return ref;
+  }
+  return '';
+}
+
+function evidenceRecordHistoryProblems() {
+  const base = recordHistoryBase();
+  if (!base) return [];
+  const mergeBase = gitText(['merge-base', 'HEAD', base]);
+  if (!mergeBase) return [];
+  const paths = EVIDENCE_RECORD_KINDS.map((kind) => `.codex/workflow/records/${kind}`);
+  const result = git(['log', '--reverse', '--name-status', '--format=commit %H', `${mergeBase}..HEAD`, '--', ...paths]);
+  if (result.status !== 0) return [];
+  return evidenceRecordHistoryProblemsFromLog(result.stdout, base);
+}
+
+function evidenceRecordHistoryProblemsFromLog(logText, base = 'base') {
+  const problems = [];
+  const seenAdded = new Set();
+  for (const line of String(logText || '').split(/\r?\n/).filter(Boolean)) {
+    if (line.startsWith('commit ')) continue;
+    const [status, file] = line.split(/\t+/);
+    const normalized = String(file || '').replaceAll('\\', '/');
+    if (!normalized.endsWith('.md') || normalized.endsWith('/.gitkeep')) continue;
+    if (status === 'A' && !seenAdded.has(normalized)) {
+      seenAdded.add(normalized);
+      continue;
+    }
+    problems.push(`Committed evidence record changed after first introduction relative to ${base}: ${status} ${normalized}. Evidence records are append-only; create a correction record instead.`);
+  }
+  return problems;
+}
+
+function stateCacheIntegrityProblems() {
+  const problems = [];
+  const patchState = loadJson(PATCH_STATE_FILE, {});
+  const routingState = loadJson(ROUTING_STATE_FILE, {});
+  const reviewState = loadJson(STATE_FILE, {});
+  const verifyState = loadJson(VERIFY_STATE_FILE, {});
+  const auditState = loadJson(AUDIT_STATE_FILE, {});
+  const guideBrowserState = loadJson(GUIDE_BROWSER_STATE_FILE, {});
+
+  if (patchState.patchId) {
+    problems.push(...evidenceRecordProblems('patches', patchState.patchRecord || patchState.patchId, {
+      id: patchState.patchId,
+      worktreeHash: patchState.worktreeHash,
+      routingId: patchState.routingId || '',
+    }, 'patch state'));
+  }
+  if (routingState.routingId) {
+    problems.push(...evidenceRecordProblems('routing', routingState.record || routingState.routingId, {
+      id: routingState.routingId,
+      route: routingState.route,
+      worker: routingState.worker,
+      worktreeHash: routingState.worktreeHash,
+    }, 'routing state'));
+  }
+
+  const reviewKinds = reviewState.reviewKinds || {};
+  for (const [kind, item] of Object.entries(reviewKinds)) {
+    if (item?.verdict !== 'pass') continue;
+    problems.push(...evidenceRecordProblems('reviews', item.reviewRecord, {
+      worktreeHash: item.worktreeHash,
+      verdict: item.verdict,
+      kind,
+      patchId: item.patchId || '',
+    }, `${kind} review state`));
+  }
+  if (reviewState.verdict === 'pass') {
+    problems.push(...evidenceRecordProblems('reviews', reviewState.reviewRecord, {
+      worktreeHash: reviewState.worktreeHash,
+      verdict: reviewState.verdict,
+      kind: reviewState.kind || 'general',
+      patchId: reviewState.patchId || '',
+    }, 'review state'));
+  }
+  if (verifyState.verdict === 'pass') {
+    problems.push(...evidenceRecordProblems('tests', verifyState.verifyRecord, {
+      worktreeHash: verifyState.worktreeHash,
+      verdict: verifyState.verdict,
+    }, 'verification state'));
+  }
+  if (auditState.verdict === 'pass') {
+    problems.push(...evidenceRecordProblems('audits', auditState.auditRecord, {
+      worktreeHash: auditState.worktreeHash,
+      verdict: auditState.verdict,
+    }, 'audit state'));
+  }
+  if (guideBrowserState.verdict === 'pass') {
+    problems.push(...evidenceRecordProblems('guide-browser', guideBrowserState.guideBrowserRecord, {
+      guideArtifactHash: guideBrowserState.guideArtifactHash,
+      verdict: guideBrowserState.verdict,
+    }, 'guide browser state'));
+  }
+  return problems;
+}
+
 function recordIntegrityProblems() {
   const paths = EVIDENCE_RECORD_KINDS.map((kind) => `.codex/workflow/records/${kind}`);
   const entries = gitStatusEntries(paths);
@@ -459,10 +655,14 @@ function recordIntegrityProblems() {
       const expected = recordSchema(kind);
       if (schema === expected) continue;
       const status = statusByFile.get(rel) || '';
-      const legacyAllowed = (LEGACY_SCHEMA_BY_KIND[kind] || []).includes(schema) && status !== '??';
+      const legacyAllowed = (LEGACY_SCHEMA_BY_KIND[kind] || []).includes(schema)
+        && status !== '??'
+        && LEGACY_SCHEMA_RECORDS.has(rel);
       if (!legacyAllowed) problems.push(`Record ${rel} has schema ${schema || '(missing)'}; expected ${expected}.`);
     }
   }
+  problems.push(...evidenceRecordHistoryProblems());
+  problems.push(...stateCacheIntegrityProblems());
   return problems;
 }
 
@@ -553,6 +753,23 @@ function routingScopeProblemsForState(routingState = {}, files = substantiveFile
   const delegatedWorkers = delegatedWorkersForHash(patchState, currentHash);
   const problems = [];
   if (!files.length) return problems;
+  if (routingState.routingId) {
+    const routingRef = routingState.record || routingState.routingId;
+    if (shouldValidateEvidenceReference('routing', routingRef)) problems.push(...evidenceRecordProblems('routing', routingRef, {
+      id: routingState.routingId,
+      route: routingState.route,
+      worker: routingState.worker,
+      worktreeHash: routingState.worktreeHash,
+    }, 'routing state'));
+  }
+  if (patchState.patchId) {
+    const patchRef = patchState.patchRecord || patchState.patchId;
+    if (shouldValidateEvidenceReference('patches', patchRef)) problems.push(...evidenceRecordProblems('patches', patchRef, {
+      id: patchState.patchId,
+      worktreeHash: patchState.worktreeHash,
+      routingId: patchState.routingId || '',
+    }, 'patch state'));
+  }
   if (delegatedWorkers.length && (!routingState.route || routingState.status === 'closed')) {
     problems.push(`Delegated worker(s) ${delegatedWorkers.join(', ')} changed the current worktree without an active routing preflight. Record routing before review/commit.`);
   }
@@ -615,8 +832,14 @@ function requiredReviewKinds(files = substantiveFiles()) {
     return f.startsWith('packages/web/src/components/')
       || f.startsWith('packages/web/src/platform/theme/')
       || f.startsWith('packages/web/src/routes/__design/')
+      || f === 'packages/web/src/routeTree.tsx'
+      || f === 'packages/web/src/components/registry.json'
       || f.startsWith('design/')
-      || f.startsWith('.codex/dashboard/');
+      || f.startsWith('.codex/dashboard/')
+      || f === '.codex/knowledge/design-system.md'
+      || f === '.codex/scripts/capture-design-zoo-visuals.mjs'
+      || f === '.codex/scripts/validate-design-zoo.mjs'
+      || f === '.codex/scripts/check-production-zoo-bundle.mjs';
   });
   if (designRelevant) kinds.add('design');
   const workflowRelevant = files.some((file) => {
@@ -636,12 +859,34 @@ function hasPatchCoverage(hash = worktreeHash()) {
   const files = substantiveFiles();
   if (!files.length) return true;
   const patchState = loadJson(PATCH_STATE_FILE, {});
-  return patchState.worktreeHash === hash && Boolean(patchState.patchId);
+  return patchState.worktreeHash === hash
+    && Boolean(patchState.patchId)
+    && evidenceRecordProblems('patches', patchState.patchRecord || patchState.patchId, {
+      id: patchState.patchId,
+      worktreeHash: hash,
+      routingId: patchState.routingId || '',
+    }, 'patch state').length === 0;
 }
 
-function stateHasReviewKind(state, kind, hash) {
-  if (state.reviewKinds?.[kind]?.worktreeHash === hash && state.reviewKinds?.[kind]?.verdict === 'pass') return true;
-  if (state.worktreeHash === hash && state.verdict === 'pass' && (state.kind || 'general') === kind) return true;
+function stateHasReviewKind(state, kind, hash, options = {}) {
+  const checkEvidence = options.checkEvidence !== false;
+  const item = state.reviewKinds?.[kind];
+  if (item?.worktreeHash === hash && item?.verdict === 'pass') {
+    return !checkEvidence || evidenceRecordProblems('reviews', item.reviewRecord, {
+      worktreeHash: hash,
+      verdict: 'pass',
+      kind,
+      patchId: item.patchId || '',
+    }, `${kind} review state`).length === 0;
+  }
+  if (state.worktreeHash === hash && state.verdict === 'pass' && (state.kind || 'general') === kind) {
+    return !checkEvidence || evidenceRecordProblems('reviews', state.reviewRecord, {
+      worktreeHash: hash,
+      verdict: 'pass',
+      kind,
+      patchId: state.patchId || '',
+    }, 'review state').length === 0;
+  }
   return false;
 }
 
@@ -662,6 +907,170 @@ function zooRegistryProblems() {
       ? new RegExp(`(?:['"]${escapedSlug}['"]|\\b${escapedSlug})\\s*:`)
       : new RegExp(`['"]${escapedSlug}['"]\\s*:`);
     if (!slugPattern.test(zooText)) problems.push(`Registry entry ${entry.name || slugName} declares ${entry.zooRoute} but Zoo.tsx has no showcase mapping.`);
+  }
+  return problems;
+}
+
+function slugFromZooRoute(route) {
+  return String(route || '').replace(/^\/design\/?/, '') || 'index';
+}
+
+function zooVisualEntries() {
+  const registry = loadJson(join(ROOT, 'packages', 'web', 'src', 'components', 'registry.json'), { primitives: [], patterns: [], tokens: {} });
+  const foundations = [
+    {
+      slug: 'index',
+      title: 'Zoo Index',
+      kind: 'foundation',
+      route: '/design',
+      path: 'packages/web/src/routes/__design/Zoo.tsx',
+      purpose: 'Entry page for the live component catalog.',
+    },
+    {
+      slug: 'tokens',
+      title: 'Token Foundations',
+      kind: 'foundation',
+      route: '/design/tokens',
+      path: 'packages/web/src/platform/theme/tokens.css',
+      purpose: 'Production token swatches for colors, radii, shadows, and hit targets.',
+    },
+    {
+      slug: 'themes',
+      title: 'Theme Matrix',
+      kind: 'foundation',
+      route: '/design/themes',
+      path: 'packages/web/src/platform/theme/themes.css',
+      purpose: 'All cuisine themes rendered side by side from real components.',
+    },
+  ];
+  const components = [...(registry.primitives || []), ...(registry.patterns || [])].map((entry) => ({
+    slug: slugFromZooRoute(entry.zooRoute),
+    title: entry.name || slugFromZooRoute(entry.zooRoute),
+    kind: entry.kind || 'component',
+    route: entry.zooRoute || `/design/${slugFromZooRoute(entry.zooRoute)}`,
+    path: entry.path || '',
+    spriteAsset: entry.spriteAsset || '',
+    purpose: entry.purpose || '',
+  }));
+  const seen = new Set();
+  return [...foundations, ...components].filter((entry) => {
+    if (!entry.slug || seen.has(entry.slug)) return false;
+    seen.add(entry.slug);
+    return true;
+  });
+}
+
+function zooVisualInputFiles() {
+  const entries = zooVisualEntries();
+  const registrySourceFiles = entries.flatMap((entry) => [entry.path, entry.spriteAsset]).filter(Boolean);
+  return uniqueExisting([
+    '.codex/scripts/nexus-workflow.mjs',
+    '.codex/scripts/capture-design-zoo-visuals.mjs',
+    '.codex/knowledge/design-system.md',
+    'packages/web/src/components/registry.json',
+    ...registrySourceFiles,
+    ...listFilesUnder('packages/web/src/components', 8, 300),
+    'packages/web/src/routes/__design/Zoo.tsx',
+    'packages/web/src/platform/theme/tokens.css',
+    'packages/web/src/platform/theme/themes.css',
+    ...listFilesUnder('packages/web/src/platform/theme/themes', 2, 64),
+  ]);
+}
+
+function zooVisualSourceHash() {
+  const files = zooVisualInputFiles().map((file) => ({
+    file,
+    hash: createHash('sha256').update(canonicalTextForHash(readFileSync(join(ROOT, file), 'utf8'))).digest('hex'),
+  }));
+  const manifest = existsSync(ZOO_GUIDE_MANIFEST)
+    ? createHash('sha256').update(canonicalTextForHash(readFileSync(ZOO_GUIDE_MANIFEST, 'utf8'))).digest('hex')
+    : 'missing';
+  const payload = JSON.stringify({
+    version: ZOO_VISUAL_GUIDE_VERSION,
+    files,
+    manifest,
+  });
+  return createHash('sha256').update(payload).digest('hex').slice(0, 24);
+}
+
+function zooManifestTargets() {
+  const manifest = loadJson(ZOO_GUIDE_MANIFEST, {});
+  return Array.isArray(manifest.targets) ? manifest.targets : [];
+}
+
+function zooManifestContexts() {
+  const manifest = loadJson(ZOO_GUIDE_MANIFEST, {});
+  if (Array.isArray(manifest.contexts) && manifest.contexts.length) return manifest.contexts;
+  if (manifest.mode || manifest.theme || manifest.viewport) {
+    return [{
+      id: 'legacy',
+      label: `${manifest.viewport?.width || 'unknown'}x${manifest.viewport?.height || 'unknown'} ${manifest.mode || 'unknown'} ${manifest.theme || 'unknown'}`,
+      mode: manifest.mode || '',
+      theme: manifest.theme || '',
+      viewport: manifest.viewport || {},
+    }];
+  }
+  return [];
+}
+
+function sha256File(path) {
+  return createHash('sha256').update(readFileSync(path)).digest('hex');
+}
+
+function zooVisualGuideProblems() {
+  const entries = zooVisualEntries();
+  const manifestTargets = zooManifestTargets();
+  const contexts = zooManifestContexts();
+  const manifestByContextSlug = new Map(manifestTargets.map((target) => [`${target.contextId || 'legacy'}:${target.slug}`, target]));
+  const htmlPath = join(ZOO_GUIDE_DIR, 'index.html');
+  const problems = [];
+  if (!existsSync(ZOO_GUIDE_MANIFEST)) problems.push('.codex/dashboard/zoo/manifest.json is missing; run npm run workflow:capture-zoo-visuals.');
+  if (!existsSync(htmlPath)) problems.push('.codex/dashboard/zoo/index.html is missing; run npm run workflow:zoo-visual-guide.');
+  if (contexts.length < 2) problems.push('visual Zoo/Gym manifest should include at least two visual contexts, including desktop/light and mobile/dark.');
+  if (!contexts.some((context) => String(context.mode).toLowerCase() === 'dark')) problems.push('visual Zoo/Gym manifest is missing a dark-mode capture context.');
+  if (!contexts.some((context) => Number(context.viewport?.width || 0) <= 480)) problems.push('visual Zoo/Gym manifest is missing a mobile-width capture context.');
+
+  for (const context of contexts) {
+    for (const entry of entries) {
+      const target = manifestByContextSlug.get(`${context.id || 'legacy'}:${entry.slug}`);
+      if (!target) {
+        problems.push(`visual Zoo/Gym manifest is missing ${context.id || 'legacy'}/${entry.slug}.`);
+        continue;
+      }
+      const asset = target.asset || `.codex/dashboard/zoo/assets/${context.id}/${entry.slug}.jpg`;
+      const path = join(ROOT, asset);
+      if (!existsSync(path)) {
+        problems.push(`visual Zoo/Gym asset is missing for ${context.id}/${entry.slug}: ${asset}`);
+        continue;
+      }
+      if (target.sha256 && sha256File(path) !== target.sha256) problems.push(`visual Zoo/Gym asset hash mismatch for ${context.id}/${entry.slug}: ${asset}`);
+    }
+  }
+
+  if (existsSync(htmlPath)) {
+    const html = readFileSync(htmlPath, 'utf8');
+    if (!html.includes(`name="nexus-guide-version" content="${ZOO_VISUAL_GUIDE_VERSION}"`)) problems.push('visual Zoo/Gym guide version is stale; regenerate zoo/index.html.');
+    if (htmlMetaContent(html, 'nexus-guide-source-hash') !== zooVisualSourceHash()) problems.push('visual Zoo/Gym guide source hash is stale; regenerate zoo/index.html.');
+    if (!guideContentHashOk(html)) problems.push('visual Zoo/Gym guide content hash is stale or was edited outside the generator; regenerate zoo/index.html.');
+    for (const required of [
+      'Nexus Design Zoo / Gym',
+      'Visual Demo Surface',
+      'Captured From Real /design Routes',
+      'Visual Contexts',
+      'Token Foundations',
+      'Theme Matrix',
+      'Component Gallery',
+      'packages/web/src/routes/__design/Zoo.tsx',
+      'packages/web/src/components/registry.json',
+    ]) {
+      if (!html.includes(required)) problems.push(`visual Zoo/Gym guide is missing required content: ${required}`);
+    }
+    for (const context of contexts) {
+      if (!html.includes(`data-context="${escapeHtml(context.id || 'legacy')}"`)) problems.push(`visual Zoo/Gym guide is missing context ${context.id || 'legacy'}.`);
+      for (const entry of entries) {
+        if (!html.includes(`data-slug="${escapeHtml(entry.slug)}" data-context="${escapeHtml(context.id || 'legacy')}"`)) problems.push(`visual Zoo/Gym guide is missing card for ${context.id || 'legacy'}/${entry.slug}.`);
+      }
+    }
   }
   return problems;
 }
@@ -752,7 +1161,12 @@ function publicGuideInputFiles() {
     'WORKFLOW.md',
     'package.json',
     '.codex/README.md',
+    '.codex/config.toml',
+    '.codex/workflow/dependency-audit-baseline.json',
+    '.codex/scripts/audit-deps.mjs',
+    '.codex/scripts/check-production-zoo-bundle.mjs',
     '.codex/scripts/nexus-workflow.mjs',
+    '.codex/scripts/capture-design-zoo-visuals.mjs',
     '.codex/workflow/records/review-state.json',
     '.codex/workflow/records/verify-state.json',
     '.codex/workflow/records/audit-state.json',
@@ -775,12 +1189,16 @@ function publicGuideInputFiles() {
     '.codex/workflow/records',
     '.codex/workflow/scenarios',
     '.codex/workflow/templates',
+    '.github/workflows',
     'packages/web/src/platform/theme',
     'packages/web/src/routes',
   ]) {
     for (const file of listFilesUnder(dir, 8, 600)) files.add(file);
   }
   files.delete('.codex/workflow/records/guide-browser-state.json');
+  for (const file of [...files]) {
+    if (file.startsWith('.codex/workflow/records/guide-browser/')) files.delete(file);
+  }
   return [...files]
     .filter((file) => existsSync(join(ROOT, file)) && statSync(join(ROOT, file)).isFile())
     .sort();
@@ -874,6 +1292,7 @@ function guideViewContractProblems(html, label = 'guide') {
     'Design-System Nodes',
     'Design-System Flow',
     'Design Zoo/Gym coverage',
+    'Visual Zoo/Gym Guide',
     'Design And Workflow Documents',
     'packages/web/src/components/registry.json',
     'packages/web/src/routes/__design/Zoo.tsx',
@@ -895,9 +1314,14 @@ function guideViewContractProblems(html, label = 'guide') {
 
 function guideArtifactHash() {
   const payload = {};
-  for (const name of ['index.html', 'public.html']) {
+  for (const name of ['index.html', 'public.html', 'zoo/index.html', 'zoo/manifest.json']) {
     const path = join(DASHBOARD_DIR, name);
     payload[name] = existsSync(path) ? createHash('sha256').update(readFileSync(path)).digest('hex') : 'missing';
+  }
+  for (const target of zooManifestTargets()) {
+    const asset = target.asset || `.codex/dashboard/zoo/assets/${target.slug}.jpg`;
+    const path = join(ROOT, asset);
+    payload[asset] = existsSync(path) ? createHash('sha256').update(readFileSync(path)).digest('hex') : 'missing';
   }
   return createHash('sha256').update(JSON.stringify(payload)).digest('hex').slice(0, 24);
 }
@@ -920,15 +1344,33 @@ function commandRecordGuideBrowser(args) {
     for (const file of missing) console.error(`- ${file}`);
     process.exit(2);
   }
+  const title = `Guide browser ${verdict}`;
+  const body = [
+    `Verdict: ${verdict}`,
+    `Reviewer: ${args.reviewer || args.verifier || 'unknown'}`,
+    `Guide artifact hash: ${hash}`,
+    '',
+    screenshots.length ? ['Screenshots:', ...screenshots.map((file) => `- ${file}`)].join('\n') : 'Screenshots: n/a',
+    '',
+    args.notes ? `Notes: ${args.notes}` : 'Notes: n/a',
+  ].join('\n');
+  const rec = writeRecord('guide-browser', title, body, {
+    verdict,
+    reviewer: args.reviewer || args.verifier || 'unknown',
+    guideArtifactHash: hash,
+    screenshots,
+  });
   saveJson(GUIDE_BROWSER_STATE_FILE, {
     guideArtifactHash: hash,
     verdict,
     checkedAt: nowIso(),
     reviewer: args.reviewer || args.verifier || 'unknown',
+    guideBrowserRecord: relative(ROOT, rec.path).replaceAll('\\', '/'),
     screenshots,
     notes: args.notes || '',
   });
   console.log(`Recorded guide browser ${verdict} for ${hash}`);
+  console.log(relative(ROOT, rec.path));
 }
 
 function guideBrowserProblems() {
@@ -940,6 +1382,12 @@ function guideBrowserProblems() {
   }
   if (state.verdict === 'pass' && !(state.screenshots || []).length) {
     problems.push('guide browser validation pass has no screenshot evidence.');
+  }
+  if (state.verdict === 'pass') {
+    problems.push(...evidenceRecordProblems('guide-browser', state.guideBrowserRecord, {
+      guideArtifactHash: state.guideArtifactHash,
+      verdict: 'pass',
+    }, 'guide browser state'));
   }
   for (const file of state.screenshots || []) {
     if (!existsSync(join(ROOT, file))) problems.push(`guide browser screenshot is missing: ${file}`);
@@ -977,7 +1425,7 @@ function graphHtml(title, nodes, edges = []) {
 
 function commandDashboard(args = {}) {
   ensureDir(DASHBOARD_DIR);
-  const recordKinds = RECORD_KINDS;
+  const recordKinds = GUIDE_RECORD_KINDS;
   const rawRecords = Object.fromEntries(recordKinds.map((kind) => [kind, listRecords(kind)]));
   const records = displayRecords(rawRecords);
   const currentState = readText('.codex/workflow/current-state.md');
@@ -1137,6 +1585,7 @@ function commandDashboard(args = {}) {
         <h2>Design Zoo / Gym</h2>
         <p>The production component gym is the dev-only app route at <code>http://localhost:5173/design</code>. It reads real source components through <code>packages/web/src/routes/__design/Zoo.tsx</code>; this dashboard reads <code>packages/web/src/components/registry.json</code> so coverage is visible here too.</p>
         <p><a href="http://localhost:5173/design">Open local zoo index</a> after running <code>npm run dev:web</code> or <code>npm run dev:all</code>.</p>
+        <p><a href="zoo/index.html">Open generated Visual Zoo/Gym Guide</a> for captured previews that can be deployed to <code>${escapeHtml(PUBLIC_GUIDE_URL)}zoo/</code>.</p>
         <div class="record">
           <strong>Registry coverage</strong>
           <p class="path">${zooLinked} of ${zooEntries.length} registry entries declare a zoo route.</p>
@@ -1181,7 +1630,7 @@ function commandPublicGuide(args = {}) {
   const branch = gitText(['branch', '--show-current']) || '(detached HEAD)';
   const sourceHash = publicGuideSourceHash();
   const tokenRootCss = productionGuideTokenCss();
-  const rawRecords = Object.fromEntries(RECORD_KINDS.map((kind) => [kind, listRecords(kind)]));
+  const rawRecords = Object.fromEntries(GUIDE_RECORD_KINDS.map((kind) => [kind, listRecords(kind)]));
   const records = displayRecords(rawRecords);
   const allRecords = Object.entries(records)
     .flatMap(([kind, items]) => items.map((record) => ({ ...record, kind })))
@@ -1346,8 +1795,10 @@ function commandPublicGuide(args = {}) {
         { label: 'Component registry', detail: 'metadata, paths, Zoo routes' },
         { label: 'Design Zoo/Gym', detail: 'interactive coverage route' },
         { label: 'validate-design-zoo', detail: 'browser validation script' },
-      ], [['Reference bundle', 'Production tokens/themes'], ['Production tokens/themes', 'ThemeProvider'], ['ThemeProvider', 'Component registry'], ['Component registry', 'Design Zoo/Gym'], ['Design Zoo/Gym', 'validate-design-zoo']])}
+        { label: 'Visual Zoo/Gym Guide', detail: 'deployed screenshot gallery' },
+      ], [['Reference bundle', 'Production tokens/themes'], ['Production tokens/themes', 'ThemeProvider'], ['ThemeProvider', 'Component registry'], ['Component registry', 'Design Zoo/Gym'], ['Design Zoo/Gym', 'validate-design-zoo'], ['Design Zoo/Gym', 'Visual Zoo/Gym Guide']])}
       <p>Design Zoo/Gym coverage: <strong>${zooLinked}/${zooEntries.length}</strong> registry entries declare a route.</p>
+      <p><a href="zoo/">Open Visual Zoo/Gym Guide</a>. Production <code>/nexus/design</code> remains dev-only; the deployable visual surface is <code>/nexus/workflow/zoo/</code>.</p>
       <div class="grid">
         <div class="card"><strong>${registry.primitives?.length || 0}</strong><p>primitives</p></div>
         <div class="card"><strong>${registry.patterns?.length || 0}</strong><p>patterns</p></div>
@@ -1413,6 +1864,241 @@ function commandPublicGuide(args = {}) {
   }
 }
 
+function commandZooVisualGuide(args = {}) {
+  ensureDir(ZOO_GUIDE_DIR);
+  const generated = nowIso();
+  const sourceHash = zooVisualSourceHash();
+  const tokenRootCss = productionGuideTokenCss();
+  const entries = zooVisualEntries();
+  const manifestTargets = zooManifestTargets();
+  const contexts = zooManifestContexts();
+  const manifestByContextSlug = new Map(manifestTargets.map((target) => [`${target.contextId || 'legacy'}:${target.slug}`, target]));
+  const manifest = loadJson(ZOO_GUIDE_MANIFEST, {});
+  const capturedAt = manifest.capturedAt || 'not captured';
+  const cardsForContext = (context) => entries.map((entry) => {
+    const target = manifestByContextSlug.get(`${context.id || 'legacy'}:${entry.slug}`);
+    const asset = target?.asset?.replace(/^\.codex\/dashboard\/zoo\//, '') || `assets/${entry.slug}.jpg`;
+    const image = target
+      ? `<img src="${publicHtml(asset)}" alt="${publicHtml(entry.title)} visual capture" loading="lazy" />`
+      : '<div class="missing">Missing capture</div>';
+    return `
+      <article class="demo-card" data-slug="${escapeHtml(entry.slug)}" data-context="${escapeHtml(context.id || 'legacy')}">
+        <a class="shot" href="${publicHtml(asset)}">${image}</a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>${publicHtml(entry.title)}</strong>
+            <span>${publicHtml(entry.kind)}</span>
+          </div>
+          <p>${publicHtml(entry.purpose || '')}</p>
+          <dl>
+            <dt>Context</dt><dd><code>${publicHtml(context.label || context.id || 'legacy')}</code></dd>
+            <dt>Local route</dt><dd><code>${publicHtml(entry.route || '')}</code></dd>
+            <dt>Source</dt><dd><code>${publicHtml(entry.path || '')}</code></dd>
+          </dl>
+        </div>
+      </article>
+    `;
+  });
+  const contextSections = contexts.map((context) => {
+    const cards = cardsForContext(context);
+    return `
+    <section data-context="${escapeHtml(context.id || 'legacy')}">
+      <h2>${publicHtml(context.label || context.id || 'Visual Context')}</h2>
+      <div class="panel callout">
+        <p>Mode <code>${publicHtml(context.mode || 'n/a')}</code> · theme <code>${publicHtml(context.theme || 'n/a')}</code> · viewport <code>${publicHtml(context.viewport?.width || 'n/a')}x${publicHtml(context.viewport?.height || 'n/a')}</code>.</p>
+      </div>
+      <h3>Token Foundations</h3>
+      <div class="demo-grid">${cards.slice(0, 3).join('\n')}</div>
+      <h3>Component Gallery</h3>
+      <div class="demo-grid">${cards.slice(3).join('\n')}</div>
+    </section>`;
+  }).join('\n');
+  const contextSummary = contexts.map((context) => `${context.label || context.id}: ${context.mode || 'n/a'} / ${context.theme || 'n/a'} / ${context.viewport?.width || 'n/a'}x${context.viewport?.height || 'n/a'}`).join(' · ');
+  const html = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="nexus-guide-version" content="${ZOO_VISUAL_GUIDE_VERSION}" />
+  <meta name="nexus-guide-source-hash" content="${sourceHash}" />
+  <meta name="nexus-guide-content-hash" content="${PUBLIC_GUIDE_CONTENT_HASH_PLACEHOLDER}" />
+  <meta name="nexus-token-source" content="packages/web/src/platform/theme/tokens.css" />
+  <title>Nexus Design Zoo / Gym</title>
+  <style>
+    :root {
+      color-scheme: light;
+      ${tokenRootCss}
+      --guide-bg: var(--color-bg-surface);
+      --guide-panel: var(--color-bg-elevated);
+      --guide-muted-surface: var(--color-bg-muted);
+      --guide-text: var(--color-text);
+      --guide-muted-text: var(--color-text-secondary);
+      --guide-line: var(--color-border);
+      --guide-brand: var(--color-primary);
+      --guide-accent: var(--color-accent);
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; color:var(--guide-text); background:var(--guide-bg); line-height:1.48; }
+    header { padding:30px 24px 18px; background:var(--guide-panel); border-bottom:1px solid var(--guide-line); }
+    main { max-width:1220px; margin:0 auto; padding:24px; }
+    h1 { margin:0 0 8px; font-size:32px; letter-spacing:0; }
+    h2 { margin:0 0 12px; font-size:20px; letter-spacing:0; }
+    h3 { margin:16px 0 10px; font-size:16px; letter-spacing:0; }
+    section { margin:0 0 22px; }
+    a { color:var(--guide-brand); text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    code { background:var(--guide-muted-surface); border-radius:var(--radius-btn); padding:1px 4px; }
+    .meta { color:var(--guide-muted-text); font-size:13px; }
+    .intro { display:grid; grid-template-columns:minmax(0, 1.5fr) minmax(240px, 0.7fr); gap:14px; align-items:stretch; }
+    .panel, .stat, .demo-card { background:var(--guide-panel); border:1px solid var(--guide-line); border-radius:var(--radius-card); }
+    .panel { padding:18px; }
+    .stats { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+    .stat { padding:14px; min-height:var(--hit-md); background:var(--guide-muted-surface); }
+    .stat strong { display:block; font-size:24px; }
+    .demo-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(270px,1fr)); gap:14px; }
+    .demo-card { overflow:hidden; }
+    .shot { display:block; max-height:520px; min-height:180px; background:var(--guide-muted-surface); border-bottom:1px solid var(--guide-line); overflow:auto; }
+    .shot img { width:100%; height:auto; object-fit:contain; object-position:top left; display:block; }
+    .missing { min-height:100%; display:grid; place-items:center; color:var(--guide-muted-text); }
+    .demo-body { padding:12px; }
+    .demo-top { display:flex; align-items:baseline; justify-content:space-between; gap:8px; }
+    .demo-top span { color:var(--guide-muted-text); font-size:12px; }
+    .demo-body p { min-height:42px; margin:8px 0; color:var(--guide-muted-text); font-size:13px; }
+    dl { display:grid; grid-template-columns:76px minmax(0,1fr); gap:4px 8px; margin:0; font-size:12px; }
+    dt { color:var(--guide-muted-text); }
+    dd { margin:0; min-width:0; overflow-wrap:anywhere; }
+    .callout { border-left:4px solid var(--guide-accent); }
+    @media (max-width: 760px) {
+      .intro { grid-template-columns:1fr; }
+      main { padding:16px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Nexus Design Zoo / Gym</h1>
+    <div class="meta">Visual Demo Surface · generated ${publicHtml(generated)} · captured ${publicHtml(capturedAt)}</div>
+  </header>
+  <main>
+    <section class="intro">
+      <div class="panel">
+        <h2>Captured From Real /design Routes</h2>
+        <p>This page is the deployable visual guide for the dev-only component gym. Screenshots are captured from real Nexus components rendered by <code>packages/web/src/routes/__design/Zoo.tsx</code>, and coverage is driven by <code>packages/web/src/components/registry.json</code>.</p>
+        <p>Production <code>/nexus/design</code> is intentionally not mounted. Use this guide at <code>/nexus/workflow/zoo/</code> for deployed visual inspection, and use local <code>http://localhost:5173/design</code> for live interaction.</p>
+        <p><strong>Visual Contexts:</strong> ${publicHtml(contextSummary || 'not captured')}</p>
+        <p><a href="../">Back to workflow guide</a></p>
+      </div>
+      <div class="stats">
+        <div class="stat"><span class="meta">Visual captures</span><strong>${manifestTargets.length}</strong></div>
+        <div class="stat"><span class="meta">Contexts</span><strong>${contexts.length}</strong></div>
+        <div class="stat"><span class="meta">Foundations</span><strong>3</strong></div>
+        <div class="stat"><span class="meta">Components</span><strong>${Math.max(entries.length - 3, 0)}</strong></div>
+      </div>
+    </section>
+    <section>
+      <h2>Theme Matrix</h2>
+      <div class="panel callout">
+        <p>The <code>themes</code> capture is the high-signal parity view: every cuisine theme renders real Button, Badge, Card, palette, radius, and typography tokens side by side.</p>
+      </div>
+    </section>
+    ${contextSections}
+  </main>
+</body>
+</html>`;
+  const outPath = join(ZOO_GUIDE_DIR, 'index.html');
+  writeFileSync(outPath, injectGuideContentHash(html));
+  if (!args.quiet) console.log(`Zoo visual guide generated: ${relative(ROOT, outPath).replaceAll('\\', '/')}`);
+}
+
+function commandZooVisualGuideCheck({ quiet = false } = {}) {
+  const problems = zooVisualGuideProblems();
+  if (!quiet) {
+    console.log(`zoo visual guide problems: ${problems.length}`);
+    for (const problem of problems) console.log(`- ${problem}`);
+  }
+  return problems.length === 0;
+}
+
+function hookConfigProblems() {
+  const problems = [];
+  const config = readText('.codex/config.toml');
+  const hooks = loadJson(join(CODEX, 'hooks.json'), {});
+  if (!/^\s*sandbox_mode\s*=\s*"danger-full-access"\s*$/m.test(config)) problems.push('.codex/config.toml should set sandbox_mode = "danger-full-access" for the project Custom profile.');
+  if (!/^\s*approval_policy\s*=\s*"never"\s*$/m.test(config)) problems.push('.codex/config.toml should set approval_policy = "never" so Custom(config.toml) does not prompt for shell approvals.');
+  if (!/^\s*codex_hooks\s*=\s*true\s*$/m.test(config)) problems.push('.codex/config.toml should enable features.codex_hooks = true.');
+  if (!/^\s*multi_agent\s*=\s*true\s*$/m.test(config)) problems.push('.codex/config.toml should enable features.multi_agent = true.');
+  const hookMap = hooks.hooks || {};
+  const expectedCommands = {
+    SessionStart: 'node .codex/scripts/run-hook.mjs session-start',
+    PreToolUse: 'node .codex/scripts/run-hook.mjs pre-tool-use',
+    PostToolUse: 'node .codex/scripts/run-hook.mjs post-tool-use',
+    Stop: 'node .codex/scripts/run-hook.mjs stop',
+  };
+  const expectedMatchers = {
+    SessionStart: 'startup|resume',
+    PreToolUse: 'Bash',
+    PostToolUse: 'Bash|apply_patch|Edit|Write',
+  };
+  for (const event of Object.keys(expectedCommands)) {
+    if (!Array.isArray(hookMap[event]) || hookMap[event].length === 0) problems.push(`.codex/hooks.json is missing ${event} hook entries.`);
+    for (const entry of hookMap[event] || []) {
+      if (Object.hasOwn(expectedMatchers, event) && entry.matcher !== expectedMatchers[event]) {
+        problems.push(`${event} matcher must be exactly "${expectedMatchers[event]}".`);
+      }
+      if (event === 'Stop' && Object.hasOwn(entry, 'matcher')) problems.push('Stop hook should not define a matcher.');
+    }
+    const eventHooks = (hookMap[event] || []).flatMap((entry) => entry.hooks || []);
+    if (eventHooks.length !== 1) problems.push(`${event} should have exactly one thin command hook.`);
+    for (const hook of eventHooks) {
+      if (hook.type !== 'command') problems.push(`${event} hook must be type=command.`);
+      if (hook.command !== expectedCommands[event]) problems.push(`${event} hook command must be exactly "${expectedCommands[event]}".`);
+      if (String(hook.command || '').includes('-e') || /[;&|]/.test(String(hook.command || ''))) problems.push(`${event} hook command contains inline shell logic; use run-hook.mjs only.`);
+      if (Number(hook.timeout || 0) > 30) problems.push(`${event} hook timeout should stay at or below 30 seconds.`);
+    }
+  }
+  const runtime = loadJson(join(RUNTIME_DIR, 'hooks-state.json'), {});
+  if (runtime.lastSeenAt) {
+    const ageMs = Date.now() - Date.parse(runtime.lastSeenAt);
+    if (Number.isFinite(ageMs) && ageMs > 1000 * 60 * 60 * 24 * 14) problems.push(`hook runtime heartbeat is older than 14 days: ${runtime.lastSeenAt}.`);
+  }
+  return problems;
+}
+
+function commandHookConfigCheck({ quiet = false } = {}) {
+  const problems = hookConfigProblems();
+  if (!quiet) {
+    console.log(`hook config problems: ${problems.length}`);
+    for (const problem of problems) console.log(`- ${problem}`);
+    const runtime = loadJson(join(RUNTIME_DIR, 'hooks-state.json'), {});
+    if (runtime.lastSeenAt) console.log(`last hook heartbeat: ${runtime.lastSeenAt} (${runtime.lastEvent || 'unknown'})`);
+    else console.log('last hook heartbeat: none recorded in this checkout');
+  }
+  return problems.length === 0;
+}
+
+function commandDependencyAuditCheck({ quiet = false } = {}) {
+  const auditArgs = [join(CODEX, 'scripts', 'audit-deps.mjs')];
+  if (quiet) auditArgs.push('--quiet');
+  const result = spawnSync(process.execPath, auditArgs, {
+    cwd: ROOT,
+    encoding: 'utf8',
+    shell: false,
+  });
+  if (!quiet && result.stdout) process.stdout.write(result.stdout);
+  if (!quiet && result.stderr) process.stderr.write(result.stderr);
+  return result.status === 0;
+}
+
+function commandProductionZooBundleCheck({ quiet = false } = {}) {
+  const result = spawnSync(process.execPath, [join(CODEX, 'scripts', 'check-production-zoo-bundle.mjs')], {
+    cwd: ROOT,
+    encoding: 'utf8',
+  });
+  if (!quiet && result.stdout) process.stdout.write(result.stdout);
+  if (!quiet && result.stderr) process.stderr.write(result.stderr);
+  return result.status === 0;
+}
+
 function commandStatus() {
   const branch = gitText(['branch', '--show-current']) || '(detached HEAD)';
   const status = gitText(['status', '--short', '--branch']);
@@ -1428,6 +2114,10 @@ function commandStatus() {
   const routingOk = commandRoutingCheck({ quiet: true });
   const guideOk = commandGuideCheck({ quiet: true });
   const guideBrowserOk = commandGuideBrowserCheck({ quiet: true });
+  const zooVisualOk = commandZooVisualGuideCheck({ quiet: true });
+  const hookConfigOk = commandHookConfigCheck({ quiet: true });
+  const depAuditOk = commandDependencyAuditCheck({ quiet: true });
+  const prodZooOk = commandProductionZooBundleCheck({ quiet: true });
   const currentHash = worktreeHash();
   const reviewed = commandReviewCheck({ quiet: true });
   const verified = commandVerifyCheck({ quiet: true });
@@ -1446,6 +2136,10 @@ function commandStatus() {
   console.log(`routing: ${routingOk ? 'ok' : 'needs attention'}`);
   console.log(`guide: ${guideOk ? 'ok' : 'needs attention'}`);
   console.log(`guide browser: ${guideBrowserOk ? 'ok' : 'needs attention'}`);
+  console.log(`zoo visual guide: ${zooVisualOk ? 'ok' : 'needs attention'}`);
+  console.log(`hook config: ${hookConfigOk ? 'ok' : 'needs attention'}`);
+  console.log(`dependency audit: ${depAuditOk ? 'ok' : 'needs attention'}`);
+  console.log(`production zoo bundle: ${prodZooOk ? 'ok' : 'needs attention'}`);
   if (state.reviewedAt) console.log(`last review: ${state.reviewedAt} by ${state.reviewer || 'unknown'} (${state.verdict || 'unknown'})`);
   if (verifyState.verifiedAt) console.log(`last verification: ${verifyState.verifiedAt} by ${verifyState.verifier || 'unknown'} (${verifyState.verdict || 'unknown'})`);
   if (auditState.auditedAt) console.log(`last audit: ${auditState.auditedAt} by ${auditState.auditor || 'unknown'} (${auditState.verdict || 'unknown'})`);
@@ -1482,6 +2176,7 @@ function commandRecordPatch(args, hookPayload = null) {
   });
   invalidateGates(files, `patch ${rec.id}`, agent, {
     patchId: rec.id,
+    patchRecord: relative(ROOT, rec.path).replaceAll('\\', '/'),
     routingId,
     worker: agent,
   });
@@ -1794,7 +2489,11 @@ function commandVerifyCheck({ quiet = false } = {}) {
   const files = verificationRelevantFiles();
   const hash = worktreeHash();
   const state = loadJson(VERIFY_STATE_FILE, {});
-  const ok = files.length === 0 || (state.worktreeHash === hash && state.verdict === 'pass');
+  const evidenceOk = evidenceRecordProblems('tests', state.verifyRecord, {
+    worktreeHash: hash,
+    verdict: 'pass',
+  }, 'verification state').length === 0;
+  const ok = files.length === 0 || (state.worktreeHash === hash && state.verdict === 'pass' && evidenceOk);
   if (!quiet) {
     console.log(`verification-relevant files: ${files.length}`);
     console.log(`worktree hash: ${hash}`);
@@ -1811,7 +2510,11 @@ function commandAuditCheck({ quiet = false } = {}) {
   const files = auditRelevantFiles();
   const hash = worktreeHash();
   const state = loadJson(AUDIT_STATE_FILE, {});
-  const ok = files.length === 0 || (state.worktreeHash === hash && state.verdict === 'pass');
+  const evidenceOk = evidenceRecordProblems('audits', state.auditRecord, {
+    worktreeHash: hash,
+    verdict: 'pass',
+  }, 'audit state').length === 0;
+  const ok = files.length === 0 || (state.worktreeHash === hash && state.verdict === 'pass' && evidenceOk);
   if (!quiet) {
     console.log(`audit-relevant files: ${files.length}`);
     console.log(`worktree hash: ${hash}`);
@@ -2026,9 +2729,51 @@ function workflowSelfTestChecks() {
   add('record schema maps patches correctly', recordSchema('patches') === 'nexus-patch/v1');
   add('record schema maps routing correctly', recordSchema('routing') === 'nexus-routing/v1');
   add('record schema maps audits correctly', recordSchema('audits') === 'nexus-audit/v1');
+  add('record schema maps guide browser correctly', recordSchema('guide-browser') === 'nexus-guide-browser/v1');
   add('pattern proposals are protected evidence', EVIDENCE_RECORD_KINDS.includes('pattern-proposals'));
+  add('guide browser validation is protected evidence', EVIDENCE_RECORD_KINDS.includes('guide-browser'));
+  add('state cache evidence rejects missing durable record', evidenceRecordProblems('reviews', 'REVIEW-DOES-NOT-EXIST', { verdict: 'pass' }, 'fixture review state').length > 0);
   add('generated guide artifacts use dedicated guide gate', substantiveFiles(['.codex/dashboard/public.html', '.codex/dashboard/index.html']).length === 0);
+  add('visual zoo guide artifacts use dedicated guide gate', substantiveFiles(['.codex/dashboard/zoo/index.html', '.codex/dashboard/zoo/assets/button.jpg']).length === 0);
   add('guide source hash is content based', /^[a-f0-9]{24}$/.test(publicGuideSourceHash()));
+  add('visual zoo source hash is content based', /^[a-f0-9]{24}$/.test(zooVisualSourceHash()));
+  add('hook config pins no-prompt custom permission mode', hookConfigProblems().filter((problem) => problem.includes('approval_policy') || problem.includes('sandbox_mode')).length === 0);
+  add('hook config keeps hooks as workflow-kernel triggers', hookConfigProblems().filter((problem) => problem.includes('nexus-workflow.mjs')).length === 0);
+  add('hook config rejects inline command logic', (() => {
+    const original = readText('.codex/hooks.json');
+    return original.includes('run-hook.mjs') && !original.includes('node -e');
+  })());
+  add('dependency audit baseline is explicit and expiring', (() => {
+    const baseline = loadJson(join(CODEX, 'workflow', 'dependency-audit-baseline.json'), {});
+    return Boolean(baseline.expiresAt)
+      && Array.isArray(baseline.allowed)
+      && baseline.allowed.length > 0
+      && baseline.allowed.every((entry) => entry.name && entry.reason && entry.followUp && entry.expiresAt && Array.isArray(entry.nodes) && Array.isArray(entry.via) && Array.isArray(entry.effects) && Array.isArray(entry.advisorySources));
+  })());
+  add('dependency audit baseline changes require workflow bookkeeping', substantiveFiles(['.codex/workflow/dependency-audit-baseline.json']).includes('.codex/workflow/dependency-audit-baseline.json'));
+  add('dependency audit baseline changes require verification', verificationRelevantFiles(['.codex/workflow/dependency-audit-baseline.json']).includes('.codex/workflow/dependency-audit-baseline.json'));
+  add('dependency audit baseline changes require audit', auditRelevantFiles(['.codex/workflow/dependency-audit-baseline.json']).includes('.codex/workflow/dependency-audit-baseline.json'));
+  add('dependency audit baseline rejects mismatched chain', (() => {
+    const allowance = loadJson(join(CODEX, 'workflow', 'dependency-audit-baseline.json'), {}).allowed?.find((entry) => entry.name === 'esbuild');
+    return Boolean(allowance)
+      && !sameStringSet(['node_modules/unrelated/esbuild'], allowance.nodes)
+      && !sameStringSet(['unrelated'], allowance.effects)
+      && sameStringSet(['esbuild'], allowance.via)
+      && sameStringSet([1102341], allowance.advisorySources || []);
+  })());
+  add('legacy patch schema is limited to explicit historical records', LEGACY_SCHEMA_RECORDS.has('.codex/workflow/records/patches/PATCH-20260508T170713Z-design-system-toast-semantic-parity.md') && !LEGACY_SCHEMA_RECORDS.has('.codex/workflow/records/patches/PATCH-NEW-BAD-SCHEMA.md'));
+  add('append-only history catches same-branch record rewrite', evidenceRecordHistoryProblemsFromLog([
+    'commit a',
+    'A\t.codex/workflow/records/reviews/REVIEW-1.md',
+    'commit b',
+    'M\t.codex/workflow/records/reviews/REVIEW-1.md',
+  ].join('\n'), 'fixture-base').length === 1);
+  add('append-only history allows newly added evidence records', evidenceRecordHistoryProblemsFromLog([
+    'commit a',
+    'A\t.codex/workflow/records/reviews/REVIEW-1.md',
+    'commit b',
+    'A\t.codex/workflow/records/tests/TEST-1.md',
+  ].join('\n'), 'fixture-base').length === 0);
   add('guide source hash canonicalizes line endings', createHash('sha256').update(canonicalTextForHash('a\r\nb\r\n')).digest('hex') === createHash('sha256').update(canonicalTextForHash('a\nb\n')).digest('hex'));
   add('guide source hash includes records and gate states', (() => {
     const inputs = publicGuideInputFiles();
@@ -2054,6 +2799,7 @@ function workflowSelfTestChecks() {
     'Design-System Nodes',
     'Design-System Flow',
     'Design Zoo/Gym coverage',
+    'Visual Zoo/Gym Guide',
     'Design And Workflow Documents',
     'packages/web/src/components/registry.json',
     'packages/web/src/routes/__design/Zoo.tsx',
@@ -2080,27 +2826,31 @@ function workflowSelfTestChecks() {
     const missing = (missingState.screenshots || []).filter((file) => !existsSync(join(ROOT, file)));
     return missing.length > 0;
   })());
+  add('visual zoo guide check rejects missing fixture slug', (() => {
+    const currentEntries = zooVisualEntries();
+    return currentEntries.some((entry) => entry.slug === 'themes') && zooVisualGuideProblems().some((problem) => problem.includes('visual Zoo/Gym') || problem.includes('zoo/index.html'));
+  })() || existsSync(join(ZOO_GUIDE_DIR, 'index.html')));
   add('routing check rejects missing worktree hash', routingScopeProblemsForState({
-    routingId: 'ROUTING-test',
+    routingId: 'routing-test',
     route: 'lead',
     status: 'active',
   }, ['.codex/scripts/nexus-workflow.mjs'], {}).length > 0);
   add('routing check rejects stale worktree hash', routingScopeProblemsForState({
-    routingId: 'ROUTING-test',
+    routingId: 'routing-test',
     route: 'lead',
     status: 'active',
     worktreeHash: 'stale',
     currentHash: 'current',
   }, ['.codex/scripts/nexus-workflow.mjs'], {}).length > 0);
   add('routing check accepts clean worktree with stale routing state', routingScopeProblemsForState({
-    routingId: 'ROUTING-test',
+    routingId: 'routing-test',
     route: 'lead',
     status: 'active',
     worktreeHash: 'stale',
     currentHash: 'current',
   }, [], {}).length === 0);
   add('routing check accepts hash-bound non-Spark route', routingScopeProblemsForState({
-    routingId: 'ROUTING-test',
+    routingId: 'routing-test',
     route: 'lead',
     status: 'active',
     worktreeHash: 'current',
@@ -2115,7 +2865,7 @@ function workflowSelfTestChecks() {
     workers: ['codex-lead'],
   }).length === 0);
   add('routing check rejects retroactive delegated routing', routingScopeProblemsForState({
-    routingId: 'ROUTING-test',
+    routingId: 'routing-test',
     route: 'spark',
     worker: 'nexus_spark_worker',
     status: 'active',
@@ -2124,13 +2874,13 @@ function workflowSelfTestChecks() {
     recordedAt: '2026-05-09T00:10:00.000Z',
   }, ['packages/web/src/components/ui/Toast.tsx'], {
     worktreeHash: 'current',
-    routingId: 'ROUTING-test',
+    routingId: 'routing-test',
     workers: ['nexus_spark_worker'],
     lastChangedAt: '2026-05-09T00:09:00.000Z',
-    patchId: 'PATCH-test',
+    patchId: 'patch-test',
   }).some((problem) => problem.includes('after delegated patch')));
   add('routing check accepts delegated preflight linked to patch', routingScopeProblemsForState({
-    routingId: 'ROUTING-test',
+    routingId: 'routing-test',
     route: 'spark',
     worker: 'nexus_spark_worker',
     files: ['packages/web/src/components/ui/Toast.tsx'],
@@ -2140,13 +2890,13 @@ function workflowSelfTestChecks() {
     recordedAt: '2026-05-09T00:09:00.000Z',
   }, ['packages/web/src/components/ui/Toast.tsx'], {
     worktreeHash: 'current',
-    routingId: 'ROUTING-test',
+    routingId: 'routing-test',
     workers: ['nexus_spark_worker'],
     lastChangedAt: '2026-05-09T00:10:00.000Z',
-    patchId: 'PATCH-test',
+    patchId: 'patch-test',
   }).length === 0);
   add('routing check rejects delegated patch covered by lead route', routingScopeProblemsForState({
-    routingId: 'ROUTING-test',
+    routingId: 'routing-test',
     route: 'lead',
     worker: 'codex-lead',
     status: 'active',
@@ -2155,10 +2905,10 @@ function workflowSelfTestChecks() {
     recordedAt: '2026-05-09T00:09:00.000Z',
   }, ['packages/web/src/components/ui/Toast.tsx'], {
     worktreeHash: 'current',
-    routingId: 'ROUTING-test',
+    routingId: 'routing-test',
     workers: ['nexus_spark_worker'],
     lastChangedAt: '2026-05-09T00:10:00.000Z',
-    patchId: 'PATCH-test',
+    patchId: 'patch-test',
   }).some((problem) => problem.includes('lead-only')));
   add('integrated review does not trigger for lead aliases only', !requiresIntegratedReview({
     worktreeHash: worktreeHash(),
@@ -2177,7 +2927,7 @@ function workflowSelfTestChecks() {
     worktreeHash: 'hash',
     verdict: 'pass',
     kind: 'general',
-  }, 'general', 'hash'));
+  }, 'general', 'hash', { checkEvidence: false }));
   add('self-test temp fixtures stay out of repo workflow tree', !existsSync(join(ROOT, '.codex-self-test-tmp')));
   add('guide token subset avoids display tracking tokens', !productionGuideTokenCss().match(/tracking|-0\.01em/));
   add('guide token subset includes hit targets', ['--hit-sm', '--hit-md', '--hit-lg'].every((token) => productionGuideTokenCss().includes(`${token}:`)));
@@ -2208,7 +2958,7 @@ function workflowSelfTestChecks() {
   for (const command of allowed) add(`hook allows ${command}`, !commandInvokesGitCommit(command));
   add('public sanitizer redacts private strings', !publicSafe(`${ROOT} /root/monoWeb/nexus /root/monoWeb/deploy-backups/nexus/x.diff root@134.199.148.87 ~/.ssh/DIOkii token=abc`).match(/C:\\Users|\/root\/monoWeb\/nexus|\/root\/monoWeb\/deploy-backups|root@|134\.199\.148\.87|~\/\.ssh\/DIOkii|DIOkii|token=abc/));
   add('routing check catches Spark out-of-scope file', routingScopeProblemsForState({
-    routingId: 'ROUTING-test',
+    routingId: 'routing-test',
     route: 'spark',
     files: ['packages/web/src/components/ui/Toast.tsx'],
     status: 'active',
@@ -2216,7 +2966,7 @@ function workflowSelfTestChecks() {
     currentHash: 'current',
   }, ['packages/web/src/components/registry.json'], {}).length > 0);
   add('routing check accepts Spark in-scope file', routingScopeProblemsForState({
-    routingId: 'ROUTING-test',
+    routingId: 'routing-test',
     route: 'spark',
     files: ['packages/web/src/components/ui/Toast.tsx'],
     status: 'active',
@@ -2255,6 +3005,11 @@ function commandValidate(args) {
     '.codex/config.toml',
     '.codex/hooks.json',
     '.codex/workflow/current-state.md',
+    '.codex/workflow/dependency-audit-baseline.json',
+    '.codex/scripts/audit-deps.mjs',
+    '.codex/scripts/check-production-zoo-bundle.mjs',
+    '.codex/scripts/run-hook.mjs',
+    '.codex/scripts/capture-design-zoo-visuals.mjs',
     '.codex/knowledge/patterns.md',
     '.codex/knowledge/design-system.md',
     '.codex/knowledge/model-routing.md',
@@ -2315,8 +3070,12 @@ function commandValidate(args) {
     const guideOk = commandGuideCheck({ quiet: true });
     const guideBrowserOk = commandGuideBrowserCheck({ quiet: true });
     const zooOk = commandZooCheck({ quiet: true });
+    const zooVisualOk = commandZooVisualGuideCheck({ quiet: true });
+    const hookConfigOk = commandHookConfigCheck({ quiet: true });
+    const depAuditOk = commandDependencyAuditCheck({ quiet: true });
+    const prodZooOk = commandProductionZooBundleCheck({ quiet: true });
     const selfTestFailures = workflowSelfTestChecks().filter((check) => !check.ok);
-    if (!reviewOk || !verifyOk || !auditOk || !handoverOk || !recordsOk || !routingOk || !guideOk || !guideBrowserOk || !zooOk || selfTestFailures.length) {
+    if (!reviewOk || !verifyOk || !auditOk || !handoverOk || !recordsOk || !routingOk || !guideOk || !guideBrowserOk || !zooOk || !zooVisualOk || !hookConfigOk || !depAuditOk || !prodZooOk || selfTestFailures.length) {
       if (!reviewOk) console.error('Release gate failed: missing passing review record.');
       if (!verifyOk) console.error('Release gate failed: missing passing verification record.');
       if (!auditOk) console.error('Release gate failed: missing passing audit record.');
@@ -2337,6 +3096,16 @@ function commandValidate(args) {
         console.error('Release gate failed: Design Zoo/Gym registry inconsistency.');
         for (const problem of zooRegistryProblems()) console.error(`- ${problem}`);
       }
+      if (!zooVisualOk) {
+        console.error('Release gate failed: Visual Zoo/Gym guide is missing or stale. Run npm run workflow:capture-zoo-visuals and npm run workflow:zoo-visual-guide.');
+        for (const problem of zooVisualGuideProblems()) console.error(`- ${problem}`);
+      }
+      if (!hookConfigOk) {
+        console.error('Release gate failed: hook/config enforcement is not pinned.');
+        for (const problem of hookConfigProblems()) console.error(`- ${problem}`);
+      }
+      if (!depAuditOk) console.error('Release gate failed: dependency audit baseline check failed. Run npm run audit:deps.');
+      if (!prodZooOk) console.error('Release gate failed: production build ships or lacks evidence for the dev-only Zoo bundle. Run npm run build and npm run workflow:prod-zoo-bundle-check.');
       if (!handoverOk) {
         console.error('Release gate failed: current-state handover has stale/finalization wording.');
         for (const problem of handoverProblems()) console.error(`- ${problem}`);
@@ -2607,6 +3376,7 @@ ensureDir(RECORDS);
 if (command === 'status') commandStatus();
 else if (command === 'dashboard') commandDashboard(args);
 else if (command === 'public-guide') commandPublicGuide(args);
+else if (command === 'zoo-visual-guide') commandZooVisualGuide(args);
 else if (command === 'record-patch') commandRecordPatch(args);
 else if (command === 'record-review') commandRecordReview(args);
 else if (command === 'record-verify') commandRecordVerification(args);
@@ -2647,6 +3417,18 @@ else if (command === 'verify-check') {
   process.exit(ok ? 0 : 1);
 } else if (command === 'zoo-check') {
   const ok = commandZooCheck(args);
+  process.exit(ok ? 0 : 1);
+} else if (command === 'zoo-visual-guide-check') {
+  const ok = commandZooVisualGuideCheck(args);
+  process.exit(ok ? 0 : 1);
+} else if (command === 'hook-config-check') {
+  const ok = commandHookConfigCheck(args);
+  process.exit(ok ? 0 : 1);
+} else if (command === 'dependency-audit-check') {
+  const ok = commandDependencyAuditCheck(args);
+  process.exit(ok ? 0 : 1);
+} else if (command === 'prod-zoo-bundle-check') {
+  const ok = commandProductionZooBundleCheck(args);
   process.exit(ok ? 0 : 1);
 } else if (command === 'self-test') commandSelfTest();
 else if (command === 'hook') {

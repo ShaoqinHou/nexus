@@ -15,7 +15,7 @@
 //   3. Add a case in the `showcases` map below
 //   4. The Zoo picks it up on next dev reload
 
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useParams, useNavigate, Link } from '@tanstack/react-router';
 import { Moon, Sun } from 'lucide-react';
 
@@ -905,10 +905,26 @@ function ZooLayout({ slug }: { slug?: string }) {
 
   const slugFromRoute = (route: string) => route.replace(/^\/design\//, '');
 
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const body = document.body;
+    const previousTheme = body.dataset.theme;
+    const previousScope = body.dataset.themedScope;
+    body.dataset.theme = themeId;
+    body.dataset.themedScope = 'design-zoo';
+    return () => {
+      if (previousTheme === undefined) delete body.dataset.theme;
+      else body.dataset.theme = previousTheme;
+      if (previousScope === undefined) delete body.dataset.themedScope;
+      else body.dataset.themedScope = previousScope;
+    };
+  }, [themeId]);
+
   return (
-    <div className="min-h-screen flex bg-bg">
+    <div className="min-h-screen bg-bg text-text" data-theme={themeId} data-themed-scope="design-zoo">
+      <div className="flex min-h-screen flex-col md:flex-row">
       {/* Sidebar */}
-      <aside className="w-64 shrink-0 border-r border-border bg-bg-surface p-4 overflow-y-auto">
+      <aside className="max-h-56 w-full shrink-0 overflow-y-auto border-b border-border bg-bg-surface p-4 md:max-h-none md:w-64 md:border-b-0 md:border-r">
         <h1 className="nx-h2 mb-4">
           Zoo <span className="nx-meta">(component catalog)</span>
         </h1>
@@ -975,13 +991,13 @@ function ZooLayout({ slug }: { slug?: string }) {
       </aside>
 
       {/* Main pane */}
-      <main className="flex-1 overflow-y-auto">
+      <main className="min-w-0 flex-1 overflow-y-auto">
         {/* Chrome toolbar */}
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-bg-surface px-6 py-3">
+        <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 border-b border-border bg-bg-surface px-4 py-3 md:px-6">
           <div className="nx-label">
             {active ? active.title : 'Select a component'}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <label className="nx-meta">
               Theme:{' '}
               <select
@@ -1006,7 +1022,7 @@ function ZooLayout({ slug }: { slug?: string }) {
           </div>
         </div>
 
-        <div className="p-6 max-w-5xl">
+        <div className="max-w-5xl p-4 md:p-6">
           {active ? (
             <>
               <h2 className="nx-h1 mb-6">{active.title}</h2>
@@ -1017,6 +1033,7 @@ function ZooLayout({ slug }: { slug?: string }) {
           )}
         </div>
       </main>
+      </div>
     </div>
   );
 }

@@ -54,14 +54,16 @@ Server validation must confirm:
 The public-safe workflow guide is deployed to:
 
 - `https://cv.rehou.games/nexus/workflow/`
+- `https://cv.rehou.games/nexus/workflow/zoo/` for the deployable visual Zoo/Gym guide
 
 Generate it with:
 
 ```bash
 npm run workflow:public-guide
+npm run workflow:zoo-visual-guide
 ```
 
-Deploy it by copying `.codex/dashboard/public.html` to `/var/www/cv.rehou.games/nexus/workflow/index.html`. Do not publish the full repo-local `.codex/dashboard/index.html` unless intentionally exposing internal deployment paths and record excerpts.
+Deploy it by copying `.codex/dashboard/public.html` to `/var/www/cv.rehou.games/nexus/workflow/index.html` and `.codex/dashboard/zoo/` to `/var/www/cv.rehou.games/nexus/workflow/zoo/`. Do not publish the full repo-local `.codex/dashboard/index.html` unless intentionally exposing internal deployment paths and record excerpts.
 
 Known risk: do not skip production `db:push` when schema changes are present.
 

@@ -1,8 +1,8 @@
 {
-  "worktreeHash": "77fafee7f163d73e",
+  "worktreeHash": "f0888f700b03f04b",
   "verdict": "pass",
   "auditor": "codex-lead",
-  "auditedAt": "2026-05-09T08:36:37.903Z",
-  "auditRecord": ".codex/workflow/records/audits/AUDIT-20260509T083637Z-audit-pass-worktree.md",
-  "notes": "Final audit passed: deployment evidence is durable, compact handover points to detailed records instead of transcript, server dirty lockfile cause was handled by backup plus cleanup, and branch HEAD wording avoids self-staling final commit references."
+  "auditedAt": "2026-05-09T11:24:26.738Z",
+  "auditRecord": ".codex/workflow/records/audits/AUDIT-20260509T112426Z-audit-pass-worktree.md",
+  "notes": "Audit passed for hash f0888f700b03f04b. Checked workflow architecture and prior failure causes: thin hooks only dispatch to run-hook, deterministic kernel owns gates, append-only evidence includes state-cache cross-checks plus commit-by-commit history checks, dependency audit exceptions are precise/current/expiring, design review is required for Zoo/design workflow changes, production build excludes dev-only Zoo, and dynamic pattern proposals were created for Zoo theming and full-page responsive captures. Remaining risks are tracked in current-state/risks."
 }

@@ -1,0 +1,53 @@
+{
+  "$schema": "nexus-dependency-audit-baseline/v1",
+  "updatedAt": "2026-05-09",
+  "expiresAt": "2026-06-09",
+  "policy": "High and critical advisories fail. Moderate advisories may be temporarily baselined only with a reason, expiry, and follow-up.",
+  "allowed": [
+    {
+      "name": "@esbuild-kit/core-utils",
+      "severity": "moderate",
+      "nodes": ["node_modules/@esbuild-kit/core-utils"],
+      "via": ["esbuild"],
+      "advisorySources": [1102341],
+      "effects": ["@esbuild-kit/esm-loader"],
+      "reason": "Dev-only transitive dependency of the latest drizzle-kit. It pulls esbuild 0.18.20 through deprecated @esbuild-kit/esm-loader; no fixed drizzle-kit release is available as of 2026-05-09.",
+      "followUp": "Recheck drizzle-kit releases and remove this baseline when the package no longer depends on vulnerable esbuild.",
+      "expiresAt": "2026-06-09"
+    },
+    {
+      "name": "@esbuild-kit/esm-loader",
+      "severity": "moderate",
+      "nodes": ["node_modules/@esbuild-kit/esm-loader"],
+      "via": ["@esbuild-kit/core-utils"],
+      "advisorySources": [1102341],
+      "effects": ["drizzle-kit"],
+      "reason": "Dev-only transitive dependency of the latest drizzle-kit. It is the path that brings in @esbuild-kit/core-utils and vulnerable esbuild.",
+      "followUp": "Recheck drizzle-kit releases and remove this baseline when the package no longer depends on @esbuild-kit/esm-loader.",
+      "expiresAt": "2026-06-09"
+    },
+    {
+      "name": "drizzle-kit",
+      "severity": "moderate",
+      "nodes": ["node_modules/drizzle-kit"],
+      "via": ["@esbuild-kit/esm-loader"],
+      "advisorySources": [1102341],
+      "effects": [],
+      "isDirect": true,
+      "reason": "Latest drizzle-kit 0.31.10 is still flagged because of its dev-only @esbuild-kit/esm-loader dependency. The npm suggested fix is an older major downgrade, not a safe remediation for the current Drizzle stack.",
+      "followUp": "Recheck npm audit after each dependency update; do not downgrade drizzle-kit unless db generation/push compatibility is proven.",
+      "expiresAt": "2026-06-09"
+    },
+    {
+      "name": "esbuild",
+      "severity": "moderate",
+      "nodes": ["node_modules/@esbuild-kit/core-utils/node_modules/esbuild"],
+      "via": ["esbuild"],
+      "advisorySources": [1102341],
+      "effects": ["@esbuild-kit/core-utils"],
+      "reason": "Only remaining vulnerable esbuild instance is nested under @esbuild-kit/core-utils for drizzle-kit CLI usage. App build/runtime uses patched esbuild through Vite.",
+      "followUp": "Remove when drizzle-kit stops installing @esbuild-kit/core-utils/node_modules/esbuild <=0.24.2.",
+      "expiresAt": "2026-06-09"
+    }
+  ]
+}

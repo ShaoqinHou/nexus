@@ -69,8 +69,30 @@ The live component gym is the dev-only route:
 
 It is implemented in `packages/web/src/routes/__design/Zoo.tsx` and should import real components, never copies. The registry file `packages/web/src/components/registry.json` is the machine-readable source that lists every primitive/pattern and its `zooRoute`.
 
-The Codex workflow dashboard also surfaces the zoo route list so the guide app links directly to each local gym page. When validating design-system work, check both:
+The Zoo is also a tenant-theme test harness. Its selected theme must be applied to a `data-theme` wrapper around the demos, and it must mirror the same theme to `document.body` so body-mounted portals can be inspected under the selected cuisine theme. Evidence: `PATTERN-PROPOSAL-20260509T110401Z-pattern-proposed-pattern-accepted-design-zoo-mus`.
+
+Production builds must not mount or eagerly ship the interactive Zoo route. `packages/web/src/routeTree.tsx` creates the `/design` routes and dynamic import only inside the `import.meta.env.DEV` branch. Public inspection uses the generated screenshot guide instead.
+
+Evidence: `PATTERN-PROPOSAL-20260509T094319Z-pattern-accepted-production-design-zoo-uses-capt`.
+
+After production builds, run `npm run workflow:prod-zoo-bundle-check`. It scans `packages/web/dist/assets/*.js` for `Zoo-*.js` chunks and dev-Zoo markers so this invariant is enforced by CI and the release gate, not just prose.
+
+The Codex workflow dashboard also surfaces the zoo route list so the guide app links directly to each local gym page. The deployable visual guide is generated from live `/design` screenshots:
+
+- `.codex/dashboard/zoo/index.html`
+- `https://cv.rehou.games/nexus/workflow/zoo/`
+- default captures cover desktop/light and mobile/dark contexts for every registry-backed page.
+- captures are full-page, and the mobile Zoo layout must keep real demo content visible instead of letting navigation chrome consume the viewport.
+- generated guide screenshots should preserve source evidence instead of cropping long demos such as the theme matrix.
+- the visual guide source hash includes component source files from `packages/web/src/components/`, registry metadata, Zoo route code, and theme files.
+
+Evidence: `PATTERN-PROPOSAL-20260509T110413Z-pattern-proposed-pattern-accepted-visual-zoo-cap`.
+
+When validating design-system work, check:
 
 - the static workflow dashboard at `.codex/dashboard/index.html`;
+- the deployable visual Zoo/Gym guide at `.codex/dashboard/zoo/index.html`;
 - the running app zoo at `http://localhost:5173/design`.
 - the reusable interaction check: `npm run workflow:design-zoo` with the web dev server running.
+- the visual guide gate: `npm run workflow:zoo-visual-guide-check` after recapturing screenshots.
+- the browser evidence gate: `npm run workflow:guide-browser-check`, backed by append-only records under `.codex/workflow/records/guide-browser/`.

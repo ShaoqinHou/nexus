@@ -1,0 +1,1046 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="nexus-guide-version" content="nexus-design-zoo-visual-guide/v1" />
+  <meta name="nexus-guide-source-hash" content="cde0f8a66e8abf7086bf9d44" />
+  <meta name="nexus-guide-content-hash" content="02a6a3a91805e2973a6fd264" />
+  <meta name="nexus-token-source" content="packages/web/src/platform/theme/tokens.css" />
+  <title>Nexus Design Zoo / Gym</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --color-bg-surface: #f9fafb;
+      --color-bg-muted: #f3f4f6;
+      --color-bg-elevated: #ffffff;
+      --color-bg-strong: #111827;
+      --color-text: #111827;
+      --color-text-secondary: #6b7280;
+      --color-text-inverse: #ffffff;
+      --color-border: #e5e7eb;
+      --color-primary: #2563eb;
+      --color-primary-light: #dbeafe;
+      --color-danger: #dc2626;
+      --color-accent: #f59e0b;
+      --radius-md: 0.375rem;
+      --radius-lg: 0.5rem;
+      --radius-full: 9999px;
+      --radius-card: var(--radius-lg);
+      --radius-btn: var(--radius-md);
+      --radius-chip: var(--radius-full);
+      --hit-sm: 44px;
+      --hit-md: 48px;
+      --hit-lg: 52px;
+      --guide-bg: var(--color-bg-surface);
+      --guide-panel: var(--color-bg-elevated);
+      --guide-muted-surface: var(--color-bg-muted);
+      --guide-text: var(--color-text);
+      --guide-muted-text: var(--color-text-secondary);
+      --guide-line: var(--color-border);
+      --guide-brand: var(--color-primary);
+      --guide-accent: var(--color-accent);
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; color:var(--guide-text); background:var(--guide-bg); line-height:1.48; }
+    header { padding:30px 24px 18px; background:var(--guide-panel); border-bottom:1px solid var(--guide-line); }
+    main { max-width:1220px; margin:0 auto; padding:24px; }
+    h1 { margin:0 0 8px; font-size:32px; letter-spacing:0; }
+    h2 { margin:0 0 12px; font-size:20px; letter-spacing:0; }
+    h3 { margin:16px 0 10px; font-size:16px; letter-spacing:0; }
+    section { margin:0 0 22px; }
+    a { color:var(--guide-brand); text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    code { background:var(--guide-muted-surface); border-radius:var(--radius-btn); padding:1px 4px; }
+    .meta { color:var(--guide-muted-text); font-size:13px; }
+    .intro { display:grid; grid-template-columns:minmax(0, 1.5fr) minmax(240px, 0.7fr); gap:14px; align-items:stretch; }
+    .panel, .stat, .demo-card { background:var(--guide-panel); border:1px solid var(--guide-line); border-radius:var(--radius-card); }
+    .panel { padding:18px; }
+    .stats { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+    .stat { padding:14px; min-height:var(--hit-md); background:var(--guide-muted-surface); }
+    .stat strong { display:block; font-size:24px; }
+    .demo-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(270px,1fr)); gap:14px; }
+    .demo-card { overflow:hidden; }
+    .shot { display:block; max-height:520px; min-height:180px; background:var(--guide-muted-surface); border-bottom:1px solid var(--guide-line); overflow:auto; }
+    .shot img { width:100%; height:auto; object-fit:contain; object-position:top left; display:block; }
+    .missing { min-height:100%; display:grid; place-items:center; color:var(--guide-muted-text); }
+    .demo-body { padding:12px; }
+    .demo-top { display:flex; align-items:baseline; justify-content:space-between; gap:8px; }
+    .demo-top span { color:var(--guide-muted-text); font-size:12px; }
+    .demo-body p { min-height:42px; margin:8px 0; color:var(--guide-muted-text); font-size:13px; }
+    dl { display:grid; grid-template-columns:76px minmax(0,1fr); gap:4px 8px; margin:0; font-size:12px; }
+    dt { color:var(--guide-muted-text); }
+    dd { margin:0; min-width:0; overflow-wrap:anywhere; }
+    .callout { border-left:4px solid var(--guide-accent); }
+    @media (max-width: 760px) {
+      .intro { grid-template-columns:1fr; }
+      main { padding:16px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Nexus Design Zoo / Gym</h1>
+    <div class="meta">Visual Demo Surface · generated 2026-05-09T11:17:20.014Z · captured 2026-05-09T11:17:08.107Z</div>
+  </header>
+  <main>
+    <section class="intro">
+      <div class="panel">
+        <h2>Captured From Real /design Routes</h2>
+        <p>This page is the deployable visual guide for the dev-only component gym. Screenshots are captured from real Nexus components rendered by <code>packages/web/src/routes/__design/Zoo.tsx</code>, and coverage is driven by <code>packages/web/src/components/registry.json</code>.</p>
+        <p>Production <code>/nexus/design</code> is intentionally not mounted. Use this guide at <code>/nexus/workflow/zoo/</code> for deployed visual inspection, and use local <code>http://localhost:5173/design</code> for live interaction.</p>
+        <p><strong>Visual Contexts:</strong> Desktop light sichuan: light / sichuan / 1360x860 · Mobile dark sichuan: dark / sichuan / 390x844</p>
+        <p><a href="../">Back to workflow guide</a></p>
+      </div>
+      <div class="stats">
+        <div class="stat"><span class="meta">Visual captures</span><strong>54</strong></div>
+        <div class="stat"><span class="meta">Contexts</span><strong>2</strong></div>
+        <div class="stat"><span class="meta">Foundations</span><strong>3</strong></div>
+        <div class="stat"><span class="meta">Components</span><strong>24</strong></div>
+      </div>
+    </section>
+    <section>
+      <h2>Theme Matrix</h2>
+      <div class="panel callout">
+        <p>The <code>themes</code> capture is the high-signal parity view: every cuisine theme renders real Button, Badge, Card, palette, radius, and typography tokens side by side.</p>
+      </div>
+    </section>
+
+    <section data-context="desktop-light-sichuan">
+      <h2>Desktop light sichuan</h2>
+      <div class="panel callout">
+        <p>Mode <code>light</code> · theme <code>sichuan</code> · viewport <code>1360x860</code>.</p>
+      </div>
+      <h3>Token Foundations</h3>
+      <div class="demo-grid">
+      <article class="demo-card" data-slug="index" data-context="desktop-light-sichuan">
+        <a class="shot" href="assets/desktop-light-sichuan/index.jpg"><img src="assets/desktop-light-sichuan/index.jpg" alt="Zoo Index visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>Zoo Index</strong>
+            <span>foundation</span>
+          </div>
+          <p>Entry page for the live component catalog.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Desktop light sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/routes/__design/Zoo.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="tokens" data-context="desktop-light-sichuan">
+        <a class="shot" href="assets/desktop-light-sichuan/tokens.jpg"><img src="assets/desktop-light-sichuan/tokens.jpg" alt="Token Foundations visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>Token Foundations</strong>
+            <span>foundation</span>
+          </div>
+          <p>Production token swatches for colors, radii, shadows, and hit targets.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Desktop light sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/tokens</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/platform/theme/tokens.css</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="themes" data-context="desktop-light-sichuan">
+        <a class="shot" href="assets/desktop-light-sichuan/themes.jpg"><img src="assets/desktop-light-sichuan/themes.jpg" alt="Theme Matrix visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>Theme Matrix</strong>
+            <span>foundation</span>
+          </div>
+          <p>All cuisine themes rendered side by side from real components.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Desktop light sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/themes</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/platform/theme/themes.css</code></dd>
+          </dl>
+        </div>
+      </article>
+    </div>
+      <h3>Component Gallery</h3>
+      <div class="demo-grid">
+      <article class="demo-card" data-slug="button" data-context="desktop-light-sichuan">
+        <a class="shot" href="assets/desktop-light-sichuan/button.jpg"><img src="assets/desktop-light-sichuan/button.jpg" alt="Button visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>Button</strong>
+            <span>ui</span>
+          </div>
+          <p>Primary action control with four variants and three token-sized touch targets.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Desktop light sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/button</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/ui/Button.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="badge" data-context="desktop-light-sichuan">
+        <a class="shot" href="assets/desktop-light-sichuan/badge.jpg"><img src="assets/desktop-light-sichuan/badge.jpg" alt="Badge visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>Badge</strong>
+            <span>ui</span>
+          </div>
+          <p>Small status label; rounded-full pill. Exports BadgeVariant type.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Desktop light sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/badge</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/ui/Badge.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="card" data-context="desktop-light-sichuan">
+        <a class="shot" href="assets/desktop-light-sichuan/card.jpg"><img src="assets/desktop-light-sichuan/card.jpg" alt="Card visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>Card</strong>
+            <span>ui</span>
+          </div>
+          <p>Elevated content container. Composition: CardHeader + CardTitle + CardContent + CardFooter.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Desktop light sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/card</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/ui/Card.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="dialog" data-context="desktop-light-sichuan">
+        <a class="shot" href="assets/desktop-light-sichuan/dialog.jpg"><img src="assets/desktop-light-sichuan/dialog.jpg" alt="Dialog visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>Dialog</strong>
+            <span>ui</span>
+          </div>
+          <p>Modal dialog with overlay, title, optional footer. z-50 budget.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Desktop light sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/dialog</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/ui/Dialog.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="input" data-context="desktop-light-sichuan">
+        <a class="shot" href="assets/desktop-light-sichuan/input.jpg"><img src="assets/desktop-light-sichuan/input.jpg" alt="Input visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>Input</strong>
+            <span>ui</span>
+          </div>
+          <p>Text input with label, error, helperText slots. Focus ring tied to --color-primary.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Desktop light sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/input</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/ui/Input.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="toggle" data-context="desktop-light-sichuan">
+        <a class="shot" href="assets/desktop-light-sichuan/toggle.jpg"><img src="assets/desktop-light-sichuan/toggle.jpg" alt="Toggle visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>Toggle</strong>
+            <span>ui</span>
+          </div>
+          <p>Boolean switch. 200ms slide animation. ON uses --color-primary.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Desktop light sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/toggle</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/ui/Toggle.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="select" data-context="desktop-light-sichuan">
+        <a class="shot" href="assets/desktop-light-sichuan/select.jpg"><img src="assets/desktop-light-sichuan/select.jpg" alt="Select visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>Select</strong>
+            <span>ui</span>
+          </div>
+          <p>Dropdown with options array. Keyboard navigable. z-20 menu.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Desktop light sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/select</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/ui/Select.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="image-upload" data-context="desktop-light-sichuan">
+        <a class="shot" href="assets/desktop-light-sichuan/image-upload.jpg"><img src="assets/desktop-light-sichuan/image-upload.jpg" alt="ImageUpload visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>ImageUpload</strong>
+            <span>ui</span>
+          </div>
+          <p>Drag-drop image upload with progress indicator, preview, and remove. Calls API client directly (internal i18n + api lib import).</p>
+          <dl>
+            <dt>Context</dt><dd><code>Desktop light sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/image-upload</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/ui/ImageUpload.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="toast" data-context="desktop-light-sichuan">
+        <a class="shot" href="assets/desktop-light-sichuan/toast.jpg"><img src="assets/desktop-light-sichuan/toast.jpg" alt="Toast visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>Toast</strong>
+            <span>ui</span>
+          </div>
+          <p>Toast notification renderer. Mounted via ToastProvider + useToast(). Exports ToastContainer + ToastData type.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Desktop light sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/toast</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/ui/Toast.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="tour-overlay" data-context="desktop-light-sichuan">
+        <a class="shot" href="assets/desktop-light-sichuan/tour-overlay.jpg"><img src="assets/desktop-light-sichuan/tour-overlay.jpg" alt="TourOverlay visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>TourOverlay</strong>
+            <span>ui</span>
+          </div>
+          <p>Onboarding step highlighter with spotlight hole + next/prev controls. Uses i18n for step text.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Desktop light sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/tour-overlay</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/ui/TourOverlay.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="language-picker" data-context="desktop-light-sichuan">
+        <a class="shot" href="assets/desktop-light-sichuan/language-picker.jpg"><img src="assets/desktop-light-sichuan/language-picker.jpg" alt="LanguagePicker visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>LanguagePicker</strong>
+            <span>ui</span>
+          </div>
+          <p>Locale switcher dropdown — cycles through en/zh/ja/ko/fr. Uses useT() hook to display localized names.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Desktop light sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/language-picker</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/ui/LanguagePicker.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="dietary-icon" data-context="desktop-light-sichuan">
+        <a class="shot" href="assets/desktop-light-sichuan/dietary-icon.jpg"><img src="assets/desktop-light-sichuan/dietary-icon.jpg" alt="DietaryIcon visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>DietaryIcon</strong>
+            <span>ui</span>
+          </div>
+          <p>The ONE sanctioned way to render dietary / allergen / spice / promo markers in Nexus UI. Emoji / unicode alternatives are banned (S-DIETARY-SPRITE).</p>
+          <dl>
+            <dt>Context</dt><dd><code>Desktop light sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/dietary-icon</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/ui/DietaryIcon.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="data-table" data-context="desktop-light-sichuan">
+        <a class="shot" href="assets/desktop-light-sichuan/data-table.jpg"><img src="assets/desktop-light-sichuan/data-table.jpg" alt="DataTable visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>DataTable</strong>
+            <span>pattern</span>
+          </div>
+          <p>Sortable, filterable table with generic row typing. Header click toggles sort.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Desktop light sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/data-table</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/patterns/DataTable.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="form-field" data-context="desktop-light-sichuan">
+        <a class="shot" href="assets/desktop-light-sichuan/form-field.jpg"><img src="assets/desktop-light-sichuan/form-field.jpg" alt="FormField visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>FormField</strong>
+            <span>pattern</span>
+          </div>
+          <p>Label + input + error wrapper. Composes Input under a label with gap-1.5.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Desktop light sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/form-field</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/patterns/FormField.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="status-badge" data-context="desktop-light-sichuan">
+        <a class="shot" href="assets/desktop-light-sichuan/status-badge.jpg"><img src="assets/desktop-light-sichuan/status-badge.jpg" alt="StatusBadge visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>StatusBadge</strong>
+            <span>pattern</span>
+          </div>
+          <p>Order-status / generic-status badge that maps status enum to Badge variant + capitalized label.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Desktop light sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/status-badge</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/patterns/StatusBadge.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="empty-state" data-context="desktop-light-sichuan">
+        <a class="shot" href="assets/desktop-light-sichuan/empty-state.jpg"><img src="assets/desktop-light-sichuan/empty-state.jpg" alt="EmptyState visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>EmptyState</strong>
+            <span>pattern</span>
+          </div>
+          <p>No-data placeholder. Icon → title → context → single CTA button.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Desktop light sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/empty-state</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/patterns/EmptyState.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="confirm-button" data-context="desktop-light-sichuan">
+        <a class="shot" href="assets/desktop-light-sichuan/confirm-button.jpg"><img src="assets/desktop-light-sichuan/confirm-button.jpg" alt="ConfirmButton visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>ConfirmButton</strong>
+            <span>pattern</span>
+          </div>
+          <p>Two-click destructive action with 3s auto-reset. S-CONFIRM-DESTRUCTIVE requires this for delete/cancel/remove actions.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Desktop light sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/confirm-button</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/patterns/ConfirmButton.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="error-boundary" data-context="desktop-light-sichuan">
+        <a class="shot" href="assets/desktop-light-sichuan/error-boundary.jpg"><img src="assets/desktop-light-sichuan/error-boundary.jpg" alt="ErrorBoundary visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>ErrorBoundary</strong>
+            <span>pattern</span>
+          </div>
+          <p>React error boundary fallback — catches thrown errors in a subtree and shows a recoverable message. Only class component in codebase (React API requires class).</p>
+          <dl>
+            <dt>Context</dt><dd><code>Desktop light sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/error-boundary</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/patterns/ErrorBoundary.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="pull-to-refresh" data-context="desktop-light-sichuan">
+        <a class="shot" href="assets/desktop-light-sichuan/pull-to-refresh.jpg"><img src="assets/desktop-light-sichuan/pull-to-refresh.jpg" alt="PullToRefreshIndicator visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>PullToRefreshIndicator</strong>
+            <span>pattern</span>
+          </div>
+          <p>Mobile pull-to-refresh visual indicator. Shows loading spinner once pull distance exceeds threshold.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Desktop light sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/pull-to-refresh</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/patterns/PullToRefreshIndicator.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="add-to-cart-toast" data-context="desktop-light-sichuan">
+        <a class="shot" href="assets/desktop-light-sichuan/add-to-cart-toast.jpg"><img src="assets/desktop-light-sichuan/add-to-cart-toast.jpg" alt="AddToCartToast visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>AddToCartToast</strong>
+            <span>pattern</span>
+          </div>
+          <p>Customer-flow confirmation pill — slides up briefly after an item is added to cart. Uses slide-up-fade keyframe.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Desktop light sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/add-to-cart-toast</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/patterns/AddToCartToast.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="order-tracker" data-context="desktop-light-sichuan">
+        <a class="shot" href="assets/desktop-light-sichuan/order-tracker.jpg"><img src="assets/desktop-light-sichuan/order-tracker.jpg" alt="OrderTracker visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>OrderTracker</strong>
+            <span>pattern</span>
+          </div>
+          <p>Themed order status timeline. Horizontal step tracker with connector lines and pulsing active bubble. Supports dine-in (Received→Preparing→Ready→Served) and delivery (Received→Preparing→On the way→Delivered) modes. data-theme wrapper drives full theme cascade.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Desktop light sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/order-tracker</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/patterns/themed/OrderTracker.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="receipt" data-context="desktop-light-sichuan">
+        <a class="shot" href="assets/desktop-light-sichuan/receipt.jpg"><img src="assets/desktop-light-sichuan/receipt.jpg" alt="Receipt visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>Receipt</strong>
+            <span>pattern</span>
+          </div>
+          <p>Themed visual receipt block for the customer confirmation screen (NOT a print template). Monospace font, dashed dividers, itemised line items, subtotal/tax/tip rows, bold total, and a thank-you footer. data-theme wrapper drives full theme cascade.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Desktop light sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/receipt</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/patterns/themed/Receipt.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="promo-card" data-context="desktop-light-sichuan">
+        <a class="shot" href="assets/desktop-light-sichuan/promo-card.jpg"><img src="assets/desktop-light-sichuan/promo-card.jpg" alt="PromoCard visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>PromoCard</strong>
+            <span>pattern</span>
+          </div>
+          <p>Themed promotion banner with primary-colour background, decorative accent circle, large discount headline, and mono-font promo-code chip. All props are optional — render any subset. data-theme wrapper drives full theme cascade.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Desktop light sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/promo-card</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/patterns/themed/PromoCard.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="checkout-summary" data-context="desktop-light-sichuan">
+        <a class="shot" href="assets/desktop-light-sichuan/checkout-summary.jpg"><img src="assets/desktop-light-sichuan/checkout-summary.jpg" alt="CheckoutSummary visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>CheckoutSummary</strong>
+            <span>pattern</span>
+          </div>
+          <p>Themed cart/order summary block: itemised line items, divider, per-line cost breakdown (subtotal / delivery / tax), bold total, and a full-width place-order CTA that mirrors the total in its label. Display-only — pass onPlaceOrder for the mutation. data-theme wrapper drives full theme cascade.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Desktop light sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/checkout-summary</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/patterns/themed/CheckoutSummary.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+    </div>
+    </section>
+
+    <section data-context="mobile-dark-sichuan">
+      <h2>Mobile dark sichuan</h2>
+      <div class="panel callout">
+        <p>Mode <code>dark</code> · theme <code>sichuan</code> · viewport <code>390x844</code>.</p>
+      </div>
+      <h3>Token Foundations</h3>
+      <div class="demo-grid">
+      <article class="demo-card" data-slug="index" data-context="mobile-dark-sichuan">
+        <a class="shot" href="assets/mobile-dark-sichuan/index.jpg"><img src="assets/mobile-dark-sichuan/index.jpg" alt="Zoo Index visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>Zoo Index</strong>
+            <span>foundation</span>
+          </div>
+          <p>Entry page for the live component catalog.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Mobile dark sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/routes/__design/Zoo.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="tokens" data-context="mobile-dark-sichuan">
+        <a class="shot" href="assets/mobile-dark-sichuan/tokens.jpg"><img src="assets/mobile-dark-sichuan/tokens.jpg" alt="Token Foundations visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>Token Foundations</strong>
+            <span>foundation</span>
+          </div>
+          <p>Production token swatches for colors, radii, shadows, and hit targets.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Mobile dark sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/tokens</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/platform/theme/tokens.css</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="themes" data-context="mobile-dark-sichuan">
+        <a class="shot" href="assets/mobile-dark-sichuan/themes.jpg"><img src="assets/mobile-dark-sichuan/themes.jpg" alt="Theme Matrix visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>Theme Matrix</strong>
+            <span>foundation</span>
+          </div>
+          <p>All cuisine themes rendered side by side from real components.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Mobile dark sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/themes</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/platform/theme/themes.css</code></dd>
+          </dl>
+        </div>
+      </article>
+    </div>
+      <h3>Component Gallery</h3>
+      <div class="demo-grid">
+      <article class="demo-card" data-slug="button" data-context="mobile-dark-sichuan">
+        <a class="shot" href="assets/mobile-dark-sichuan/button.jpg"><img src="assets/mobile-dark-sichuan/button.jpg" alt="Button visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>Button</strong>
+            <span>ui</span>
+          </div>
+          <p>Primary action control with four variants and three token-sized touch targets.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Mobile dark sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/button</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/ui/Button.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="badge" data-context="mobile-dark-sichuan">
+        <a class="shot" href="assets/mobile-dark-sichuan/badge.jpg"><img src="assets/mobile-dark-sichuan/badge.jpg" alt="Badge visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>Badge</strong>
+            <span>ui</span>
+          </div>
+          <p>Small status label; rounded-full pill. Exports BadgeVariant type.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Mobile dark sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/badge</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/ui/Badge.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="card" data-context="mobile-dark-sichuan">
+        <a class="shot" href="assets/mobile-dark-sichuan/card.jpg"><img src="assets/mobile-dark-sichuan/card.jpg" alt="Card visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>Card</strong>
+            <span>ui</span>
+          </div>
+          <p>Elevated content container. Composition: CardHeader + CardTitle + CardContent + CardFooter.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Mobile dark sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/card</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/ui/Card.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="dialog" data-context="mobile-dark-sichuan">
+        <a class="shot" href="assets/mobile-dark-sichuan/dialog.jpg"><img src="assets/mobile-dark-sichuan/dialog.jpg" alt="Dialog visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>Dialog</strong>
+            <span>ui</span>
+          </div>
+          <p>Modal dialog with overlay, title, optional footer. z-50 budget.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Mobile dark sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/dialog</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/ui/Dialog.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="input" data-context="mobile-dark-sichuan">
+        <a class="shot" href="assets/mobile-dark-sichuan/input.jpg"><img src="assets/mobile-dark-sichuan/input.jpg" alt="Input visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>Input</strong>
+            <span>ui</span>
+          </div>
+          <p>Text input with label, error, helperText slots. Focus ring tied to --color-primary.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Mobile dark sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/input</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/ui/Input.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="toggle" data-context="mobile-dark-sichuan">
+        <a class="shot" href="assets/mobile-dark-sichuan/toggle.jpg"><img src="assets/mobile-dark-sichuan/toggle.jpg" alt="Toggle visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>Toggle</strong>
+            <span>ui</span>
+          </div>
+          <p>Boolean switch. 200ms slide animation. ON uses --color-primary.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Mobile dark sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/toggle</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/ui/Toggle.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="select" data-context="mobile-dark-sichuan">
+        <a class="shot" href="assets/mobile-dark-sichuan/select.jpg"><img src="assets/mobile-dark-sichuan/select.jpg" alt="Select visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>Select</strong>
+            <span>ui</span>
+          </div>
+          <p>Dropdown with options array. Keyboard navigable. z-20 menu.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Mobile dark sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/select</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/ui/Select.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="image-upload" data-context="mobile-dark-sichuan">
+        <a class="shot" href="assets/mobile-dark-sichuan/image-upload.jpg"><img src="assets/mobile-dark-sichuan/image-upload.jpg" alt="ImageUpload visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>ImageUpload</strong>
+            <span>ui</span>
+          </div>
+          <p>Drag-drop image upload with progress indicator, preview, and remove. Calls API client directly (internal i18n + api lib import).</p>
+          <dl>
+            <dt>Context</dt><dd><code>Mobile dark sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/image-upload</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/ui/ImageUpload.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="toast" data-context="mobile-dark-sichuan">
+        <a class="shot" href="assets/mobile-dark-sichuan/toast.jpg"><img src="assets/mobile-dark-sichuan/toast.jpg" alt="Toast visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>Toast</strong>
+            <span>ui</span>
+          </div>
+          <p>Toast notification renderer. Mounted via ToastProvider + useToast(). Exports ToastContainer + ToastData type.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Mobile dark sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/toast</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/ui/Toast.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="tour-overlay" data-context="mobile-dark-sichuan">
+        <a class="shot" href="assets/mobile-dark-sichuan/tour-overlay.jpg"><img src="assets/mobile-dark-sichuan/tour-overlay.jpg" alt="TourOverlay visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>TourOverlay</strong>
+            <span>ui</span>
+          </div>
+          <p>Onboarding step highlighter with spotlight hole + next/prev controls. Uses i18n for step text.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Mobile dark sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/tour-overlay</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/ui/TourOverlay.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="language-picker" data-context="mobile-dark-sichuan">
+        <a class="shot" href="assets/mobile-dark-sichuan/language-picker.jpg"><img src="assets/mobile-dark-sichuan/language-picker.jpg" alt="LanguagePicker visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>LanguagePicker</strong>
+            <span>ui</span>
+          </div>
+          <p>Locale switcher dropdown — cycles through en/zh/ja/ko/fr. Uses useT() hook to display localized names.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Mobile dark sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/language-picker</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/ui/LanguagePicker.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="dietary-icon" data-context="mobile-dark-sichuan">
+        <a class="shot" href="assets/mobile-dark-sichuan/dietary-icon.jpg"><img src="assets/mobile-dark-sichuan/dietary-icon.jpg" alt="DietaryIcon visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>DietaryIcon</strong>
+            <span>ui</span>
+          </div>
+          <p>The ONE sanctioned way to render dietary / allergen / spice / promo markers in Nexus UI. Emoji / unicode alternatives are banned (S-DIETARY-SPRITE).</p>
+          <dl>
+            <dt>Context</dt><dd><code>Mobile dark sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/dietary-icon</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/ui/DietaryIcon.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="data-table" data-context="mobile-dark-sichuan">
+        <a class="shot" href="assets/mobile-dark-sichuan/data-table.jpg"><img src="assets/mobile-dark-sichuan/data-table.jpg" alt="DataTable visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>DataTable</strong>
+            <span>pattern</span>
+          </div>
+          <p>Sortable, filterable table with generic row typing. Header click toggles sort.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Mobile dark sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/data-table</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/patterns/DataTable.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="form-field" data-context="mobile-dark-sichuan">
+        <a class="shot" href="assets/mobile-dark-sichuan/form-field.jpg"><img src="assets/mobile-dark-sichuan/form-field.jpg" alt="FormField visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>FormField</strong>
+            <span>pattern</span>
+          </div>
+          <p>Label + input + error wrapper. Composes Input under a label with gap-1.5.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Mobile dark sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/form-field</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/patterns/FormField.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="status-badge" data-context="mobile-dark-sichuan">
+        <a class="shot" href="assets/mobile-dark-sichuan/status-badge.jpg"><img src="assets/mobile-dark-sichuan/status-badge.jpg" alt="StatusBadge visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>StatusBadge</strong>
+            <span>pattern</span>
+          </div>
+          <p>Order-status / generic-status badge that maps status enum to Badge variant + capitalized label.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Mobile dark sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/status-badge</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/patterns/StatusBadge.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="empty-state" data-context="mobile-dark-sichuan">
+        <a class="shot" href="assets/mobile-dark-sichuan/empty-state.jpg"><img src="assets/mobile-dark-sichuan/empty-state.jpg" alt="EmptyState visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>EmptyState</strong>
+            <span>pattern</span>
+          </div>
+          <p>No-data placeholder. Icon → title → context → single CTA button.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Mobile dark sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/empty-state</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/patterns/EmptyState.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="confirm-button" data-context="mobile-dark-sichuan">
+        <a class="shot" href="assets/mobile-dark-sichuan/confirm-button.jpg"><img src="assets/mobile-dark-sichuan/confirm-button.jpg" alt="ConfirmButton visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>ConfirmButton</strong>
+            <span>pattern</span>
+          </div>
+          <p>Two-click destructive action with 3s auto-reset. S-CONFIRM-DESTRUCTIVE requires this for delete/cancel/remove actions.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Mobile dark sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/confirm-button</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/patterns/ConfirmButton.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="error-boundary" data-context="mobile-dark-sichuan">
+        <a class="shot" href="assets/mobile-dark-sichuan/error-boundary.jpg"><img src="assets/mobile-dark-sichuan/error-boundary.jpg" alt="ErrorBoundary visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>ErrorBoundary</strong>
+            <span>pattern</span>
+          </div>
+          <p>React error boundary fallback — catches thrown errors in a subtree and shows a recoverable message. Only class component in codebase (React API requires class).</p>
+          <dl>
+            <dt>Context</dt><dd><code>Mobile dark sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/error-boundary</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/patterns/ErrorBoundary.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="pull-to-refresh" data-context="mobile-dark-sichuan">
+        <a class="shot" href="assets/mobile-dark-sichuan/pull-to-refresh.jpg"><img src="assets/mobile-dark-sichuan/pull-to-refresh.jpg" alt="PullToRefreshIndicator visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>PullToRefreshIndicator</strong>
+            <span>pattern</span>
+          </div>
+          <p>Mobile pull-to-refresh visual indicator. Shows loading spinner once pull distance exceeds threshold.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Mobile dark sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/pull-to-refresh</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/patterns/PullToRefreshIndicator.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="add-to-cart-toast" data-context="mobile-dark-sichuan">
+        <a class="shot" href="assets/mobile-dark-sichuan/add-to-cart-toast.jpg"><img src="assets/mobile-dark-sichuan/add-to-cart-toast.jpg" alt="AddToCartToast visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>AddToCartToast</strong>
+            <span>pattern</span>
+          </div>
+          <p>Customer-flow confirmation pill — slides up briefly after an item is added to cart. Uses slide-up-fade keyframe.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Mobile dark sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/add-to-cart-toast</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/patterns/AddToCartToast.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="order-tracker" data-context="mobile-dark-sichuan">
+        <a class="shot" href="assets/mobile-dark-sichuan/order-tracker.jpg"><img src="assets/mobile-dark-sichuan/order-tracker.jpg" alt="OrderTracker visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>OrderTracker</strong>
+            <span>pattern</span>
+          </div>
+          <p>Themed order status timeline. Horizontal step tracker with connector lines and pulsing active bubble. Supports dine-in (Received→Preparing→Ready→Served) and delivery (Received→Preparing→On the way→Delivered) modes. data-theme wrapper drives full theme cascade.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Mobile dark sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/order-tracker</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/patterns/themed/OrderTracker.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="receipt" data-context="mobile-dark-sichuan">
+        <a class="shot" href="assets/mobile-dark-sichuan/receipt.jpg"><img src="assets/mobile-dark-sichuan/receipt.jpg" alt="Receipt visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>Receipt</strong>
+            <span>pattern</span>
+          </div>
+          <p>Themed visual receipt block for the customer confirmation screen (NOT a print template). Monospace font, dashed dividers, itemised line items, subtotal/tax/tip rows, bold total, and a thank-you footer. data-theme wrapper drives full theme cascade.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Mobile dark sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/receipt</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/patterns/themed/Receipt.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="promo-card" data-context="mobile-dark-sichuan">
+        <a class="shot" href="assets/mobile-dark-sichuan/promo-card.jpg"><img src="assets/mobile-dark-sichuan/promo-card.jpg" alt="PromoCard visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>PromoCard</strong>
+            <span>pattern</span>
+          </div>
+          <p>Themed promotion banner with primary-colour background, decorative accent circle, large discount headline, and mono-font promo-code chip. All props are optional — render any subset. data-theme wrapper drives full theme cascade.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Mobile dark sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/promo-card</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/patterns/themed/PromoCard.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+
+
+      <article class="demo-card" data-slug="checkout-summary" data-context="mobile-dark-sichuan">
+        <a class="shot" href="assets/mobile-dark-sichuan/checkout-summary.jpg"><img src="assets/mobile-dark-sichuan/checkout-summary.jpg" alt="CheckoutSummary visual capture" loading="lazy" /></a>
+        <div class="demo-body">
+          <div class="demo-top">
+            <strong>CheckoutSummary</strong>
+            <span>pattern</span>
+          </div>
+          <p>Themed cart/order summary block: itemised line items, divider, per-line cost breakdown (subtotal / delivery / tax), bold total, and a full-width place-order CTA that mirrors the total in its label. Display-only — pass onPlaceOrder for the mutation. data-theme wrapper drives full theme cascade.</p>
+          <dl>
+            <dt>Context</dt><dd><code>Mobile dark sichuan</code></dd>
+            <dt>Local route</dt><dd><code>/design/checkout-summary</code></dd>
+            <dt>Source</dt><dd><code>packages/web/src/components/patterns/themed/CheckoutSummary.tsx</code></dd>
+          </dl>
+        </div>
+      </article>
+    </div>
+    </section>
+  </main>
+</body>
+</html>

@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node -e \"const fs=require('fs'),p=require('path'),cp=require('child_process');let d=process.cwd();while(d!==p.dirname(d)&&!fs.existsSync(p.join(d,'.codex/scripts/nexus-workflow.mjs')))d=p.dirname(d);const s=p.join(d,'.codex/scripts/nexus-workflow.mjs');if(!fs.existsSync(s)){console.error('Nexus hook script not found');process.exit(0)}const r=cp.spawnSync(process.execPath,[s,'hook','session-start'],{stdio:'inherit'});process.exit(r.status??1)\"",
+            "command": "node .codex/scripts/run-hook.mjs session-start",
             "timeout": 30,
             "statusMessage": "Loading Nexus Codex state"
           }
@@ -19,7 +19,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node -e \"const fs=require('fs'),p=require('path'),cp=require('child_process');let d=process.cwd();while(d!==p.dirname(d)&&!fs.existsSync(p.join(d,'.codex/scripts/nexus-workflow.mjs')))d=p.dirname(d);const s=p.join(d,'.codex/scripts/nexus-workflow.mjs');if(!fs.existsSync(s)){console.error('Nexus hook script not found');process.exit(0)}const r=cp.spawnSync(process.execPath,[s,'hook','pre-tool-use'],{stdio:'inherit'});process.exit(r.status??1)\"",
+            "command": "node .codex/scripts/run-hook.mjs pre-tool-use",
             "timeout": 30,
             "statusMessage": "Checking Nexus workflow gate"
           }
@@ -32,7 +32,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node -e \"const fs=require('fs'),p=require('path'),cp=require('child_process');let d=process.cwd();while(d!==p.dirname(d)&&!fs.existsSync(p.join(d,'.codex/scripts/nexus-workflow.mjs')))d=p.dirname(d);const s=p.join(d,'.codex/scripts/nexus-workflow.mjs');if(!fs.existsSync(s)){console.error('Nexus hook script not found');process.exit(0)}const r=cp.spawnSync(process.execPath,[s,'hook','post-tool-use'],{stdio:'inherit'});process.exit(r.status??1)\"",
+            "command": "node .codex/scripts/run-hook.mjs post-tool-use",
             "timeout": 30,
             "statusMessage": "Registering Nexus workflow state"
           }
@@ -44,7 +44,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node -e \"const fs=require('fs'),p=require('path'),cp=require('child_process');let d=process.cwd();while(d!==p.dirname(d)&&!fs.existsSync(p.join(d,'.codex/scripts/nexus-workflow.mjs')))d=p.dirname(d);const s=p.join(d,'.codex/scripts/nexus-workflow.mjs');if(!fs.existsSync(s)){console.error('Nexus hook script not found');process.exit(0)}const r=cp.spawnSync(process.execPath,[s,'hook','stop'],{stdio:'inherit'});process.exit(r.status??1)\"",
+            "command": "node .codex/scripts/run-hook.mjs stop",
             "timeout": 30,
             "statusMessage": "Checking Nexus handover state"
           }

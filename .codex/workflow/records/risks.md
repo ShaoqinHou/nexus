@@ -6,10 +6,11 @@
 - Hook interception is incomplete; examples and fallback instructions are in `.codex/knowledge/hooks.md`. Deterministic scripts and lead review discipline remain necessary.
 - Server repo `/root/monoWeb/nexus` had a pre-existing `package-lock.json` modification on 2026-05-09. Deployment must preserve or deliberately resolve that dirty state.
 - `ThemeProvider.test.tsx` currently passes but emits a React `act(...)` warning in the live-preview ping-pong regression test.
-- Server `npm ci` reported audit findings. They were pre-existing dependency audit findings and were not remediated as part of the workflow migration.
+- Dependency audit now passes through `npm run audit:deps`, but four moderate dev-only Drizzle CLI advisories are temporarily baselined until 2026-06-09 because latest `drizzle-kit` still depends on vulnerable `@esbuild-kit/esm-loader`/`esbuild`. Recheck monthly and remove `.codex/workflow/dependency-audit-baseline.json` entries when upstream fixes.
 
 ## Closed
 
 - The initial large dirty-worktree report was caused by using the submodule common git dir, not the linked worktree git dir.
 - Spark worker usefulness has positive and negative evidence: narrow Toast warning slice succeeded; broad theme cascade task was refused/escalated.
 - Server access, deployment, service restart, and hosted health checks were validated on 2026-05-09. Runtime/source deploy was validated at `cf069ce`; later workflow-record commits were fast-forwarded on the server branch.
+- Direct dependency audit findings for `@anthropic-ai/sdk`, `drizzle-orm`, `hono`, and `postcss` were remediated on 2026-05-09; the remaining audit surface is explicit, dev-only, and expiring.
