@@ -1,0 +1,67 @@
+# Model Routing
+
+This file is the durable source of truth for lead/worker routing in Nexus. It exists because the workflow must not quietly route every coding task to the same model, and Spark must not be asked to solve tasks that require broad judgment.
+
+## Lead Preflight
+
+Before delegating implementation, the lead classifies the task:
+
+- **Spark allowed**: narrow file ownership, explicit expected behavior, low ambiguity, no architecture choice, no visual/design judgment, no deployment coupling, and a known targeted verification command.
+- **Strong worker required**: ambiguous debugging, architecture or API contract changes, cross-cutting refactors, theme cascade, tenant isolation, routing/basepath, deployment/server behavior, visual validation, accessibility judgment, schema/data migration, or missing/unclear tests.
+- **Lead only**: tasks that are too tightly coupled to current conversation context, require immediate integration decisions, or would create coordination risk if delegated.
+
+The lead should record representative routing decisions as tests or pattern proposals when a task teaches a durable lesson.
+
+## Spark Worker Contract
+
+Spark is a fast coding worker, not the default coding worker.
+
+Spark may edit only after it confirms the task fits the Spark-allowed criteria. If the assignment is too broad or missing verification, Spark must return `ESCALATE` without editing.
+
+Spark must stop and return `ESCALATE` when:
+
+- tests fail and the fix is not obvious within one tight iteration,
+- it needs to change files outside the assigned write scope,
+- it has to infer architecture or project policy,
+- it needs visual/design judgment,
+- it is not making progress after roughly 10-15 minutes of task time,
+- it discovers a coupled route/theme/tenant/deployment concern.
+
+Escalation output should include files read, files changed, commands run, current failure, and the smallest suggested next step.
+
+The lead must also enforce the fallback. If a Spark worker hangs, loops, or fails to return usable output within the assigned timebox, the lead closes/stops that worker and reassigns the slice to a strong worker or handles it locally. Do not wait indefinitely for Spark to self-diagnose.
+
+## Strong Worker Contract
+
+The strong worker is a normal implementation worker for hard code, not only a reviewer.
+
+Use the strong worker for:
+
+- Spark fallback,
+- hard debugging,
+- cross-cutting product changes,
+- design-system and theme cascade work,
+- deployment or server-environment fixes,
+- changes where related files must be discovered and updated together,
+- tasks where weak context could cause a project-pattern violation.
+
+Strong workers can expand scope only when they identify a required coupled change, and they must report that expansion.
+
+## Review Routing
+
+Implementation routing does not replace focused review.
+
+- Pattern-sensitive code changes get `nexus_pattern_reviewer` or equivalent focused review.
+- Visual/design-system changes get `nexus_design_reviewer` or equivalent focused review plus browser/design-zoo evidence.
+- Large workflow changes require audit evidence, not only tests.
+
+## Evidence
+
+- `TEST-20260508T170615Z-spark-worker-toast-warning-slice`: Spark succeeded on a narrow Toast warning slice.
+- `TEST-20260508T171755Z-spark-routing-guard-broad-theme-task`: Spark refused/escalated a broad theme cascade task.
+- `TEST-20260508T170320Z-historical-hard-case-routing-analysis-c4a438e`: a hard theme cascade historical case was routed to a stronger model/reviewer.
+- `PATTERN-PROPOSAL-20260508T170332Z-pattern-accepted-theme-cascade-changes-require-s`: theme cascade requires strong-model review and portal evidence.
+
+## Coverage Note
+
+The workflow has representative positive and negative routing evidence. It does not claim every possible failure mode has been empirically exhausted. The durable control is the preflight criteria plus lead-enforced fallback, not a belief that Spark will always self-police perfectly.

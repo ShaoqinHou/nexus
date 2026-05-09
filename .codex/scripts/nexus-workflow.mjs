@@ -13,6 +13,7 @@ const VERIFY_STATE_FILE = join(RECORDS, 'verify-state.json');
 const AUDIT_STATE_FILE = join(RECORDS, 'audit-state.json');
 const PATCH_STATE_FILE = join(RECORDS, 'patch-state.json');
 const DASHBOARD_DIR = join(CODEX, 'dashboard');
+const PUBLIC_GUIDE_URL = 'https://cv.rehou.games/nexus/workflow/';
 
 function findRoot(start) {
   let dir = resolve(start);
@@ -524,6 +525,102 @@ function commandDashboard(args = {}) {
   }
 }
 
+function commandPublicGuide(args = {}) {
+  ensureDir(DASHBOARD_DIR);
+  const generated = nowIso();
+  const branch = gitText(['branch', '--show-current']) || '(detached HEAD)';
+  const head = gitText(['rev-parse', '--short', 'HEAD']) || 'unknown';
+  const records = Object.fromEntries(['decisions', 'pattern-proposals', 'patches', 'reviews', 'tests', 'deployments'].map((kind) => [kind, listRecords(kind)]));
+  const risks = markdownSection(readText('.codex/workflow/records/risks.md'), 'Open')
+    .replace(/\/root\/monoWeb\/nexus/g, 'server repo')
+    .replace(/134\.199\.148\.87/g, 'production server')
+    .replace(/~\/\.ssh\/DIOkii/g, 'configured SSH key');
+  const latestRecords = Object.entries(records)
+    .flatMap(([kind, items]) => items.slice(0, 3).map((record) => ({ ...record, kind })))
+    .sort((a, b) => String(b.created).localeCompare(String(a.created)))
+    .slice(0, 8);
+  const html = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nexus Workflow Guide</title>
+  <style>
+    :root { --bg:#f6f7f9; --panel:#fff; --text:#17202a; --muted:#627084; --line:#dde3ea; --brand:#185b57; --accent:#b7772d; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; color:var(--text); background:var(--bg); line-height:1.5; }
+    header { padding:34px 24px 20px; background:var(--panel); border-bottom:1px solid var(--line); }
+    main { max-width:1040px; margin:0 auto; padding:24px; }
+    h1 { margin:0 0 8px; font-size:30px; letter-spacing:0; }
+    h2 { margin:0 0 12px; font-size:20px; letter-spacing:0; }
+    section { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:18px; margin:0 0 16px; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px; }
+    .card { border:1px solid var(--line); border-radius:8px; padding:14px; background:#fbfcfd; }
+    .meta { color:var(--muted); font-size:13px; }
+    code { background:#eef3f5; border-radius:4px; padding:1px 4px; }
+    ul { padding-left:20px; }
+    a { color:var(--brand); text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    .warn { border-left:4px solid var(--accent); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Nexus Workflow Guide</h1>
+    <div class="meta">Generated ${escapeHtml(generated)} · branch ${escapeHtml(branch)} · commit ${escapeHtml(head)}</div>
+  </header>
+  <main>
+    <section>
+      <h2>What This Is</h2>
+      <p>This is the public-safe guide for the Nexus Codex workflow. The complete internal workflow system lives in the repository under <code>.codex/</code>, with the compact handover at <code>.codex/workflow/current-state.md</code>.</p>
+      <p>The old Claude Code setup is archived in the repo and is no longer active.</p>
+    </section>
+    <section>
+      <h2>Workflow Shape</h2>
+      <div class="grid">
+        <div class="card"><strong>Lead</strong><p>Plans, routes, integrates, records state, and owns final quality.</p></div>
+        <div class="card"><strong>Spark Worker</strong><p>Only narrow, explicit, testable coding slices. Must escalate when scope or reasoning gets hard.</p></div>
+        <div class="card"><strong>Strong Worker</strong><p>GPT-5.5 class coding for ambiguous debugging, architecture, cross-cutting changes, visual/design judgment, and Spark fallback.</p></div>
+        <div class="card"><strong>Review/Audit</strong><p>Focused checks against project patterns, related updates, deprecated approaches, and deployment evidence.</p></div>
+      </div>
+    </section>
+    <section>
+      <h2>How Future Sessions Resume</h2>
+      <ul>
+        <li>Read <code>WORKFLOW.md</code>, <code>AGENTS.md</code>, then <code>.codex/workflow/current-state.md</code>.</li>
+        <li>Run <code>npm run workflow:status</code> and <code>npm run workflow:release-gate</code>.</li>
+        <li>Use detailed records under <code>.codex/workflow/records/</code> instead of loading chat transcripts.</li>
+        <li>Use <code>.codex/knowledge/</code> for patterns, design-system rules, model routing, and deployment guidance.</li>
+      </ul>
+    </section>
+    <section>
+      <h2>Current Counts</h2>
+      <div class="grid">
+        ${Object.entries(records).map(([kind, items]) => `<div class="card"><strong>${items.length}</strong><p>${escapeHtml(kind)}</p></div>`).join('\n')}
+      </div>
+    </section>
+    <section>
+      <h2>Recent Evidence</h2>
+      <ul>
+        ${latestRecords.map((record) => `<li><strong>${escapeHtml(record.kind)}:</strong> ${escapeHtml(record.title)} <span class="meta">${escapeHtml(record.created || '')}</span></li>`).join('\n')}
+      </ul>
+    </section>
+    <section class="warn">
+      <h2>Open Follow-Ups</h2>
+      ${markdownLite(risks || 'No open risks recorded.')}
+    </section>
+  </main>
+</body>
+</html>`;
+  const outPath = args.out ? resolve(ROOT, String(args.out)) : join(DASHBOARD_DIR, 'public.html');
+  ensureDir(dirname(outPath));
+  writeFileSync(outPath, html);
+  if (!args.quiet) {
+    console.log(`Public guide generated: ${relative(ROOT, outPath).replaceAll('\\', '/')}`);
+    console.log(`Deployment URL: ${PUBLIC_GUIDE_URL}`);
+  }
+}
+
 function commandStatus() {
   const branch = gitText(['branch', '--show-current']) || '(detached HEAD)';
   const status = gitText(['status', '--short', '--branch']);
@@ -533,6 +630,7 @@ function commandStatus() {
   const verifyState = loadJson(VERIFY_STATE_FILE, {});
   const auditState = loadJson(AUDIT_STATE_FILE, {});
   const patchState = loadJson(PATCH_STATE_FILE, {});
+  const handoverOk = commandHandoverCheck({ quiet: true });
   const currentHash = worktreeHash();
   const reviewed = state.worktreeHash === currentHash && state.verdict === 'pass';
   const verified = verifyState.worktreeHash === currentHash && verifyState.verdict === 'pass';
@@ -546,6 +644,7 @@ function commandStatus() {
   console.log(`reviewed: ${reviewed ? 'yes' : 'no'}`);
   console.log(`verified: ${verified ? 'yes' : 'no'}`);
   console.log(`audited: ${audited ? 'yes' : 'no'}`);
+  console.log(`handover: ${handoverOk ? 'ok' : 'needs attention'}`);
   if (state.reviewedAt) console.log(`last review: ${state.reviewedAt} by ${state.reviewer || 'unknown'} (${state.verdict || 'unknown'})`);
   if (verifyState.verifiedAt) console.log(`last verification: ${verifyState.verifiedAt} by ${verifyState.verifier || 'unknown'} (${verifyState.verdict || 'unknown'})`);
   if (auditState.auditedAt) console.log(`last audit: ${auditState.auditedAt} by ${auditState.auditor || 'unknown'} (${auditState.verdict || 'unknown'})`);
@@ -771,6 +870,46 @@ function commandAuditCheck({ quiet = false } = {}) {
   return ok;
 }
 
+function markdownSection(text, heading) {
+  const pattern = new RegExp(`^##\\s+${heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*$`, 'im');
+  const match = pattern.exec(text);
+  if (!match) return '';
+  const rest = text.slice(match.index + match[0].length);
+  const next = rest.search(/^##\s+/m);
+  return next >= 0 ? rest.slice(0, next) : rest;
+}
+
+function handoverProblems() {
+  const text = readText('.codex/workflow/current-state.md');
+  const problems = [];
+  if (/Latest gate records for current worktree hash/i.test(text)) {
+    problems.push('current-state.md labels fixed record links as latest/current-hash data; use stable wording and let the dashboard/status command show live state.');
+  }
+  if (/Final workflow-record commit pulled on server:\s*`?[0-9a-f]{7,40}`?/i.test(text)) {
+    problems.push('current-state.md records a final workflow-record commit hash that can stale itself when the handover fix is committed; refer to branch HEAD instead.');
+  }
+  const next = markdownSection(text, 'Next Required Work');
+  const staleFinalizationPhrases = [
+    /Regenerate `?\.codex\/dashboard\/index\.html`? after this state update/i,
+    /Commit and push the deployment evidence update/i,
+    /Pull the deployment-evidence commit on the server/i,
+    /Record this deployment evidence under `?\.codex\/workflow\/records\/deployments\/`?/i,
+  ];
+  if (staleFinalizationPhrases.some((pattern) => pattern.test(next))) {
+    problems.push('current-state.md still lists finalization bookkeeping tasks that should be finished before handover or moved to risks.');
+  }
+  return problems;
+}
+
+function commandHandoverCheck({ quiet = false } = {}) {
+  const problems = handoverProblems();
+  if (!quiet) {
+    console.log(`handover problems: ${problems.length}`);
+    for (const problem of problems) console.log(`- ${problem}`);
+  }
+  return problems.length === 0;
+}
+
 function commandValidate(args) {
   const required = [
     'AGENTS.md',
@@ -802,10 +941,15 @@ function commandValidate(args) {
     const reviewOk = commandReviewCheck({ quiet: true });
     const verifyOk = commandVerifyCheck({ quiet: true });
     const auditOk = commandAuditCheck({ quiet: true });
-    if (!reviewOk || !verifyOk || !auditOk) {
+    const handoverOk = commandHandoverCheck({ quiet: true });
+    if (!reviewOk || !verifyOk || !auditOk || !handoverOk) {
       if (!reviewOk) console.error('Release gate failed: missing passing review record.');
       if (!verifyOk) console.error('Release gate failed: missing passing verification record.');
       if (!auditOk) console.error('Release gate failed: missing passing audit record.');
+      if (!handoverOk) {
+        console.error('Release gate failed: current-state handover has stale/finalization wording.');
+        for (const problem of handoverProblems()) console.error(`- ${problem}`);
+      }
       process.exit(1);
     }
   }
@@ -1010,6 +1154,14 @@ function hookStop() {
     }));
     return;
   }
+  const handoverOk = commandHandoverCheck({ quiet: true });
+  if (!handoverOk) {
+    console.log(JSON.stringify({
+      continue: true,
+      systemMessage: `Nexus workflow: current-state handover has stale/finalization wording. Run npm run workflow:handover-check before final handover.`,
+    }));
+    return;
+  }
   console.log(JSON.stringify({ continue: true }));
 }
 
@@ -1029,6 +1181,7 @@ ensureDir(RECORDS);
 
 if (command === 'status') commandStatus();
 else if (command === 'dashboard') commandDashboard(args);
+else if (command === 'public-guide') commandPublicGuide(args);
 else if (command === 'record-patch') commandRecordPatch(args);
 else if (command === 'record-review') commandRecordReview(args);
 else if (command === 'record-verify') commandRecordVerification(args);
@@ -1046,6 +1199,9 @@ else if (command === 'verify-check') {
   process.exit(ok ? 0 : 1);
 } else if (command === 'audit-check') {
   const ok = commandAuditCheck();
+  process.exit(ok ? 0 : 1);
+} else if (command === 'handover-check') {
+  const ok = commandHandoverCheck();
   process.exit(ok ? 0 : 1);
 }
 else if (command === 'hook') {

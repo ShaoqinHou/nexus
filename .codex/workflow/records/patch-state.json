@@ -1,6 +1,31 @@
 {
   "events": [
     {
+      "at": "2026-05-09T02:02:35.023Z",
+      "source": "codex-lead",
+      "reason": "patch PATCH-20260509T020234Z-harden-handover-workflow-model-routing-hooks-gui",
+      "files": [
+        ".codex/README.md",
+        ".codex/agents/nexus-spark-worker.toml",
+        ".codex/agents/nexus-strong-worker.toml",
+        ".codex/dashboard/README.md",
+        ".codex/dashboard/index.html",
+        ".codex/dashboard/public.html",
+        ".codex/knowledge/deployment.md",
+        ".codex/knowledge/hooks.md",
+        ".codex/knowledge/model-routing.md",
+        ".codex/scripts/nexus-workflow.mjs",
+        ".codex/workflow/current-state.md",
+        ".codex/workflow/records/risks.md",
+        ".codex/workflow/templates/README.md",
+        ".codex/workflow/templates/current-state.md",
+        "AGENTS.md",
+        "WORKFLOW.md",
+        "package.json"
+      ],
+      "worktreeHash": "670f79dd501cd6cb"
+    },
+    {
       "at": "2026-05-09T01:40:04.782Z",
       "source": "codex-lead",
       "reason": "patch PATCH-20260509T014004Z-make-final-server-head-handover-wording-stable",
@@ -801,12 +826,27 @@
       "worktreeHash": "4379f8bf9e55ae86"
     }
   ],
-  "worktreeHash": "036f24d237f026b0",
-  "lastChangedAt": "2026-05-09T01:40:04.782Z",
-  "reason": "patch PATCH-20260509T014004Z-make-final-server-head-handover-wording-stable",
+  "worktreeHash": "670f79dd501cd6cb",
+  "lastChangedAt": "2026-05-09T02:02:35.023Z",
+  "reason": "patch PATCH-20260509T020234Z-harden-handover-workflow-model-routing-hooks-gui",
   "source": "codex-lead",
   "files": [
+    ".codex/README.md",
+    ".codex/agents/nexus-spark-worker.toml",
+    ".codex/agents/nexus-strong-worker.toml",
+    ".codex/dashboard/README.md",
     ".codex/dashboard/index.html",
-    ".codex/workflow/current-state.md"
+    ".codex/dashboard/public.html",
+    ".codex/knowledge/deployment.md",
+    ".codex/knowledge/hooks.md",
+    ".codex/knowledge/model-routing.md",
+    ".codex/scripts/nexus-workflow.mjs",
+    ".codex/workflow/current-state.md",
+    ".codex/workflow/records/risks.md",
+    ".codex/workflow/templates/README.md",
+    ".codex/workflow/templates/current-state.md",
+    "AGENTS.md",
+    "WORKFLOW.md",
+    "package.json"
   ]
 }

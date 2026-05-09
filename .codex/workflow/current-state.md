@@ -44,10 +44,11 @@ Implemented workflow pieces:
 - Thin hook policy: hooks inject/invalidate/block/remind only; review, verification, audit, and pattern judgment stay in agents/skills/records.
 - Dynamic pattern discovery: `record-pattern` creates evidence-based proposals before durable guidance is promoted.
 - Dashboard/wiki/visualizer: `.codex/dashboard/index.html` summarizes state, records, gates, risks, deployment notes, and Design Zoo/Gym registry coverage.
+- Public-safe workflow guide: `https://cv.rehou.games/nexus/workflow/` generated from `.codex/dashboard/public.html`.
 - Active Claude workflow files are archived under `.codex/archive/claude-code-2026-05-09/`.
 - Design-system continuation work: Toast now has semantic `info` styling, `warning` support, registry coverage, tests, and Design Zoo validation.
 
-Latest gate records for current worktree hash `3fcb9e6e46c5b3ee`:
+Representative gate records from the workflow migration:
 
 - `PATCH-20260508T174121Z-codex-native-workflow-migration-claude-workflow-`
 - `REVIEW-20260508T174152Z-review-pass-worktree`
@@ -74,6 +75,7 @@ Server deployment validation:
 - Workflow file present on server: `.codex/scripts/nexus-workflow.mjs`
 - Server workflow validation: `node .codex/scripts/nexus-workflow.mjs validate` passed.
 - Static build correction: server rebuild used `npx vite build --base /nexus/`; hosted `index.html` referenced `/nexus/assets/`.
+- Public guide deployment: `https://cv.rehou.games/nexus/workflow/` should return 200 after `.codex/dashboard/public.html` is copied to the static workflow path.
 - Preserved server dirty state: pre-existing `package-lock.json` modification remains and was backed up to `/root/monoWeb/deploy-backups/nexus/package-lock-local-20260509-codex-native-workflow.diff`.
 
 Historical/model-routing evidence:

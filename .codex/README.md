@@ -16,6 +16,8 @@ This is the project-local workflow root for Codex sessions.
 - `workflow/research/codex-capabilities-2026-05-09.md` records the Codex behavior research.
 - `knowledge/patterns.md` captures durable project patterns and traps.
 - `knowledge/design-system.md` captures the design-system source of truth and invariants.
+- `knowledge/model-routing.md` captures lead/worker routing, Spark limits, strong-worker usage, and fallback rules.
+- `knowledge/hooks.md` captures what hooks do, what they cannot catch, and how deterministic gates cover the gaps.
 - `knowledge/deployment.md` captures server and deployment conventions.
 - `agents/*.toml` defines project-scoped Codex subagents.
 - `scripts/nexus-workflow.mjs` is the deterministic workflow helper.
@@ -47,6 +49,19 @@ Core handover context stays small. Detailed records live below:
 - `workflow/records/risks.md`
 
 Do not paste long transcripts into `current-state.md`. Link to records instead.
+
+## Handover Policy
+
+`workflow/current-state.md` is a managed compact handover, not a scratch note. It should hold stable resume facts and links to detailed records. Do not put self-staling finalization facts there, such as exact "final workflow record commit" lines or pending "commit/push/pull this handover update" tasks.
+
+Before final handover, run:
+
+```bash
+npm run workflow:handover-check
+npm run workflow:release-gate
+```
+
+If final deployment or records create more commits after the runtime build, describe that as "branch HEAD" or link to the deployment record instead of hardcoding a final commit that the next bookkeeping commit can invalidate.
 
 ## Pattern Discovery
 

@@ -7,4 +7,6 @@ These templates describe the expected content of durable workflow records. Prefe
 - `test.md`: command, browser, server, or historical-case verification.
 - `pattern-proposal.md`: evidence-based durable-guidance candidate.
 - `deployment.md`: server deployment or validation event.
+- `current-state.md`: compact managed handover.
 
+`current-state.md` is not a record transcript. It must stay small, link to detailed records, avoid self-staling finalization details, and pass `npm run workflow:handover-check`.

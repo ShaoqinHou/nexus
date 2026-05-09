@@ -49,6 +49,20 @@ Server validation must confirm:
 - `https://cv.rehou.games/nexus/` returns HTML.
 - `https://cv.rehou.games/nexus/api/platform/health` returns 200.
 
+## Workflow Guide URL
+
+The public-safe workflow guide is deployed to:
+
+- `https://cv.rehou.games/nexus/workflow/`
+
+Generate it with:
+
+```bash
+npm run workflow:public-guide
+```
+
+Deploy it by copying `.codex/dashboard/public.html` to `/var/www/cv.rehou.games/nexus/workflow/index.html`. Do not publish the full repo-local `.codex/dashboard/index.html` unless intentionally exposing internal deployment paths and record excerpts.
+
 Known risk: do not skip production `db:push` when schema changes are present.
 
 Known server state on 2026-05-09:

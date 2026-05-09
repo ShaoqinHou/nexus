@@ -1,8 +1,8 @@
 {
-  "worktreeHash": "d9ece1cf83322875",
+  "worktreeHash": "e72bde7e6f0576c6",
   "verdict": "pass",
   "reviewer": "codex-lead",
-  "reviewedAt": "2026-05-09T01:40:22.177Z",
-  "reviewRecord": ".codex/workflow/records/reviews/REVIEW-20260509T014022Z-review-pass-staged-final-handover-wording.md",
-  "notes": "Final staged review for stable server-head wording. Only workflow docs/dashboard/records changed."
+  "reviewedAt": "2026-05-09T02:03:05.490Z",
+  "reviewRecord": ".codex/workflow/records/reviews/REVIEW-20260509T020305Z-review-pass-staged-workflow-followup.md",
+  "notes": "Final staged review for handover/hook/model-routing/public-guide follow-up."
 }

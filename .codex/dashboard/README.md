@@ -13,3 +13,11 @@ The dashboard includes a Design Zoo/Gym section that links to the running app's 
 ```bash
 npm run dev:web
 ```
+
+Generate the public-safe guide with:
+
+```bash
+node .codex/scripts/nexus-workflow.mjs public-guide
+```
+
+The public guide is deployed at `https://cv.rehou.games/nexus/workflow/`. It intentionally omits internal deployment details and raw record bodies; use the repo-local dashboard for full workflow state.
