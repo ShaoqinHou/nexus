@@ -12,4 +12,4 @@
 
 - The initial large dirty-worktree report was caused by using the submodule common git dir, not the linked worktree git dir.
 - Spark worker usefulness has positive and negative evidence: narrow Toast warning slice succeeded; broad theme cascade task was refused/escalated.
-- Server access, deployment, service restart, and hosted health checks were validated on 2026-05-09 for commit `cf069ce`.
+- Server access, deployment, service restart, and hosted health checks were validated on 2026-05-09. Runtime/source deploy was validated at `cf069ce`; final workflow records were pulled to server at `c3cca6e`.

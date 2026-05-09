@@ -1,8 +1,8 @@
 {
-  "worktreeHash": "512baa650dff5428",
+  "worktreeHash": "f38c7c6f8d4d53b1",
   "verdict": "pass",
   "auditor": "codex-lead",
-  "auditedAt": "2026-05-08T17:51:40.089Z",
-  "auditRecord": ".codex/workflow/records/reviews/REVIEW-20260508T175140Z-audit-pass-staged-deployment-evidence.md",
-  "notes": "Final staged audit for deployment evidence commit. Remaining risks are explicit and old Claude workflow remains archived, not active."
+  "auditedAt": "2026-05-09T01:39:08.960Z",
+  "auditRecord": ".codex/workflow/records/reviews/REVIEW-20260509T013908Z-audit-pass-staged-handover-correction.md",
+  "notes": "Final staged audit for handover correction. Durable state is now aligned with the actual completed server pull and residual risks."
 }

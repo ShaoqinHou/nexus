@@ -1,6 +1,17 @@
 {
   "events": [
     {
+      "at": "2026-05-09T01:38:40.807Z",
+      "source": "codex-lead",
+      "reason": "patch PATCH-20260509T013840Z-correct-final-handover-state-after-server-pull",
+      "files": [
+        ".codex/dashboard/index.html",
+        ".codex/workflow/current-state.md",
+        ".codex/workflow/records/risks.md"
+      ],
+      "worktreeHash": "fe99264c7e0a042b"
+    },
+    {
       "at": "2026-05-08T17:50:46.150Z",
       "source": "codex-lead",
       "reason": "patch PATCH-20260508T175045Z-record-deployment-evidence-and-update-workflow-h",
@@ -780,15 +791,13 @@
       "worktreeHash": "4379f8bf9e55ae86"
     }
   ],
-  "worktreeHash": "335347afeac44d92",
-  "lastChangedAt": "2026-05-08T17:50:46.150Z",
-  "reason": "patch PATCH-20260508T175045Z-record-deployment-evidence-and-update-workflow-h",
+  "worktreeHash": "fe99264c7e0a042b",
+  "lastChangedAt": "2026-05-09T01:38:40.807Z",
+  "reason": "patch PATCH-20260509T013840Z-correct-final-handover-state-after-server-pull",
   "source": "codex-lead",
   "files": [
     ".codex/dashboard/index.html",
-    ".codex/knowledge/deployment.md",
     ".codex/workflow/current-state.md",
-    ".codex/workflow/records/deployments/DEPLOYMENT-20260508T175020Z-server-deployment-validation-for-codex-native-wo.md",
     ".codex/workflow/records/risks.md"
   ]
 }

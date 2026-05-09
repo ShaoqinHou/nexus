@@ -1,8 +1,8 @@
 {
-  "worktreeHash": "512baa650dff5428",
+  "worktreeHash": "f38c7c6f8d4d53b1",
   "verdict": "pass",
   "verifier": "codex-lead",
-  "verifiedAt": "2026-05-08T17:51:39.711Z",
-  "verifyRecord": ".codex/workflow/records/tests/TEST-20260508T175139Z-verification-pass-staged-deployment-evidence.md",
-  "notes": "Final staged verification for deployment evidence commit. Server validation evidence remains: cf069ce deployed, web 200, API health 200, nexus-api active, /nexus/assets/ base confirmed."
+  "verifiedAt": "2026-05-09T01:39:08.615Z",
+  "verifyRecord": ".codex/workflow/records/tests/TEST-20260509T013908Z-verification-pass-staged-handover-correction.md",
+  "notes": "Final staged verification for handover correction. No product/runtime code changed; final server state was already validated and this records it accurately."
 }

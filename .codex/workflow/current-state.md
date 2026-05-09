@@ -65,7 +65,8 @@ Server deployment validation:
 
 - Record: `DEPLOYMENT-20260508T175020Z-server-deployment-validation-for-codex-native-wo`
 - Branch pushed and deployed: `codex/native-workflow`
-- Deployed commit validated on server: `cf069ce`
+- Runtime/source commit deployed and rebuilt on server: `cf069ce`
+- Final workflow-record commit pulled on server: `c3cca6e`
 - Server repo: `/root/monoWeb/nexus`
 - Public web check: `https://cv.rehou.games/nexus/` returned 200.
 - API health check: `https://cv.rehou.games/nexus/api/platform/health` returned 200.
@@ -94,6 +95,9 @@ The earlier large dirty-tree report came from using the submodule common git dir
 
 ## Next Required Work
 
-- Regenerate `.codex/dashboard/index.html` after this state update.
-- Commit and push the deployment evidence update.
-- Pull the deployment-evidence commit on the server so the workflow records are present there too. Rebuild is optional unless source files changed.
+No mandatory migration step remains. Optional follow-ups are tracked as risks:
+
+- Decide whether to clean or adopt the server's pre-existing dirty `package-lock.json`.
+- Triage pre-existing `npm audit` findings from server `npm ci`.
+- Clean the non-failing React `act(...)` warning in `ThemeProvider.test.tsx`.
+- Remember that Codex hooks are advisory gates unless the project `.codex/` layer is trusted/loaded; deterministic scripts remain the reliable enforcement path.

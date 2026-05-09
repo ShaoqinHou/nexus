@@ -41,7 +41,7 @@
 <body>
   <header>
     <h1>Nexus Workflow Dashboard</h1>
-    <div class="meta">Generated 2026-05-08T17:50:45.063Z · branch codex/native-workflow · worktree 335347afeac44d92</div>
+    <div class="meta">Generated 2026-05-09T01:38:39.579Z · branch codex/native-workflow · worktree fe99264c7e0a042b</div>
   </header>
   <div class="layout">
     <nav>
@@ -66,9 +66,9 @@
         <div class="grid">
           <div class="card"><span class="meta">Decisions</span><strong>1</strong></div>
 <div class="card"><span class="meta">Pattern Proposals</span><strong>3</strong></div>
-<div class="card"><span class="meta">Patches</span><strong>3</strong></div>
-<div class="card"><span class="meta">Reviews</span><strong>6</strong></div>
-<div class="card"><span class="meta">Tests</span><strong>19</strong></div>
+<div class="card"><span class="meta">Patches</span><strong>4</strong></div>
+<div class="card"><span class="meta">Reviews</span><strong>10</strong></div>
+<div class="card"><span class="meta">Tests</span><strong>21</strong></div>
 <div class="card"><span class="meta">Deployments</span><strong>1</strong></div>
 <div class="card"><span class="meta">Zoo Pages</span><strong>24/24</strong></div>
         </div>
@@ -77,12 +77,10 @@
           <div class="card"><span class="meta">Verify Gate</span><strong>needed</strong></div>
           <div class="card"><span class="meta">Audit Gate</span><strong>needed</strong></div>
         </div>
-        <p class="meta">Last patch trigger: 2026-05-08T17:43:48.693Z · patch PATCH-20260508T174348Z-refresh-compact-workflow-state-and-dashboard-aft</p>
+        <p class="meta">Last patch trigger: 2026-05-08T17:50:46.150Z · patch PATCH-20260508T175045Z-record-deployment-evidence-and-update-workflow-h</p>
         <pre>## codex/native-workflow...origin/codex/native-workflow
- M .codex/knowledge/deployment.md
  M .codex/workflow/current-state.md
- M .codex/workflow/records/risks.md
-?? .codex/workflow/records/deployments/DEPLOYMENT-20260508T175020Z-server-deployment-validation-for-codex-native-wo.md</pre>
+ M .codex/workflow/records/risks.md</pre>
       </section>
       <section id="current" class="panel"><h1>Current State</h1>
 <p>Updated: 2026-05-09</p>
@@ -143,7 +141,8 @@
 <ul>
 <li>Record: `DEPLOYMENT-20260508T175020Z-server-deployment-validation-for-codex-native-wo`</li>
 <li>Branch pushed and deployed: `codex/native-workflow`</li>
-<li>Deployed commit validated on server: `cf069ce`</li>
+<li>Runtime/source commit deployed and rebuilt on server: `cf069ce`</li>
+<li>Final workflow-record commit pulled on server: `c3cca6e`</li>
 <li>Server repo: `/root/monoWeb/nexus`</li>
 <li>Public web check: `https://cv.rehou.games/nexus/` returned 200.</li>
 <li>API health check: `https://cv.rehou.games/nexus/api/platform/health` returned 200.</li>
@@ -167,10 +166,12 @@
 <p>```</p>
 <p>The earlier large dirty-tree report came from using the submodule common git dir directly and should not be treated as the current worktree state.</p>
 <h2>Next Required Work</h2>
+<p>No mandatory migration step remains. Optional follow-ups are tracked as risks:</p>
 <ul>
-<li>Regenerate `.codex/dashboard/index.html` after this state update.</li>
-<li>Commit and push the deployment evidence update.</li>
-<li>Pull the deployment-evidence commit on the server so the workflow records are present there too. Rebuild is optional unless source files changed.</li>
+<li>Decide whether to clean or adopt the server's pre-existing dirty `package-lock.json`.</li>
+<li>Triage pre-existing `npm audit` findings from server `npm ci`.</li>
+<li>Clean the non-failing React `act(...)` warning in `ThemeProvider.test.tsx`.</li>
+<li>Remember that Codex hooks are advisory gates unless the project `.codex/` layer is trusted/loaded; deterministic scripts remain the reliable enforcement path.</li>
 </ul></section>
       <section id="zoo" class="panel">
         <h2>Design Zoo / Gym</h2>
@@ -642,6 +643,24 @@ Proposed guidance: Keep Codex hooks as compact dispatch/gate triggers. Review, v
       
         <article class="record">
           <div class="record-top">
+            <strong>Record deployment evidence and update workflow handover</strong>
+            <span>2026-05-08T17:50:45.855Z</span>
+          </div>
+          
+          <p class="path">.codex/workflow/records/patches/PATCH-20260508T175045Z-record-deployment-evidence-and-update-workflow-h.md</p>
+          <pre>Summary: Record deployment evidence and update workflow handover
+
+Files:
+- .codex/dashboard/index.html
+- .codex/knowledge/deployment.md
+- .codex/workflow/current-state.md
+- .codex/workflow/records/deployments/DEPLOYMENT-20260508T175020Z-server-deployment-validation-for-codex-native-wo.md
+- .codex/workflow/records/risks.md</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
             <strong>Refresh compact workflow state and dashboard after local gate validation</strong>
             <span>2026-05-08T17:43:48.318Z</span>
           </div>
@@ -699,6 +718,70 @@ Files:
     <section id="reviews" class="panel">
       <h2>Reviews</h2>
       
+        <article class="record">
+          <div class="record-top">
+            <strong>Audit pass staged-deployment-evidence</strong>
+            <span>2026-05-08T17:51:40.088Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260508T175140Z-audit-pass-staged-deployment-evidence.md</p>
+          <pre>Scope: staged-deployment-evidence
+Verdict: pass
+Auditor: codex-lead
+Worktree hash: 512baa650dff5428
+
+Notes: Final staged audit for deployment evidence commit. Remaining risks are explicit and old Claude workflow remains archived, not active.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review pass staged-deployment-evidence</strong>
+            <span>2026-05-08T17:51:39.339Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260508T175139Z-review-pass-staged-deployment-evidence.md</p>
+          <pre>Scope: staged-deployment-evidence
+Verdict: pass
+Reviewer: codex-lead
+Worktree hash: 512baa650dff5428
+
+Notes: Final staged review for deployment evidence commit. Only workflow/deployment records, dashboard, risks, and deployment knowledge changed after commit cf069ce.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Audit pass deployment-evidence</strong>
+            <span>2026-05-08T17:50:47.296Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260508T175047Z-audit-pass-deployment-evidence.md</p>
+          <pre>Scope: deployment-evidence
+Verdict: pass
+Auditor: codex-lead
+Worktree hash: 335347afeac44d92
+
+Notes: Audit passed for deployment evidence and handover update; remaining risks are explicit in records/risks.md.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review pass deployment-evidence</strong>
+            <span>2026-05-08T17:50:46.542Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260508T175046Z-review-pass-deployment-evidence.md</p>
+          <pre>Scope: deployment-evidence
+Verdict: pass
+Reviewer: codex-lead
+Worktree hash: 335347afeac44d92
+
+Notes: Reviewed deployment evidence update: records the server build failure, npm ci fix, required /nexus/ base rebuild, health checks, preserved dirty package-lock state, and deployment record pointer.</pre>
+        </article>
+      
+
         <article class="record">
           <div class="record-top">
             <strong>Audit pass staged-worktree</strong>
@@ -800,6 +883,38 @@ Notes: Workflow audit passed against saved brief: original brief preserved; AGEN
     <section id="tests" class="panel">
       <h2>Tests</h2>
       
+        <article class="record">
+          <div class="record-top">
+            <strong>Verification pass staged-deployment-evidence</strong>
+            <span>2026-05-08T17:51:39.710Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/tests/TEST-20260508T175139Z-verification-pass-staged-deployment-evidence.md</p>
+          <pre>Scope: staged-deployment-evidence
+Verdict: pass
+Verifier: codex-lead
+Worktree hash: 512baa650dff5428
+
+Notes: Final staged verification for deployment evidence commit. Server validation evidence remains: cf069ce deployed, web 200, API health 200, nexus-api active, /nexus/assets/ base confirmed.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Verification pass deployment-evidence</strong>
+            <span>2026-05-08T17:50:46.934Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/tests/TEST-20260508T175046Z-verification-pass-deployment-evidence.md</p>
+          <pre>Scope: deployment-evidence
+Verdict: pass
+Verifier: codex-lead
+Worktree hash: 335347afeac44d92
+
+Notes: Server validation passed for commit cf069ce: workflow validate ok; web 200; API health 200; nexus-api active; deployed HTML references /nexus/assets/.</pre>
+        </article>
+      
+
         <article class="record">
           <div class="record-top">
             <strong>Verification pass staged-worktree</strong>
@@ -1054,7 +1169,7 @@ Notes: Latest full local validation passed: workflow script syntax, design-zoo s
 <ul>
 <li>The initial large dirty-worktree report was caused by using the submodule common git dir, not the linked worktree git dir.</li>
 <li>Spark worker usefulness has positive and negative evidence: narrow Toast warning slice succeeded; broad theme cascade task was refused/escalated.</li>
-<li>Server access, deployment, service restart, and hosted health checks were validated on 2026-05-09 for commit `cf069ce`.</li>
+<li>Server access, deployment, service restart, and hosted health checks were validated on 2026-05-09. Runtime/source deploy was validated at `cf069ce`; final workflow records were pulled to server at `c3cca6e`.</li>
 </ul></section>
       <section id="deployment" class="panel"><h1>Deployment Knowledge</h1>
 <p>Primary production target discovered from the neighboring monoWeb root:</p>
