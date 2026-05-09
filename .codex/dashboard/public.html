@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="nexus-guide-version" content="nexus-public-workflow-guide/v2" />
-  <meta name="nexus-guide-source-hash" content="1f41fc232f1a15177849d11c" />
-  <meta name="nexus-guide-content-hash" content="65c5c94a38124d355674ab4b" />
+  <meta name="nexus-guide-source-hash" content="1e723e151348e648283dcb7d" />
+  <meta name="nexus-guide-content-hash" content="f142b4f08d16e90421a8aaca" />
   <meta name="nexus-token-source" content="packages/web/src/platform/theme/tokens.css" />
   <title>Nexus Workflow Guide</title>
   <style>
@@ -70,7 +70,7 @@
 <body>
   <header>
     <h1>Nexus Workflow Guide</h1>
-    <div class="meta">Generated snapshot 2026-05-09T16:32:24.761Z · branch codex/native-workflow · run workflow gates for live state before deploy</div>
+    <div class="meta">Generated snapshot 2026-05-09T16:39:02.544Z · branch codex/native-workflow · run workflow gates for live state before deploy</div>
   </header>
   <main>
     <section>
@@ -99,7 +99,7 @@
 <div class="node"><strong>.codex/agents</strong><span>7 agent config files</span></div>
 <div class="node"><strong>.agents/skills</strong><span>4 repo skills</span></div>
 <div class="node"><strong>nexus-workflow.mjs</strong><span>deterministic gates and records</span></div>
-<div class="node"><strong>.codex/workflow/records</strong><span>174 indexed records</span></div>
+<div class="node"><strong>.codex/workflow/records</strong><span>182 indexed records</span></div>
       </div>
       <p class="meta">AGENTS.md -> .codex/README.md · .codex/knowledge -> .codex/agents · nexus-workflow.mjs -> .codex/workflow/records</p>
     </div>
@@ -123,8 +123,8 @@
 <div class="node"><strong>packages/web/src/routes</strong><span>1 indexed route files</span></div>
 <div class="node"><strong>packages/web/src/locales</strong><span>5 locale files</span></div>
 <div class="node"><strong>packages/shared</strong><span>2 source files</span></div>
-<div class="node"><strong>.codex workflow</strong><span>244 workflow files</span></div>
-<div class="node"><strong>.codex/workflow/records</strong><span>174 indexed records</span></div>
+<div class="node"><strong>.codex workflow</strong><span>252 workflow files</span></div>
+<div class="node"><strong>.codex/workflow/records</strong><span>182 indexed records</span></div>
       </div>
       <p class="meta">packages/api -> packages/shared · packages/web -> packages/shared · .codex workflow -> .codex/workflow/records</p>
     </div>
@@ -268,13 +268,13 @@ node .codex/scripts/nexus-workflow.mjs record-audit --scope branch --verdict pas
     <section>
       <h2>Current Counts</h2>
       <div class="grid">
-        <div class="card"><strong>4</strong><p>decisions</p></div>
+        <div class="card"><strong>5</strong><p>decisions</p></div>
 <div class="card"><strong>12</strong><p>pattern-proposals</p></div>
 <div class="card"><strong>24</strong><p>routing</p></div>
-<div class="card"><strong>30</strong><p>patches</p></div>
-<div class="card"><strong>37</strong><p>reviews</p></div>
-<div class="card"><strong>41</strong><p>tests</p></div>
-<div class="card"><strong>22</strong><p>audits (first-class + legacy)</p></div>
+<div class="card"><strong>31</strong><p>patches</p></div>
+<div class="card"><strong>41</strong><p>reviews</p></div>
+<div class="card"><strong>42</strong><p>tests</p></div>
+<div class="card"><strong>23</strong><p>audits (first-class + legacy)</p></div>
 <div class="card"><strong>4</strong><p>deployments</p></div>
       </div>
       <p class="meta">Guide-browser evidence is tracked separately by hash-bound records and omitted from this generated guide to avoid self-referential guide freshness loops.</p>
@@ -285,7 +285,13 @@ node .codex/scripts/nexus-workflow.mjs record-audit --scope branch --verdict pas
 
         <h3>Validation</h3>
         <ul class="timeline">
-          <li><strong>audits:</strong> Audit pass branch <span class="meta">2026-05-09T16:29:48.286Z</span></li>
+          <li><strong>audits:</strong> Audit pass branch <span class="meta">2026-05-09T16:38:51.528Z</span></li>
+<li><strong>tests:</strong> Verification pass branch <span class="meta">2026-05-09T16:38:31.012Z</span></li>
+<li><strong>reviews:</strong> Review integrated pass branch <span class="meta">2026-05-09T16:38:19.743Z</span></li>
+<li><strong>reviews:</strong> Review design pass branch <span class="meta">2026-05-09T16:38:10.976Z</span></li>
+<li><strong>reviews:</strong> Review workflow pass branch <span class="meta">2026-05-09T16:38:02.357Z</span></li>
+<li><strong>reviews:</strong> Review general pass branch <span class="meta">2026-05-09T16:37:53.296Z</span></li>
+<li><strong>audits:</strong> Audit pass branch <span class="meta">2026-05-09T16:29:48.286Z</span></li>
 <li><strong>tests:</strong> Verification pass branch <span class="meta">2026-05-09T16:29:35.490Z</span></li>
 <li><strong>reviews:</strong> Review integrated pass branch <span class="meta">2026-05-09T16:29:25.290Z</span></li>
 <li><strong>reviews:</strong> Review design pass branch <span class="meta">2026-05-09T16:29:16.911Z</span></li>
@@ -393,7 +399,9 @@ node .codex/scripts/nexus-workflow.mjs record-audit --scope branch --verdict pas
 
         <h3>Workflow</h3>
         <ul class="timeline">
-          <li><strong>patches:</strong> final Codex workflow ladder, guide, Zoo, and evidence hardening <span class="meta">2026-05-09T16:28:49.659Z</span></li>
+          <li><strong>patches:</strong> cross-platform branch evidence hashing correction <span class="meta">2026-05-09T16:37:42.770Z</span></li>
+<li><strong>decisions:</strong> branch evidence hashes canonicalize text line endings <span class="meta">2026-05-09T16:37:17.812Z</span></li>
+<li><strong>patches:</strong> final Codex workflow ladder, guide, Zoo, and evidence hardening <span class="meta">2026-05-09T16:28:49.659Z</span></li>
 <li><strong>decisions:</strong> workflow execution ladder and evidence durability guardrails <span class="meta">2026-05-09T16:17:21.910Z</span></li>
 <li><strong>decisions:</strong> Workflow pass records embed durable command evidence <span class="meta">2026-05-09T15:49:52.471Z</span></li>
 <li><strong>decisions:</strong> Workflow proof model simplified around records git and gates <span class="meta">2026-05-09T15:20:30.878Z</span></li>

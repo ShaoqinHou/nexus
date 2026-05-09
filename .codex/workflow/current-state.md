@@ -46,6 +46,7 @@ Workflow simplification and boundary hardening are implemented and should be jud
 - collapsed the operator-facing route to one ladder: `status -> health -> release-gate -> deployed-gate`,
 - made generated guide/Zoo artifacts trigger the relevant gates even though they remain non-substantive generated views,
 - made guide-browser records embed screenshot and summary hashes so mutable artifact files cannot silently rewrite a pass,
+- canonicalized text content hashing for worktree/branch evidence so Windows and Linux release gates compute the same branch hash,
 - separated local release readiness from deployment evidence,
 - made the visual Zoo/Gym capture fail closed when requested theme or mode is not reflected in the DOM,
 - regenerated the dashboard/public guide/Zoo guide from the current workflow and design-system records.

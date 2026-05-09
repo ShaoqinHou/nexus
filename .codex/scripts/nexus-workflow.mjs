@@ -273,11 +273,17 @@ function worktreeContentEntries(files) {
     try {
       const st = statSync(path);
       if (!st.isFile()) return [file, 'not-file'];
-      return [file, createHash('sha256').update(readFileSync(path)).digest('hex')];
+      return [file, fileContentEvidenceHash(path)];
     } catch {
       return [file, 'missing'];
     }
   });
+}
+
+function fileContentEvidenceHash(path) {
+  const buffer = readFileSync(path);
+  if (buffer.includes(0)) return createHash('sha256').update(buffer).digest('hex');
+  return createHash('sha256').update(canonicalTextForHash(buffer.toString('utf8'))).digest('hex');
 }
 
 function worktreeHash() {
@@ -3847,6 +3853,7 @@ function workflowSelfTestChecks() {
   add('record integrity rejects staged-deleted new evidence records', evidenceStatusProblem({ status: 'AD', file: '.codex/workflow/records/tests/TEST-NEW.md' }, false).includes('Existing evidence record changed'));
   add('worktree hash is content based independent of staging state', worktreeHashFromContent(['a'], [['a', 'hash']]) === worktreeHashFromContent(['a'], [['a', 'hash']]));
   add('worktree hash changes when file content changes', worktreeHashFromContent(['a'], [['a', 'hash']]) !== worktreeHashFromContent(['a'], [['a', 'other']]));
+  add('file evidence hash canonicalizes text line endings', createHash('sha256').update(canonicalTextForHash('a\r\nb\r\n')).digest('hex') === createHash('sha256').update(canonicalTextForHash('a\nb\n')).digest('hex'));
   add('guide source hash canonicalizes line endings', createHash('sha256').update(canonicalTextForHash('a\r\nb\r\n')).digest('hex') === createHash('sha256').update(canonicalTextForHash('a\nb\n')).digest('hex'));
   add('worktree-scope records do not receive branch frontmatter', Object.keys(branchScopedFrontmatter('worktree', { hash: 'branch-hash', base: 'base', mergeBase: 'merge', files: ['a'] })).length === 0);
   add('branch-scope records receive branch frontmatter', branchScopedFrontmatter('branch', { hash: 'branch-hash', base: 'base', mergeBase: 'merge', files: ['a'] }).branchHash === 'branch-hash');

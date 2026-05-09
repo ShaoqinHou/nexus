@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="nexus-guide-version" content="nexus-public-workflow-guide/v2" />
-  <meta name="nexus-guide-source-hash" content="1f41fc232f1a15177849d11c" />
-  <meta name="nexus-guide-content-hash" content="f00c9a2eae7f9226214cb8f4" />
+  <meta name="nexus-guide-source-hash" content="1e723e151348e648283dcb7d" />
+  <meta name="nexus-guide-content-hash" content="9ca123bc01259701ed8b0907" />
   <meta name="nexus-token-source" content="packages/web/src/platform/theme/tokens.css" />
   <title>Nexus Workflow Dashboard</title>
   <style>
@@ -81,7 +81,7 @@
 <body>
   <header>
     <h1>Nexus Workflow Dashboard</h1>
-    <div class="meta">Generated 2026-05-09T16:32:24.669Z · branch codex/native-workflow</div>
+    <div class="meta">Generated 2026-05-09T16:39:02.410Z · branch codex/native-workflow</div>
   </header>
   <div class="layout">
     <nav>
@@ -105,13 +105,13 @@
       <section id="overview" class="panel">
         <h2>Overview</h2>
         <div class="grid">
-          <div class="card"><span class="meta">Decisions</span><strong>4</strong></div>
+          <div class="card"><span class="meta">Decisions</span><strong>5</strong></div>
 <div class="card"><span class="meta">Pattern Proposals</span><strong>12</strong></div>
 <div class="card"><span class="meta">Routing</span><strong>24</strong></div>
-<div class="card"><span class="meta">Patches</span><strong>30</strong></div>
-<div class="card"><span class="meta">Reviews</span><strong>37</strong></div>
-<div class="card"><span class="meta">Tests</span><strong>41</strong></div>
-<div class="card"><span class="meta">Audits</span><strong>22</strong></div>
+<div class="card"><span class="meta">Patches</span><strong>31</strong></div>
+<div class="card"><span class="meta">Reviews</span><strong>41</strong></div>
+<div class="card"><span class="meta">Tests</span><strong>42</strong></div>
+<div class="card"><span class="meta">Audits</span><strong>23</strong></div>
 <div class="card"><span class="meta">Deployments</span><strong>4</strong></div>
 <div class="card"><span class="meta">Zoo Pages</span><strong>24/24</strong></div>
         </div>
@@ -158,6 +158,7 @@
 <li>collapsed the operator-facing route to one ladder: `status -&gt; health -&gt; release-gate -&gt; deployed-gate`,</li>
 <li>made generated guide/Zoo artifacts trigger the relevant gates even though they remain non-substantive generated views,</li>
 <li>made guide-browser records embed screenshot and summary hashes so mutable artifact files cannot silently rewrite a pass,</li>
+<li>canonicalized text content hashing for worktree/branch evidence so Windows and Linux release gates compute the same branch hash,</li>
 <li>separated local release readiness from deployment evidence,</li>
 <li>made the visual Zoo/Gym capture fail closed when requested theme or mode is not reflected in the DOM,</li>
 <li>regenerated the dashboard/public guide/Zoo guide from the current workflow and design-system records.</li>
@@ -601,6 +602,17 @@
 
     <section id="decisions" class="panel">
       <h2>Decisions</h2>
+
+        <article class="record">
+          <div class="record-top">
+            <strong>branch evidence hashes canonicalize text line endings</strong>
+            <span>2026-05-09T16:37:17.812Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/decisions/DECISION-20260509T163717Z-branch-evidence-hashes-canonicalize-text-line-en.md</p>
+          <pre>Server validation exposed a cross-platform branch hash mismatch: local Windows and Linux server worktrees hashed raw text bytes differently. The workflow kernel now canonicalizes text content before worktree/branch evidence hashing while preserving raw hashes for binary files. Self-test covers the line-ending case.</pre>
+        </article>
+
 
         <article class="record">
           <div class="record-top">
@@ -1309,6 +1321,24 @@ Fallback target: n/a</pre>
 
         <article class="record">
           <div class="record-top">
+            <strong>cross-platform branch evidence hashing correction</strong>
+            <span>2026-05-09T16:37:42.770Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/patches/PATCH-20260509T163742Z-cross-platform-branch-evidence-hashing-correctio.md</p>
+          <pre>Summary: cross-platform branch evidence hashing correction
+Scope: branch
+Agent: codex-lead
+Routing: n/a
+Branch evidence hash: 54645629edb48a3e
+
+Files:
+- .codex/scripts/nexus-workflow.mjs</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
             <strong>final Codex workflow ladder, guide, Zoo, and evidence hardening</strong>
             <span>2026-05-09T16:28:49.659Z</span>
           </div>
@@ -1850,6 +1880,78 @@ Files:
 
     <section id="reviews" class="panel">
       <h2>Reviews</h2>
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review integrated pass branch</strong>
+            <span>2026-05-09T16:38:19.743Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T163819Z-review-integrated-pass-branch.md</p>
+          <pre>Scope: branch
+Kind: integrated
+Verdict: pass
+Reviewer: codex-lead
+Patch: PATCH-20260509T163742Z-cross-platform-branch-evidence-hashing-correctio
+Worktree hash: 6ad33f5ac370a919
+Branch evidence hash: 54645629edb48a3e
+</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review design pass branch</strong>
+            <span>2026-05-09T16:38:10.976Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T163810Z-review-design-pass-branch.md</p>
+          <pre>Scope: branch
+Kind: design
+Verdict: pass
+Reviewer: codex-lead
+Patch: PATCH-20260509T163742Z-cross-platform-branch-evidence-hashing-correctio
+Worktree hash: 6ad33f5ac370a919
+Branch evidence hash: 54645629edb48a3e
+</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review workflow pass branch</strong>
+            <span>2026-05-09T16:38:02.357Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T163802Z-review-workflow-pass-branch.md</p>
+          <pre>Scope: branch
+Kind: workflow
+Verdict: pass
+Reviewer: codex-lead
+Patch: PATCH-20260509T163742Z-cross-platform-branch-evidence-hashing-correctio
+Worktree hash: 6ad33f5ac370a919
+Branch evidence hash: 54645629edb48a3e
+</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review general pass branch</strong>
+            <span>2026-05-09T16:37:53.296Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T163753Z-review-general-pass-branch.md</p>
+          <pre>Scope: branch
+Kind: general
+Verdict: pass
+Reviewer: codex-lead
+Patch: PATCH-20260509T163742Z-cross-platform-branch-evidence-hashing-correctio
+Worktree hash: 6ad33f5ac370a919
+Branch evidence hash: 54645629edb48a3e
+</pre>
+        </article>
+
 
         <article class="record">
           <div class="record-top">
@@ -2499,6 +2601,24 @@ Notes: Focused review found hook false-positive/false-negative issues, they were
         <article class="record">
           <div class="record-top">
             <strong>Verification pass branch</strong>
+            <span>2026-05-09T16:38:31.012Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/tests/TEST-20260509T163831Z-verification-pass-branch.md</p>
+          <pre>Scope: branch
+Verdict: pass
+Verifier: codex-lead
+Worktree hash: 6ad33f5ac370a919
+Branch evidence hash: 54645629edb48a3e
+Command run ids: local-node-check-canonical-branch-hash, local-self-test-canonical-branch-hash, local-release-gate-after-commit, local-guide-check-after-final-guide-cleanup, local-guide-browser-check-after-final-guide-cleanup
+
+Files: .agents/skills/nexus-audit/SKILL.md, .agents/skills/nexus-audit/agents/openai.yaml, .agents/skills/nexus-review/SKILL.md, .agents/skills/nexus-review/agents/openai.yaml, .agents/skills/nexus-verify/SKILL.md, .agents/skills/nexus-verify/agents/openai.yaml, .agents/skills/nexus-workflow/SKILL.md, .agents/skills/nexus-workflow/agents/openai.yaml, .codex/README.md, .codex/agents/nexus-auditor.toml, .codex/agents/nexus-design-reviewer.toml, .codex/agents/nexus-pattern-reviewer.toml, .codex/agents/nexus-researcher.toml, .codex/agents/nexus-spark-worker.toml, .codex/agents/nexus-strong-worker.toml, .codex/agents/nexus-verifier.toml, .codex/config.toml, .codex/hooks.json, .codex/knowledge/deployment.md, .codex/knowledge/design-system.md, .codex/knowledge/hooks.md, .codex/knowledge/model-routing.md, .codex/knowledge/patterns.md, .codex/knowledge/verification.md, .codex/scripts/audit-deps.mjs, .codex/scripts/capture-design-zoo-visuals.mjs, .codex/scripts/check-design-tokens.mjs, .codex/scripts/check-production-zoo-bundle.mjs, .codex/scripts/nexus-workflow.mjs, .codex/scripts/run-hook.mjs, .codex/scripts/validate-design-zoo.mjs, .codex/workflow/current-state.md, .codex/workflow/dependency-audit-baseline.json, .codex/workflow/research/codex-capabilities-2026-05-09.md, .codex/workflow/research/workflow-architecture-audit-2026-05-09.md, .codex/workflow/runtime/.gitignore, .codex/workflow/scenarios/model-routing.json, .codex/workflow/state/.gitignore, .codex/workflow/templates/README.md, .codex/workflow/templates/audit.md, .codex/workflow/templates/current-state.md, .codex/workflow/templates/deployment.md, .codex/workflow/templates/guide-browser.md, .codex/workflow/templates/patch.md, .codex/workflow/templates/pattern-proposal.md, .codex/workflow/templates/review.md, .codex/workflow/templates/routing.md, .codex/workflow/templates/test.md, .github/workflows/nexus-workflow-gates.yml, AGENTS.md, WORKFLOW.md, package-lock.json, package.json, packages/api/package.json, packages/web/eslint.config.js, packages/web/src/apps/ordering/merchant/ThemeSettings.tsx, packages/web/src/components/registry.json, packages/web/src/components/ui/Toast.tsx, packages/web/src/components/ui/__tests__/Toast.test.tsx, packages/web/src/lib/i18n.ts, packages/web/src/platform/theme/ThemeProvider.tsx, packages/web/src/platform/theme/themes.css, packages/web/src/platform/theme/themes/cantonese.css, packages/web/src/platform/theme/themes/classic.css, packages/web/src/platform/theme/themes/counter.css, packages/web/src/platform/theme/themes/curry-house.css, packages/web/src/platform/theme/themes/izakaya.css, packages/web/src/platform/theme/themes/sichuan.css, packages/web/src/platform/theme/themes/taqueria.css, packages/web/src/platform/theme/themes/trattoria.css, packages/web/src/platform/theme/themes/wok.css, packages/web/src/platform/theme/tokens.css, packages/web/src/routeTree.tsx, packages/web/src/routes/__design/Zoo.tsx, packages/web/tsconfig.tsbuildinfo</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Verification pass branch</strong>
             <span>2026-05-09T16:29:35.490Z</span>
           </div>
           <span class="pill">pass</span>
@@ -3063,6 +3183,24 @@ Notes: Latest full local validation passed: workflow script syntax, design-zoo s
 
     <section id="audits" class="panel">
       <h2>Audits</h2>
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Audit pass branch</strong>
+            <span>2026-05-09T16:38:51.528Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/audits/AUDIT-20260509T163851Z-audit-pass-branch.md</p>
+          <pre>Scope: branch
+Verdict: pass
+Auditor: codex-lead
+Worktree hash: 6ad33f5ac370a919
+Branch evidence hash: 54645629edb48a3e
+Command run ids: local-self-test-canonical-branch-hash, local-branch-evidence-final-cleaned
+Artifacts: .codex/workflow/records/decisions/DECISION-20260509T163717Z-branch-evidence-hashes-canonicalize-text-line-en.md
+Files: .agents/skills/nexus-audit/SKILL.md, .agents/skills/nexus-audit/agents/openai.yaml, .agents/skills/nexus-review/SKILL.md, .agents/skills/nexus-review/agents/openai.yaml, .agents/skills/nexus-verify/SKILL.md, .agents/skills/nexus-verify/agents/openai.yaml, .agents/skills/nexus-workflow/SKILL.md, .agents/skills/nexus-workflow/agents/openai.yaml, .codex/README.md, .codex/agents/nexus-auditor.toml, .codex/agents/nexus-design-reviewer.toml, .codex/agents/nexus-pattern-reviewer.toml, .codex/agents/nexus-researcher.toml, .codex/agents/nexus-spark-worker.toml, .codex/agents/nexus-strong-worker.toml, .codex/agents/nexus-verifier.toml, .codex/config.toml, .codex/hooks.json, .codex/knowledge/deployment.md, .codex/knowledge/design-system.md, .codex/knowledge/hooks.md, .codex/knowledge/model-routing.md, .codex/knowledge/patterns.md, .codex/knowledge/verification.md, .codex/scripts/audit-deps.mjs, .codex/scripts/capture-design-zoo-visuals.mjs, .codex/scripts/check-design-tokens.mjs, .codex/scripts/check-production-zoo-bundle.mjs, .codex/scripts/nexus-workflow.mjs, .codex/scripts/run-hook.mjs, .codex/scripts/validate-design-zoo.mjs, .codex/workflow/current-state.md, .codex/workflow/dependency-audit-baseline.json, .codex/workflow/research/codex-capabilities-2026-05-09.md, .codex/workflow/research/workflow-architecture-audit-2026-05-09.md, .codex/workflow/runtime/.gitignore, .codex/workflow/scenarios/model-routing.json, .codex/workflow/state/.gitignore, .codex/workflow/templates/README.md, .codex/workflow/templates/audit.md, .codex/workflow/templates/current-state.md, .codex/workflow/templates/deployment.md, .codex/workflow/templates/guide-browser.md, .codex/workflow/templates/patch.md, .codex/workflow/templates/pattern-proposal.md, .codex/workflow/templates/review.md, .codex/workflow/templates/routing.md, .codex/workflow/templates/test.md, .github/workflows/nexus-workflow-gates.yml, AGENTS.md, WORKFLOW.md, package-lock.json, package.json, packages/api/package.json, packages/web/eslint.config.js, packages/web/src/apps/ordering/merchant/ThemeSettings.tsx, packages/web/src/components/registry.json, packages/web/src/components/ui/Toast.tsx, packages/web/src/components/ui/__tests__/Toast.test.tsx, packages/web/src/lib/i18n.ts, packages/web/src/platform/theme/ThemeProvider.tsx, packages/web/src/platform/theme/themes.css, packages/web/src/platform/theme/themes/cantonese.css, packages/web/src/platform/theme/themes/classic.css, packages/web/src/platform/theme/themes/counter.css, packages/web/src/platform/theme/themes/curry-house.css, packages/web/src/platform/theme/themes/izakaya.css, packages/web/src/platform/theme/themes/sichuan.css, packages/web/src/platform/theme/themes/taqueria.css, packages/web/src/platform/theme/themes/trattoria.css, packages/web/src/platform/theme/themes/wok.css, packages/web/src/platform/theme/tokens.css, packages/web/src/routeTree.tsx, packages/web/src/routes/__design/Zoo.tsx, packages/web/tsconfig.tsbuildinfo</pre>
+        </article>
+
 
         <article class="record">
           <div class="record-top">
