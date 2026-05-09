@@ -2,6 +2,25 @@
 
 Verification records must separate machine-checkable proof from human-inspection artifacts.
 
+## Command Evidence
+
+Long-running workflow commands should be run through the timed workflow runner when practical:
+
+```bash
+npm run workflow:run -- --id <meaningful-id> --timeout-ms <ms> -- npm run <script>
+```
+
+The runner writes local JSONL telemetry under `.codex/workflow/runtime/command-runs.jsonl`, including start/end time, duration, exit code, timeout status, and output tails. Runtime telemetry is operational evidence for the current checkout; durable pass/fail conclusions still belong in explicit `TEST-*`, review, audit, or deployment records.
+
+When `record-verify`, `record-audit`, or `record-deployment` records a passing verdict with `--commands`, the workflow kernel copies a compact command summary into the durable record frontmatter as `commandEvidence`. Release and deployment gates validate that embedded summary, not the mutable runtime file. Command IDs that have no runtime entry, failed, or timed out cannot be recorded as passing evidence.
+
+Passing verification and audit records must reference execution evidence, not only prose. Use `--commands`/`--command-ids` for timed runner ids and `--artifacts`/`--evidence` for durable summaries, screenshots, or deployment artifacts. Freeform checks are descriptive and do not satisfy a pass gate by themselves:
+
+```bash
+node .codex/scripts/nexus-workflow.mjs record-verify --scope branch --verdict pass --verifier codex-lead --commands local-self-test,local-release-gate --notes "<summary>"
+node .codex/scripts/nexus-workflow.mjs record-audit --scope branch --verdict pass --auditor codex-lead --commands local-self-test --artifacts ".codex/workflow/records/reviews/REVIEW-id.md" --notes "<summary>"
+```
+
 ## Screenshot Evidence
 
 Screenshots are supporting evidence, not the gate by themselves. A screenshot record should answer:
@@ -35,5 +54,7 @@ For guide-browser evidence, include:
 - separate deployment records for public/server validation.
 
 Use `npm run workflow:guide-browser-finalize` instead of manually sequencing guide generation and screenshot capture. The command regenerates guide artifacts first, captures deterministic browser evidence, then records the guide-browser pass last so the hash-bound evidence does not immediately stale itself.
+
+Deployment is a separate proof from local release readiness. Use `record-deployment --verdict pass --target <server/url> --commands <ids> --checks <health/log/asset checks>` after server validation, then run `npm run workflow:deployed-gate` when the task requires hosted validation. A passing deployment record needs command evidence or durable artifact evidence; `--checks` documents what was inspected but is not proof by itself.
 
 If evidence files become large or repetitive, keep the record and summary in git and move bulky raw artifacts to a deliberate artifact store. Do not let screenshot folders become an unbounded transcript substitute.

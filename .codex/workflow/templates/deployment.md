@@ -4,11 +4,16 @@ Environment:
 
 Revision:
 
-Commands:
+Verdict: pass | fail | partial | blocked
+
+Command Run IDs:
+
+Embedded Command Evidence:
 
 Validation:
 
-Server Evidence:
+Checks:
+
+Durable Artifacts:
 
 Rollback Notes:
-

@@ -1,8 +1,0 @@
-{
-  "worktreeHash": "807507612dd6074b",
-  "verdict": "pass",
-  "auditor": "codex-lead",
-  "auditedAt": "2026-05-09T12:32:08.818Z",
-  "auditRecord": ".codex/workflow/records/audits/AUDIT-20260509T123208Z-audit-pass-worktree.md",
-  "notes": "Audit passed for final workflow evidence changes. Root causes fixed: manual guide evidence ordering caused stale guide hashes, staged-new records were misclassified as committed record edits, and review hashes changed on git add. The workflow now has a guide-browser finalizer, summary/dashboard coverage checks, staged-new evidence handling, and content-based worktree hashes."
-}

@@ -5,9 +5,20 @@ This is the project-local workflow root for Codex sessions.
 ## Start Here
 
 1. Read `workflow/current-state.md`.
-2. Run `node .codex/scripts/nexus-workflow.mjs status`.
+2. Run `npm run workflow:status`.
 3. Load only the relevant knowledge file from `knowledge/`.
 4. Record decisions, patches, reviews, tests, and deployments under `workflow/records/`.
+
+## Workflow Ladder
+
+Use one canonical route:
+
+1. `npm run workflow:status` for the cheap resume snapshot.
+2. `npm run workflow:health` when diagnosing a complex, stale, or surprising session.
+3. `npm run workflow:release-gate` before committing or handing over local work.
+4. `npm run workflow:deployed-gate` after hosted/server validation when deployment is in scope.
+
+Other workflow commands are helpers for creating evidence records or diagnosing a failed gate. Do not treat them as a second closeout process.
 
 ## Navigation
 
@@ -30,7 +41,10 @@ This is the project-local workflow root for Codex sessions.
 - `hooks.json` wires Codex lifecycle hooks when project hooks are enabled and trusted.
 - `.github/workflows/nexus-workflow-gates.yml` runs the same workflow gates in CI so enforcement is not hook-only.
 - `workflow/templates/` describes record shapes for humans and agents.
-- `npm run workflow:guide-browser-finalize` is the deterministic final guide-evidence step. Run it after review, verification, and audit records are in place; it regenerates guide artifacts, captures browser evidence, and records the hash-bound guide-browser pass.
+- `workflow/state/` stores mutable workflow cache JSON. It is not durable evidence.
+- `workflow/runtime/` stores operational telemetry, hook heartbeats, PIDs, and local logs. It is not durable evidence.
+- `npm run workflow:status`, `npm run workflow:health`, `npm run workflow:release-gate`, and `npm run workflow:deployed-gate` are the public workflow ladder.
+- `npm run workflow:guide-browser-finalize` is the deterministic final guide-evidence step when guide artifacts are in scope. Run it after review, verification, and audit records are in place; it regenerates guide artifacts, captures browser evidence, and records the hash-bound guide-browser pass.
 
 ## Workflow Kernel
 
@@ -40,8 +54,11 @@ The center of the system is `scripts/nexus-workflow.mjs`. Treat it as the determ
 - hooks, package scripts, local/server validation, and future CI should call it instead of duplicating logic,
 - LLMs supply judgment by creating review, verification, audit, routing, and pattern-proposal records,
 - the kernel decides whether required records exist, hashes match, guide artifacts are current, and release gates can pass.
-- state JSON files are caches only; gates cross-check them against append-only markdown records before trusting a pass.
+- passing verification, audit, and deployment records embed compact command-run summaries from the timed runner, so gates validate durable command evidence instead of trusting mutable runtime telemetry.
+- state JSON files under `workflow/state/` are caches only; gates cross-check them against append-only markdown records before trusting a pass.
 - record integrity also checks committed evidence-record history against the configured base branch when available, so old records must be corrected by adding a new record instead of rewriting the old one.
+- branch evidence checks compare the current branch diff against its base and require hash-bound branch-scope patch, review, verification, and audit records even on a clean checkout.
+- Worktree-scope records should not carry branch hashes. Branch hashes belong to final branch-scope records. Delegated worker patch records introduced on the branch remain branch evidence through routing id plus integrated review, even if later lead edits change the final branch hash.
 
 When the kernel needs LLM judgment, it should fail with a specific missing-record message rather than hide judgment inside a hook. Add new workflow rules to the kernel and records first; keep skills and docs as concise usage guidance around that shared system.
 
@@ -73,40 +90,51 @@ Core handover context stays small. Detailed records live below:
 - `workflow/records/deployments/`
 - `workflow/records/risks.md`
 
-Do not paste long transcripts into `current-state.md`. Link to records instead.
+Do not put mutable cache JSON in `workflow/records/`. Do not paste long transcripts into `current-state.md`. Link to records instead.
 
 ## Handover Policy
 
 `workflow/current-state.md` is a managed compact handover, not a scratch note. It should hold stable resume facts and links to detailed records. Do not put self-staling finalization facts there, such as exact "final workflow record commit" lines or pending "commit/push/pull this handover update" tasks.
 
-Before final handover, run:
+Before final local handover, run the canonical gate:
 
 ```bash
-npm run workflow:records-check
-npm run workflow:routing-check
-npm run workflow:guide-check
-npm run workflow:guide-browser-check
-npm run workflow:zoo-check
-npm run workflow:zoo-visual-guide-check
-npm run workflow:hook-config-check
-npm run workflow:dependency-audit-check
-npm run workflow:prod-zoo-bundle-check
-npm run workflow:handover-check
-npm run workflow:self-test
 npm run workflow:release-gate
 ```
 
+If it fails, run `npm run workflow:health` for the diagnostic breakdown. The release gate covers records, routing, generated guides, guide-browser evidence, Zoo/Gym evidence, hook config, branch evidence, dependency-audit baseline, production Zoo bundling, handover hygiene, and workflow self-tests.
+
 Pattern proposal, routing, patch, review, test, audit, guide-browser, and deployment records are append-only once committed. If a record is wrong, create a correction record rather than editing committed evidence. `NEXUS_RECORD_BASE=<ref>` can be used to force the base ref for append-only history checks; otherwise the kernel uses `origin/main` or `main` when present.
 
-`.codex/dashboard/index.html` and `.codex/dashboard/public.html` are generated guide artifacts and user-facing workflow surfaces. They are governed by the dedicated guide freshness/content-hash gate and recorded browser validation; their generator, source docs, state files, records, and workflow rules remain part of the substantive review surface.
+`.codex/dashboard/index.html` and `.codex/dashboard/public.html` are generated guide artifacts and user-facing workflow surfaces. They are snapshots, not live truth. Live worktree truth comes from `npm run workflow:status`. Generated guide artifacts are governed by the dedicated guide freshness/content-hash gate and recorded browser validation; their generator, source docs, records, and workflow rules remain part of the substantive review surface.
 
 If final deployment or records create more commits after the runtime build, describe that as "branch HEAD" or link to the deployment record instead of hardcoding a final commit that the next bookkeeping commit can invalidate.
+
+`release-gate` proves local branch readiness. Server publication is a separate proof step:
+
+```bash
+npm run workflow:deployment-check
+npm run workflow:deployed-gate
+```
+
+Use `deployed-gate` when the task includes server validation or after a release has been pushed to the host. A passing deployment record needs command evidence or durable artifacts; freeform checks document the inspection but do not satisfy the gate by themselves.
 
 Guide-browser evidence is intentionally generated as one atomic workflow step. Avoid manually recording browser evidence before review, verification, audit, and generated-guide updates are settled; any later guide-affecting record or script change correctly invalidates the previous artifact hash. Use:
 
 ```bash
 npm run workflow:guide-browser-finalize
 ```
+
+When closing a branch, record the whole branch diff explicitly instead of relying on a small worktree patch record:
+
+```bash
+node .codex/scripts/nexus-workflow.mjs record-patch --scope branch --summary "<branch summary>" --worker codex-lead
+node .codex/scripts/nexus-workflow.mjs record-review --scope branch --kind general --verdict pass --reviewer <name> --notes "<summary>"
+node .codex/scripts/nexus-workflow.mjs record-verify --scope branch --verdict pass --verifier <name> --commands "<timed-command-ids>" --notes "<commands/results>"
+node .codex/scripts/nexus-workflow.mjs record-audit --scope branch --verdict pass --auditor <name> --commands "<timed-command-ids>" --notes "<summary>"
+```
+
+If the branch touches workflow or design-system files, record the matching `workflow` or `design` branch review too. If the branch includes delegated worker patch evidence, record an `integrated` branch review as well. The release gate prints the missing branch-scope kind when a focused review is required.
 
 ## Pattern Discovery
 

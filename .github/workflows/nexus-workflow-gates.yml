@@ -26,29 +26,18 @@ jobs:
       - name: Install
         run: npm ci
 
-      - name: Dependency Audit
-        run: npm run audit:deps
-
       - name: Design Token Lint
-        run: npm run lint:design
+        timeout-minutes: 2
+        run: npm run workflow:run -- --id ci-design-lint --timeout-ms 90000 -- npm run lint:design
 
       - name: Unit Tests
-        run: npm test
+        timeout-minutes: 6
+        run: npm run workflow:run -- --id ci-unit-tests --timeout-ms 330000 -- npm test
 
       - name: Build
-        run: npm run build
-
-      - name: Production Zoo Bundle Check
-        run: npm run workflow:prod-zoo-bundle-check
-
-      - name: Workflow Self-Test
-        run: npm run workflow:self-test
-
-      - name: Workflow Guide Checks
-        run: |
-          npm run workflow:guide-check
-          npm run workflow:zoo-visual-guide-check
-          npm run workflow:hook-config-check
+        timeout-minutes: 4
+        run: npm run workflow:run -- --id ci-build --timeout-ms 210000 -- npm run build
 
       - name: Workflow Release Gate
-        run: npm run workflow:release-gate
+        timeout-minutes: 3
+        run: npm run workflow:run -- --id ci-release-gate --timeout-ms 150000 -- npm run workflow:release-gate

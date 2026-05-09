@@ -14,7 +14,7 @@ const root = findRoot(process.cwd());
 const script = join(root, '.codex', 'scripts', 'nexus-workflow.mjs');
 if (!existsSync(script)) {
   console.error('Nexus hook script not found.');
-  process.exit(0);
+  process.exit(event === 'pre-tool-use' ? 1 : 0);
 }
 
 const stdin = readStdin();
@@ -22,6 +22,8 @@ const result = spawnSync(process.execPath, [script, 'hook', event], {
   cwd: root,
   input: stdin,
   encoding: 'utf8',
+  timeout: 30000,
+  maxBuffer: 1024 * 1024,
 });
 if (result.stdout) process.stdout.write(result.stdout);
 if (result.stderr) process.stderr.write(result.stderr);

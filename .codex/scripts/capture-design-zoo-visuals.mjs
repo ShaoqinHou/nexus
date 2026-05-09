@@ -135,16 +135,49 @@ function captureContexts(args) {
 async function setChromeState(page, { mode, theme }) {
   const select = page.locator('select').first();
   if (theme && (await select.count())) {
-    try {
-      await select.selectOption(theme);
-    } catch {
-      // Some future Zoo pages may not expose the global theme select.
+    await select.selectOption(theme);
+  } else if (theme) {
+    throw new Error(`Zoo theme selector is missing; cannot capture requested theme ${theme}.`);
+  }
+  const isDark = async () => page.evaluate(() => document.documentElement.classList.contains('dark'));
+  if (mode === 'dark') {
+    if (!(await isDark())) {
+      const button = page.getByRole('button', { name: /switch to dark mode/i });
+      if (await button.count()) await button.click();
+      else throw new Error('Zoo dark-mode toggle is missing; cannot capture requested dark mode.');
+    }
+  } else {
+    if (await isDark()) {
+      const button = page.getByRole('button', { name: /switch to light mode/i });
+      if (await button.count()) await button.click();
+      else throw new Error('Zoo light-mode toggle is missing; cannot capture requested light mode.');
     }
   }
-  if (mode === 'dark') {
-    const button = page.getByRole('button', { name: /switch to dark mode/i });
-    if (await button.count()) await button.click();
+  return verifyChromeState(page, { mode, theme });
+}
+
+async function verifyChromeState(page, { mode, theme }) {
+  const actual = await page.evaluate(() => {
+    const root = document.documentElement;
+    const scope = document.querySelector('[data-themed-scope="design-zoo"]');
+    const select = document.querySelector('select');
+    return {
+      htmlDark: root.classList.contains('dark'),
+      bodyTheme: document.body.dataset.theme || '',
+      scopeTheme: scope?.getAttribute('data-theme') || '',
+      selectValue: select?.value || '',
+    };
+  });
+  const problems = [];
+  if (mode === 'dark' && !actual.htmlDark) problems.push('html.dark is not set');
+  if (mode === 'light' && actual.htmlDark) problems.push('html.dark is still set');
+  if (theme && actual.selectValue !== theme) problems.push(`selector value is ${actual.selectValue || '(empty)'}`);
+  if (theme && actual.scopeTheme !== theme) problems.push(`design-zoo scope data-theme is ${actual.scopeTheme || '(empty)'}`);
+  if (theme && actual.bodyTheme !== theme) problems.push(`body data-theme is ${actual.bodyTheme || '(empty)'}`);
+  if (problems.length) {
+    throw new Error(`Zoo chrome state did not match requested ${mode}/${theme}: ${problems.join('; ')}`);
   }
+  return actual;
 }
 
 async function exerciseShowcase(page, slug) {
@@ -183,7 +216,7 @@ async function main() {
         const url = `${baseUrl}${target.route || `/design/${target.slug}`}`;
         await page.goto(url, { waitUntil: 'networkidle', timeout: 20000 });
         await page.getByText('Zoo', { exact: false }).first().waitFor({ state: 'visible', timeout: 10000 });
-        await setChromeState(page, context);
+        const verifiedChromeState = await setChromeState(page, context);
         await exerciseShowcase(page, target.slug);
         await page.waitForTimeout(350);
 
@@ -196,6 +229,9 @@ async function main() {
           contextLabel: context.label,
           mode: context.mode,
           theme: context.theme,
+          verifiedMode: verifiedChromeState.htmlDark ? 'dark' : 'light',
+          verifiedTheme: verifiedChromeState.scopeTheme,
+          verifiedChromeState,
           viewport: context.viewport,
           fullPage: true,
           sourceUrl: url,

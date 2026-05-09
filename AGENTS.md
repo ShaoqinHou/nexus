@@ -12,6 +12,15 @@ Then run:
 node .codex/scripts/nexus-workflow.mjs status
 ```
 
+Use one canonical workflow ladder:
+
+1. `npm run workflow:status` for the cheap resume snapshot.
+2. `npm run workflow:health` when diagnosing a complex or stale session.
+3. `npm run workflow:release-gate` before committing or handing over local work.
+4. `npm run workflow:deployed-gate` after hosted/server validation when deployment is in scope.
+
+Other workflow scripts are helpers for creating records or diagnosing a failed gate. Do not turn them into a parallel closeout checklist.
+
 ## Project Shape
 
 Nexus is a multi-tenant mini-app platform. The first module is restaurant ordering.
@@ -36,16 +45,19 @@ Nexus is a multi-tenant mini-app platform. The first module is restaurant orderi
 
 - Use repo skills in `.agents/skills` for workflow, review, verification, and audits.
 - Record durable state under `.codex/workflow/records` instead of relying on the chat transcript.
+- Keep mutable cache under `.codex/workflow/state` and runtime telemetry under `.codex/workflow/runtime`; neither is durable evidence.
+- Workflow truth is append-only records plus git/worktree/branch state. Caches and generated guide pages must be delete-safe aids, not required human memory.
 - Treat `.codex/scripts/nexus-workflow.mjs` as the deterministic workflow kernel. Hooks, package scripts, server checks, and future CI should call it; LLM judgment should be recorded as review/verify/audit/routing/pattern evidence for the kernel to validate.
 - Treat committed pattern proposal, routing, patch, review, test, audit, and deployment records as append-only evidence. If evidence is wrong, create a correction record instead of editing the old one.
 - Treat hooks as thin triggers only. They can invalidate gates or block common unsafe commit forms, but review/verify/audit judgment must be done by the lead or a focused agent and recorded explicitly. See `.codex/knowledge/hooks.md` for examples and limits.
 - Project `.codex/config.toml` and `.codex/hooks.json` are active only in trusted Codex sessions. Always keep explicit script gates as the reliable source of enforcement.
+- The canonical execution route is `status -> health when needed -> release-gate -> deployed-gate when deployed`. Hooks, review checks, verification checks, audit checks, guide checks, and branch checks support that route; they are not competing workflows.
 - When a repeated issue, undocumented invariant, deprecated pattern, or useful project convention is discovered, create an evidence-based proposal before changing durable guidance:
   ```bash
   node .codex/scripts/nexus-workflow.mjs record-pattern --summary "<finding>" --evidence "<files/tests/reviews>" --guidance "<candidate rule>" --files "a,b"
   ```
 - Promote a pattern into `.codex/knowledge/*` only after checking the source code, reference docs, history, or tests. Cite the proposal record in the guidance or an adjacent decision record.
-- After code edits, run a focused review before commit:
+- After code edits, run or record the focused review evidence needed by the release gate:
   ```bash
   node .codex/scripts/nexus-workflow.mjs review-check
   ```
@@ -59,18 +71,33 @@ Nexus is a multi-tenant mini-app platform. The first module is restaurant orderi
   ```bash
   node .codex/scripts/nexus-workflow.mjs guide-browser-check
   ```
-- After review passes, record it:
+- Branches require branch-diff evidence before release, even when the checkout is clean. Use a branch-scope patch record for the whole branch diff, not only small worktree patch records:
+  ```bash
+  node .codex/scripts/nexus-workflow.mjs record-patch --scope branch --summary "<branch summary>" --worker codex-lead
+  node .codex/scripts/nexus-workflow.mjs branch-evidence-check
+  ```
+- Worktree-scope patch/review/verify/audit records should not carry branch hashes. Branch hashes belong to branch-scope closing records.
+- Worktree-scope records are interim evidence while coding. Before release on a branch with substantive diff, close the branch with branch-scope records tied to the current branch hash:
+  ```bash
+  node .codex/scripts/nexus-workflow.mjs record-patch --scope branch --summary "<branch summary>" --worker codex-lead
+  node .codex/scripts/nexus-workflow.mjs record-review --scope branch --kind general --verdict pass --reviewer <name> --notes "<summary>"
+  node .codex/scripts/nexus-workflow.mjs record-verify --scope branch --verdict pass --verifier <name> --commands "<timed-command-ids>" --notes "<commands/results>"
+  node .codex/scripts/nexus-workflow.mjs record-audit --scope branch --verdict pass --auditor <name> --commands "<timed-command-ids>" --notes "<summary>"
+  ```
+- Add the required focused branch review kinds for the actual diff, such as `workflow`, `design`, `pattern`, or `integrated`. The release gate prints the missing kind when one is required.
+- For interim worktree review passes, record it:
   ```bash
   node .codex/scripts/nexus-workflow.mjs record-review --scope worktree --kind <general|pattern|design|workflow|integrated> --verdict pass --reviewer <name> --notes "<summary>"
   ```
-- Record verification and audit evidence:
+- For interim worktree verification and audit evidence:
   ```bash
-  node .codex/scripts/nexus-workflow.mjs record-verify --scope worktree --verdict pass --verifier <name> --notes "<commands/results>"
-  node .codex/scripts/nexus-workflow.mjs record-audit --scope worktree --verdict pass --auditor <name> --notes "<summary>"
+  node .codex/scripts/nexus-workflow.mjs record-verify --scope worktree --verdict pass --verifier <name> --commands "<timed-command-ids>" --notes "<commands/results>"
+  node .codex/scripts/nexus-workflow.mjs record-audit --scope worktree --verdict pass --auditor <name> --commands "<timed-command-ids>" --notes "<summary>"
   ```
-- Before commit, run:
+- Passing verify/audit/deployment records that cite command IDs must be created after running those commands through `npm run workflow:run`; the kernel embeds compact command summaries in the durable record and gates reject missing, failed, or timed-out command evidence.
+- Before commit or final local handover, run the canonical release gate:
   ```bash
-  node .codex/scripts/nexus-workflow.mjs validate --commit-gate
+  npm run workflow:release-gate
   ```
 
 ## Model Routing
@@ -85,6 +112,14 @@ Use subagents only when delegation materially helps.
 - For non-trivial delegation, record a routing preflight:
   ```bash
   node .codex/scripts/nexus-workflow.mjs record-routing --summary "<task>" --route <lead|spark|strong|research|review|integrated-review|escalate-to-strong> --worker <agent> --files "a,b" --verification "<commands>" --fallback-trigger "<when>" --fallback-target "<agent>"
+  ```
+- When recording a delegated patch, pass the worker name and routing id so integrated review and routing checks can see the real participants:
+  ```bash
+  node .codex/scripts/nexus-workflow.mjs record-patch --summary "<slice>" --worker <agent> --routing <ROUTING-id> --files "a,b"
+  ```
+- Close a worker routing slice when it is done:
+  ```bash
+  node .codex/scripts/nexus-workflow.mjs complete-routing --routing <ROUTING-id> --notes "<outcome>"
   ```
 - If Spark receives a task that violates its criteria, it must refuse/escalate before editing. If it fails tests, stalls, loops, edits outside scope, or produces shallow output, stop that worker and escalate to `nexus_strong_worker` or the lead model.
 - Use `nexus_pattern_reviewer` after substantive code changes.

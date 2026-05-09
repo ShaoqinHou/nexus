@@ -12,7 +12,11 @@ Findings:
 
 - none
 
-Evidence:
+Command Run IDs:
+
+Embedded Command Evidence:
+
+Artifacts Or Record Evidence:
 
 Residual Risk:
 

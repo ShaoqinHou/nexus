@@ -82,6 +82,7 @@ The Codex workflow dashboard also surfaces the zoo route list so the guide app l
 - `.codex/dashboard/zoo/index.html`
 - `https://cv.rehou.games/nexus/workflow/zoo/`
 - default captures cover desktop/light and mobile/dark contexts for every registry-backed page.
+- the capture script must verify the DOM state it labels: `<html>.dark`, Zoo wrapper `data-theme`, body `data-theme`, and the theme selector value must match the requested context before a screenshot is accepted.
 - captures are full-page, and the mobile Zoo layout must keep real demo content visible instead of letting navigation chrome consume the viewport.
 - generated guide screenshots should preserve source evidence instead of cropping long demos such as the theme matrix.
 - the visual guide source hash includes component source files from `packages/web/src/components/`, registry metadata, Zoo route code, and theme files.

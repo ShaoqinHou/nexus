@@ -49,6 +49,17 @@ Server validation must confirm:
 - `https://cv.rehou.games/nexus/` returns HTML.
 - `https://cv.rehou.games/nexus/api/platform/health` returns 200.
 
+After validating the server, record deployment evidence and run the deployed gate:
+
+```bash
+node .codex/scripts/nexus-workflow.mjs record-deployment --summary "<deployment>" --target "https://cv.rehou.games/nexus/" --verdict pass --operator codex-lead --commands "<timed-command-ids>" --checks "<health/assets/log checks>" --notes "<server result>"
+npm run workflow:deployed-gate
+```
+
+Use `npm run workflow:run` for SSH, curl, and smoke-check commands that should become deployment proof. The deployment record embeds compact summaries for those command ids. `--checks` is descriptive context; it does not replace command evidence or durable artifacts for a passing deployment record.
+
+`npm run workflow:release-gate` is local branch readiness. It does not prove the server was updated.
+
 ## Workflow Guide URL
 
 The public-safe workflow guide is deployed to:

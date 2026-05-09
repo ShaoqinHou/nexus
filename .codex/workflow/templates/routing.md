@@ -15,6 +15,8 @@ Selected route:
 
 Worker:
 
+Note: delegated patch records must include both `--worker` and `--routing`.
+
 Rejected routes:
 
 Assigned write scope:

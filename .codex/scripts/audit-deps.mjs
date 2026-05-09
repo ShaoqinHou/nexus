@@ -142,10 +142,14 @@ function main() {
     ? spawnSync(process.env.ComSpec || 'cmd.exe', ['/d', '/s', '/c', 'npm audit --audit-level=moderate --json'], {
       cwd: ROOT,
       encoding: 'utf8',
+      timeout: 120000,
+      maxBuffer: 10 * 1024 * 1024,
     })
     : spawnSync('npm', ['audit', '--audit-level=moderate', '--json'], {
     cwd: ROOT,
     encoding: 'utf8',
+    timeout: 120000,
+    maxBuffer: 10 * 1024 * 1024,
     });
   const report = loadJsonFromText(result.stdout, null);
   if (!report) {

@@ -2,6 +2,11 @@
 
 Summary:
 
+Scope:
+
+- worktree
+- branch
+
 Files:
 
 - path/to/file

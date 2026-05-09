@@ -8,8 +8,9 @@ Hooks are guardrails, not the workflow brain. They must stay small and understan
 - `.codex/config.toml` also pins `sandbox_mode = "danger-full-access"` and `approval_policy = "never"` so choosing `Custom (config.toml)` keeps the same no-prompt shell posture as Full access while adding project config.
 - `.codex/hooks.json` wires lifecycle events to `.codex/scripts/nexus-workflow.mjs`.
 - `workflow:hook-config-check` verifies exact hook commands and matchers, so a hook cannot silently stop firing by changing `Bash`, `apply_patch`, `Edit`, `Write`, or session match patterns.
+- `workflow:hook-runtime-check` checks whether this checkout has actually seen a recent hook heartbeat. It is a local-session diagnostic, not a CI release gate.
 - `SessionStart` injects a compact reminder to read current state.
-- `PostToolUse` invalidates gates only when the tool payload identifies changed files.
+- `PostToolUse` invalidates gates only when the tool payload identifies changed files. It does not assign worker identity; delegated work must be recorded explicitly with `record-patch --worker --routing`.
 - `PreToolUse` blocks common `git commit` shell invocations if review is missing.
 - `Stop` reminds when review, verification, audit, or handover hygiene is missing.
 
@@ -41,6 +42,7 @@ Current mitigation:
 - `AGENTS.md` tells agents to run workflow scripts at start and before handover.
 - `npm run workflow:release-gate` is deterministic and does not depend on hook loading.
 - The public/internal guides point humans to the same scripts.
+- `npm run workflow:hook-runtime-check` can confirm whether hooks actually fired in the current checkout.
 
 Operational rule: if hooks do not appear to run, continue with the scripts. Do not treat hooks as the only enforcement mechanism.
 
@@ -93,13 +95,15 @@ Hooks may miss or intentionally ignore:
 
 The workflow handles those limits through hashes and gates:
 
-- `npm run workflow:status` shows changed/substantive files and gate state.
+- `npm run workflow:status` shows a cheap resume snapshot and writes a runtime session checkpoint.
+- `npm run workflow:health` runs heavier local diagnostics.
 - `npm run workflow:review-check` checks the current worktree hash.
 - `npm run workflow:verify-check` checks verification-relevant changes.
 - `npm run workflow:audit-check` checks audit-relevant changes.
 - `npm run workflow:handover-check` checks stale handover wording.
 - `npm run workflow:release-gate` combines the required checks.
-- `npm run workflow:hook-config-check` verifies the checked-in config is pinned for hooks and no-prompt custom permissions, and reports any local hook heartbeat.
+- `npm run workflow:hook-config-check` verifies the checked-in config is pinned for hooks and no-prompt custom permissions.
+- `npm run workflow:hook-runtime-check` reports whether local hooks have actually fired.
 
 Best enforcement stack:
 

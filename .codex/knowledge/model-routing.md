@@ -20,6 +20,26 @@ node .codex/scripts/nexus-workflow.mjs record-routing --summary "<task>" --route
 
 The preflight is bookkeeping, not bureaucracy. It gives the lead a durable place to state why Spark is allowed, why a strong worker is required, or why the lead should keep the task local. Use `.codex/workflow/templates/routing.md` for detailed routing records.
 
+When a delegated worker edits files, the patch record must include the worker name and routing id:
+
+```bash
+node .codex/scripts/nexus-workflow.mjs record-patch --summary "<slice>" --worker <agent> --routing <ROUTING-id> --files "a,b"
+```
+
+The routing gate uses that attribution to require routing coverage and integrated review. If worker identity collapses to `codex-lead`, the workflow cannot prove a delegated/parallel path actually happened.
+
+Branch release gates also scan patch records introduced on the branch. A delegated worker patch still requires routing proof and integrated review even if later lead edits change the final branch hash and make the worker patch's original worktree hash stale.
+
+Close a routing slice as soon as the worker output has been recorded:
+
+```bash
+node .codex/scripts/nexus-workflow.mjs complete-routing --routing <ROUTING-id> --notes "<outcome>"
+```
+
+Hooks do not infer worker identity. Delegation proof comes from explicit `record-routing`, `record-patch --worker --routing`, and `complete-routing` records.
+
+Branch and release gates enforce the whole chain for delegated worker patches introduced on the branch: routing preflight, worker patch attribution, routing closeout, and integrated review. If any one part is missing, the branch is not release-ready.
+
 ## Spark Worker Contract
 
 Spark is a fast coding worker, not the default coding worker.

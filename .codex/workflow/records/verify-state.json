@@ -1,8 +1,0 @@
-{
-  "worktreeHash": "807507612dd6074b",
-  "verdict": "pass",
-  "verifier": "codex-lead",
-  "verifiedAt": "2026-05-09T12:31:59.392Z",
-  "verifyRecord": ".codex/workflow/records/tests/TEST-20260509T123159Z-verification-pass-worktree.md",
-  "notes": "Verification for final workflow evidence changes at hash 807507612dd6074b. Passed: workflow:self-test (81 checks), workflow:model-routing-check (15 scenarios), workflow:routing-check, workflow:review-check, workflow:hook-config-check, workflow:dependency-audit-check. The final guide-browser evidence step runs after verification/audit records to avoid stale generated-guide hashes."
-}

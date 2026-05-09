@@ -10,8 +10,17 @@ description: Start, resume, or coordinate Nexus work using the Codex-native work
 1. Read `AGENTS.md`.
 2. Read `.codex/README.md`.
 3. Read `.codex/workflow/current-state.md`.
-4. Run `node .codex/scripts/nexus-workflow.mjs status`.
+4. Run `npm run workflow:status`.
 5. Load only the relevant file from `.codex/knowledge/`.
+
+Use one canonical ladder:
+
+1. `npm run workflow:status` for resume.
+2. `npm run workflow:health` for diagnosis when needed.
+3. `npm run workflow:release-gate` before commit or local handover.
+4. `npm run workflow:deployed-gate` after server validation when deployment is in scope.
+
+Other workflow commands create records or diagnose a failed gate; they should not become a competing checklist.
 
 ## During Work
 
@@ -28,9 +37,11 @@ description: Start, resume, or coordinate Nexus work using the Codex-native work
 1. Run targeted tests.
 2. Run `node .codex/scripts/nexus-workflow.mjs review-check`.
 3. Use `nexus-review` if a focused review is needed.
-4. Record a passing review:
+4. Record interim worktree review when useful:
    `node .codex/scripts/nexus-workflow.mjs record-review --scope worktree --kind <general|pattern|design|workflow|integrated> --verdict pass --reviewer <name> --notes "<summary>"`
-5. Run `node .codex/scripts/nexus-workflow.mjs validate --commit-gate`.
+5. Close branch diffs with branch-scope records before release:
+   `record-patch --scope branch`, branch-scope review records for every required kind, branch-scope `record-verify`, and branch-scope `record-audit`.
+6. Run `npm run workflow:release-gate`.
 
 ## Before Final Handover Or Release
 
@@ -39,9 +50,12 @@ Review, verify, and audit are automatic workflow gates, not only user-invoked sk
 1. Run `node .codex/scripts/nexus-workflow.mjs verify-check`.
 2. Run `node .codex/scripts/nexus-workflow.mjs audit-check`.
 3. Use `nexus-verify` and `nexus-audit` when evidence is missing.
-4. Record passing evidence with `record-verify` and `record-audit`.
-5. Run `node .codex/scripts/nexus-workflow.mjs self-test`.
-6. Run `node .codex/scripts/nexus-workflow.mjs validate --release-gate`.
+4. Record passing evidence with branch-scope `record-verify` and `record-audit` for branch release closeout, using timed command ids from `npm run workflow:run` or durable artifact paths.
+5. Run `npm run workflow:release-gate`.
+
+Use `status` for a cheap resume snapshot. Use `health` for diagnostics and `release-gate` as the local closeout gate.
+
+Passing verification/audit evidence should reference command ids or artifacts, for example `--commands local-self-test,local-release-gate`.
 
 ## Handover
 

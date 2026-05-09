@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import { createHash } from 'node:crypto';
-import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve, relative } from 'node:path';
-import { tmpdir } from 'node:os';
+import { platform, tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 
@@ -10,17 +10,19 @@ const START = process.cwd();
 const ROOT = findRoot(START);
 const CODEX = join(ROOT, '.codex');
 const RECORDS = join(CODEX, 'workflow', 'records');
-const STATE_FILE = join(RECORDS, 'review-state.json');
-const VERIFY_STATE_FILE = join(RECORDS, 'verify-state.json');
-const AUDIT_STATE_FILE = join(RECORDS, 'audit-state.json');
-const PATCH_STATE_FILE = join(RECORDS, 'patch-state.json');
-const GUIDE_BROWSER_STATE_FILE = join(RECORDS, 'guide-browser-state.json');
+const STATE_DIR = join(CODEX, 'workflow', 'state');
+const RUNTIME_DIR = join(CODEX, 'workflow', 'runtime');
+const STATE_FILE = join(STATE_DIR, 'review-state.json');
+const VERIFY_STATE_FILE = join(STATE_DIR, 'verify-state.json');
+const AUDIT_STATE_FILE = join(STATE_DIR, 'audit-state.json');
+const PATCH_STATE_FILE = join(STATE_DIR, 'patch-state.json');
+const GUIDE_BROWSER_STATE_FILE = join(STATE_DIR, 'guide-browser-state.json');
 const DASHBOARD_DIR = join(CODEX, 'dashboard');
 const ZOO_GUIDE_DIR = join(DASHBOARD_DIR, 'zoo');
 const ZOO_GUIDE_MANIFEST = join(ZOO_GUIDE_DIR, 'manifest.json');
-const RUNTIME_DIR = join(CODEX, 'workflow', 'runtime');
 const ROUTING_SCENARIOS_FILE = join(CODEX, 'workflow', 'scenarios', 'model-routing.json');
-const ROUTING_STATE_FILE = join(RECORDS, 'routing-state.json');
+const ROUTING_STATE_FILE = join(STATE_DIR, 'routing-state.json');
+const COMMAND_RUNS_FILE = join(RUNTIME_DIR, 'command-runs.jsonl');
 const PUBLIC_GUIDE_URL = 'https://cv.rehou.games/nexus/workflow/';
 const PUBLIC_GUIDE_VERSION = 'nexus-public-workflow-guide/v2';
 const ZOO_VISUAL_GUIDE_VERSION = 'nexus-design-zoo-visual-guide/v1';
@@ -120,6 +122,8 @@ function git(args, options = {}) {
   const result = spawnSync('git', [...base, ...args], {
     cwd: ROOT,
     encoding: 'utf8',
+    timeout: 30000,
+    maxBuffer: 10 * 1024 * 1024,
     ...options,
   });
   return result;
@@ -141,7 +145,7 @@ function changedFiles() {
 function substantiveFiles(files = changedFiles()) {
   return files.filter((file) => {
     const f = file.replaceAll('\\', '/');
-    if (f.startsWith('.codex/workflow/records/') && f !== '.codex/workflow/records/risks.md') return false;
+    if (RECORD_KINDS.some((kind) => f.startsWith(`.codex/workflow/records/${kind}/`)) && f !== '.codex/workflow/records/risks.md') return false;
     if (f.startsWith('.codex/archive/')) return false;
     return (
       f.startsWith('packages/') ||
@@ -160,6 +164,8 @@ function substantiveFiles(files = changedFiles()) {
       f.startsWith('.codex/scripts/') ||
       f.startsWith('.codex/knowledge/') ||
       f.startsWith('.codex/workflow/current-state.md') ||
+      f === '.codex/workflow/state/.gitignore' ||
+      f === '.codex/workflow/runtime/.gitignore' ||
       f === '.codex/workflow/dependency-audit-baseline.json' ||
       f.startsWith('.codex/workflow/scenarios/') ||
       f.startsWith('.codex/workflow/templates/') ||
@@ -209,7 +215,49 @@ function auditRelevantFiles(files = changedFiles()) {
       f.startsWith('packages/web/src/routes/') ||
       f.startsWith('.codex/') ||
       f.startsWith('.agents/') ||
+      f.startsWith('.github/workflows/') ||
+      f.startsWith('scripts/') ||
+      f === 'AGENTS.md' ||
+      f === 'WORKFLOW.md' ||
+      f === 'package.json' ||
+      f === 'package-lock.json'
+    );
+  });
+}
+
+function guideRelevantFiles(files = changedFiles()) {
+  return files.filter((file) => {
+    const f = file.replaceAll('\\', '/');
+    if (f.startsWith('.codex/workflow/state/') || f.startsWith('.codex/workflow/runtime/')) return false;
+    if (f.startsWith('.codex/workflow/records/guide-browser/')) return false;
+    return (
+      f === 'AGENTS.md' ||
+      f === 'WORKFLOW.md' ||
+      f === 'package.json' ||
+      f.startsWith('.agents/skills/') ||
+      f.startsWith('.codex/dashboard/') ||
+      f.startsWith('.codex/') ||
       f.startsWith('.github/workflows/')
+    );
+  });
+}
+
+function zooVisualRelevantFiles(files = changedFiles()) {
+  return files.filter((file) => {
+    const f = file.replaceAll('\\', '/');
+    if (f.startsWith('.codex/workflow/state/') || f.startsWith('.codex/workflow/runtime/')) return false;
+    return (
+      f.startsWith('packages/web/src/components/') ||
+      f.startsWith('packages/web/src/platform/theme/') ||
+      f.startsWith('packages/web/src/routes/__design/') ||
+      f === 'packages/web/src/routeTree.tsx' ||
+      f === 'packages/web/src/components/registry.json' ||
+      f.startsWith('design/') ||
+      f === '.codex/knowledge/design-system.md' ||
+      f.startsWith('.codex/dashboard/zoo/') ||
+      f === '.codex/scripts/capture-design-zoo-visuals.mjs' ||
+      f === '.codex/scripts/validate-design-zoo.mjs' ||
+      f === '.codex/scripts/check-production-zoo-bundle.mjs'
     );
   });
 }
@@ -361,13 +409,24 @@ function evidenceRecordProblems(kind, idOrPath, expected = {}, label = `${kind} 
   return problems;
 }
 
+function nextPatchWorkers(previousWorkers = [], options = {}) {
+  if (options.previousWasReviewed || options.explicitPatchRecord || options.previousHash !== options.currentHash) return [];
+  return [...previousWorkers];
+}
+
 function invalidateGates(files, reason, source = 'workflow', metadata = {}) {
   const currentHash = worktreeHash();
   const patchState = loadJson(PATCH_STATE_FILE, { events: [] });
   const reviewState = loadJson(STATE_FILE, {});
   const previousHash = patchState.worktreeHash;
   const previousWasReviewed = previousHash && reviewState.worktreeHash === previousHash && reviewState.verdict === 'pass';
-  const workers = previousWasReviewed ? [] : [...(patchState.workers || [])];
+  const explicitPatchRecord = Boolean(metadata.patchId || metadata.patchRecord);
+  const workers = nextPatchWorkers(patchState.workers || [], {
+    previousWasReviewed,
+    explicitPatchRecord,
+    previousHash,
+    currentHash,
+  });
   const worker = metadata.worker || metadata.agent || (source !== 'codex-hook' ? source : '');
   if (worker && !workers.includes(worker)) workers.push(worker);
   patchState.worktreeHash = currentHash;
@@ -377,7 +436,9 @@ function invalidateGates(files, reason, source = 'workflow', metadata = {}) {
   patchState.files = files;
   patchState.patchId = metadata.patchId || (previousHash === currentHash ? patchState.patchId : null) || null;
   patchState.patchRecord = metadata.patchRecord || (previousHash === currentHash ? patchState.patchRecord : null) || null;
-  patchState.routingId = metadata.routingId || (previousHash === currentHash ? patchState.routingId : null) || null;
+  patchState.routingId = Object.hasOwn(metadata, 'routingId')
+    ? metadata.routingId || null
+    : (previousHash === currentHash ? patchState.routingId : null) || null;
   patchState.workers = workers;
   patchState.events = [
     {
@@ -452,6 +513,49 @@ function listRecords(kind) {
         excerpt: text.replace(/^---[\s\S]*?---/, '').replace(/^#.+$/m, '').trim().split(/\r?\n/).slice(0, 8).join('\n'),
       };
     });
+}
+
+function recordFrontmatters(kind) {
+  const dir = join(RECORDS, kind);
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir)
+    .filter((name) => name.endsWith('.md'))
+    .sort()
+    .map((name) => {
+      const path = join(dir, name);
+      return {
+        ...parseRecordFrontmatter(readFileSync(path, 'utf8')),
+        rel: relative(ROOT, path).replaceAll('\\', '/'),
+        name,
+      };
+    });
+}
+
+function branchIntroducedRecordPaths(kind, branch = branchEvidenceInfo()) {
+  const dir = `.codex/workflow/records/${kind}`;
+  const paths = new Set();
+  if (branch.mergeBase) {
+    for (const line of gitText(['diff', '--name-only', '--diff-filter=A', `${branch.mergeBase}..HEAD`, '--', dir]).split(/\r?\n/).filter(Boolean)) {
+      paths.add(line.replaceAll('\\', '/'));
+    }
+  }
+  for (const file of changedFiles()) {
+    const normalized = file.replaceAll('\\', '/');
+    if (normalized.startsWith(`${dir}/`) && normalized.endsWith('.md')) paths.add(normalized);
+  }
+  return paths;
+}
+
+function branchRecordFrontmatters(kind, branch = branchEvidenceInfo()) {
+  const introduced = branchIntroducedRecordPaths(kind, branch);
+  return recordFrontmatters(kind).map((record) => ({
+    ...record,
+    branchIntroduced: introduced.has(record.rel),
+  }));
+}
+
+function branchIntroducedRecords(records = []) {
+  return records.filter((record) => record.branchIntroduced !== false);
 }
 
 function isLegacyAuditRecord(record) {
@@ -578,6 +682,43 @@ function evidenceRecordHistoryProblemsFromLog(logText, base = 'base') {
   return problems;
 }
 
+function branchEvidenceBase() {
+  const configured = process.env.NEXUS_BRANCH_BASE || process.env.NEXUS_RECORD_BASE;
+  if (configured && gitRefExists(configured)) return configured;
+  return recordHistoryBase();
+}
+
+function branchEvidenceInfo(base = branchEvidenceBase()) {
+  if (!base) return { base: '', mergeBase: '', files: [], allFiles: [], hash: '' };
+  const mergeBase = gitText(['merge-base', 'HEAD', base]);
+  if (!mergeBase) return { base, mergeBase: '', files: [], allFiles: [], hash: '' };
+  const committed = gitText(['diff', '--name-only', `${mergeBase}..HEAD`]).split(/\r?\n/).filter(Boolean);
+  const allFiles = [...new Set([...committed, ...changedFiles()])].sort();
+  const files = substantiveFiles(allFiles);
+  const payload = {
+    base,
+    mergeBase,
+    files,
+    content: worktreeContentEntries(files),
+  };
+  const hash = files.length ? createHash('sha256').update(JSON.stringify(payload)).digest('hex').slice(0, 16) : '';
+  return { base, mergeBase, files, allFiles, hash };
+}
+
+function branchEvidenceFrontmatter(branch = branchEvidenceInfo()) {
+  if (!branch.hash) return {};
+  return {
+    branchBase: branch.base,
+    branchMergeBase: branch.mergeBase,
+    branchHash: branch.hash,
+    branchFiles: branch.files,
+  };
+}
+
+function branchScopedFrontmatter(scope, branch = branchEvidenceInfo()) {
+  return scope === 'branch' ? branchEvidenceFrontmatter(branch) : {};
+}
+
 function stateCacheIntegrityProblems() {
   const problems = [];
   const patchState = loadJson(PATCH_STATE_FILE, {});
@@ -606,32 +747,47 @@ function stateCacheIntegrityProblems() {
   const reviewKinds = reviewState.reviewKinds || {};
   for (const [kind, item] of Object.entries(reviewKinds)) {
     if (item?.verdict !== 'pass') continue;
-    problems.push(...evidenceRecordProblems('reviews', item.reviewRecord, {
+    const recordProblems = evidenceRecordProblems('reviews', item.reviewRecord, {
       worktreeHash: item.worktreeHash,
       verdict: item.verdict,
       kind,
       patchId: item.patchId || '',
-    }, `${kind} review state`));
+    }, `${kind} review state`);
+    if (recordProblems.length && !recordHasReviewKind(kind, item.worktreeHash, { patchId: item.patchId || '' })) {
+      problems.push(...recordProblems);
+    }
   }
   if (reviewState.verdict === 'pass') {
-    problems.push(...evidenceRecordProblems('reviews', reviewState.reviewRecord, {
+    const kind = reviewState.kind || 'general';
+    const recordProblems = evidenceRecordProblems('reviews', reviewState.reviewRecord, {
       worktreeHash: reviewState.worktreeHash,
       verdict: reviewState.verdict,
-      kind: reviewState.kind || 'general',
+      kind,
       patchId: reviewState.patchId || '',
-    }, 'review state'));
+    }, 'review state');
+    if (recordProblems.length && !recordHasReviewKind(kind, reviewState.worktreeHash, { patchId: reviewState.patchId || '' })) {
+      problems.push(...recordProblems);
+    }
   }
   if (verifyState.verdict === 'pass') {
-    problems.push(...evidenceRecordProblems('tests', verifyState.verifyRecord, {
+    const recordProblems = evidenceRecordProblems('tests', verifyState.verifyRecord, {
       worktreeHash: verifyState.worktreeHash,
       verdict: verifyState.verdict,
-    }, 'verification state'));
+    }, 'verification state');
+    const referenceProblems = evidenceReferenceProblems(verifyState, 'verification state');
+    if ((recordProblems.length || referenceProblems.length) && !recordHasVerificationPass(verifyState.worktreeHash)) {
+      problems.push(...recordProblems, ...referenceProblems);
+    }
   }
   if (auditState.verdict === 'pass') {
-    problems.push(...evidenceRecordProblems('audits', auditState.auditRecord, {
+    const recordProblems = evidenceRecordProblems('audits', auditState.auditRecord, {
       worktreeHash: auditState.worktreeHash,
       verdict: auditState.verdict,
-    }, 'audit state'));
+    }, 'audit state');
+    const referenceProblems = evidenceReferenceProblems(auditState, 'audit state');
+    if ((recordProblems.length || referenceProblems.length) && !recordHasAuditPass(auditState.worktreeHash)) {
+      problems.push(...recordProblems, ...referenceProblems);
+    }
   }
   if (guideBrowserState.verdict === 'pass') {
     problems.push(...evidenceRecordProblems('guide-browser', guideBrowserState.guideBrowserRecord, {
@@ -729,17 +885,63 @@ function splitWorkerNames(worker) {
 }
 
 function patchParticipantsForHash(patchState = {}, currentHash = worktreeHash()) {
-  if (patchState.worktreeHash !== currentHash) return [];
-  const eventWorkers = (patchState.events || [])
-    .filter((event) => event.worktreeHash === currentHash)
+  const recordWorkers = recordFrontmatters('patches')
+    .filter((record) => record.worktreeHash === currentHash)
+    .flatMap((record) => splitWorkerNames(record.agent || record.worker));
+  if (patchState.worktreeHash !== currentHash) {
+    return [...new Set(recordWorkers.map(canonicalWorker).filter(Boolean))];
+  }
+  const eventWorkers = patchEventsForHash(patchState, currentHash)
     .flatMap((event) => splitWorkerNames(event.worker || event.source));
   const workers = [
     ...(patchState.workers || []),
     patchState.source,
     patchState.agent,
     ...eventWorkers,
+    ...recordWorkers,
   ];
   return [...new Set(workers.map(canonicalWorker).filter(Boolean))];
+}
+
+function patchEventsForHash(patchState = {}, currentHash = worktreeHash()) {
+  return (patchState.events || []).filter((event) => event.worktreeHash === currentHash);
+}
+
+function delegatedPatchEventsForHash(patchState = {}, currentHash = worktreeHash()) {
+  const recordEvents = recordFrontmatters('patches')
+    .filter((record) => record.worktreeHash === currentHash)
+    .flatMap((record) => splitWorkerNames(record.agent || record.worker)
+      .map(canonicalWorker)
+      .filter((worker) => worker && worker !== 'lead')
+      .map((worker) => ({
+        at: record.created || '',
+        source: record.agent || record.worker || worker,
+        worker,
+        files: record.files || [],
+        worktreeHash: currentHash,
+        patchId: record.id || '',
+        patchRecord: record.rel || '',
+        routingId: record.routingId || '',
+      })));
+  const events = patchEventsForHash(patchState, currentHash)
+    .flatMap((event) => {
+      const workers = splitWorkerNames(event.worker || event.source)
+        .map(canonicalWorker)
+        .filter((worker) => worker && worker !== 'lead');
+      return workers.map((worker) => ({ ...event, worker }));
+    });
+  if (events.length || recordEvents.length) return [...events, ...recordEvents];
+  if (patchState.worktreeHash !== currentHash) return [];
+  return delegatedWorkersForHash(patchState, currentHash).map((worker) => ({
+    at: patchState.lastChangedAt || '',
+    source: patchState.source || worker,
+    worker,
+    files: patchState.files || [],
+    worktreeHash: currentHash,
+    patchId: patchState.patchId || '',
+    patchRecord: patchState.patchRecord || '',
+    routingId: patchState.routingId || '',
+  }));
 }
 
 function requiresIntegratedReview(patchState = loadJson(PATCH_STATE_FILE, {}), currentHash = worktreeHash()) {
@@ -764,9 +966,15 @@ function routingMatchesWorker(routingState = {}, worker = '') {
   return false;
 }
 
+function routingCloseoutRecord(routings = recordFrontmatters('routing'), routingId = '') {
+  if (!routingId) return null;
+  return routings.find((record) => record.completedRoutingId === routingId && String(record.status || '').toLowerCase() === 'completed') || null;
+}
+
 function routingScopeProblemsForState(routingState = {}, files = substantiveFiles(), patchState = loadJson(PATCH_STATE_FILE, {})) {
   const currentHash = routingState.currentHash || worktreeHash();
   const delegatedWorkers = delegatedWorkersForHash(patchState, currentHash);
+  const delegatedEvents = delegatedPatchEventsForHash(patchState, currentHash);
   const problems = [];
   if (!files.length) return problems;
   if (routingState.routingId) {
@@ -786,9 +994,49 @@ function routingScopeProblemsForState(routingState = {}, files = substantiveFile
       routingId: patchState.routingId || '',
     }, 'patch state'));
   }
-  if (delegatedWorkers.length && (!routingState.route || routingState.status === 'closed')) {
-    problems.push(`Delegated worker(s) ${delegatedWorkers.join(', ')} changed the current worktree without an active routing preflight. Record routing before review/commit.`);
+  for (const event of delegatedEvents) {
+    const worker = canonicalWorker(event.worker || event.source);
+    const routingId = event.routingId || '';
+    if (!routingId) {
+      problems.push(`Delegated worker patch ${event.patchId || '(unrecorded)'} by ${worker} is not linked to a routing preflight. Re-record the patch with --routing <ROUTING-id>.`);
+      continue;
+    }
+    const routingRecord = recordFrontmatter('routing', routingId)
+      || (routingState.routingId === routingId ? routingState : null);
+    if (shouldValidateEvidenceReference('routing', routingId)) {
+      problems.push(...evidenceRecordProblems('routing', routingId, { id: routingId }, `routing evidence for ${worker}`));
+    }
+    if (!routingRecord) continue;
+    const closeout = routingCloseoutRecord(undefined, routingId);
+    const stateCloseout = routingState.routingId === routingId && routingState.status === 'closed' && routingState.closeRecord;
+    if (!closeout && !stateCloseout && !event.closeoutExempt) {
+      problems.push(`Routing ${routingId} for delegated worker ${worker} has no completion record. Run complete-routing after the worker slice is integrated.`);
+    }
+    if (String(routingRecord.route || '').toLowerCase() === 'lead') {
+      problems.push(`Delegated worker patch ${event.patchId || '(unrecorded)'} cannot be covered by lead-only routing ${routingId}.`);
+    }
+    if (!routingMatchesWorker(routingRecord, worker)) {
+      problems.push(`Routing ${routingId} does not cover delegated worker ${worker}.`);
+    }
+    const routingRecordedAt = routingRecord.created || routingRecord.recordedAt || '';
+    if (routingRecordedAt && event.at && routingRecordedAt > event.at) {
+      problems.push(`Routing ${routingId} was recorded after delegated patch ${event.patchId || '(unrecorded)'}. Routing must be a preflight, not retroactive bookkeeping.`);
+    }
+    const route = String(routingRecord.route || '').toLowerCase();
+    const allowed = routingRecord.files || routingRecord.writeScope || [];
+    if (route.includes('spark') && !allowed.length) {
+      problems.push(`Spark routing ${routingId} has no allowed write scope.`);
+      continue;
+    }
+    if (allowed.length && !route.includes('lead')) {
+      const outside = (event.files || []).filter((file) => !allowed.some((pattern) => fileMatchesPattern(file, pattern)));
+      problems.push(...outside.map((file) => `${route}-routed patch ${event.patchId || '(unrecorded)'} changed outside its recorded scope: ${file}`));
+    }
   }
+  if (delegatedWorkers.length && !delegatedEvents.length && (!routingState.route || routingState.status === 'closed')) {
+    problems.push(`Delegated worker(s) ${delegatedWorkers.join(', ')} changed the current worktree without routing event evidence. Record routing before review/commit.`);
+  }
+  if (delegatedEvents.length) return problems;
   if (!routingState.route || routingState.status === 'closed') return problems;
   const patchLinkedToRouting = patchState.worktreeHash === currentHash
     && patchState.routingId
@@ -812,6 +1060,10 @@ function routingScopeProblemsForState(routingState = {}, files = substantiveFile
     }
   }
   if (routingState.worktreeHash && routingState.worktreeHash !== currentHash && !patchLinkedToRouting) {
+    const currentLeadPatch = patchState.worktreeHash === currentHash
+      && patchState.patchId
+      && delegatedWorkers.length === 0;
+    if (currentLeadPatch) return problems;
     problems.push(`Routing ${routingState.routingId || '(unrecorded)'} was recorded for worktree ${routingState.worktreeHash}, current worktree is ${currentHash}. Record a fresh routing decision.`);
     return problems;
   }
@@ -820,14 +1072,18 @@ function routingScopeProblemsForState(routingState = {}, files = substantiveFile
     return problems;
   }
   const route = String(routingState.route);
-  if (!route.includes('spark')) return problems;
   const allowed = routingState.files || routingState.writeScope || [];
-  if (!allowed.length) {
+  if (route.includes('spark') && !allowed.length) {
     problems.push(`Spark routing ${routingState.routingId || '(unrecorded)'} has no allowed write scope.`);
     return problems;
   }
-  const outside = files.filter((file) => !allowed.some((pattern) => fileMatchesPattern(file, pattern)));
-  problems.push(...outside.map((file) => `Spark-routed work changed outside its recorded scope: ${file}`));
+  if (allowed.length && !route.includes('lead')) {
+    const scopedFiles = patchLinkedToRouting && Array.isArray(patchState.files) && patchState.files.length
+      ? patchState.files
+      : files;
+    const outside = scopedFiles.filter((file) => !allowed.some((pattern) => fileMatchesPattern(file, pattern)));
+    problems.push(...outside.map((file) => `${route}-routed work changed outside its recorded scope: ${file}`));
+  }
   return problems;
 }
 
@@ -840,7 +1096,7 @@ function commandRoutingCheck({ quiet = false } = {}) {
   return problems.length === 0;
 }
 
-function requiredReviewKinds(files = substantiveFiles()) {
+function requiredReviewKinds(files = substantiveFiles(), options = {}) {
   const kinds = new Set();
   if (files.length) kinds.add('general');
   const designRelevant = files.some((file) => {
@@ -862,26 +1118,67 @@ function requiredReviewKinds(files = substantiveFiles()) {
     const f = file.replaceAll('\\', '/');
     return f === 'AGENTS.md'
       || f === 'WORKFLOW.md'
+      || f === 'package.json'
+      || f === 'package-lock.json'
+      || f.startsWith('scripts/')
+      || f.startsWith('.github/workflows/')
       || f.startsWith('.codex/')
       || f.startsWith('.agents/skills/');
   });
   if (workflowRelevant) kinds.add('workflow');
-  const patchState = loadJson(PATCH_STATE_FILE, {});
-  if (requiresIntegratedReview(patchState)) kinds.add('integrated');
+  const patchState = options.patchState === undefined ? loadJson(PATCH_STATE_FILE, {}) : options.patchState;
+  if (options.integrated !== false && requiresIntegratedReview(patchState)) kinds.add('integrated');
   return [...kinds];
+}
+
+function requiredBranchReviewKinds(files) {
+  return requiredReviewKinds(files, { patchState: {}, integrated: false });
 }
 
 function hasPatchCoverage(hash = worktreeHash()) {
   const files = substantiveFiles();
   if (!files.length) return true;
   const patchState = loadJson(PATCH_STATE_FILE, {});
-  return patchState.worktreeHash === hash
+  const stateOk = patchState.worktreeHash === hash
     && Boolean(patchState.patchId)
     && evidenceRecordProblems('patches', patchState.patchRecord || patchState.patchId, {
       id: patchState.patchId,
       worktreeHash: hash,
       routingId: patchState.routingId || '',
     }, 'patch state').length === 0;
+  if (stateOk && files.every((file) => (patchState.files || []).some((pattern) => fileMatchesPattern(file, pattern)))) return true;
+  const matching = recordFrontmatters('patches').filter((record) => record.worktreeHash === hash);
+  if (!matching.length) return false;
+  const covered = matching.flatMap((record) => record.files || []);
+  return files.every((file) => covered.some((pattern) => fileMatchesPattern(file, pattern)));
+}
+
+function recordHasReviewKind(kind, hash, options = {}) {
+  const patchId = options.patchId || '';
+  return recordFrontmatters('reviews').some((record) => {
+    if (record.worktreeHash !== hash || record.verdict !== 'pass' || (record.kind || 'general') !== kind) return false;
+    if (patchId && record.patchId !== patchId) return false;
+    return true;
+  });
+}
+
+function reviewKindsFromRecords(hash) {
+  const out = {};
+  const reviews = recordFrontmatters('reviews')
+    .filter((record) => record.worktreeHash === hash && record.verdict === 'pass')
+    .sort((a, b) => String(a.created).localeCompare(String(b.created)));
+  for (const record of reviews) {
+    const kind = record.kind || 'general';
+    out[kind] = {
+      worktreeHash: hash,
+      verdict: 'pass',
+      reviewer: record.reviewer || 'unknown',
+      reviewedAt: record.created || nowIso(),
+      reviewRecord: record.rel || `.codex/workflow/records/reviews/${record.name}`,
+      patchId: record.patchId || '',
+    };
+  }
+  return out;
 }
 
 function stateHasReviewKind(state, kind, hash, options = {}) {
@@ -903,7 +1200,19 @@ function stateHasReviewKind(state, kind, hash, options = {}) {
       patchId: state.patchId || '',
     }, 'review state').length === 0;
   }
-  return false;
+  return recordHasReviewKind(kind, hash, options);
+}
+
+function recordHasVerificationPass(hash) {
+  return recordFrontmatters('tests').some((record) => record.worktreeHash === hash
+    && record.verdict === 'pass'
+    && !evidenceReferenceProblems(record, `verification record ${record.id || record.name}`).length);
+}
+
+function recordHasAuditPass(hash) {
+  return recordFrontmatters('audits').some((record) => record.worktreeHash === hash
+    && record.verdict === 'pass'
+    && !evidenceReferenceProblems(record, `audit record ${record.id || record.name}`).length);
 }
 
 function zooRegistryProblems() {
@@ -1060,6 +1369,21 @@ function zooVisualGuideProblems() {
         continue;
       }
       if (target.sha256 && sha256File(path) !== target.sha256) problems.push(`visual Zoo/Gym asset hash mismatch for ${context.id}/${entry.slug}: ${asset}`);
+      const expectedMode = String(context.mode || '').toLowerCase();
+      const actualMode = String(target.verifiedMode || '').toLowerCase();
+      const expectedTheme = String(context.theme || '').toLowerCase();
+      const actualTheme = String(target.verifiedTheme || '').toLowerCase();
+      if (!actualMode) problems.push(`visual Zoo/Gym manifest is missing verifiedMode for ${context.id}/${entry.slug}.`);
+      else if (expectedMode && actualMode !== expectedMode) problems.push(`visual Zoo/Gym verifiedMode mismatch for ${context.id}/${entry.slug}: expected ${expectedMode}, got ${actualMode}.`);
+      if (!actualTheme) problems.push(`visual Zoo/Gym manifest is missing verifiedTheme for ${context.id}/${entry.slug}.`);
+      else if (expectedTheme && actualTheme !== expectedTheme) problems.push(`visual Zoo/Gym verifiedTheme mismatch for ${context.id}/${entry.slug}: expected ${expectedTheme}, got ${actualTheme}.`);
+      if (target.verifiedChromeState) {
+        const chrome = target.verifiedChromeState;
+        if (expectedMode === 'dark' && chrome.htmlDark !== true) problems.push(`visual Zoo/Gym manifest htmlDark mismatch for ${context.id}/${entry.slug}.`);
+        if (expectedMode === 'light' && chrome.htmlDark !== false) problems.push(`visual Zoo/Gym manifest htmlDark mismatch for ${context.id}/${entry.slug}.`);
+        if (expectedTheme && String(chrome.bodyTheme || '').toLowerCase() !== expectedTheme) problems.push(`visual Zoo/Gym manifest bodyTheme mismatch for ${context.id}/${entry.slug}.`);
+        if (expectedTheme && String(chrome.scopeTheme || '').toLowerCase() !== expectedTheme) problems.push(`visual Zoo/Gym manifest scopeTheme mismatch for ${context.id}/${entry.slug}.`);
+      }
     }
   }
 
@@ -1183,18 +1507,12 @@ function publicGuideInputFiles() {
     '.codex/scripts/check-production-zoo-bundle.mjs',
     '.codex/scripts/nexus-workflow.mjs',
     '.codex/scripts/capture-design-zoo-visuals.mjs',
-    '.codex/workflow/records/review-state.json',
-    '.codex/workflow/records/verify-state.json',
-    '.codex/workflow/records/audit-state.json',
-    '.codex/workflow/records/guide-browser-state.json',
     '.codex/knowledge/design-system.md',
     '.codex/knowledge/deployment.md',
     '.codex/knowledge/hooks.md',
     '.codex/knowledge/model-routing.md',
     '.codex/knowledge/patterns.md',
     '.codex/workflow/current-state.md',
-    '.codex/workflow/records/patch-state.json',
-    '.codex/workflow/records/routing-state.json',
     '.codex/workflow/records/risks.md',
     'packages/web/src/components/registry.json',
     'packages/web/src/routes/__design/Zoo.tsx',
@@ -1211,9 +1529,10 @@ function publicGuideInputFiles() {
   ]) {
     for (const file of listFilesUnder(dir, 8, 600)) files.add(file);
   }
-  files.delete('.codex/workflow/records/guide-browser-state.json');
   for (const file of [...files]) {
     if (file.startsWith('.codex/workflow/records/guide-browser/')) files.delete(file);
+    if (file.startsWith('.codex/workflow/state/')) files.delete(file);
+    if (file.startsWith('.codex/workflow/runtime/')) files.delete(file);
   }
   return [...files]
     .filter((file) => existsSync(join(ROOT, file)) && statSync(join(ROOT, file)).isFile())
@@ -1342,6 +1661,60 @@ function guideArtifactHash() {
   return createHash('sha256').update(JSON.stringify(payload)).digest('hex').slice(0, 24);
 }
 
+function artifactEvidenceForFiles(files = []) {
+  return csv(Array.isArray(files) ? files.join(',') : files)
+    .map((file) => {
+      const path = join(ROOT, file);
+      const st = existsSync(path) ? statSync(path) : null;
+      return {
+        file,
+        sha256: st?.isFile() ? sha256File(path) : 'missing',
+        bytes: st?.isFile() ? st.size : 0,
+      };
+    });
+}
+
+function artifactEvidenceProblems(evidence, label = 'artifact evidence') {
+  const required = [...(Array.isArray(evidence?.screenshots) ? evidence.screenshots : []), evidence?.summaryFile]
+    .filter(Boolean);
+  const entries = Array.isArray(evidence?.evidenceArtifacts) ? evidence.evidenceArtifacts : [];
+  const problems = [];
+  if (!required.length) {
+    problems.push(`${label} has no screenshot or summary files.`);
+    return problems;
+  }
+  if (!entries.length) {
+    problems.push(`${label} does not embed evidenceArtifacts hashes for its screenshot/summary files.`);
+    return problems;
+  }
+  const expected = new Set(required);
+  const byFile = new Map(entries.map((entry) => [entry.file, entry]));
+  for (const entry of entries) {
+    if (!expected.has(entry.file)) problems.push(`${label} embeds unexpected evidence artifact: ${entry.file || '(missing file)'}.`);
+  }
+  for (const file of required) {
+    const entry = byFile.get(file);
+    const path = join(ROOT, file);
+    if (!entry) {
+      problems.push(`${label} is missing embedded hash for ${file}.`);
+      continue;
+    }
+    if (!existsSync(path)) {
+      problems.push(`${label} file is missing: ${file}.`);
+      continue;
+    }
+    const st = statSync(path);
+    if (!st.isFile()) {
+      problems.push(`${label} path is not a file: ${file}.`);
+      continue;
+    }
+    const actualHash = sha256File(path);
+    if (entry.sha256 !== actualHash) problems.push(`${label} hash mismatch for ${file}.`);
+    if (Number(entry.bytes || 0) !== st.size) problems.push(`${label} size mismatch for ${file}.`);
+  }
+  return problems;
+}
+
 function commandRecordGuideBrowser(args) {
   const verdict = String(args.verdict || '').toLowerCase();
   if (!['pass', 'fail', 'partial', 'blocked'].includes(verdict)) {
@@ -1362,6 +1735,7 @@ function commandRecordGuideBrowser(args) {
     for (const file of missing) console.error(`- ${file}`);
     process.exit(2);
   }
+  const evidenceArtifacts = artifactEvidenceForFiles([...screenshots, summaryFile].filter(Boolean));
   const title = `Guide browser ${verdict}`;
   const body = [
     `Verdict: ${verdict}`,
@@ -1372,6 +1746,8 @@ function commandRecordGuideBrowser(args) {
     '',
     screenshots.length ? ['Screenshots:', ...screenshots.map((file) => `- ${file}`)].join('\n') : 'Screenshots: n/a',
     '',
+    evidenceArtifacts.length ? ['Evidence artifacts:', ...evidenceArtifacts.map((item) => `- ${item.file}: ${item.sha256} (${item.bytes} bytes)`)].join('\n') : 'Evidence artifacts: n/a',
+    '',
     args.notes ? `Notes: ${args.notes}` : 'Notes: n/a',
   ].join('\n');
   const rec = writeRecord('guide-browser', title, body, {
@@ -1380,6 +1756,7 @@ function commandRecordGuideBrowser(args) {
     guideArtifactHash: hash,
     screenshots,
     summaryFile,
+    evidenceArtifacts,
   });
   saveJson(GUIDE_BROWSER_STATE_FILE, {
     guideArtifactHash: hash,
@@ -1389,6 +1766,7 @@ function commandRecordGuideBrowser(args) {
     guideBrowserRecord: relative(ROOT, rec.path).replaceAll('\\', '/'),
     screenshots,
     summaryFile,
+    evidenceArtifacts,
     notes: args.notes || '',
   });
   console.log(`Recorded guide browser ${verdict} for ${hash}`);
@@ -1441,24 +1819,36 @@ function guideBrowserSummaryProblems(summaryFile) {
 function guideBrowserProblems() {
   const state = loadJson(GUIDE_BROWSER_STATE_FILE, {});
   const hash = guideArtifactHash();
+  const record = recordFrontmatters('guide-browser')
+    .filter((item) => item.guideArtifactHash === hash && item.verdict === 'pass')
+    .sort((a, b) => String(b.created).localeCompare(String(a.created)))[0];
+  const evidence = record ? {
+    guideArtifactHash: record.guideArtifactHash,
+    verdict: record.verdict,
+    screenshots: record.screenshots || [],
+    summaryFile: record.summaryFile || '',
+    evidenceArtifacts: record.evidenceArtifacts || [],
+    guideBrowserRecord: record.rel,
+  } : {
+    ...state,
+    evidenceArtifacts: state.evidenceArtifacts || [],
+  };
   const problems = [];
-  if (state.guideArtifactHash !== hash || state.verdict !== 'pass') {
+  if (evidence.guideArtifactHash !== hash || evidence.verdict !== 'pass') {
     problems.push(`guide browser validation is missing or stale for artifact hash ${hash}.`);
   }
-  if (state.verdict === 'pass' && !(state.screenshots || []).length) {
+  if (evidence.verdict === 'pass' && !(evidence.screenshots || []).length) {
     problems.push('guide browser validation pass has no screenshot evidence.');
   }
-  if (state.verdict === 'pass') {
-    problems.push(...guideBrowserSummaryProblems(state.summaryFile));
+  if (evidence.verdict === 'pass') {
+    problems.push(...artifactEvidenceProblems(evidence, 'guide browser evidence'));
+    problems.push(...guideBrowserSummaryProblems(evidence.summaryFile));
   }
-  if (state.verdict === 'pass') {
-    problems.push(...evidenceRecordProblems('guide-browser', state.guideBrowserRecord, {
-      guideArtifactHash: state.guideArtifactHash,
+  if (evidence.verdict === 'pass') {
+    problems.push(...evidenceRecordProblems('guide-browser', evidence.guideBrowserRecord, {
+      guideArtifactHash: evidence.guideArtifactHash,
       verdict: 'pass',
     }, 'guide browser state'));
-  }
-  for (const file of state.screenshots || []) {
-    if (!existsSync(join(ROOT, file))) problems.push(`guide browser screenshot is missing: ${file}`);
   }
   return problems;
 }
@@ -1596,13 +1986,7 @@ function commandDashboard(args = {}) {
   const design = readText('.codex/knowledge/design-system.md');
   const deployment = readText('.codex/knowledge/deployment.md');
   const risks = readText('.codex/workflow/records/risks.md');
-  const status = gitText(['status', '--short', '--branch']);
   const branch = gitText(['branch', '--show-current']) || '(detached HEAD)';
-  const hash = worktreeHash();
-  const reviewState = loadJson(STATE_FILE, {});
-  const verifyState = loadJson(VERIFY_STATE_FILE, {});
-  const auditState = loadJson(AUDIT_STATE_FILE, {});
-  const patchState = loadJson(PATCH_STATE_FILE, {});
   const generated = nowIso();
   const sourceHash = publicGuideSourceHash();
   const tokenRootCss = productionGuideTokenCss();
@@ -1735,13 +2119,7 @@ function commandDashboard(args = {}) {
         <div class="grid">
           ${cards.map(([label, count]) => `<div class="card"><span class="meta">${label}</span><strong>${count}</strong></div>`).join('\n')}
         </div>
-        <div class="grid">
-          <div class="card"><span class="meta">Review Gate</span><strong>${reviewState.worktreeHash === hash && reviewState.verdict === 'pass' ? 'pass' : 'needed'}</strong></div>
-          <div class="card"><span class="meta">Verify Gate</span><strong>${verifyState.worktreeHash === hash && verifyState.verdict === 'pass' ? 'pass' : 'needed'}</strong></div>
-          <div class="card"><span class="meta">Audit Gate</span><strong>${auditState.worktreeHash === hash && auditState.verdict === 'pass' ? 'pass' : 'needed'}</strong></div>
-        </div>
-        ${patchState.lastChangedAt ? `<p class="meta">Last patch trigger: ${escapeHtml(patchState.lastChangedAt)} · ${escapeHtml(patchState.reason || patchState.source || '')}</p>` : ''}
-        <pre>${escapeHtml(status || 'clean')}</pre>
+        <p class="meta">This is a generated snapshot for navigation. It intentionally does not embed live git status or mutable gate state. Run <code>npm run workflow:status</code> for the current worktree truth.</p>
       </section>
       <section id="current" class="panel">${markdownLite(currentState)}</section>
       <section id="zoo" class="panel">
@@ -1916,7 +2294,7 @@ function commandPublicGuide(args = {}) {
 <body>
   <header>
     <h1>Nexus Workflow Guide</h1>
-    <div class="meta">Generated ${publicHtml(generated)} · branch ${publicHtml(branch)} · deploy this file from the current branch HEAD</div>
+    <div class="meta">Generated snapshot ${publicHtml(generated)} · branch ${publicHtml(branch)} · run workflow gates for live state before deploy</div>
   </header>
   <main>
     <section>
@@ -1981,10 +2359,17 @@ function commandPublicGuide(args = {}) {
       <h2>How Future Sessions Resume</h2>
       <ul>
         <li>Read <code>WORKFLOW.md</code>, <code>AGENTS.md</code>, then <code>.codex/workflow/current-state.md</code>.</li>
-        <li>Run <code>npm run workflow:status</code> and <code>npm run workflow:release-gate</code>.</li>
+        <li>Use the canonical ladder: <code>npm run workflow:status</code>, <code>npm run workflow:health</code> when diagnosis is needed, <code>npm run workflow:release-gate</code> before local handover, and <code>npm run workflow:deployed-gate</code> after server validation.</li>
         <li>Use detailed records under <code>.codex/workflow/records/</code> instead of loading chat transcripts.</li>
         <li>Use <code>.codex/knowledge/</code> for patterns, design-system rules, model routing, and deployment guidance.</li>
       </ul>
+      <h3>Branch Closeout</h3>
+      <p class="meta">Worktree records are interim evidence. Branches close with branch-scope records tied to the current branch hash.</p>
+      <pre>node .codex/scripts/nexus-workflow.mjs record-patch --scope branch --summary "&lt;branch summary&gt;" --worker codex-lead
+node .codex/scripts/nexus-workflow.mjs record-review --scope branch --kind general --verdict pass --reviewer &lt;name&gt; --notes "&lt;summary&gt;"
+node .codex/scripts/nexus-workflow.mjs record-verify --scope branch --verdict pass --verifier &lt;name&gt; --commands "&lt;timed-command-ids&gt;" --notes "&lt;commands/results&gt;"
+node .codex/scripts/nexus-workflow.mjs record-audit --scope branch --verdict pass --auditor &lt;name&gt; --commands "&lt;timed-command-ids&gt;" --notes "&lt;summary&gt;"</pre>
+      <p class="meta">Add focused branch review kinds such as <code>workflow</code>, <code>design</code>, or <code>integrated</code> when the release gate asks for them.</p>
     </section>
     <section>
       <h2>Model Routing Examples</h2>
@@ -1996,11 +2381,13 @@ function commandPublicGuide(args = {}) {
     <section>
       <h2>Current Counts</h2>
       <div class="grid">
-        ${Object.entries(records).map(([kind, items]) => {
+        ${GUIDE_RECORD_KINDS.map((kind) => {
+          const items = records[kind] || [];
           const label = kind === 'audits' ? 'audits (first-class + legacy)' : kind;
           return `<div class="card"><strong>${items.length}</strong><p>${publicHtml(label)}</p></div>`;
         }).join('\n')}
       </div>
+      <p class="meta">Guide-browser evidence is tracked separately by hash-bound records and omitted from this generated guide to avoid self-referential guide freshness loops.</p>
     </section>
     <section>
       <h2>Workflow Event Timeline</h2>
@@ -2220,11 +2607,6 @@ function hookConfigProblems() {
       if (Number(hook.timeout || 0) > 30) problems.push(`${event} hook timeout should stay at or below 30 seconds.`);
     }
   }
-  const runtime = loadJson(join(RUNTIME_DIR, 'hooks-state.json'), {});
-  if (runtime.lastSeenAt) {
-    const ageMs = Date.now() - Date.parse(runtime.lastSeenAt);
-    if (Number.isFinite(ageMs) && ageMs > 1000 * 60 * 60 * 24 * 14) problems.push(`hook runtime heartbeat is older than 14 days: ${runtime.lastSeenAt}.`);
-  }
   return problems;
 }
 
@@ -2233,9 +2615,30 @@ function commandHookConfigCheck({ quiet = false } = {}) {
   if (!quiet) {
     console.log(`hook config problems: ${problems.length}`);
     for (const problem of problems) console.log(`- ${problem}`);
-    const runtime = loadJson(join(RUNTIME_DIR, 'hooks-state.json'), {});
+  }
+  return problems.length === 0;
+}
+
+function hookRuntimeProblems({ maxAgeDays = 14 } = {}) {
+  const runtime = loadJson(join(RUNTIME_DIR, 'hooks-state.json'), {});
+  const problems = [];
+  if (!runtime.lastSeenAt) {
+    problems.push('no hook runtime heartbeat recorded in this checkout; hooks may not be loaded, so rely on explicit workflow gates.');
+    return problems;
+  }
+  const ageMs = Date.now() - Date.parse(runtime.lastSeenAt);
+  if (!Number.isFinite(ageMs)) problems.push(`hook runtime heartbeat timestamp is invalid: ${runtime.lastSeenAt}.`);
+  else if (ageMs > 1000 * 60 * 60 * 24 * maxAgeDays) problems.push(`hook runtime heartbeat is older than ${maxAgeDays} days: ${runtime.lastSeenAt}.`);
+  return problems;
+}
+
+function commandHookRuntimeCheck({ quiet = false } = {}) {
+  const problems = hookRuntimeProblems();
+  const runtime = loadJson(join(RUNTIME_DIR, 'hooks-state.json'), {});
+  if (!quiet) {
+    console.log(`hook runtime problems: ${problems.length}`);
     if (runtime.lastSeenAt) console.log(`last hook heartbeat: ${runtime.lastSeenAt} (${runtime.lastEvent || 'unknown'})`);
-    else console.log('last hook heartbeat: none recorded in this checkout');
+    for (const problem of problems) console.log(`- ${problem}`);
   }
   return problems.length === 0;
 }
@@ -2247,6 +2650,8 @@ function commandDependencyAuditCheck({ quiet = false } = {}) {
     cwd: ROOT,
     encoding: 'utf8',
     shell: false,
+    timeout: 120000,
+    maxBuffer: 10 * 1024 * 1024,
   });
   if (!quiet && result.stdout) process.stdout.write(result.stdout);
   if (!quiet && result.stderr) process.stderr.write(result.stderr);
@@ -2257,13 +2662,203 @@ function commandProductionZooBundleCheck({ quiet = false } = {}) {
   const result = spawnSync(process.execPath, [join(CODEX, 'scripts', 'check-production-zoo-bundle.mjs')], {
     cwd: ROOT,
     encoding: 'utf8',
+    timeout: 60000,
+    maxBuffer: 10 * 1024 * 1024,
   });
   if (!quiet && result.stdout) process.stdout.write(result.stdout);
   if (!quiet && result.stderr) process.stderr.write(result.stderr);
   return result.status === 0;
 }
 
-function commandStatus() {
+function executableFor(command) {
+  if (platform() !== 'win32') return command;
+  if (/[\\/]/.test(command) || /\.[a-z0-9]+$/i.test(command)) return command;
+  if (command === 'npm' || command === 'npx') return `${command}.cmd`;
+  return command;
+}
+
+function textTail(value, max = 4000) {
+  const text = String(value || '');
+  return text.length > max ? text.slice(text.length - max) : text;
+}
+
+function runTimedCommand(commandArgs, options = {}) {
+  const startedAt = nowIso();
+  const startedMs = Date.now();
+  const cwd = options.cwd ? resolve(ROOT, String(options.cwd)) : ROOT;
+  const timeoutMs = Number(options.timeoutMs || 120000);
+  const warnMs = Number(options.warnMs || Math.max(Math.floor(timeoutMs * 0.8), 1));
+  const id = options.id || `command-${startedAt.replace(/[-:]/g, '').replace(/\..+/, 'Z')}`;
+  const command = commandArgs[0];
+  const args = commandArgs.slice(1);
+  const executable = executableFor(command);
+  const result = spawnSync(executable, args, {
+    cwd,
+    encoding: 'utf8',
+    timeout: timeoutMs,
+    maxBuffer: 10 * 1024 * 1024,
+    shell: platform() === 'win32' && /\.(cmd|bat)$/i.test(executable),
+  });
+  const endedAt = nowIso();
+  const durationMs = Date.now() - startedMs;
+  const timedOut = Boolean(result.error && result.error.code === 'ETIMEDOUT');
+  const exitCode = timedOut ? 124 : (result.status ?? 1);
+  const record = {
+    id,
+    command: commandArgs,
+    cwd: relative(ROOT, cwd).replaceAll('\\', '/') || '.',
+    startedAt,
+    endedAt,
+    durationMs,
+    timeoutMs,
+    warnMs,
+    exitCode,
+    signal: result.signal || '',
+    timedOut,
+    warned: durationMs > warnMs,
+    stdoutTail: textTail(result.stdout),
+    stderrTail: textTail(result.stderr || result.error?.message || ''),
+  };
+  const telemetryFile = options.telemetryFile || COMMAND_RUNS_FILE;
+  if (options.telemetry !== false) {
+    ensureDir(dirname(telemetryFile));
+    appendFileSync(telemetryFile, `${JSON.stringify(record)}\n`);
+  }
+  if (options.echo !== false) {
+    if (result.stdout) process.stdout.write(result.stdout);
+    if (result.stderr) process.stderr.write(result.stderr);
+    const status = timedOut ? 'timed out' : `exit ${exitCode}`;
+    const message = `workflow command ${id}: ${status} after ${durationMs}ms`;
+    if (timedOut || durationMs > warnMs || exitCode !== 0) console.error(message);
+    else console.log(message);
+  }
+  return { result, record, exitCode };
+}
+
+function readCommandRuns(file = COMMAND_RUNS_FILE) {
+  if (!existsSync(file)) return [];
+  const runs = [];
+  for (const line of readFileSync(file, 'utf8').split(/\r?\n/).filter(Boolean)) {
+    try {
+      runs.push(JSON.parse(line));
+    } catch {
+      // Ignore malformed local telemetry lines; records that depend on them will fail evidence lookup.
+    }
+  }
+  return runs;
+}
+
+function commandRunSummary(run) {
+  return {
+    id: run.id || '',
+    command: Array.isArray(run.command) ? run.command : [],
+    cwd: run.cwd || '.',
+    startedAt: run.startedAt || '',
+    endedAt: run.endedAt || '',
+    durationMs: Number(run.durationMs || 0),
+    timeoutMs: Number(run.timeoutMs || 0),
+    exitCode: Number(run.exitCode ?? 1),
+    timedOut: Boolean(run.timedOut),
+    warned: Boolean(run.warned),
+  };
+}
+
+function commandEvidenceForIds(commandIds, options = {}) {
+  const ids = csv(commandIds).length ? csv(commandIds) : (Array.isArray(commandIds) ? commandIds : []);
+  const runs = readCommandRuns(options.telemetryFile || COMMAND_RUNS_FILE);
+  const latestById = new Map();
+  for (const run of runs) {
+    if (run.id) latestById.set(run.id, run);
+  }
+  const problems = [];
+  const evidence = [];
+  for (const id of ids) {
+    const run = latestById.get(id);
+    if (!run) {
+      problems.push(`command run id ${id} was not found in runtime telemetry; run it through npm run workflow:run before recording a pass.`);
+      continue;
+    }
+    const summary = commandRunSummary(run);
+    evidence.push(summary);
+    if (options.requirePass !== false && (summary.exitCode !== 0 || summary.timedOut)) {
+      problems.push(`command run id ${id} did not pass: exitCode=${summary.exitCode}, timedOut=${summary.timedOut}.`);
+    }
+  }
+  return { evidence, problems };
+}
+
+function commandEvidenceLines(commandEvidence) {
+  if (!commandEvidence.length) return [];
+  return [
+    'Command evidence:',
+    ...commandEvidence.map((run) => `- ${run.id}: exit ${run.exitCode}, timedOut=${run.timedOut}, durationMs=${run.durationMs}, command=${(run.command || []).join(' ')}`),
+  ];
+}
+
+function evidenceReferenceProblems(record, label = 'execution evidence') {
+  const commandIds = csv(record.commandIds);
+  const artifacts = csv(record.artifacts || record.evidence);
+  const problems = [];
+  if (!commandIds.length && !artifacts.length) {
+    problems.push(`${label} has no command ids or durable artifacts.`);
+    return problems;
+  }
+  if (commandIds.length) {
+    const commandEvidence = Array.isArray(record.commandEvidence) ? record.commandEvidence : [];
+    if (!commandEvidence.length) problems.push(`${label} references command ids but does not embed commandEvidence.`);
+    const byId = new Map(commandEvidence.map((item) => [item.id, item]));
+    const extra = commandEvidence.filter((item) => !commandIds.includes(item.id)).map((item) => item.id).filter(Boolean);
+    if (extra.length) problems.push(`${label} embeds commandEvidence not listed in commandIds: ${extra.join(', ')}.`);
+    for (const id of commandIds) {
+      const item = byId.get(id);
+      if (!item) {
+        problems.push(`${label} is missing embedded commandEvidence for ${id}.`);
+        continue;
+      }
+      if (Number(item.exitCode ?? 1) !== 0 || Boolean(item.timedOut)) {
+        problems.push(`${label} command ${id} did not pass: exitCode=${Number(item.exitCode ?? 1)}, timedOut=${Boolean(item.timedOut)}.`);
+      }
+    }
+  }
+  for (const artifact of artifacts) {
+    if (/^https?:\/\//i.test(artifact)) continue;
+    if (!existsSync(join(ROOT, artifact))) problems.push(`${label} artifact/check reference is missing: ${artifact}.`);
+  }
+  return problems;
+}
+
+function parseRunCommandArgs(rawArgs = []) {
+  const out = { id: '', timeoutMs: 120000, warnMs: 0, cwd: '', commandArgs: [] };
+  for (let i = 0; i < rawArgs.length; i++) {
+    const arg = rawArgs[i];
+    if (arg === '--') {
+      out.commandArgs = rawArgs.slice(i + 1);
+      break;
+    }
+    if (arg === '--id') out.id = rawArgs[++i] || '';
+    else if (arg === '--timeout-ms') out.timeoutMs = Number(rawArgs[++i] || 0);
+    else if (arg === '--warn-ms') out.warnMs = Number(rawArgs[++i] || 0);
+    else if (arg === '--cwd') out.cwd = rawArgs[++i] || '';
+    else out.commandArgs.push(arg);
+  }
+  return out;
+}
+
+function commandRunCommand(rawArgs = []) {
+  const args = parseRunCommandArgs(rawArgs);
+  if (!args.commandArgs.length) {
+    console.error('run-command requires a command after --, for example: node .codex/scripts/nexus-workflow.mjs run-command --id status -- npm run workflow:status');
+    return 2;
+  }
+  return runTimedCommand(args.commandArgs, {
+    id: args.id,
+    timeoutMs: args.timeoutMs || 120000,
+    warnMs: args.warnMs || undefined,
+    cwd: args.cwd || ROOT,
+  }).exitCode;
+}
+
+function commandStatus({ health = false } = {}) {
   const branch = gitText(['branch', '--show-current']) || '(detached HEAD)';
   const status = gitText(['status', '--short', '--branch']);
   const files = changedFiles();
@@ -2276,17 +2871,25 @@ function commandStatus() {
   const handoverOk = commandHandoverCheck({ quiet: true });
   const recordsOk = commandRecordsCheck({ quiet: true });
   const routingOk = commandRoutingCheck({ quiet: true });
-  const guideOk = commandGuideCheck({ quiet: true });
-  const guideBrowserOk = commandGuideBrowserCheck({ quiet: true });
-  const zooVisualOk = commandZooVisualGuideCheck({ quiet: true });
-  const hookConfigOk = commandHookConfigCheck({ quiet: true });
-  const depAuditOk = commandDependencyAuditCheck({ quiet: true });
-  const prodZooOk = commandProductionZooBundleCheck({ quiet: true });
+  const guideOk = health ? commandGuideCheck({ quiet: true }) : null;
+  const guideBrowserOk = health ? commandGuideBrowserCheck({ quiet: true }) : null;
+  const zooVisualOk = health ? commandZooVisualGuideCheck({ quiet: true }) : null;
+  const hookConfigOk = health ? commandHookConfigCheck({ quiet: true }) : null;
+  const hookRuntimeOk = commandHookRuntimeCheck({ quiet: true });
+  const depAuditOk = health ? commandDependencyAuditCheck({ quiet: true }) : null;
+  const prodZooOk = health ? commandProductionZooBundleCheck({ quiet: true }) : null;
+  const branchEvidenceOk = health ? commandBranchEvidenceCheck({ quiet: true }) : null;
   const currentHash = worktreeHash();
   const reviewed = commandReviewCheck({ quiet: true });
   const verified = commandVerifyCheck({ quiet: true });
   const audited = commandAuditCheck({ quiet: true });
-  console.log(`Nexus Codex workflow status`);
+  saveJson(join(RUNTIME_DIR, 'session-state.json'), {
+    lastStatusAt: nowIso(),
+    health,
+    worktreeHash: currentHash,
+    branch,
+  });
+  console.log(`Nexus Codex workflow ${health ? 'health' : 'status'}`);
   console.log(`root: ${ROOT}`);
   console.log(`branch: ${branch}`);
   console.log(`changed files: ${files.length}`);
@@ -2298,16 +2901,25 @@ function commandStatus() {
   console.log(`handover: ${handoverOk ? 'ok' : 'needs attention'}`);
   console.log(`records: ${recordsOk ? 'ok' : 'needs attention'}`);
   console.log(`routing: ${routingOk ? 'ok' : 'needs attention'}`);
-  console.log(`guide: ${guideOk ? 'ok' : 'needs attention'}`);
-  console.log(`guide browser: ${guideBrowserOk ? 'ok' : 'needs attention'}`);
-  console.log(`zoo visual guide: ${zooVisualOk ? 'ok' : 'needs attention'}`);
-  console.log(`hook config: ${hookConfigOk ? 'ok' : 'needs attention'}`);
-  console.log(`dependency audit: ${depAuditOk ? 'ok' : 'needs attention'}`);
-  console.log(`production zoo bundle: ${prodZooOk ? 'ok' : 'needs attention'}`);
+  if (health) {
+    console.log(`guide: ${guideOk ? 'ok' : 'needs attention'}`);
+    console.log(`guide browser: ${guideBrowserOk ? 'ok' : 'needs attention'}`);
+    console.log(`zoo visual guide: ${zooVisualOk ? 'ok' : 'needs attention'}`);
+    console.log(`hook config: ${hookConfigOk ? 'ok' : 'needs attention'}`);
+  }
+  console.log(`hook runtime: ${hookRuntimeOk ? 'seen' : 'not seen'}`);
+  if (health) {
+    console.log(`branch evidence: ${branchEvidenceOk ? 'ok' : 'needs attention'}`);
+    console.log(`dependency audit: ${depAuditOk ? 'ok' : 'needs attention'}`);
+    console.log(`production zoo bundle: ${prodZooOk ? 'ok' : 'needs attention'}`);
+  } else {
+    console.log('heavy gates: run npm run workflow:health or npm run workflow:release-gate');
+  }
   if (state.reviewedAt) console.log(`last review: ${state.reviewedAt} by ${state.reviewer || 'unknown'} (${state.verdict || 'unknown'})`);
   if (verifyState.verifiedAt) console.log(`last verification: ${verifyState.verifiedAt} by ${verifyState.verifier || 'unknown'} (${verifyState.verdict || 'unknown'})`);
   if (auditState.auditedAt) console.log(`last audit: ${auditState.auditedAt} by ${auditState.auditor || 'unknown'} (${auditState.verdict || 'unknown'})`);
-  if (routingState.recordedAt) console.log(`last routing: ${routingState.recordedAt} via ${routingState.route || 'unknown'} (${routingState.routingId || 'unknown'})`);
+  if (routingState.recordedAt) console.log(`last routing: ${routingState.recordedAt} via ${routingState.route || 'unknown'} (${routingState.routingId || 'unknown'}, ${routingState.status || 'unknown'})`);
+  if (routingState.closedAt) console.log(`last routing closed: ${routingState.closedAt}`);
   if (patchState.lastChangedAt) console.log(`last patch trigger: ${patchState.lastChangedAt} (${patchState.reason || patchState.source || 'unknown'})`);
   if (status) {
     console.log('');
@@ -2315,17 +2927,25 @@ function commandStatus() {
   }
 }
 
+function commandHealth() {
+  commandStatus({ health: true });
+}
+
 function commandRecordPatch(args, hookPayload = null) {
-  const files = args.files ? csv(args.files) : substantiveFiles();
-  const title = args.summary || hookPayload?.tool_name || 'Patch';
   const hash = worktreeHash();
+  const branch = branchEvidenceInfo();
+  const scope = args.scope || 'worktree';
+  const files = args.files ? csv(args.files) : (scope === 'branch' ? branch.files : substantiveFiles());
+  const title = args.summary || hookPayload?.tool_name || 'Patch';
   const routingState = loadJson(ROUTING_STATE_FILE, {});
   const routingId = args.routing || args['routing-id'] || (routingState.worktreeHash === hash ? routingState.routingId : '') || '';
   const agent = args.worker || args.agent || 'codex-lead';
   const body = [
     `Summary: ${title}`,
+    `Scope: ${scope}`,
     `Agent: ${agent}`,
     `Routing: ${routingId || 'n/a'}`,
+    scope === 'branch' && branch.hash ? `Branch evidence hash: ${branch.hash}` : '',
     '',
     `Files:`,
     ...files.map((f) => `- ${f}`),
@@ -2333,10 +2953,13 @@ function commandRecordPatch(args, hookPayload = null) {
     `Worktree hash after patch: ${hash}`,
   ].join('\n');
   const rec = writeRecord('patches', title, body, {
+    scope,
     files,
     agent,
     worktreeHash: hash,
     routingId,
+    routingRequired: !isLeadWorker(agent),
+    ...branchScopedFrontmatter(scope, branch),
   });
   invalidateGates(files, `patch ${rec.id}`, agent, {
     patchId: rec.id,
@@ -2355,6 +2978,8 @@ function commandRecordReview(args) {
     process.exit(2);
   }
   const hash = worktreeHash();
+  const scope = args.scope || 'worktree';
+  const branch = branchEvidenceInfo();
   if (!args.kind) {
     console.error('record-review requires explicit --kind general|pattern|design|workflow|integrated');
     process.exit(2);
@@ -2365,46 +2990,39 @@ function commandRecordReview(args) {
     process.exit(2);
   }
   const patchState = loadJson(PATCH_STATE_FILE, {});
-  const files = args.files ? csv(args.files) : substantiveFiles();
+  const files = args.files ? csv(args.files) : (scope === 'branch' ? branch.files : substantiveFiles());
   const patchId = args.patch || args['patch-id'] || (patchState.worktreeHash === hash ? patchState.patchId : null);
   if (substantiveFiles().length && !patchId) {
     console.error('record-review requires a patch record for substantive changes. Run record-patch first or pass --patch <PATCH-id>.');
     process.exit(2);
   }
-  const title = `Review ${kind} ${verdict} ${args.scope || 'worktree'}`;
+  const title = `Review ${kind} ${verdict} ${scope}`;
   const body = [
-    `Scope: ${args.scope || 'worktree'}`,
+    `Scope: ${scope}`,
     `Kind: ${kind}`,
     `Verdict: ${verdict}`,
     `Reviewer: ${args.reviewer || 'unknown'}`,
     `Patch: ${patchId || 'n/a'}`,
     `Worktree hash: ${hash}`,
+    scope === 'branch' && branch.hash ? `Branch evidence hash: ${branch.hash}` : '',
     '',
     files.length ? ['Reviewed files:', ...files.map((f) => `- ${f}`)].join('\n') : 'Reviewed files: n/a',
     '',
     args.notes ? `Notes: ${args.notes}` : 'Notes: n/a',
   ].join('\n');
   const rec = writeRecord('reviews', title, body, {
-    scope: args.scope || 'worktree',
+    scope,
     verdict,
     reviewer: args.reviewer || 'unknown',
     worktreeHash: hash,
     kind,
     patchId: patchId || '',
     files,
+    ...branchScopedFrontmatter(scope, branch),
   });
-  const existing = loadJson(STATE_FILE, {});
-  const reviewKinds = {
-    ...(existing.reviewKinds || {}),
-    [kind]: {
-      worktreeHash: hash,
-      verdict,
-      reviewer: args.reviewer || 'unknown',
-      reviewedAt: nowIso(),
-      reviewRecord: relative(ROOT, rec.path).replaceAll('\\', '/'),
-      patchId: patchId || '',
-    },
-  };
+  const reviewKinds = verdict === 'pass'
+    ? reviewKindsFromRecords(hash)
+    : loadJson(STATE_FILE, {}).reviewKinds || {};
   saveJson(STATE_FILE, {
     worktreeHash: hash,
     verdict,
@@ -2452,20 +3070,45 @@ function commandRecordVerification(args) {
     process.exit(2);
   }
   const hash = worktreeHash();
-  const title = `Verification ${verdict} ${args.scope || 'worktree'}`;
+  const scope = args.scope || 'worktree';
+  const branch = branchEvidenceInfo();
+  const files = args.files ? csv(args.files) : (scope === 'branch' ? branch.files : []);
+  const commandIds = csv(args.commands || args['command-ids']);
+  const artifacts = csv(args.artifacts || args.evidence || args['summary-files']);
+  if (verdict === 'pass' && !commandIds.length && !artifacts.length) {
+    console.error('record-verify pass requires --commands/--command-ids or --artifacts/--evidence so execution evidence is reference-based.');
+    process.exit(2);
+  }
+  const commandEvidence = commandEvidenceForIds(commandIds, { requirePass: verdict === 'pass' });
+  if (commandEvidence.problems.length) {
+    console.error('record-verify command evidence problems:');
+    for (const problem of commandEvidence.problems) console.error(`- ${problem}`);
+    process.exit(2);
+  }
+  const title = `Verification ${verdict} ${scope}`;
   const body = [
-    `Scope: ${args.scope || 'worktree'}`,
+    `Scope: ${scope}`,
     `Verdict: ${verdict}`,
     `Verifier: ${args.verifier || 'unknown'}`,
     `Worktree hash: ${hash}`,
+    scope === 'branch' && branch.hash ? `Branch evidence hash: ${branch.hash}` : '',
+    commandIds.length ? `Command run ids: ${commandIds.join(', ')}` : '',
+    artifacts.length ? `Artifacts: ${artifacts.join(', ')}` : '',
+    files.length ? `Files: ${files.join(', ')}` : '',
+    ...commandEvidenceLines(commandEvidence.evidence),
     '',
     args.notes ? `Notes: ${args.notes}` : 'Notes: n/a',
   ].join('\n');
   const rec = writeRecord('tests', title, body, {
-    scope: args.scope || 'worktree',
+    scope,
     verdict,
     verifier: args.verifier || 'unknown',
     worktreeHash: hash,
+    files,
+    commandIds,
+    commandEvidence: commandEvidence.evidence,
+    artifacts,
+    ...branchScopedFrontmatter(scope, branch),
   });
   saveJson(VERIFY_STATE_FILE, {
     worktreeHash: hash,
@@ -2473,6 +3116,9 @@ function commandRecordVerification(args) {
     verifier: args.verifier || 'unknown',
     verifiedAt: nowIso(),
     verifyRecord: relative(ROOT, rec.path).replaceAll('\\', '/'),
+    commandIds,
+    commandEvidence: commandEvidence.evidence,
+    artifacts,
     notes: args.notes || '',
   });
   console.log(`Recorded verification ${rec.id}`);
@@ -2488,11 +3134,54 @@ function commandRecordTest(args) {
 }
 
 function commandRecordDeployment(args) {
-  if (!args.summary || !args.notes) {
-    console.error('record-deployment requires --summary and --notes.');
+  const verdict = String(args.verdict || '').toLowerCase();
+  if (!['pass', 'fail', 'partial', 'blocked'].includes(verdict)) {
+    console.error('record-deployment requires --verdict pass|fail|partial|blocked');
     process.exit(2);
   }
-  return commandRecordGeneric('deployments', args);
+  const branch = branchEvidenceInfo();
+  const target = args.target || args.environment || '';
+  const commandIds = csv(args.commands || args['command-ids']);
+  const checks = csv(args.checks);
+  const artifacts = csv(args.artifacts || args.evidence || args['summary-files']);
+  if (!args.summary || !target || !args.notes) {
+    console.error('record-deployment requires --summary, --target, and --notes.');
+    process.exit(2);
+  }
+  if (verdict === 'pass' && !commandIds.length && !artifacts.length) {
+    console.error('record-deployment pass requires --commands/--command-ids or durable --artifacts/--evidence. --checks are descriptive and not proof by themselves.');
+    process.exit(2);
+  }
+  const commandEvidence = commandEvidenceForIds(commandIds, { requirePass: verdict === 'pass' });
+  if (commandEvidence.problems.length) {
+    console.error('record-deployment command evidence problems:');
+    for (const problem of commandEvidence.problems) console.error(`- ${problem}`);
+    process.exit(2);
+  }
+  const body = [
+    `Target: ${target}`,
+    `Verdict: ${verdict}`,
+    `Operator: ${args.operator || args.deployer || 'unknown'}`,
+    branch.hash ? `Branch evidence hash: ${branch.hash}` : '',
+    commandIds.length ? `Command run ids: ${commandIds.join(', ')}` : '',
+    checks.length ? `Checks: ${checks.join(', ')}` : '',
+    artifacts.length ? `Artifacts: ${artifacts.join(', ')}` : '',
+    ...commandEvidenceLines(commandEvidence.evidence),
+    '',
+    `Notes: ${args.notes}`,
+  ].filter(Boolean).join('\n');
+  const rec = writeRecord('deployments', args.summary, body, {
+    target,
+    verdict,
+    operator: args.operator || args.deployer || 'unknown',
+    commandIds,
+    commandEvidence: commandEvidence.evidence,
+    checks,
+    artifacts,
+    ...branchEvidenceFrontmatter(branch),
+  });
+  console.log(`Recorded deployment ${rec.id}`);
+  console.log(relative(ROOT, rec.path));
 }
 
 function commandRecordAudit(args) {
@@ -2502,20 +3191,45 @@ function commandRecordAudit(args) {
     process.exit(2);
   }
   const hash = worktreeHash();
-  const title = `Audit ${verdict} ${args.scope || 'worktree'}`;
+  const scope = args.scope || 'worktree';
+  const branch = branchEvidenceInfo();
+  const files = args.files ? csv(args.files) : (scope === 'branch' ? branch.files : []);
+  const commandIds = csv(args.commands || args['command-ids']);
+  const artifacts = csv(args.artifacts || args.evidence || args['summary-files']);
+  if (verdict === 'pass' && !commandIds.length && !artifacts.length) {
+    console.error('record-audit pass requires --commands/--command-ids or --artifacts/--evidence so audit evidence is reference-based.');
+    process.exit(2);
+  }
+  const commandEvidence = commandEvidenceForIds(commandIds, { requirePass: verdict === 'pass' });
+  if (commandEvidence.problems.length) {
+    console.error('record-audit command evidence problems:');
+    for (const problem of commandEvidence.problems) console.error(`- ${problem}`);
+    process.exit(2);
+  }
+  const title = `Audit ${verdict} ${scope}`;
   const body = [
-    `Scope: ${args.scope || 'worktree'}`,
+    `Scope: ${scope}`,
     `Verdict: ${verdict}`,
     `Auditor: ${args.auditor || 'unknown'}`,
     `Worktree hash: ${hash}`,
+    scope === 'branch' && branch.hash ? `Branch evidence hash: ${branch.hash}` : '',
+    commandIds.length ? `Command run ids: ${commandIds.join(', ')}` : '',
+    artifacts.length ? `Artifacts: ${artifacts.join(', ')}` : '',
+    files.length ? `Files: ${files.join(', ')}` : '',
+    ...commandEvidenceLines(commandEvidence.evidence),
     '',
     args.notes ? `Notes: ${args.notes}` : 'Notes: n/a',
   ].join('\n');
   const rec = writeRecord('audits', title, body, {
-    scope: args.scope || 'worktree',
+    scope,
     verdict,
     auditor: args.auditor || 'unknown',
     worktreeHash: hash,
+    files,
+    commandIds,
+    commandEvidence: commandEvidence.evidence,
+    artifacts,
+    ...branchScopedFrontmatter(scope, branch),
   });
   saveJson(AUDIT_STATE_FILE, {
     worktreeHash: hash,
@@ -2523,6 +3237,9 @@ function commandRecordAudit(args) {
     auditor: args.auditor || 'unknown',
     auditedAt: nowIso(),
     auditRecord: relative(ROOT, rec.path).replaceAll('\\', '/'),
+    commandIds,
+    commandEvidence: commandEvidence.evidence,
+    artifacts,
     notes: args.notes || '',
   });
   console.log(`Recorded audit ${rec.id}`);
@@ -2649,6 +3366,47 @@ function commandRecordRouting(args) {
   console.log(relative(ROOT, rec.path));
 }
 
+function commandCompleteRouting(args) {
+  const routingState = loadJson(ROUTING_STATE_FILE, {});
+  const routingId = args.routing || args['routing-id'] || routingState.routingId || '';
+  if (!routingId) {
+    console.error('complete-routing requires --routing <ROUTING-id> or an active routing state.');
+    process.exit(2);
+  }
+  const routingRecord = recordFrontmatter('routing', routingId);
+  if (!routingRecord) {
+    console.error(`complete-routing could not find routing record: ${routingId}`);
+    process.exit(2);
+  }
+  const hash = worktreeHash();
+  const title = `Routing complete ${routingId}`;
+  const body = [
+    `Completed routing: ${routingId}`,
+    `Worker: ${routingRecord.worker || routingState.worker || 'unknown'}`,
+    `Route: ${routingRecord.route || routingState.route || 'unknown'}`,
+    `Worktree hash at completion: ${hash}`,
+    '',
+    args.notes ? `Notes: ${args.notes}` : 'Notes: n/a',
+  ].join('\n');
+  const rec = writeRecord('routing', title, body, {
+    status: 'completed',
+    completedRoutingId: routingId,
+    route: routingRecord.route || routingState.route || '',
+    worker: routingRecord.worker || routingState.worker || '',
+    files: routingRecord.files || routingState.files || [],
+    worktreeHash: hash,
+  });
+  saveJson(ROUTING_STATE_FILE, {
+    ...routingState,
+    routingId,
+    status: 'closed',
+    closedAt: nowIso(),
+    closeRecord: relative(ROOT, rec.path).replaceAll('\\', '/'),
+  });
+  console.log(`Completed routing ${routingId}`);
+  console.log(relative(ROOT, rec.path));
+}
+
 function commandVerifyCheck({ quiet = false } = {}) {
   const files = verificationRelevantFiles();
   const hash = worktreeHash();
@@ -2657,7 +3415,10 @@ function commandVerifyCheck({ quiet = false } = {}) {
     worktreeHash: hash,
     verdict: 'pass',
   }, 'verification state').length === 0;
-  const ok = files.length === 0 || (state.worktreeHash === hash && state.verdict === 'pass' && evidenceOk);
+  const stateEvidenceReferenced = evidenceReferenceProblems(state, 'verification state').length === 0;
+  const ok = files.length === 0
+    || (state.worktreeHash === hash && state.verdict === 'pass' && evidenceOk && stateEvidenceReferenced)
+    || recordHasVerificationPass(hash);
   if (!quiet) {
     console.log(`verification-relevant files: ${files.length}`);
     console.log(`worktree hash: ${hash}`);
@@ -2678,7 +3439,10 @@ function commandAuditCheck({ quiet = false } = {}) {
     worktreeHash: hash,
     verdict: 'pass',
   }, 'audit state').length === 0;
-  const ok = files.length === 0 || (state.worktreeHash === hash && state.verdict === 'pass' && evidenceOk);
+  const stateEvidenceReferenced = evidenceReferenceProblems(state, 'audit state').length === 0;
+  const ok = files.length === 0
+    || (state.worktreeHash === hash && state.verdict === 'pass' && evidenceOk && stateEvidenceReferenced)
+    || recordHasAuditPass(hash);
   if (!quiet) {
     console.log(`audit-relevant files: ${files.length}`);
     console.log(`worktree hash: ${hash}`);
@@ -2689,6 +3453,142 @@ function commandAuditCheck({ quiet = false } = {}) {
     }
   }
   return ok;
+}
+
+function deploymentProblems() {
+  const branch = branchEvidenceInfo();
+  const problems = [];
+  if (!branch.hash) {
+    problems.push('deployment check could not compute branch evidence hash.');
+    return problems;
+  }
+  const deployments = recordFrontmatters('deployments')
+    .filter((record) => record.branchHash === branch.hash && record.verdict === 'pass')
+    .sort((a, b) => String(b.created).localeCompare(String(a.created)));
+  const deployment = deployments[0];
+  if (!deployment) {
+    problems.push(`no passing deployment record tied to branchHash ${branch.hash}.`);
+    return problems;
+  }
+  if (!deployment.target) problems.push(`deployment record ${deployment.id || deployment.name} has no target.`);
+  problems.push(...evidenceReferenceProblems(deployment, `deployment record ${deployment.id || deployment.name}`));
+  return problems;
+}
+
+function commandDeploymentCheck({ quiet = false } = {}) {
+  const problems = deploymentProblems();
+  if (!quiet) {
+    console.log(`deployment problems: ${problems.length}`);
+    for (const problem of problems) console.log(`- ${problem}`);
+  }
+  return problems.length === 0;
+}
+
+function branchRecordMatches(record, branch, extra = {}) {
+  if (!branch.hash || record.branchHash !== branch.hash) return false;
+  for (const [key, expected] of Object.entries(extra)) {
+    if (expected === undefined || expected === null) continue;
+    if (String(record[key] ?? '') !== String(expected)) return false;
+  }
+  return true;
+}
+
+function branchEvidenceProblemsForState(branch, recordsByKind) {
+  const problems = [];
+  if (!branch.base) return ['branch evidence check could not find a base ref. Set NEXUS_BRANCH_BASE or fetch origin/main.'];
+  if (!branch.mergeBase) return [`branch evidence check could not compute merge-base for ${branch.base}.`];
+  if (!branch.files.length) return problems;
+
+  const patches = recordsByKind.patches || [];
+  const branchPatches = patches.filter((record) => branchRecordMatches(record, branch));
+  if (!branchPatches.some((record) => String(record.scope || '') === 'branch')) {
+    problems.push(`branch ${branch.hash} has substantive diff but no branch-scope PATCH record tied to branchHash ${branch.hash}.`);
+  }
+
+  const reviews = recordsByKind.reviews || [];
+  for (const kind of requiredBranchReviewKinds(branch.files)) {
+    const ok = reviews.some((record) => branchRecordMatches(record, branch, { verdict: 'pass', kind }));
+    if (!ok) problems.push(`branch ${branch.hash} is missing a passing ${kind} review record tied to this branch diff.`);
+  }
+  const delegatedBranchPatches = branchIntroducedRecords(patches).flatMap((record) => splitWorkerNames(record.agent || record.worker)
+    .map(canonicalWorker)
+    .filter((worker) => worker && worker !== 'lead' && !LEGACY_SCHEMA_RECORDS.has(record.rel || ''))
+    .map((worker) => ({ record, worker })));
+  const hasDelegatedBranchPatch = delegatedBranchPatches.length > 0;
+  const routings = recordsByKind.routing || [];
+  for (const { record, worker } of delegatedBranchPatches) {
+    const routingId = record.routingId || '';
+    if (!routingId) {
+      problems.push(`branch patch ${record.id || record.name || '(unknown)'} by ${worker} is missing routingId.`);
+      continue;
+    }
+    const routing = routings.find((candidate) => candidate.id === routingId);
+    if (!routing) {
+      problems.push(`branch patch ${record.id || record.name || '(unknown)'} by ${worker} references missing routing record ${routingId}.`);
+      continue;
+    }
+    if (!routingCloseoutRecord(routings, routingId)) {
+      problems.push(`branch patch ${record.id || record.name || '(unknown)'} by ${worker} references routing ${routingId}, but no completed routing closeout record exists.`);
+    }
+    if (String(routing.route || '').toLowerCase() === 'lead') {
+      problems.push(`branch patch ${record.id || record.name || '(unknown)'} by ${worker} cannot be covered by lead-only routing ${routingId}.`);
+    }
+    if (!routingMatchesWorker(routing, worker)) {
+      problems.push(`routing ${routingId} does not cover branch patch worker ${worker}.`);
+    }
+    if (routing.created && record.created && routing.created > record.created) {
+      problems.push(`routing ${routingId} was recorded after branch patch ${record.id || record.name || '(unknown)'}.`);
+    }
+    const route = String(routing.route || '').toLowerCase();
+    const allowed = routing.files || routing.writeScope || [];
+    if (route.includes('spark') && !allowed.length) {
+      problems.push(`Spark routing ${routingId} has no branch-verifiable write scope.`);
+      continue;
+    }
+    if (allowed.length && Array.isArray(record.files)) {
+      const outside = record.files.filter((file) => !allowed.some((pattern) => fileMatchesPattern(file, pattern)));
+      problems.push(...outside.map((file) => `branch patch ${record.id || record.name || '(unknown)'} changed outside routing ${routingId} scope: ${file}`));
+    }
+  }
+  if (hasDelegatedBranchPatch) {
+    const ok = reviews.some((record) => branchRecordMatches(record, branch, { verdict: 'pass', kind: 'integrated' }));
+    if (!ok) problems.push(`branch ${branch.hash} includes delegated patch evidence but has no passing integrated review record tied to this branch diff.`);
+  }
+
+  const tests = recordsByKind.tests || [];
+  if (verificationRelevantFiles(branch.files).length && !tests.some((record) => branchRecordMatches(record, branch, { verdict: 'pass' }) && !evidenceReferenceProblems(record, `verification record ${record.id || record.name}`).length)) {
+    problems.push(`branch ${branch.hash} changes verification-relevant files but has no passing verification record tied to this branch diff.`);
+  }
+
+  const audits = recordsByKind.audits || [];
+  if (auditRelevantFiles(branch.files).length && !audits.some((record) => branchRecordMatches(record, branch, { verdict: 'pass' }) && !evidenceReferenceProblems(record, `audit record ${record.id || record.name}`).length)) {
+    problems.push(`branch ${branch.hash} changes audit-relevant files but has no passing audit record tied to this branch diff.`);
+  }
+
+  return problems;
+}
+
+function branchEvidenceProblems() {
+  const branch = branchEvidenceInfo();
+  const recordsByKind = Object.fromEntries(['patches', 'routing', 'reviews', 'tests', 'audits'].map((kind) => [kind, branchRecordFrontmatters(kind, branch)]));
+  return branchEvidenceProblemsForState(branch, recordsByKind);
+}
+
+function releaseCloseoutMode(branch = branchEvidenceInfo()) {
+  return (branch.files || []).length ? 'branch' : 'worktree';
+}
+
+function commandBranchEvidenceCheck({ quiet = false } = {}) {
+  const branch = branchEvidenceInfo();
+  const problems = branchEvidenceProblems();
+  if (!quiet) {
+    console.log(`branch evidence base: ${branch.base || '(none)'}`);
+    console.log(`branch evidence hash: ${branch.hash || '(none)'}`);
+    console.log(`branch substantive files: ${branch.files.length}`);
+    console.log(`branch evidence problems: ${problems.length}`);
+    for (const problem of problems) console.log(`- ${problem}`);
+  }
+  return problems.length === 0;
 }
 
 function commandZooCheck({ quiet = false } = {}) {
@@ -2863,6 +3763,7 @@ function commandModelRoutingCheck(args = {}) {
 function workflowSelfTestChecks() {
   const checks = [];
   const add = (name, ok) => checks.push({ name, ok: Boolean(ok) });
+  const passEvidence = (id) => [{ id, exitCode: 0, timedOut: false }];
   const fixtureHandoverCheck = (name, text, expectedOk) => {
     const dir = mkdtempSync(join(tmpdir(), 'nexus-workflow-self-test-'));
     ensureDir(dir);
@@ -2897,8 +3798,10 @@ function workflowSelfTestChecks() {
   add('pattern proposals are protected evidence', EVIDENCE_RECORD_KINDS.includes('pattern-proposals'));
   add('guide browser validation is protected evidence', EVIDENCE_RECORD_KINDS.includes('guide-browser'));
   add('state cache evidence rejects missing durable record', evidenceRecordProblems('reviews', 'REVIEW-DOES-NOT-EXIST', { verdict: 'pass' }, 'fixture review state').length > 0);
-  add('generated guide artifacts use dedicated guide gate', substantiveFiles(['.codex/dashboard/public.html', '.codex/dashboard/index.html']).length === 0);
-  add('visual zoo guide artifacts use dedicated guide gate', substantiveFiles(['.codex/dashboard/zoo/index.html', '.codex/dashboard/zoo/assets/button.jpg']).length === 0);
+  add('generated guide artifacts are non-substantive but trigger guide gates', substantiveFiles(['.codex/dashboard/public.html', '.codex/dashboard/index.html']).length === 0
+    && guideRelevantFiles(['.codex/dashboard/public.html', '.codex/dashboard/index.html']).length === 2);
+  add('visual zoo guide artifacts are non-substantive but trigger visual gates', substantiveFiles(['.codex/dashboard/zoo/index.html', '.codex/dashboard/zoo/assets/button.jpg']).length === 0
+    && zooVisualRelevantFiles(['.codex/dashboard/zoo/index.html', '.codex/dashboard/zoo/assets/button.jpg']).length === 2);
   add('guide source hash is content based', /^[a-f0-9]{24}$/.test(publicGuideSourceHash()));
   add('visual zoo source hash is content based', /^[a-f0-9]{24}$/.test(zooVisualSourceHash()));
   add('hook config pins no-prompt custom permission mode', hookConfigProblems().filter((problem) => problem.includes('approval_policy') || problem.includes('sandbox_mode')).length === 0);
@@ -2945,12 +3848,167 @@ function workflowSelfTestChecks() {
   add('worktree hash is content based independent of staging state', worktreeHashFromContent(['a'], [['a', 'hash']]) === worktreeHashFromContent(['a'], [['a', 'hash']]));
   add('worktree hash changes when file content changes', worktreeHashFromContent(['a'], [['a', 'hash']]) !== worktreeHashFromContent(['a'], [['a', 'other']]));
   add('guide source hash canonicalizes line endings', createHash('sha256').update(canonicalTextForHash('a\r\nb\r\n')).digest('hex') === createHash('sha256').update(canonicalTextForHash('a\nb\n')).digest('hex'));
-  add('guide source hash includes records and gate states', (() => {
+  add('worktree-scope records do not receive branch frontmatter', Object.keys(branchScopedFrontmatter('worktree', { hash: 'branch-hash', base: 'base', mergeBase: 'merge', files: ['a'] })).length === 0);
+  add('branch-scope records receive branch frontmatter', branchScopedFrontmatter('branch', { hash: 'branch-hash', base: 'base', mergeBase: 'merge', files: ['a'] }).branchHash === 'branch-hash');
+  add('guide source hash includes records but not mutable state cache', (() => {
     const inputs = publicGuideInputFiles();
-    return inputs.includes('.codex/workflow/records/review-state.json')
-      && inputs.includes('.codex/workflow/records/verify-state.json')
-      && inputs.includes('.codex/workflow/records/audit-state.json')
+    return !inputs.some((file) => file.startsWith('.codex/workflow/state/'))
+      && !inputs.some((file) => file.startsWith('.codex/workflow/runtime/'))
       && inputs.some((file) => file.startsWith('.codex/workflow/records/patches/'));
+  })());
+  add('branch evidence check requires durable records for branch diff', (() => {
+    const branch = { base: 'base', mergeBase: 'merge-base', hash: 'branch-hash', files: ['.codex/scripts/nexus-workflow.mjs'] };
+    return branchEvidenceProblemsForState(branch, {
+      patches: [],
+      reviews: [],
+      tests: [],
+      audits: [],
+    }).length >= 4;
+  })());
+  add('branch evidence check accepts matching patch review verify audit records', (() => {
+    const branch = { base: 'base', mergeBase: 'merge-base', hash: 'branch-hash', files: ['.codex/scripts/nexus-workflow.mjs'] };
+    return branchEvidenceProblemsForState(branch, {
+      patches: [{ branchHash: 'branch-hash', scope: 'branch', agent: 'codex-lead' }],
+      reviews: [
+        { branchHash: 'branch-hash', verdict: 'pass', kind: 'general' },
+        { branchHash: 'branch-hash', verdict: 'pass', kind: 'workflow' },
+      ],
+      tests: [{ branchHash: 'branch-hash', verdict: 'pass', commandIds: ['test-command'], commandEvidence: passEvidence('test-command') }],
+      audits: [{ branchHash: 'branch-hash', verdict: 'pass', commandIds: ['audit-command'], commandEvidence: passEvidence('audit-command') }],
+    }).length === 0;
+  })());
+  add('release closeout uses branch evidence when branch has diff', releaseCloseoutMode({ files: ['.codex/scripts/nexus-workflow.mjs'] }) === 'branch');
+  add('release closeout uses worktree checks when branch has no diff', releaseCloseoutMode({ files: [] }) === 'worktree');
+  add('branch evidence check rejects non-branch patch records as branch coverage', (() => {
+    const branch = { base: 'base', mergeBase: 'merge-base', hash: 'branch-hash', files: ['.codex/scripts/nexus-workflow.mjs'] };
+    return branchEvidenceProblemsForState(branch, {
+      patches: [{ branchHash: 'branch-hash', scope: 'worktree', agent: 'nexus_spark_worker' }],
+      reviews: [
+        { branchHash: 'branch-hash', verdict: 'pass', kind: 'general' },
+        { branchHash: 'branch-hash', verdict: 'pass', kind: 'workflow' },
+        { branchHash: 'branch-hash', verdict: 'pass', kind: 'integrated' },
+      ],
+      tests: [{ branchHash: 'branch-hash', verdict: 'pass', commandIds: ['test-command'], commandEvidence: passEvidence('test-command') }],
+      audits: [{ branchHash: 'branch-hash', verdict: 'pass', commandIds: ['audit-command'], commandEvidence: passEvidence('audit-command') }],
+    }).some((problem) => problem.includes('branch-scope PATCH'));
+  })());
+  add('branch evidence check requires integrated review for delegated patch evidence', (() => {
+    const branch = { base: 'base', mergeBase: 'merge-base', hash: 'branch-hash', files: ['.codex/scripts/nexus-workflow.mjs'] };
+    return branchEvidenceProblemsForState(branch, {
+      patches: [
+        { branchHash: 'branch-hash', scope: 'branch', agent: 'codex-lead' },
+        { branchHash: 'branch-hash', scope: 'worktree', agent: 'nexus_spark_worker', routingId: 'ROUTING-test', files: ['.codex/workflow/templates/routing.md'] },
+      ],
+      routing: [{ id: 'ROUTING-test', route: 'spark', worker: 'nexus_spark_worker', files: ['.codex/workflow/templates/routing.md'] }],
+      reviews: [
+        { branchHash: 'branch-hash', verdict: 'pass', kind: 'general' },
+        { branchHash: 'branch-hash', verdict: 'pass', kind: 'workflow' },
+      ],
+      tests: [{ branchHash: 'branch-hash', verdict: 'pass', commandIds: ['test-command'], commandEvidence: passEvidence('test-command') }],
+      audits: [{ branchHash: 'branch-hash', verdict: 'pass', commandIds: ['audit-command'], commandEvidence: passEvidence('audit-command') }],
+    }).some((problem) => problem.includes('integrated review'));
+  })());
+  add('branch evidence check requires routing record for delegated patch evidence', (() => {
+    const branch = { base: 'base', mergeBase: 'merge-base', hash: 'branch-hash', files: ['.codex/scripts/nexus-workflow.mjs'] };
+    return branchEvidenceProblemsForState(branch, {
+      patches: [
+        { branchHash: 'branch-hash', scope: 'branch', agent: 'codex-lead' },
+        { branchHash: 'branch-hash', scope: 'worktree', agent: 'nexus_spark_worker', files: ['.codex/workflow/templates/routing.md'] },
+      ],
+      routing: [],
+      reviews: [
+        { branchHash: 'branch-hash', verdict: 'pass', kind: 'general' },
+        { branchHash: 'branch-hash', verdict: 'pass', kind: 'workflow' },
+        { branchHash: 'branch-hash', verdict: 'pass', kind: 'integrated' },
+      ],
+      tests: [{ branchHash: 'branch-hash', verdict: 'pass', commandIds: ['test-command'], commandEvidence: passEvidence('test-command') }],
+      audits: [{ branchHash: 'branch-hash', verdict: 'pass', commandIds: ['audit-command'], commandEvidence: passEvidence('audit-command') }],
+    }).some((problem) => problem.includes('missing routingId'));
+  })());
+  add('branch evidence check requires routing closeout for delegated patch evidence', (() => {
+    const branch = { base: 'base', mergeBase: 'merge-base', hash: 'branch-hash', files: ['.codex/scripts/nexus-workflow.mjs'] };
+    return branchEvidenceProblemsForState(branch, {
+      patches: [
+        { branchHash: 'branch-hash', scope: 'branch', agent: 'codex-lead' },
+        { branchHash: 'branch-hash', scope: 'worktree', agent: 'nexus_spark_worker', routingId: 'ROUTING-test', files: ['.codex/workflow/templates/routing.md'] },
+      ],
+      routing: [{ id: 'ROUTING-test', route: 'spark', worker: 'nexus_spark_worker', files: ['.codex/workflow/templates/routing.md'] }],
+      reviews: [
+        { branchHash: 'branch-hash', verdict: 'pass', kind: 'general' },
+        { branchHash: 'branch-hash', verdict: 'pass', kind: 'workflow' },
+        { branchHash: 'branch-hash', verdict: 'pass', kind: 'integrated' },
+      ],
+      tests: [{ branchHash: 'branch-hash', verdict: 'pass', commandIds: ['test-command'], commandEvidence: passEvidence('test-command') }],
+      audits: [{ branchHash: 'branch-hash', verdict: 'pass', commandIds: ['audit-command'], commandEvidence: passEvidence('audit-command') }],
+    }).some((problem) => problem.includes('no completed routing closeout'));
+  })());
+  add('branch evidence check accepts delegated patch with routing and integrated review', (() => {
+    const branch = { base: 'base', mergeBase: 'merge-base', hash: 'branch-hash', files: ['.codex/scripts/nexus-workflow.mjs'] };
+    return branchEvidenceProblemsForState(branch, {
+      patches: [
+        { branchHash: 'branch-hash', scope: 'branch', agent: 'codex-lead' },
+        { branchHash: 'branch-hash', scope: 'worktree', agent: 'nexus_spark_worker', routingId: 'ROUTING-test', files: ['.codex/workflow/templates/routing.md'] },
+      ],
+      routing: [
+        { id: 'ROUTING-test', route: 'spark', worker: 'nexus_spark_worker', files: ['.codex/workflow/templates/routing.md'] },
+        { id: 'ROUTING-closeout', completedRoutingId: 'ROUTING-test', status: 'completed', route: 'spark', worker: 'nexus_spark_worker' },
+      ],
+      reviews: [
+        { branchHash: 'branch-hash', verdict: 'pass', kind: 'general' },
+        { branchHash: 'branch-hash', verdict: 'pass', kind: 'workflow' },
+        { branchHash: 'branch-hash', verdict: 'pass', kind: 'integrated' },
+      ],
+      tests: [{ branchHash: 'branch-hash', verdict: 'pass', commandIds: ['test-command'], commandEvidence: passEvidence('test-command') }],
+      audits: [{ branchHash: 'branch-hash', verdict: 'pass', commandIds: ['audit-command'], commandEvidence: passEvidence('audit-command') }],
+    }).length === 0;
+  })());
+  add('branch evidence check still requires integrated review for stale-hash delegated branch records', (() => {
+    const branch = { base: 'base', mergeBase: 'merge-base', hash: 'branch-hash', files: ['.codex/scripts/nexus-workflow.mjs'] };
+    return branchEvidenceProblemsForState(branch, {
+      patches: [
+        { branchHash: 'branch-hash', scope: 'branch', agent: 'codex-lead', branchIntroduced: true },
+        { branchHash: 'old-hash', scope: 'worktree', agent: 'nexus_spark_worker', routingId: 'ROUTING-test', files: ['.codex/workflow/templates/routing.md'], branchIntroduced: true },
+      ],
+      routing: [{ id: 'ROUTING-test', route: 'spark', worker: 'nexus_spark_worker', files: ['.codex/workflow/templates/routing.md'], branchIntroduced: true }],
+      reviews: [
+        { branchHash: 'branch-hash', verdict: 'pass', kind: 'general' },
+        { branchHash: 'branch-hash', verdict: 'pass', kind: 'workflow' },
+      ],
+      tests: [{ branchHash: 'branch-hash', verdict: 'pass', commandIds: ['test-command'], commandEvidence: passEvidence('test-command') }],
+      audits: [{ branchHash: 'branch-hash', verdict: 'pass', commandIds: ['audit-command'], commandEvidence: passEvidence('audit-command') }],
+    }).some((problem) => problem.includes('integrated review'));
+  })());
+  add('branch evidence check ignores historical delegated records that were not introduced on this branch', (() => {
+    const branch = { base: 'base', mergeBase: 'merge-base', hash: 'branch-hash', files: ['.codex/scripts/nexus-workflow.mjs'] };
+    return branchEvidenceProblemsForState(branch, {
+      patches: [
+        { branchHash: 'branch-hash', scope: 'branch', agent: 'codex-lead', branchIntroduced: true },
+        { branchHash: 'old-hash', scope: 'worktree', agent: 'nexus_spark_worker', files: ['.codex/workflow/templates/routing.md'], branchIntroduced: false },
+      ],
+      routing: [],
+      reviews: [
+        { branchHash: 'branch-hash', verdict: 'pass', kind: 'general' },
+        { branchHash: 'branch-hash', verdict: 'pass', kind: 'workflow' },
+      ],
+      tests: [{ branchHash: 'branch-hash', verdict: 'pass', commandIds: ['test-command'], commandEvidence: passEvidence('test-command') }],
+      audits: [{ branchHash: 'branch-hash', verdict: 'pass', commandIds: ['audit-command'], commandEvidence: passEvidence('audit-command') }],
+    }).length === 0;
+  })());
+  add('branch evidence check exempts legacy-schema delegated patches from new routing requirement', (() => {
+    const branch = { base: 'base', mergeBase: 'merge-base', hash: 'branch-hash', files: ['.codex/scripts/nexus-workflow.mjs'] };
+    return branchEvidenceProblemsForState(branch, {
+      patches: [
+        { branchHash: 'branch-hash', scope: 'branch', agent: 'codex-lead', branchIntroduced: true },
+        { rel: '.codex/workflow/records/patches/PATCH-20260508T170713Z-design-system-toast-semantic-parity.md', branchHash: 'old-hash', scope: 'worktree', agent: 'codex-lead+spark-worker', branchIntroduced: true },
+      ],
+      routing: [],
+      reviews: [
+        { branchHash: 'branch-hash', verdict: 'pass', kind: 'general' },
+        { branchHash: 'branch-hash', verdict: 'pass', kind: 'workflow' },
+      ],
+      tests: [{ branchHash: 'branch-hash', verdict: 'pass', commandIds: ['test-command'], commandEvidence: passEvidence('test-command') }],
+      audits: [{ branchHash: 'branch-hash', verdict: 'pass', commandIds: ['audit-command'], commandEvidence: passEvidence('audit-command') }],
+    }).length === 0;
   })());
   add('guide content hash validates generated html', (() => {
     const html = injectGuideContentHash(`<meta name="nexus-guide-content-hash" content="${PUBLIC_GUIDE_CONTENT_HASH_PLACEHOLDER}" />\n<section>ok</section>`);
@@ -3021,6 +4079,31 @@ function workflowSelfTestChecks() {
     const missing = (missingState.screenshots || []).filter((file) => !existsSync(join(ROOT, file)));
     return missing.length > 0;
   })());
+  add('guide browser artifact evidence accepts matching hashes', (() => {
+    const dir = mkdtempSync(join(tmpdir(), 'nexus-guide-artifact-'));
+    const path = join(dir, 'artifact.json');
+    const rel = relative(ROOT, path).replaceAll('\\', '/');
+    writeFileSync(path, '{"ok":true}\n');
+    const evidence = { screenshots: [rel], summaryFile: rel, evidenceArtifacts: artifactEvidenceForFiles([rel]) };
+    const ok = artifactEvidenceProblems(evidence, 'fixture guide evidence').length === 0;
+    rmSync(dir, { recursive: true, force: true });
+    return ok;
+  })());
+  add('guide browser artifact evidence rejects mutated files', (() => {
+    const dir = mkdtempSync(join(tmpdir(), 'nexus-guide-artifact-'));
+    const path = join(dir, 'artifact.json');
+    const rel = relative(ROOT, path).replaceAll('\\', '/');
+    writeFileSync(path, '{"ok":true}\n');
+    const evidence = { screenshots: [rel], summaryFile: rel, evidenceArtifacts: artifactEvidenceForFiles([rel]) };
+    writeFileSync(path, '{"ok":false}\n');
+    const ok = artifactEvidenceProblems(evidence, 'fixture guide evidence').some((problem) => problem.includes('hash mismatch') || problem.includes('size mismatch'));
+    rmSync(dir, { recursive: true, force: true });
+    return ok;
+  })());
+  add('guide browser artifact evidence rejects path-only pass records', artifactEvidenceProblems({
+    screenshots: ['.codex/workflow/artifacts/screenshots/missing.png'],
+    summaryFile: '.codex/workflow/artifacts/screenshots/missing.json',
+  }, 'fixture guide evidence').some((problem) => problem.includes('does not embed evidenceArtifacts')));
   add('visual zoo guide check rejects missing fixture slug', (() => {
     const currentEntries = zooVisualEntries();
     return currentEntries.some((entry) => entry.slug === 'themes') && zooVisualGuideProblems().some((problem) => problem.includes('visual Zoo/Gym') || problem.includes('zoo/index.html'));
@@ -3044,6 +4127,19 @@ function workflowSelfTestChecks() {
     worktreeHash: 'stale',
     currentHash: 'current',
   }, [], {}).length === 0);
+  add('routing check allows stale delegated route after current lead patch coverage', routingScopeProblemsForState({
+    routingId: 'routing-test',
+    route: 'spark',
+    worker: 'nexus_spark_worker',
+    files: ['packages/web/src/components/ui/Toast.tsx'],
+    status: 'active',
+    worktreeHash: 'old-worker-hash',
+    currentHash: 'current',
+  }, ['.codex/scripts/nexus-workflow.mjs'], {
+    worktreeHash: 'current',
+    workers: ['codex-lead'],
+    patchId: 'patch-current',
+  }).length === 0);
   add('routing check accepts hash-bound non-Spark route', routingScopeProblemsForState({
     routingId: 'routing-test',
     route: 'lead',
@@ -3079,7 +4175,8 @@ function workflowSelfTestChecks() {
     route: 'spark',
     worker: 'nexus_spark_worker',
     files: ['packages/web/src/components/ui/Toast.tsx'],
-    status: 'active',
+    status: 'closed',
+    closeRecord: 'ROUTING-closeout',
     worktreeHash: 'base',
     currentHash: 'current',
     recordedAt: '2026-05-09T00:09:00.000Z',
@@ -3087,6 +4184,24 @@ function workflowSelfTestChecks() {
     worktreeHash: 'current',
     routingId: 'routing-test',
     workers: ['nexus_spark_worker'],
+    lastChangedAt: '2026-05-09T00:10:00.000Z',
+    patchId: 'patch-test',
+  }).length === 0);
+  add('routing check scopes linked delegated patch files instead of unrelated dirty files', routingScopeProblemsForState({
+    routingId: 'routing-test',
+    route: 'spark',
+    worker: 'nexus_spark_worker',
+    files: ['packages/web/src/components/ui/Toast.tsx'],
+    status: 'closed',
+    closeRecord: 'ROUTING-closeout',
+    worktreeHash: 'base',
+    currentHash: 'current',
+    recordedAt: '2026-05-09T00:09:00.000Z',
+  }, ['packages/web/src/components/ui/Toast.tsx', '.codex/scripts/nexus-workflow.mjs'], {
+    worktreeHash: 'current',
+    routingId: 'routing-test',
+    workers: ['nexus_spark_worker'],
+    files: ['packages/web/src/components/ui/Toast.tsx'],
     lastChangedAt: '2026-05-09T00:10:00.000Z',
     patchId: 'patch-test',
   }).length === 0);
@@ -3113,6 +4228,12 @@ function workflowSelfTestChecks() {
     worktreeHash: worktreeHash(),
     workers: ['codex-lead', 'nexus_spark_worker'],
   }));
+  add('explicit patch records reset stale worker attribution', nextPatchWorkers(['nexus_spark_worker'], {
+    explicitPatchRecord: true,
+    previousWasReviewed: false,
+    previousHash: 'hash',
+    currentHash: 'hash',
+  }).length === 0);
   add('review kind check rejects workflow-only pass as general pass', !stateHasReviewKind({
     worktreeHash: 'hash',
     verdict: 'pass',
@@ -3123,6 +4244,17 @@ function workflowSelfTestChecks() {
     verdict: 'pass',
     kind: 'general',
   }, 'general', 'hash', { checkEvidence: false }));
+  add('verification pass records require referenced evidence', !recordHasVerificationPass('missing-hash'));
+  add('evidence references reject missing commandEvidence', evidenceReferenceProblems({ commandIds: ['missing-summary'] }, 'fixture evidence').some((problem) => problem.includes('does not embed commandEvidence')));
+  add('evidence references reject failed commandEvidence', evidenceReferenceProblems({
+    commandIds: ['failed-command'],
+    commandEvidence: [{ id: 'failed-command', exitCode: 1, timedOut: false }],
+  }, 'fixture evidence').some((problem) => problem.includes('did not pass')));
+  add('evidence references accept passed commandEvidence', evidenceReferenceProblems({
+    commandIds: ['passed-command'],
+    commandEvidence: [{ id: 'passed-command', exitCode: 0, timedOut: false }],
+  }, 'fixture evidence').length === 0);
+  add('evidence references reject checks-only proof', evidenceReferenceProblems({ checks: ['manual-ok'] }, 'fixture evidence').some((problem) => problem.includes('no command ids or durable artifacts')));
   add('self-test temp fixtures stay out of repo workflow tree', !existsSync(join(ROOT, '.codex-self-test-tmp')));
   add('guide token subset avoids display tracking tokens', !productionGuideTokenCss().match(/tracking|-0\.01em/));
   add('guide token subset includes hit targets', ['--hit-sm', '--hit-md', '--hit-lg'].every((token) => productionGuideTokenCss().includes(`${token}:`)));
@@ -3152,6 +4284,34 @@ function workflowSelfTestChecks() {
   for (const command of denied) add(`hook detects ${command}`, commandInvokesGitCommit(command));
   for (const command of allowed) add(`hook allows ${command}`, !commandInvokesGitCommit(command));
   add('public sanitizer redacts private strings', !publicSafe(`${ROOT} /root/monoWeb/nexus /root/monoWeb/deploy-backups/nexus/x.diff root@134.199.148.87 ~/.ssh/DIOkii token=abc`).match(/C:\\Users|\/root\/monoWeb\/nexus|\/root\/monoWeb\/deploy-backups|root@|134\.199\.148\.87|~\/\.ssh\/DIOkii|DIOkii|token=abc/));
+  add('timed command telemetry records successful command duration', (() => {
+    const dir = mkdtempSync(join(tmpdir(), 'nexus-command-run-'));
+    const telemetryFile = join(dir, 'runs.jsonl');
+    const run = runTimedCommand([process.execPath, '-e', 'console.log("ok")'], {
+      id: 'self-test-success',
+      timeoutMs: 5000,
+      warnMs: 4000,
+      telemetryFile,
+      echo: false,
+    });
+    const records = readFileSync(telemetryFile, 'utf8').trim().split(/\r?\n/).map((line) => JSON.parse(line));
+    rmSync(dir, { recursive: true, force: true });
+    return run.exitCode === 0 && records[0]?.id === 'self-test-success' && Number.isFinite(records[0]?.durationMs);
+  })());
+  add('timed command telemetry records timeout', (() => {
+    const dir = mkdtempSync(join(tmpdir(), 'nexus-command-run-'));
+    const telemetryFile = join(dir, 'runs.jsonl');
+    const run = runTimedCommand([process.execPath, '-e', 'setTimeout(() => {}, 2000)'], {
+      id: 'self-test-timeout',
+      timeoutMs: 100,
+      warnMs: 50,
+      telemetryFile,
+      echo: false,
+    });
+    const records = readFileSync(telemetryFile, 'utf8').trim().split(/\r?\n/).map((line) => JSON.parse(line));
+    rmSync(dir, { recursive: true, force: true });
+    return run.exitCode === 124 && records[0]?.timedOut === true;
+  })());
   add('routing check catches Spark out-of-scope file', routingScopeProblemsForState({
     routingId: 'routing-test',
     route: 'spark',
@@ -3168,6 +4328,15 @@ function workflowSelfTestChecks() {
     worktreeHash: 'current',
     currentHash: 'current',
   }, ['packages/web/src/components/ui/Toast.tsx'], {}).length === 0);
+  add('routing check catches non-lead scoped worker out-of-scope file', routingScopeProblemsForState({
+    routingId: 'routing-test',
+    route: 'strong',
+    worker: 'nexus_strong_worker',
+    files: ['packages/web/src/components/ui/Toast.tsx'],
+    status: 'active',
+    worktreeHash: 'current',
+    currentHash: 'current',
+  }, ['packages/web/src/components/registry.json'], {}).some((problem) => problem.includes('strong-routed work changed outside')));
   add('model routing catches fallback target mismatch', !modelRoutingScenarioResult({
     id: 'bad-fallback',
     summary: 'Spark failed but scenario says the wrong fallback owner.',
@@ -3200,6 +4369,8 @@ function commandValidate(args) {
     '.codex/config.toml',
     '.codex/hooks.json',
     '.codex/workflow/current-state.md',
+    '.codex/workflow/state/.gitignore',
+    '.codex/workflow/runtime/.gitignore',
     '.codex/workflow/dependency-audit-baseline.json',
     '.codex/scripts/audit-deps.mjs',
     '.codex/scripts/check-production-zoo-bundle.mjs',
@@ -3255,22 +4426,30 @@ function commandValidate(args) {
       process.exit(1);
     }
   }
-  if (args['release-gate'] || args.full) {
-    const reviewOk = commandReviewCheck({ quiet: true });
-    const verifyOk = commandVerifyCheck({ quiet: true });
-    const auditOk = commandAuditCheck({ quiet: true });
+  if (args['release-gate'] || args['deployed-gate'] || args.full) {
+    const branch = branchEvidenceInfo();
+    const closeoutMode = releaseCloseoutMode(branch);
+    const branchHasDiff = closeoutMode === 'branch';
+    const releaseFiles = branch.allFiles?.length ? branch.allFiles : changedFiles();
+    const needsGuide = guideRelevantFiles(releaseFiles).length > 0;
+    const needsZooVisual = zooVisualRelevantFiles(releaseFiles).length > 0;
+    const branchEvidenceOk = commandBranchEvidenceCheck({ quiet: true });
+    const reviewOk = branchHasDiff ? branchEvidenceOk : commandReviewCheck({ quiet: true });
+    const verifyOk = branchHasDiff ? branchEvidenceOk : commandVerifyCheck({ quiet: true });
+    const auditOk = branchHasDiff ? branchEvidenceOk : commandAuditCheck({ quiet: true });
     const handoverOk = commandHandoverCheck({ quiet: true });
     const recordsOk = commandRecordsCheck({ quiet: true });
     const routingOk = commandRoutingCheck({ quiet: true });
-    const guideOk = commandGuideCheck({ quiet: true });
-    const guideBrowserOk = commandGuideBrowserCheck({ quiet: true });
+    const guideOk = !needsGuide || commandGuideCheck({ quiet: true });
+    const guideBrowserOk = !needsGuide || commandGuideBrowserCheck({ quiet: true });
     const zooOk = commandZooCheck({ quiet: true });
-    const zooVisualOk = commandZooVisualGuideCheck({ quiet: true });
+    const zooVisualOk = !needsZooVisual || commandZooVisualGuideCheck({ quiet: true });
     const hookConfigOk = commandHookConfigCheck({ quiet: true });
     const depAuditOk = commandDependencyAuditCheck({ quiet: true });
     const prodZooOk = commandProductionZooBundleCheck({ quiet: true });
     const selfTestFailures = workflowSelfTestChecks().filter((check) => !check.ok);
-    if (!reviewOk || !verifyOk || !auditOk || !handoverOk || !recordsOk || !routingOk || !guideOk || !guideBrowserOk || !zooOk || !zooVisualOk || !hookConfigOk || !depAuditOk || !prodZooOk || selfTestFailures.length) {
+    const deploymentOk = !args['deployed-gate'] || commandDeploymentCheck({ quiet: true });
+    if (!reviewOk || !verifyOk || !auditOk || !handoverOk || !recordsOk || !routingOk || !guideOk || !guideBrowserOk || !zooOk || !zooVisualOk || !hookConfigOk || !branchEvidenceOk || !depAuditOk || !prodZooOk || !deploymentOk || selfTestFailures.length) {
       if (!reviewOk) console.error('Release gate failed: missing passing review record.');
       if (!verifyOk) console.error('Release gate failed: missing passing verification record.');
       if (!auditOk) console.error('Release gate failed: missing passing audit record.');
@@ -3299,8 +4478,16 @@ function commandValidate(args) {
         console.error('Release gate failed: hook/config enforcement is not pinned.');
         for (const problem of hookConfigProblems()) console.error(`- ${problem}`);
       }
+      if (!branchEvidenceOk) {
+        console.error('Release gate failed: branch diff evidence is missing or stale.');
+        for (const problem of branchEvidenceProblems()) console.error(`- ${problem}`);
+      }
       if (!depAuditOk) console.error('Release gate failed: dependency audit baseline check failed. Run npm run audit:deps.');
       if (!prodZooOk) console.error('Release gate failed: production build ships or lacks evidence for the dev-only Zoo bundle. Run npm run build and npm run workflow:prod-zoo-bundle-check.');
+      if (!deploymentOk) {
+        console.error('Deployment gate failed: missing passing deployment evidence for the current branch.');
+        for (const problem of deploymentProblems()) console.error(`- ${problem}`);
+      }
       if (!handoverOk) {
         console.error('Release gate failed: current-state handover has stale/finalization wording.');
         for (const problem of handoverProblems()) console.error(`- ${problem}`);
@@ -3505,7 +4692,7 @@ function hookPostToolUse(payload) {
   const substantive = substantiveFiles(files);
   if (!substantive.length) return;
   const title = `Hook ${payload?.tool_name || payload?.hook_event_name || 'tool'} changed substantive files`;
-  invalidateGates(substantive, title, 'codex-hook');
+  invalidateGates(substantive, title, 'codex-hook', {});
 }
 
 function hookStop() {
@@ -3567,8 +4754,10 @@ const command = argv[0] || 'status';
 const args = parseArgs(argv.slice(1));
 
 ensureDir(RECORDS);
+ensureDir(STATE_DIR);
 
 if (command === 'status') commandStatus();
+else if (command === 'health') commandHealth();
 else if (command === 'dashboard') commandDashboard(args);
 else if (command === 'public-guide') commandPublicGuide(args);
 else if (command === 'zoo-visual-guide') commandZooVisualGuide(args);
@@ -3582,6 +4771,7 @@ else if (command === 'record-test') commandRecordTest(args);
 else if (command === 'record-deployment') commandRecordDeployment(args);
 else if (command === 'record-decision') commandRecordGeneric('decisions', args);
 else if (command === 'record-routing') commandRecordRouting(args);
+else if (command === 'complete-routing') commandCompleteRouting(args);
 else if (command === 'record-pattern') commandRecordPattern(args);
 else if (command === 'review-check') {
   const ok = commandReviewCheck();
@@ -3620,12 +4810,23 @@ else if (command === 'verify-check') {
 } else if (command === 'hook-config-check') {
   const ok = commandHookConfigCheck(args);
   process.exit(ok ? 0 : 1);
+} else if (command === 'hook-runtime-check') {
+  const ok = commandHookRuntimeCheck(args);
+  process.exit(ok ? 0 : 1);
+} else if (command === 'branch-evidence-check') {
+  const ok = commandBranchEvidenceCheck(args);
+  process.exit(ok ? 0 : 1);
 } else if (command === 'dependency-audit-check') {
   const ok = commandDependencyAuditCheck(args);
   process.exit(ok ? 0 : 1);
 } else if (command === 'prod-zoo-bundle-check') {
   const ok = commandProductionZooBundleCheck(args);
   process.exit(ok ? 0 : 1);
+} else if (command === 'deployment-check') {
+  const ok = commandDeploymentCheck(args);
+  process.exit(ok ? 0 : 1);
+} else if (command === 'run-command' || command === 'run') {
+  process.exit(commandRunCommand(argv.slice(1)));
 } else if (command === 'self-test') commandSelfTest();
 else if (command === 'hook') {
   const event = argv[1];
