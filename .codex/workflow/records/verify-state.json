@@ -1,8 +1,8 @@
 {
-  "worktreeHash": "a19b694381e8b120",
+  "worktreeHash": "77fafee7f163d73e",
   "verdict": "pass",
   "verifier": "codex-lead",
-  "verifiedAt": "2026-05-09T08:31:32.547Z",
-  "verifyRecord": ".codex/workflow/records/tests/TEST-20260509T083132Z-verification-pass-worktree.md",
-  "notes": "Verification for hash a19b694381e8b120: node --check passed; workflow self-test 56 checks passed including clean-worktree routing and CRLF/LF guide hash normalization; routing-check and handover-check passed; diff-check was clean except line-ending warnings."
+  "verifiedAt": "2026-05-09T08:36:28.676Z",
+  "verifyRecord": ".codex/workflow/records/tests/TEST-20260509T083628Z-verification-pass-worktree.md",
+  "notes": "Verification for final deployment/handover hash 77fafee7f163d73e: handover-check passed; routing-check passed; workflow self-test 56 checks passed. Server evidence recorded: release-gate ok, workflow URL 200, app URL 200, API health 200, nexus-api active, server git status clean."
 }

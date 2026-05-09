@@ -1,28 +1,28 @@
 {
-  "worktreeHash": "a19b694381e8b120",
+  "worktreeHash": "77fafee7f163d73e",
   "verdict": "pass",
   "reviewer": "codex-lead",
-  "reviewedAt": "2026-05-09T08:31:21.173Z",
-  "reviewRecord": ".codex/workflow/records/reviews/REVIEW-20260509T083121Z-review-workflow-pass-worktree.md",
-  "notes": "Workflow review passed: publicGuideSourceHash canonicalizes CRLF/LF input, routing checks short-circuit for clean worktrees, status uses verify/audit check commands, and self-test covers the new failure modes.",
+  "reviewedAt": "2026-05-09T08:36:18.691Z",
+  "reviewRecord": ".codex/workflow/records/reviews/REVIEW-20260509T083618Z-review-workflow-pass-worktree.md",
+  "notes": "Workflow review passed for final handover/deployment record update: current-state avoids self-staling final commit wording, links deployment record, and leaves branch HEAD as the stable server reference.",
   "kind": "workflow",
-  "patchId": "PATCH-20260509T083033Z-clean-committed-state-release-gate-fix-plus-comp",
+  "patchId": "PATCH-20260509T083542Z-final-deployment-evidence-and-compact-handover-r",
   "reviewKinds": {
     "general": {
-      "worktreeHash": "a19b694381e8b120",
+      "worktreeHash": "77fafee7f163d73e",
       "verdict": "pass",
       "reviewer": "codex-lead",
-      "reviewedAt": "2026-05-09T08:31:10.037Z",
-      "reviewRecord": ".codex/workflow/records/reviews/REVIEW-20260509T083110Z-review-general-pass-worktree.md",
-      "patchId": "PATCH-20260509T083033Z-clean-committed-state-release-gate-fix-plus-comp"
+      "reviewedAt": "2026-05-09T08:36:09.357Z",
+      "reviewRecord": ".codex/workflow/records/reviews/REVIEW-20260509T083609Z-review-general-pass-worktree.md",
+      "patchId": "PATCH-20260509T083542Z-final-deployment-evidence-and-compact-handover-r"
     },
     "workflow": {
-      "worktreeHash": "a19b694381e8b120",
+      "worktreeHash": "77fafee7f163d73e",
       "verdict": "pass",
       "reviewer": "codex-lead",
-      "reviewedAt": "2026-05-09T08:31:21.173Z",
-      "reviewRecord": ".codex/workflow/records/reviews/REVIEW-20260509T083121Z-review-workflow-pass-worktree.md",
-      "patchId": "PATCH-20260509T083033Z-clean-committed-state-release-gate-fix-plus-comp"
+      "reviewedAt": "2026-05-09T08:36:18.691Z",
+      "reviewRecord": ".codex/workflow/records/reviews/REVIEW-20260509T083618Z-review-workflow-pass-worktree.md",
+      "patchId": "PATCH-20260509T083542Z-final-deployment-evidence-and-compact-handover-r"
     }
   }
 }

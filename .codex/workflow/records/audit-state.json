@@ -1,8 +1,8 @@
 {
-  "worktreeHash": "a19b694381e8b120",
+  "worktreeHash": "77fafee7f163d73e",
   "verdict": "pass",
   "auditor": "codex-lead",
-  "auditedAt": "2026-05-09T08:31:41.426Z",
-  "auditRecord": ".codex/workflow/records/audits/AUDIT-20260509T083141Z-audit-pass-worktree.md",
-  "notes": "Audit passed for clean committed-state gate fix: root cause was pre-commit dirty-hash evidence being reused after commit plus platform-specific line endings in guide source hashing. Kernel now treats clean branch state as clean and hashes guide inputs canonically."
+  "auditedAt": "2026-05-09T08:36:37.903Z",
+  "auditRecord": ".codex/workflow/records/audits/AUDIT-20260509T083637Z-audit-pass-worktree.md",
+  "notes": "Final audit passed: deployment evidence is durable, compact handover points to detailed records instead of transcript, server dirty lockfile cause was handled by backup plus cleanup, and branch HEAD wording avoids self-staling final commit references."
 }

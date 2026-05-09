@@ -1,6 +1,18 @@
 {
   "events": [
     {
+      "at": "2026-05-09T08:35:42.551Z",
+      "source": "codex-lead",
+      "reason": "patch PATCH-20260509T083542Z-final-deployment-evidence-and-compact-handover-r",
+      "files": [
+        ".codex/workflow/current-state.md"
+      ],
+      "worktreeHash": "77fafee7f163d73e",
+      "patchId": "PATCH-20260509T083542Z-final-deployment-evidence-and-compact-handover-r",
+      "routingId": "ROUTING-20260509T083532Z-final-deployment-evidence-and-compact-handover-r",
+      "worker": "codex-lead"
+    },
+    {
       "at": "2026-05-09T08:30:33.487Z",
       "source": "codex-lead",
       "reason": "patch PATCH-20260509T083033Z-clean-committed-state-release-gate-fix-plus-comp",
@@ -1225,16 +1237,15 @@
       "worktreeHash": "4379f8bf9e55ae86"
     }
   ],
-  "worktreeHash": "a19b694381e8b120",
-  "lastChangedAt": "2026-05-09T08:30:33.487Z",
-  "reason": "patch PATCH-20260509T083033Z-clean-committed-state-release-gate-fix-plus-comp",
+  "worktreeHash": "77fafee7f163d73e",
+  "lastChangedAt": "2026-05-09T08:35:42.551Z",
+  "reason": "patch PATCH-20260509T083542Z-final-deployment-evidence-and-compact-handover-r",
   "source": "codex-lead",
   "files": [
-    ".codex/scripts/nexus-workflow.mjs",
     ".codex/workflow/current-state.md"
   ],
-  "patchId": "PATCH-20260509T083033Z-clean-committed-state-release-gate-fix-plus-comp",
-  "routingId": "ROUTING-20260509T083024Z-clean-committed-state-release-gate-fix-plus-comp",
+  "patchId": "PATCH-20260509T083542Z-final-deployment-evidence-and-compact-handover-r",
+  "routingId": "ROUTING-20260509T083532Z-final-deployment-evidence-and-compact-handover-r",
   "workers": [
     "codex-lead"
   ]

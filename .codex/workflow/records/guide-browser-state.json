@@ -1,7 +1,7 @@
 {
-  "guideArtifactHash": "2af78f14fd8e1aa96b6f8eb8",
+  "guideArtifactHash": "1fcacfa47462c15577b21ecf",
   "verdict": "pass",
-  "checkedAt": "2026-05-09T08:32:22.743Z",
+  "checkedAt": "2026-05-09T08:37:24.214Z",
   "reviewer": "codex-lead",
   "screenshots": [
     ".codex/workflow/artifacts/screenshots/20260509-workflow-guide-visible/public-guide-desktop-1280x720.png",
@@ -9,5 +9,5 @@
     ".codex/workflow/artifacts/screenshots/20260509-workflow-guide-visible/dashboard-desktop-1280x720.png",
     ".codex/workflow/artifacts/screenshots/20260509-workflow-guide-visible/dashboard-mobile-390x844.png"
   ],
-  "notes": "Validated regenerated public guide and internal dashboard after clean committed-state release gate fix. Desktop and mobile screenshots captured; required workflow/project/design/Zoo/model-routing/timeline content was present; no page or console errors were observed."
+  "notes": "Validated final regenerated public guide and internal dashboard after deployment evidence/handover refresh. Desktop and mobile screenshots captured; required workflow/project/design/Zoo/model-routing/timeline content was present; no page or console errors were observed."
 }

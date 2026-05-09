@@ -35,7 +35,7 @@ Build and validate a reusable Codex-native workflow that preserves the useful in
 
 ## Current Phase
 
-Codex workflow migration is in a second hardening pass after user-requested workflow-design audit. The earlier migration was implemented and deployed, but the audit found several prose-only guarantees. This pass is converting those guarantees into structured records, executable checks, and guide validation before final server deployment.
+Codex workflow migration and the second hardening pass are complete at branch HEAD. The earlier migration was implemented and deployed, and the follow-up audit converted prose-only guarantees into structured records, executable checks, guide validation, and clean committed-state server validation.
 
 Implemented workflow pieces:
 
@@ -48,7 +48,7 @@ Implemented workflow pieces:
 - Active Claude workflow files are archived under `.codex/archive/claude-code-2026-05-09/`.
 - Design-system continuation work: Toast now has semantic `info` styling, `warning` support, registry coverage, tests, and Design Zoo validation.
 
-Hardening pass additions in progress:
+Hardening pass additions:
 
 - Pattern proposal, routing, patch, review, test, audit, and deployment records are append-only after publication; corrections should be new records.
 - Audits are first-class records under `.codex/workflow/records/audits/`.
@@ -92,7 +92,18 @@ Server deployment validation:
 - Public guide deployment: `https://cv.rehou.games/nexus/workflow/` returned 200 after `.codex/dashboard/public.html` was copied to the static workflow path.
 - Preserved server dirty state: pre-existing `package-lock.json` modification remains and was backed up to `/root/monoWeb/deploy-backups/nexus/package-lock-local-20260509-codex-native-workflow.diff`.
 
-Second hardening pass deployment validation is being refreshed after the clean committed-state gate fix.
+Second hardening pass deployment validation:
+
+- Record: `DEPLOYMENT-20260509T083458Z-second-hardening-server-validation-after-clean-r`
+- Server repo: `/root/monoWeb/nexus`
+- Public guide URL: `https://cv.rehou.games/nexus/workflow/`
+- Server release gate: `node .codex/scripts/nexus-workflow.mjs validate --release-gate` passed on a clean server worktree.
+- Public guide check: `https://cv.rehou.games/nexus/workflow/` returned 200 and included Design Zoo/Gym coverage plus Model Routing Examples.
+- Public app check: `https://cv.rehou.games/nexus/` returned 200 with `/nexus/assets/` URLs.
+- API health check: `https://cv.rehou.games/nexus/api/platform/health` returned 200 with `{"status":"ok"}`.
+- API service: `nexus-api` active.
+- Server-only `package-lock.json` metadata churn was backed up under `/root/monoWeb/deploy-backups/nexus/` before cleanup; server git status was clean after cleanup and validation.
+- The server should follow branch HEAD rather than a hardcoded final record commit, because record/handover commits can legitimately follow runtime validation.
 
 Historical/model-routing evidence:
 
@@ -119,9 +130,9 @@ The earlier large dirty-tree report came from using the submodule common git dir
 
 ## Next Required Work
 
-Finish the clean committed-state follow-up commit, refresh the public guide on the server, and rerun server release-gate validation. Optional follow-ups remain tracked as risks:
+No mandatory workflow-migration step remains. Optional follow-ups remain tracked as risks:
 
-- Server-only `package-lock.json` metadata churn was backed up before cleanup at `/root/monoWeb/deploy-backups/nexus/package-lock-local-20260509-before-final-clean.diff` and `.json`; confirm the server stays clean after the final pull.
+- Confirm the server remains clean after future dependency installs; the cleaned `package-lock.json` diff backup is at `/root/monoWeb/deploy-backups/nexus/package-lock-local-20260509-before-final-clean.diff` and `.json`.
 - Triage pre-existing `npm audit` findings from server `npm ci`.
 - Clean the non-failing React `act(...)` warning in `ThemeProvider.test.tsx`.
 - Remember that Codex hooks are advisory gates unless the project `.codex/` layer is trusted/loaded; deterministic scripts remain the reliable enforcement path.
