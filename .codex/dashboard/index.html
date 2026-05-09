@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="nexus-guide-version" content="nexus-public-workflow-guide/v2" />
-  <meta name="nexus-guide-source-hash" content="1e723e151348e648283dcb7d" />
-  <meta name="nexus-guide-content-hash" content="9ca123bc01259701ed8b0907" />
+  <meta name="nexus-guide-source-hash" content="5cccd10a33523ae82fbb6e26" />
+  <meta name="nexus-guide-content-hash" content="6ecc2e091f8a2a250577b133" />
   <meta name="nexus-token-source" content="packages/web/src/platform/theme/tokens.css" />
   <title>Nexus Workflow Dashboard</title>
   <style>
@@ -81,7 +81,7 @@
 <body>
   <header>
     <h1>Nexus Workflow Dashboard</h1>
-    <div class="meta">Generated 2026-05-09T16:39:02.410Z · branch codex/native-workflow</div>
+    <div class="meta">Generated 2026-05-09T16:44:14.331Z · branch codex/native-workflow</div>
   </header>
   <div class="layout">
     <nav>
@@ -112,7 +112,7 @@
 <div class="card"><span class="meta">Reviews</span><strong>41</strong></div>
 <div class="card"><span class="meta">Tests</span><strong>42</strong></div>
 <div class="card"><span class="meta">Audits</span><strong>23</strong></div>
-<div class="card"><span class="meta">Deployments</span><strong>4</strong></div>
+<div class="card"><span class="meta">Deployments</span><strong>5</strong></div>
 <div class="card"><span class="meta">Zoo Pages</span><strong>24/24</strong></div>
         </div>
         <p class="meta">This is a generated snapshot for navigation. It intentionally does not embed live git status or mutable gate state. Run <code>npm run workflow:status</code> for the current worktree truth.</p>
@@ -3560,6 +3560,24 @@ Notes: Workflow audit passed against saved brief: original brief preserved; AGEN
 
     <section id="deployments" class="panel">
       <h2>Deployments</h2>
+
+        <article class="record">
+          <div class="record-top">
+            <strong>workflow guide and server validation for Codex workflow hardening</strong>
+            <span>2026-05-09T16:44:06.372Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/deployments/DEPLOYMENT-20260509T164406Z-workflow-guide-and-server-validation-for-codex-w.md</p>
+          <pre>Target: https://cv.rehou.games/nexus/workflow/
+Verdict: pass
+Operator: codex-lead
+Branch evidence hash: 54645629edb48a3e
+Command run ids: server-fast-forward-2c1e15f, server-release-gate-2c1e15f, server-publish-workflow-guide-2c1e15f, server-public-guide-http-2c1e15f-node, server-public-zoo-http-2c1e15f-node, server-app-api-health-2c1e15f-node, server-systemd-status-2c1e15f
+Checks: server repo at 2c1e15f, server release gate pass, public guide 200 with workflow ladder, public Zoo guide 200 with screenshot references, app 200, API health 200, nexus-api active
+Command evidence:
+- server-fast-forward-2c1e15f: exit 0, timedOut=false, durationMs=2099, command=ssh -i C:/Users/housh/.ssh/DIOkii -o StrictHostKeyChecking=accept-new root@134.199.148.87 cd /root/monoWeb/nexus &amp;&amp; git fetch origin codex/native-workflow &amp;&amp; git pull --ff-only origin codex/native-workflow &amp;&amp; git rev-parse HEAD &amp;&amp; git status --short --branch</pre>
+        </article>
+
 
         <article class="record">
           <div class="record-top">
