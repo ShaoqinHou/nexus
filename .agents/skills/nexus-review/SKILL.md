@@ -37,7 +37,7 @@ Lead with real findings only:
 5. When a finding suggests a recurring mistake or undocumented invariant, create a pattern proposal with evidence instead of silently editing durable guidance.
 6. If no issues are found, say that and list residual test or validation risk.
 7. Record the result when appropriate:
-   `node .codex/scripts/nexus-workflow.mjs record-review --scope worktree --verdict pass --reviewer <name> --notes "<summary>"`
+   `node .codex/scripts/nexus-workflow.mjs record-review --scope worktree --kind <general|pattern|design|workflow|integrated> --verdict pass --reviewer <name> --notes "<summary>"`
 
 ## Output Shape
 

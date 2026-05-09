@@ -25,6 +25,17 @@ This is the project-local workflow root for Codex sessions.
 - `hooks.json` wires Codex lifecycle hooks when project hooks are enabled and trusted.
 - `workflow/templates/` describes record shapes for humans and agents.
 
+## Workflow Kernel
+
+The center of the system is `scripts/nexus-workflow.mjs`. Treat it as the deterministic workflow kernel:
+
+- records are its durable state,
+- hooks, package scripts, local/server validation, and future CI should call it instead of duplicating logic,
+- LLMs supply judgment by creating review, verification, audit, routing, and pattern-proposal records,
+- the kernel decides whether required records exist, hashes match, guide artifacts are current, and release gates can pass.
+
+When the kernel needs LLM judgment, it should fail with a specific missing-record message rather than hide judgment inside a hook. Add new workflow rules to the kernel and records first; keep skills and docs as concise usage guidance around that shared system.
+
 ## Hook Policy
 
 Hooks are triggers, not reviewers. They may:
@@ -42,9 +53,11 @@ Core handover context stays small. Detailed records live below:
 
 - `workflow/records/decisions/`
 - `workflow/records/pattern-proposals/`
+- `workflow/records/routing/`
 - `workflow/records/patches/`
 - `workflow/records/reviews/`
 - `workflow/records/tests/`
+- `workflow/records/audits/`
 - `workflow/records/deployments/`
 - `workflow/records/risks.md`
 
@@ -57,9 +70,19 @@ Do not paste long transcripts into `current-state.md`. Link to records instead.
 Before final handover, run:
 
 ```bash
+npm run workflow:records-check
+npm run workflow:routing-check
+npm run workflow:guide-check
+npm run workflow:guide-browser-check
+npm run workflow:zoo-check
 npm run workflow:handover-check
+npm run workflow:self-test
 npm run workflow:release-gate
 ```
+
+Pattern proposal, routing, patch, review, test, audit, and deployment records are append-only once committed. If a record is wrong, create a correction record rather than editing committed evidence.
+
+`.codex/dashboard/index.html` and `.codex/dashboard/public.html` are generated guide artifacts and user-facing workflow surfaces. They are governed by the dedicated guide freshness/content-hash gate and recorded browser validation; their generator, source docs, state files, records, and workflow rules remain part of the substantive review surface.
 
 If final deployment or records create more commits after the runtime build, describe that as "branch HEAD" or link to the deployment record instead of hardcoding a final commit that the next bookkeeping commit can invalidate.
 

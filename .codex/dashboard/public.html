@@ -3,30 +3,74 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="nexus-guide-version" content="nexus-public-workflow-guide/v2" />
+  <meta name="nexus-guide-source-hash" content="dd9ebbdd1ec3065f41e3e940" />
+  <meta name="nexus-guide-content-hash" content="14fbe280bd40b4c185abd995" />
+  <meta name="nexus-token-source" content="packages/web/src/platform/theme/tokens.css" />
   <title>Nexus Workflow Guide</title>
   <style>
-    :root { --bg:#f6f7f9; --panel:#fff; --text:#17202a; --muted:#627084; --line:#dde3ea; --brand:#185b57; --accent:#b7772d; }
+    :root {
+      color-scheme: light;
+      --color-bg-surface: #f9fafb;
+      --color-bg-muted: #f3f4f6;
+      --color-bg-elevated: #ffffff;
+      --color-bg-strong: #111827;
+      --color-text: #111827;
+      --color-text-secondary: #6b7280;
+      --color-text-inverse: #ffffff;
+      --color-border: #e5e7eb;
+      --color-primary: #2563eb;
+      --color-primary-light: #dbeafe;
+      --color-danger: #dc2626;
+      --color-accent: #f59e0b;
+      --radius-md: 0.375rem;
+      --radius-lg: 0.5rem;
+      --radius-full: 9999px;
+      --radius-card: var(--radius-lg);
+      --radius-btn: var(--radius-md);
+      --radius-chip: var(--radius-full);
+      --hit-sm: 44px;
+      --hit-md: 48px;
+      --hit-lg: 52px;
+      --guide-bg: var(--color-bg-surface);
+      --guide-panel: var(--color-bg-elevated);
+      --guide-muted-surface: var(--color-bg-muted);
+      --guide-text: var(--color-text);
+      --guide-muted-text: var(--color-text-secondary);
+      --guide-line: var(--color-border);
+      --guide-brand: var(--color-primary);
+      --guide-accent: var(--color-accent);
+    }
     * { box-sizing:border-box; }
-    body { margin:0; font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; color:var(--text); background:var(--bg); line-height:1.5; }
-    header { padding:34px 24px 20px; background:var(--panel); border-bottom:1px solid var(--line); }
+    body { margin:0; font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; color:var(--guide-text); background:var(--guide-bg); line-height:1.5; }
+    header { padding:34px 24px 20px; background:var(--guide-panel); border-bottom:1px solid var(--guide-line); }
     main { max-width:1040px; margin:0 auto; padding:24px; }
     h1 { margin:0 0 8px; font-size:30px; letter-spacing:0; }
     h2 { margin:0 0 12px; font-size:20px; letter-spacing:0; }
-    section { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:18px; margin:0 0 16px; }
+    section { background:var(--guide-panel); border:1px solid var(--guide-line); border-radius:var(--radius-card); padding:18px; margin:0 0 16px; }
     .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px; }
-    .card { border:1px solid var(--line); border-radius:8px; padding:14px; background:#fbfcfd; }
-    .meta { color:var(--muted); font-size:13px; }
-    code { background:#eef3f5; border-radius:4px; padding:1px 4px; }
+    .card { min-height:var(--hit-md); border:1px solid var(--guide-line); border-radius:var(--radius-card); padding:14px; background:var(--guide-muted-surface); }
+    .timeline { max-height:520px; overflow:auto; border:1px solid var(--guide-line); border-radius:var(--radius-card); padding:8px 14px; background:var(--guide-muted-surface); }
+    .timeline li { margin:8px 0; }
+    .nodes { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; margin:10px 0 12px; }
+    .node { min-height:var(--hit-md); border:1px solid var(--guide-line); border-radius:var(--radius-card); padding:12px; background:var(--guide-muted-surface); }
+    .node strong, .node span { display:block; }
+    .node span { color:var(--guide-muted-text); font-size:12px; margin-top:4px; }
+    .graph { margin:14px 0; }
+    .zoo-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:8px; padding:0; list-style:none; }
+    .zoo-list li { min-height:var(--hit-md); border:1px solid var(--guide-line); border-radius:var(--radius-card); padding:10px; background:var(--guide-muted-surface); }
+    .meta { color:var(--guide-muted-text); font-size:13px; }
+    code { background:var(--guide-muted-surface); border-radius:var(--radius-btn); padding:1px 4px; }
     ul { padding-left:20px; }
-    a { color:var(--brand); text-decoration:none; }
+    a { color:var(--guide-brand); text-decoration:none; }
     a:hover { text-decoration:underline; }
-    .warn { border-left:4px solid var(--accent); }
+    .warn { border-left:4px solid var(--guide-accent); }
   </style>
 </head>
 <body>
   <header>
     <h1>Nexus Workflow Guide</h1>
-    <div class="meta">Generated 2026-05-09T02:09:02.165Z · branch codex/native-workflow · commit b026491</div>
+    <div class="meta">Generated 2026-05-09T08:18:05.304Z · branch codex/native-workflow · deploy this file from the current branch HEAD</div>
   </header>
   <main>
     <section>
@@ -44,6 +88,144 @@
       </div>
     </section>
     <section>
+      <h2>Workflow System Nodes</h2>
+
+    <div class="graph">
+      <h3>Codex Workflow Nodes</h3>
+      <div class="nodes">
+        <div class="node"><strong>AGENTS.md</strong><span>Codex project instructions</span></div>
+<div class="node"><strong>.codex/README.md</strong><span>workflow root navigation</span></div>
+<div class="node"><strong>.codex/knowledge</strong><span>patterns, design, routing, hooks, deployment</span></div>
+<div class="node"><strong>.codex/agents</strong><span>7 agent config files</span></div>
+<div class="node"><strong>.agents/skills</strong><span>4 repo skills</span></div>
+<div class="node"><strong>nexus-workflow.mjs</strong><span>deterministic gates and records</span></div>
+<div class="node"><strong>.codex/workflow/records</strong><span>109 indexed records</span></div>
+      </div>
+      <p class="meta">AGENTS.md -> .codex/README.md · .codex/knowledge -> .codex/agents · nexus-workflow.mjs -> .codex/workflow/records</p>
+    </div>
+
+      <div class="grid">
+        <div class="card"><strong>11</strong><p>routing records</p></div>
+        <div class="card"><strong>15</strong><p>routing scenarios</p></div>
+        <div class="card"><strong>7</strong><p>agent configs</p></div>
+        <div class="card"><strong>4</strong><p>repo skills</p></div>
+      </div>
+    </section>
+    <section>
+      <h2>Project Structure</h2>
+
+    <div class="graph">
+      <h3>Repository Nodes</h3>
+      <div class="nodes">
+        <div class="node"><strong>packages/api</strong><span>39 source files</span></div>
+<div class="node"><strong>packages/api/src/modules</strong><span>ordering</span></div>
+<div class="node"><strong>packages/web</strong><span>127 source files</span></div>
+<div class="node"><strong>packages/web/src/routes</strong><span>1 indexed route files</span></div>
+<div class="node"><strong>packages/web/src/locales</strong><span>5 locale files</span></div>
+<div class="node"><strong>packages/shared</strong><span>2 source files</span></div>
+<div class="node"><strong>.codex workflow</strong><span>145 workflow files</span></div>
+<div class="node"><strong>.codex/workflow/records</strong><span>109 indexed records</span></div>
+      </div>
+      <p class="meta">packages/api -> packages/shared · packages/web -> packages/shared · .codex workflow -> .codex/workflow/records</p>
+    </div>
+
+
+    <div class="graph">
+      <h3>Web App Nodes</h3>
+      <div class="nodes">
+        <div class="node"><strong>packages/web/src/routes</strong><span>1 indexed route files</span></div>
+<div class="node"><strong>apps/ordering</strong><span>__tests__, components, customer, hooks, merchant, tours</span></div>
+<div class="node"><strong>platform</strong><span>auth, layout, tenant, theme</span></div>
+<div class="node"><strong>platform/theme</strong><span>10 production themes</span></div>
+<div class="node"><strong>platform/registry.ts</strong><span>app registry and module composition</span></div>
+<div class="node"><strong>components/ui</strong><span>15 files</span></div>
+<div class="node"><strong>components/patterns</strong><span>19 files</span></div>
+<div class="node"><strong>components/registry.json</strong><span>24 UI entries</span></div>
+<div class="node"><strong>routes/__design</strong><span>1 files</span></div>
+      </div>
+      <p class="meta">packages/web/src/routes -> apps/ordering · apps/ordering -> platform · components/ui -> components/patterns</p>
+    </div>
+
+    </section>
+    <section>
+      <h2>Design System / Zoo / Docs</h2>
+      <p class="meta">Design Zoo/Gym source: <code>packages/web/src/routes/__design/Zoo.tsx</code>. Registry source: <code>packages/web/src/components/registry.json</code>.</p>
+
+    <div class="graph">
+      <h3>Design-System Nodes</h3>
+      <div class="nodes">
+        <div class="node"><strong>design/reference/v1</strong><span>123 files</span></div>
+<div class="node"><strong>theme tokens</strong><span>packages/web/src/platform/theme</span></div>
+<div class="node"><strong>ThemeProvider</strong><span>body data-theme mirroring and cascade</span></div>
+<div class="node"><strong>themed patterns</strong><span>packages/web/src/components/patterns/themed</span></div>
+<div class="node"><strong>registry</strong><span>component metadata and Zoo routes</span></div>
+<div class="node"><strong>Design Zoo/Gym</strong><span>24/24 registry routes</span></div>
+      </div>
+      <p class="meta">design/reference/v1 -> theme tokens · theme tokens -> themed patterns · registry -> Design Zoo/Gym</p>
+    </div>
+
+
+    <div class="graph">
+      <h3>Design-System Flow</h3>
+      <div class="nodes">
+        <div class="node"><strong>Reference bundle</strong><span>frozen v1 design source</span></div>
+<div class="node"><strong>Production tokens/themes</strong><span>CSS custom properties and data-theme</span></div>
+<div class="node"><strong>ThemeProvider</strong><span>runtime theme and body mirroring</span></div>
+<div class="node"><strong>Component registry</strong><span>metadata, paths, Zoo routes</span></div>
+<div class="node"><strong>Design Zoo/Gym</strong><span>interactive coverage route</span></div>
+<div class="node"><strong>validate-design-zoo</strong><span>browser validation script</span></div>
+      </div>
+      <p class="meta">Reference bundle -> Production tokens/themes · Production tokens/themes -> ThemeProvider · ThemeProvider -> Component registry · Component registry -> Design Zoo/Gym · Design Zoo/Gym -> validate-design-zoo</p>
+    </div>
+
+      <p>Design Zoo/Gym coverage: <strong>24/24</strong> registry entries declare a route.</p>
+      <div class="grid">
+        <div class="card"><strong>12</strong><p>primitives</p></div>
+        <div class="card"><strong>12</strong><p>patterns</p></div>
+        <div class="card"><strong>10</strong><p>themes</p></div>
+        <div class="card"><strong>24</strong><p>Zoo/Gym routes</p></div>
+      </div>
+      <ul class="zoo-list">
+        <li><strong>Button</strong><br><span class="meta">ui · /design/button</span><br><code>packages/web/src/components/ui/Button.tsx</code><p>Primary action control with four variants and three token-sized touch targets.</p></li>
+<li><strong>Badge</strong><br><span class="meta">ui · /design/badge</span><br><code>packages/web/src/components/ui/Badge.tsx</code><p>Small status label; rounded-full pill. Exports BadgeVariant type.</p></li>
+<li><strong>Card</strong><br><span class="meta">ui · /design/card</span><br><code>packages/web/src/components/ui/Card.tsx</code><p>Elevated content container. Composition: CardHeader + CardTitle + CardContent + CardFooter.</p></li>
+<li><strong>Dialog</strong><br><span class="meta">ui · /design/dialog</span><br><code>packages/web/src/components/ui/Dialog.tsx</code><p>Modal dialog with overlay, title, optional footer. z-50 budget.</p></li>
+<li><strong>Input</strong><br><span class="meta">ui · /design/input</span><br><code>packages/web/src/components/ui/Input.tsx</code><p>Text input with label, error, helperText slots. Focus ring tied to --color-primary.</p></li>
+<li><strong>Toggle</strong><br><span class="meta">ui · /design/toggle</span><br><code>packages/web/src/components/ui/Toggle.tsx</code><p>Boolean switch. 200ms slide animation. ON uses --color-primary.</p></li>
+<li><strong>Select</strong><br><span class="meta">ui · /design/select</span><br><code>packages/web/src/components/ui/Select.tsx</code><p>Dropdown with options array. Keyboard navigable. z-20 menu.</p></li>
+<li><strong>ImageUpload</strong><br><span class="meta">ui · /design/image-upload</span><br><code>packages/web/src/components/ui/ImageUpload.tsx</code><p>Drag-drop image upload with progress indicator, preview, and remove. Calls API client directly (internal i18n + api lib import).</p></li>
+<li><strong>Toast</strong><br><span class="meta">ui · /design/toast</span><br><code>packages/web/src/components/ui/Toast.tsx</code><p>Toast notification renderer. Mounted via ToastProvider + useToast(). Exports ToastContainer + ToastData type.</p></li>
+<li><strong>TourOverlay</strong><br><span class="meta">ui · /design/tour-overlay</span><br><code>packages/web/src/components/ui/TourOverlay.tsx</code><p>Onboarding step highlighter with spotlight hole + next/prev controls. Uses i18n for step text.</p></li>
+<li><strong>LanguagePicker</strong><br><span class="meta">ui · /design/language-picker</span><br><code>packages/web/src/components/ui/LanguagePicker.tsx</code><p>Locale switcher dropdown — cycles through en/zh/ja/ko/fr. Uses useT() hook to display localized names.</p></li>
+<li><strong>DietaryIcon</strong><br><span class="meta">ui · /design/dietary-icon</span><br><code>packages/web/src/components/ui/DietaryIcon.tsx</code><p>The ONE sanctioned way to render dietary / allergen / spice / promo markers in Nexus UI. Emoji / unicode alternatives are banned (S-DIETARY-SPRITE).</p></li>
+<li><strong>DataTable</strong><br><span class="meta">pattern · /design/data-table</span><br><code>packages/web/src/components/patterns/DataTable.tsx</code><p>Sortable, filterable table with generic row typing. Header click toggles sort.</p></li>
+<li><strong>FormField</strong><br><span class="meta">pattern · /design/form-field</span><br><code>packages/web/src/components/patterns/FormField.tsx</code><p>Label + input + error wrapper. Composes Input under a label with gap-1.5.</p></li>
+<li><strong>StatusBadge</strong><br><span class="meta">pattern · /design/status-badge</span><br><code>packages/web/src/components/patterns/StatusBadge.tsx</code><p>Order-status / generic-status badge that maps status enum to Badge variant + capitalized label.</p></li>
+<li><strong>EmptyState</strong><br><span class="meta">pattern · /design/empty-state</span><br><code>packages/web/src/components/patterns/EmptyState.tsx</code><p>No-data placeholder. Icon → title → context → single CTA button.</p></li>
+<li><strong>ConfirmButton</strong><br><span class="meta">pattern · /design/confirm-button</span><br><code>packages/web/src/components/patterns/ConfirmButton.tsx</code><p>Two-click destructive action with 3s auto-reset. S-CONFIRM-DESTRUCTIVE requires this for delete/cancel/remove actions.</p></li>
+<li><strong>ErrorBoundary</strong><br><span class="meta">pattern · /design/error-boundary</span><br><code>packages/web/src/components/patterns/ErrorBoundary.tsx</code><p>React error boundary fallback — catches thrown errors in a subtree and shows a recoverable message. Only class component in codebase (React API requires class).</p></li>
+<li><strong>PullToRefreshIndicator</strong><br><span class="meta">pattern · /design/pull-to-refresh</span><br><code>packages/web/src/components/patterns/PullToRefreshIndicator.tsx</code><p>Mobile pull-to-refresh visual indicator. Shows loading spinner once pull distance exceeds threshold.</p></li>
+<li><strong>AddToCartToast</strong><br><span class="meta">pattern · /design/add-to-cart-toast</span><br><code>packages/web/src/components/patterns/AddToCartToast.tsx</code><p>Customer-flow confirmation pill — slides up briefly after an item is added to cart. Uses slide-up-fade keyframe.</p></li>
+<li><strong>OrderTracker</strong><br><span class="meta">pattern · /design/order-tracker</span><br><code>packages/web/src/components/patterns/themed/OrderTracker.tsx</code><p>Themed order status timeline. Horizontal step tracker with connector lines and pulsing active bubble. Supports dine-in (Received→Preparing→Ready→Served) and delivery (Received→Preparing→On the way→Delivered) modes. data-theme wrapper drives full theme cascade.</p></li>
+<li><strong>Receipt</strong><br><span class="meta">pattern · /design/receipt</span><br><code>packages/web/src/components/patterns/themed/Receipt.tsx</code><p>Themed visual receipt block for the customer confirmation screen (NOT a print template). Monospace font, dashed dividers, itemised line items, subtotal/tax/tip rows, bold total, and a thank-you footer. data-theme wrapper drives full theme cascade.</p></li>
+<li><strong>PromoCard</strong><br><span class="meta">pattern · /design/promo-card</span><br><code>packages/web/src/components/patterns/themed/PromoCard.tsx</code><p>Themed promotion banner with primary-colour background, decorative accent circle, large discount headline, and mono-font promo-code chip. All props are optional — render any subset. data-theme wrapper drives full theme cascade.</p></li>
+<li><strong>CheckoutSummary</strong><br><span class="meta">pattern · /design/checkout-summary</span><br><code>packages/web/src/components/patterns/themed/CheckoutSummary.tsx</code><p>Themed cart/order summary block: itemised line items, divider, per-line cost breakdown (subtotal / delivery / tax), bold total, and a full-width place-order CTA that mirrors the total in its label. Display-only — pass onPlaceOrder for the mutation. data-theme wrapper drives full theme cascade.</p></li>
+      </ul>
+      <h3>Design And Workflow Documents</h3>
+      <ul>
+        <li><code>design/reference/v1/nexus-design-system/README.md</code></li>
+<li><code>design/reference/v1/nexus-design-system/project/DESIGN-SYSTEM.md</code></li>
+<li><code>design/reference/v1/nexus-design-system/project/themes/THEME-GUIDE.md</code></li>
+<li><code>design/reference/v1/nexus-design-system/project/ui_kits/customer/README.md</code></li>
+<li><code>design/reference/v1/nexus-design-system/project/ui_kits/merchant/README.md</code></li>
+<li><code>.codex/knowledge/design-system.md</code></li>
+<li><code>.codex/knowledge/patterns.md</code></li>
+<li><code>.codex/knowledge/model-routing.md</code></li>
+<li><code>.codex/knowledge/hooks.md</code></li>
+<li><code>.codex/knowledge/deployment.md</code></li>
+      </ul>
+    </section>
+    <section>
       <h2>How Future Sessions Resume</h2>
       <ul>
         <li>Read <code>WORKFLOW.md</code>, <code>AGENTS.md</code>, then <code>.codex/workflow/current-state.md</code>.</li>
@@ -53,28 +235,176 @@
       </ul>
     </section>
     <section>
+      <h2>Model Routing Examples</h2>
+      <p class="meta">These scenarios are executable workflow checks, not passive documentation. Run <code>npm run workflow:model-routing-check</code>.</p>
+      <ul class="zoo-list">
+        <li><strong>spark-narrow-toast-warning</strong><br><span class="meta">expected: spark</span><p>Add a warning variant to one UI primitive with explicit files and targeted tests.</p></li>
+<li><strong>strong-theme-cascade-body-portal</strong><br><span class="meta">expected: strong</span><p>Fix cuisine theme cascade across dark selectors, ThemeProvider body mirroring, portals, and live preview.</p></li>
+<li><strong>strong-routing-basepath-deploy</strong><br><span class="meta">expected: strong</span><p>Debug production subpath routing and Vite base behavior on the server.</p></li>
+<li><strong>strong-tenant-isolation-api</strong><br><span class="meta">expected: strong</span><p>Change ordering service query behavior where tenantId invariants and API tests must be checked.</p></li>
+<li><strong>escalate-spark-test-failure-not-obvious</strong><br><span class="meta">expected: escalate</span><p>Spark started a narrow slice but tests fail and the fix is not obvious in the assigned scope.</p></li>
+<li><strong>escalate-spark-timebox-stalled</strong><br><span class="meta">expected: escalate</span><p>Spark has not made progress inside the agreed timebox.</p></li>
+<li><strong>escalate-spark-missing-verification</strong><br><span class="meta">expected: escalate</span><p>Spark discovers the slice cannot be verified with the assigned targeted command.</p></li>
+<li><strong>escalate-spark-out-of-scope-discovery</strong><br><span class="meta">expected: escalate</span><p>Spark discovers the requested edit requires changing related files outside the assigned ownership.</p></li>
+<li><strong>strong-takeover-after-spark-failure</strong><br><span class="meta">expected: escalate</span><p>A previously narrow slice now requires a strong worker to diagnose failing tests and coupled changes.</p></li>
+<li><strong>mixed-narrow-but-tenant-isolation</strong><br><span class="meta">expected: strong</span><p>Looks narrow and testable, but changes tenant-scoped API query behavior, so strong worker beats Spark-positive signals.</p></li>
+<li><strong>mixed-narrow-but-design-visual</strong><br><span class="meta">expected: strong</span><p>Looks like a small UI primitive edit, but requires visual/design judgment and screenshot validation.</p></li>
+<li><strong>research-only-map-module-boundaries</strong><br><span class="meta">expected: research</span><p>Map current tenant-scoped API modules without editing files.</p></li>
+<li><strong>design-review-only-theme-portal-proof</strong><br><span class="meta">expected: review</span><p>Review a completed theme cascade patch for portal inheritance and Zoo evidence.</p></li>
+<li><strong>integrated-review-after-parallel-workers</strong><br><span class="meta">expected: integrated-review</span><p>Multiple workers changed separate files and the final merged worktree needs one focused integrated review.</p></li>
+<li><strong>lead-current-context-integration</strong><br><span class="meta">expected: lead</span><p>Integrate results from multiple parallel workers and decide final conflict resolution.</p></li>
+      </ul>
+    </section>
+    <section>
       <h2>Current Counts</h2>
       <div class="grid">
         <div class="card"><strong>1</strong><p>decisions</p></div>
-<div class="card"><strong>3</strong><p>pattern-proposals</p></div>
-<div class="card"><strong>7</strong><p>patches</p></div>
-<div class="card"><strong>22</strong><p>reviews</p></div>
-<div class="card"><strong>29</strong><p>tests</p></div>
+<div class="card"><strong>5</strong><p>pattern-proposals</p></div>
+<div class="card"><strong>11</strong><p>routing</p></div>
+<div class="card"><strong>19</strong><p>patches</p></div>
+<div class="card"><strong>21</strong><p>reviews</p></div>
+<div class="card"><strong>34</strong><p>tests</p></div>
+<div class="card"><strong>16</strong><p>audits (first-class + legacy)</p></div>
 <div class="card"><strong>2</strong><p>deployments</p></div>
       </div>
     </section>
     <section>
-      <h2>Recent Evidence</h2>
-      <ul>
-        <li><strong>tests:</strong> Public guide URL validation <span class="meta">2026-05-09T02:08:48.934Z</span></li>
-<li><strong>deployments:</strong> Public workflow guide deployed <span class="meta">2026-05-09T02:08:48.861Z</span></li>
-<li><strong>reviews:</strong> Audit pass staged-workflow-followup <span class="meta">2026-05-09T02:03:06.298Z</span></li>
+      <h2>Workflow Event Timeline</h2>
+      <p class="meta">All indexed workflow records are listed here by title. The repo-local dashboard contains detailed excerpts and internal paths.</p>
+
+        <h3>Validation</h3>
+        <ul class="timeline">
+          <li><strong>audits:</strong> Audit pass worktree <span class="meta">2026-05-09T08:17:40.939Z</span></li>
+<li><strong>tests:</strong> Verification pass worktree <span class="meta">2026-05-09T08:17:31.591Z</span></li>
+<li><strong>reviews:</strong> Review workflow pass worktree <span class="meta">2026-05-09T08:17:19.368Z</span></li>
+<li><strong>reviews:</strong> Review general pass worktree <span class="meta">2026-05-09T08:17:09.680Z</span></li>
+<li><strong>audits:</strong> Audit pass worktree <span class="meta">2026-05-09T08:11:47.139Z</span></li>
+<li><strong>tests:</strong> Verification pass worktree <span class="meta">2026-05-09T08:11:37.990Z</span></li>
+<li><strong>reviews:</strong> Review workflow pass worktree <span class="meta">2026-05-09T08:11:27.082Z</span></li>
+<li><strong>reviews:</strong> Review general pass worktree <span class="meta">2026-05-09T08:11:17.538Z</span></li>
+<li><strong>audits:</strong> Audit pass worktree <span class="meta">2026-05-09T08:03:28.713Z</span></li>
+<li><strong>tests:</strong> Verification pass worktree <span class="meta">2026-05-09T08:03:18.193Z</span></li>
+<li><strong>reviews:</strong> Review workflow pass worktree <span class="meta">2026-05-09T08:02:42.731Z</span></li>
+<li><strong>reviews:</strong> Review general pass worktree <span class="meta">2026-05-09T08:02:32.220Z</span></li>
+<li><strong>reviews:</strong> Review workflow pass worktree <span class="meta">2026-05-09T07:28:50.538Z</span></li>
+<li><strong>reviews:</strong> Review general pass worktree <span class="meta">2026-05-09T07:28:36.586Z</span></li>
+<li><strong>patches:</strong> Codex workflow hardening after audit <span class="meta">2026-05-09T06:23:57.834Z</span></li>
+<li><strong>routing:</strong> Workflow hardening after design audit <span class="meta">2026-05-09T06:23:45.805Z</span></li>
+<li><strong>audits:</strong> Audit pass staged-public-guide-evidence <span class="meta">2026-05-09T02:09:25.762Z</span></li>
+<li><strong>tests:</strong> Verification pass staged-public-guide-evidence <span class="meta">2026-05-09T02:09:25.323Z</span></li>
+<li><strong>reviews:</strong> Review pass staged-public-guide-evidence <span class="meta">2026-05-09T02:09:24.858Z</span></li>
+<li><strong>tests:</strong> Public guide URL validation <span class="meta">2026-05-09T02:08:48.934Z</span></li>
+<li><strong>audits:</strong> Audit pass staged-workflow-followup <span class="meta">2026-05-09T02:03:06.298Z</span></li>
 <li><strong>tests:</strong> Verification pass staged-workflow-followup <span class="meta">2026-05-09T02:03:05.870Z</span></li>
 <li><strong>reviews:</strong> Review pass staged-workflow-followup <span class="meta">2026-05-09T02:03:05.490Z</span></li>
-<li><strong>reviews:</strong> Audit pass workflow-followup <span class="meta">2026-05-09T02:02:36.578Z</span></li>
+<li><strong>audits:</strong> Audit pass workflow-followup <span class="meta">2026-05-09T02:02:36.578Z</span></li>
 <li><strong>tests:</strong> Verification pass workflow-followup <span class="meta">2026-05-09T02:02:36.200Z</span></li>
+<li><strong>reviews:</strong> Review pass workflow-followup <span class="meta">2026-05-09T02:02:35.684Z</span></li>
+<li><strong>tests:</strong> Handover public guide and workflow checks <span class="meta">2026-05-09T02:02:35.092Z</span></li>
+<li><strong>audits:</strong> Audit pass staged-final-handover-wording <span class="meta">2026-05-09T01:40:23.239Z</span></li>
+<li><strong>tests:</strong> Verification pass staged-final-handover-wording <span class="meta">2026-05-09T01:40:22.747Z</span></li>
+<li><strong>reviews:</strong> Review pass staged-final-handover-wording <span class="meta">2026-05-09T01:40:22.176Z</span></li>
+<li><strong>audits:</strong> Audit pass final-handover-wording <span class="meta">2026-05-09T01:40:05.988Z</span></li>
+<li><strong>tests:</strong> Verification pass final-handover-wording <span class="meta">2026-05-09T01:40:05.639Z</span></li>
+<li><strong>reviews:</strong> Review pass final-handover-wording <span class="meta">2026-05-09T01:40:05.202Z</span></li>
+<li><strong>audits:</strong> Audit pass staged-handover-correction <span class="meta">2026-05-09T01:39:08.959Z</span></li>
+<li><strong>tests:</strong> Verification pass staged-handover-correction <span class="meta">2026-05-09T01:39:08.614Z</span></li>
+<li><strong>reviews:</strong> Review pass staged-handover-correction <span class="meta">2026-05-09T01:39:08.179Z</span></li>
+<li><strong>audits:</strong> Audit pass handover-correction <span class="meta">2026-05-09T01:38:42.176Z</span></li>
+<li><strong>tests:</strong> Verification pass handover-correction <span class="meta">2026-05-09T01:38:41.528Z</span></li>
+<li><strong>reviews:</strong> Review pass handover-correction <span class="meta">2026-05-09T01:38:41.145Z</span></li>
+<li><strong>audits:</strong> Audit pass staged-worktree <span class="meta">2026-05-08T17:45:08.137Z</span></li>
+<li><strong>tests:</strong> Verification pass staged-worktree <span class="meta">2026-05-08T17:45:07.702Z</span></li>
+<li><strong>reviews:</strong> Review pass staged-worktree <span class="meta">2026-05-08T17:45:07.251Z</span></li>
+<li><strong>audits:</strong> Audit pass worktree <span class="meta">2026-05-08T17:43:50.244Z</span></li>
+<li><strong>tests:</strong> Verification pass worktree <span class="meta">2026-05-08T17:43:49.631Z</span></li>
+<li><strong>reviews:</strong> Review pass worktree <span class="meta">2026-05-08T17:43:49.150Z</span></li>
+<li><strong>audits:</strong> Audit pass worktree <span class="meta">2026-05-08T17:41:52.953Z</span></li>
+<li><strong>tests:</strong> Verification pass worktree <span class="meta">2026-05-08T17:41:52.512Z</span></li>
+<li><strong>reviews:</strong> Review pass worktree <span class="meta">2026-05-08T17:41:52.003Z</span></li>
+<li><strong>tests:</strong> PreToolUse commit hook Windows command matrix <span class="meta">2026-05-08T17:41:36.054Z</span></li>
+<li><strong>tests:</strong> Full local validation after workflow review fixes <span class="meta">2026-05-08T17:41:35.975Z</span></li>
+<li><strong>tests:</strong> Review finding regression fixes <span class="meta">2026-05-08T17:28:07.098Z</span></li>
+<li><strong>tests:</strong> Hook command subdirectory dispatch <span class="meta">2026-05-08T17:22:18.862Z</span></li>
+<li><strong>tests:</strong> Spark routing guard broad theme task <span class="meta">2026-05-08T17:17:55.238Z</span></li>
+<li><strong>tests:</strong> Reusable design-zoo validator <span class="meta">2026-05-08T17:16:14.481Z</span></li>
+<li><strong>tests:</strong> Design Zoo browser validation <span class="meta">2026-05-08T17:13:09.212Z</span></li>
+<li><strong>tests:</strong> Full local web validation <span class="meta">2026-05-08T17:09:02.104Z</span></li>
+<li><strong>tests:</strong> Local API and theme regression tests <span class="meta">2026-05-08T17:06:26.705Z</span></li>
+<li><strong>tests:</strong> Spark worker toast warning slice <span class="meta">2026-05-08T17:06:15.647Z</span></li>
+<li><strong>tests:</strong> Historical hard-case routing analysis c4a438e <span class="meta">2026-05-08T17:03:20.323Z</span></li>
+<li><strong>tests:</strong> Dashboard browser validation <span class="meta">2026-05-08T16:56:07.935Z</span></li>
+<li><strong>tests:</strong> Dynamic pattern proposal command <span class="meta">2026-05-08T16:52:07.191Z</span></li>
+<li><strong>tests:</strong> Hook invalidation dry run <span class="meta">2026-05-08T16:49:37.919Z</span></li>
+<li><strong>tests:</strong> Workflow negative gate test <span class="meta">2026-05-08T16:49:09.987Z</span></li>
+        </ul>
+
+
+        <h3>Workflow</h3>
+        <ul class="timeline">
+          <li><strong>patches:</strong> Final workflow hardening scope after removing generated TypeScript build metadata from the commit <span class="meta">2026-05-09T08:15:44.373Z</span></li>
+<li><strong>patches:</strong> generated guide whitespace normalization <span class="meta">2026-05-09T08:07:43.099Z</span></li>
+<li><strong>patches:</strong> deterministic workflow kernel hardening after focused review findings <span class="meta">2026-05-09T07:48:27.529Z</span></li>
+<li><strong>patches:</strong> post-build workflow hardening current hash coverage <span class="meta">2026-05-09T07:35:02.346Z</span></li>
+<li><strong>patches:</strong> Final guide browser screenshot gate hardening <span class="meta">2026-05-09T07:23:00.607Z</span></li>
+<li><strong>patches:</strong> Final workflow gate stabilization <span class="meta">2026-05-09T07:14:21.824Z</span></li>
+<li><strong>patches:</strong> Hash-bound guide and gate hardening <span class="meta">2026-05-09T07:09:57.625Z</span></li>
+<li><strong>patches:</strong> Second hardening final blocker fixes <span class="meta">2026-05-09T07:00:15.522Z</span></li>
+<li><strong>patches:</strong> Fix focused review workflow blockers <span class="meta">2026-05-09T06:43:05.427Z</span></li>
+<li><strong>patches:</strong> Refresh compact workflow state and dashboard after local gate validation <span class="meta">2026-05-08T17:43:48.318Z</span></li>
+<li><strong>patches:</strong> Codex-native workflow migration, Claude workflow archive, and design-system Toast continuation <span class="meta">2026-05-08T17:41:21.965Z</span></li>
+<li><strong>patches:</strong> Design-system toast semantic parity <span class="meta">2026-05-08T17:07:13.546Z</span></li>
+<li><strong>decisions:</strong> Workflow mechanism split <span class="meta">2026-05-08T16:38:32.282Z</span></li>
+        </ul>
+
+
+        <h3>Agent Routing</h3>
+        <ul class="timeline">
+          <li><strong>routing:</strong> Final workflow hardening commit scope after excluding generated TypeScript build metadata <span class="meta">2026-05-09T08:15:35.188Z</span></li>
+<li><strong>routing:</strong> generated guide whitespace normalization <span class="meta">2026-05-09T08:07:34.263Z</span></li>
+<li><strong>patches:</strong> true delegated routing preflight enforcement and participant canonicalization <span class="meta">2026-05-09T07:56:27.174Z</span></li>
+<li><strong>routing:</strong> true delegated routing preflight enforcement and participant canonicalization <span class="meta">2026-05-09T07:56:18.295Z</span></li>
+<li><strong>routing:</strong> deterministic workflow kernel hardening after focused review findings <span class="meta">2026-05-09T07:48:18.975Z</span></li>
+<li><strong>routing:</strong> post-build workflow hardening verification and tracked build-info stabilization <span class="meta">2026-05-09T07:34:50.859Z</span></li>
+<li><strong>routing:</strong> Final guide browser screenshot gate hardening <span class="meta">2026-05-09T07:22:50.865Z</span></li>
+<li><strong>routing:</strong> Final workflow gate stabilization <span class="meta">2026-05-09T07:14:11.737Z</span></li>
+<li><strong>routing:</strong> Hash-bound guide and gate hardening <span class="meta">2026-05-09T07:09:47.512Z</span></li>
+<li><strong>routing:</strong> Second hardening final blocker fixes <span class="meta">2026-05-09T07:00:06.817Z</span></li>
+<li><strong>routing:</strong> Focused review blocker correction <span class="meta">2026-05-09T06:42:55.285Z</span></li>
 <li><strong>patches:</strong> Harden handover workflow, model routing, hooks guidance, and public guide <span class="meta">2026-05-09T02:02:34.660Z</span></li>
-      </ul>
+        </ul>
+
+
+        <h3>Knowledge</h3>
+        <ul class="timeline">
+          <li><strong>pattern-proposals:</strong> Pattern accepted pattern proposal records are append-only evidence <span class="meta">2026-05-09T06:56:29.299Z</span></li>
+<li><strong>pattern-proposals:</strong> Pattern accepted generated workflow guide artifacts are gated user-facing workflow surfaces <span class="meta">2026-05-09T06:56:19.956Z</span></li>
+<li><strong>pattern-proposals:</strong> Pattern proposed Browser validation locators need exact names when component names overlap <span class="meta">2026-05-08T17:16:29.334Z</span></li>
+<li><strong>pattern-proposals:</strong> Pattern accepted Theme cascade changes require strong-model review and portal evidence <span class="meta">2026-05-08T17:03:32.769Z</span></li>
+<li><strong>pattern-proposals:</strong> Pattern accepted Hooks stay as thin workflow triggers <span class="meta">2026-05-08T16:51:57.452Z</span></li>
+        </ul>
+
+
+        <h3>Deployment</h3>
+        <ul class="timeline">
+          <li><strong>audits:</strong> Audit pass public-guide-deployment-evidence <span class="meta">2026-05-09T02:09:05.553Z</span></li>
+<li><strong>tests:</strong> Verification pass public-guide-deployment-evidence <span class="meta">2026-05-09T02:09:05.179Z</span></li>
+<li><strong>reviews:</strong> Review pass public-guide-deployment-evidence <span class="meta">2026-05-09T02:09:04.421Z</span></li>
+<li><strong>patches:</strong> Record public guide deployment evidence <span class="meta">2026-05-09T02:09:03.683Z</span></li>
+<li><strong>deployments:</strong> Public workflow guide deployed <span class="meta">2026-05-09T02:08:48.861Z</span></li>
+<li><strong>patches:</strong> Make final server-head handover wording stable <span class="meta">2026-05-09T01:40:04.418Z</span></li>
+<li><strong>patches:</strong> Correct final handover state after server pull <span class="meta">2026-05-09T01:38:40.475Z</span></li>
+<li><strong>audits:</strong> Audit pass staged-deployment-evidence <span class="meta">2026-05-08T17:51:40.088Z</span></li>
+<li><strong>tests:</strong> Verification pass staged-deployment-evidence <span class="meta">2026-05-08T17:51:39.710Z</span></li>
+<li><strong>reviews:</strong> Review pass staged-deployment-evidence <span class="meta">2026-05-08T17:51:39.339Z</span></li>
+<li><strong>audits:</strong> Audit pass deployment-evidence <span class="meta">2026-05-08T17:50:47.296Z</span></li>
+<li><strong>tests:</strong> Verification pass deployment-evidence <span class="meta">2026-05-08T17:50:46.934Z</span></li>
+<li><strong>reviews:</strong> Review pass deployment-evidence <span class="meta">2026-05-08T17:50:46.542Z</span></li>
+<li><strong>patches:</strong> Record deployment evidence and update workflow handover <span class="meta">2026-05-08T17:50:45.855Z</span></li>
+<li><strong>deployments:</strong> Server deployment validation for Codex-native workflow <span class="meta">2026-05-08T17:50:20.520Z</span></li>
+<li><strong>tests:</strong> Server pre-deploy validation <span class="meta">2026-05-08T17:18:20.443Z</span></li>
+        </ul>
+
     </section>
     <section class="warn">
       <h2>Open Follow-Ups</h2>

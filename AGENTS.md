@@ -36,7 +36,10 @@ Nexus is a multi-tenant mini-app platform. The first module is restaurant orderi
 
 - Use repo skills in `.agents/skills` for workflow, review, verification, and audits.
 - Record durable state under `.codex/workflow/records` instead of relying on the chat transcript.
+- Treat `.codex/scripts/nexus-workflow.mjs` as the deterministic workflow kernel. Hooks, package scripts, server checks, and future CI should call it; LLM judgment should be recorded as review/verify/audit/routing/pattern evidence for the kernel to validate.
+- Treat committed pattern proposal, routing, patch, review, test, audit, and deployment records as append-only evidence. If evidence is wrong, create a correction record instead of editing the old one.
 - Treat hooks as thin triggers only. They can invalidate gates or block common unsafe commit forms, but review/verify/audit judgment must be done by the lead or a focused agent and recorded explicitly. See `.codex/knowledge/hooks.md` for examples and limits.
+- Project `.codex/config.toml` and `.codex/hooks.json` are active only in trusted Codex sessions. Always keep explicit script gates as the reliable source of enforcement.
 - When a repeated issue, undocumented invariant, deprecated pattern, or useful project convention is discovered, create an evidence-based proposal before changing durable guidance:
   ```bash
   node .codex/scripts/nexus-workflow.mjs record-pattern --summary "<finding>" --evidence "<files/tests/reviews>" --guidance "<candidate rule>" --files "a,b"
@@ -46,14 +49,19 @@ Nexus is a multi-tenant mini-app platform. The first module is restaurant orderi
   ```bash
   node .codex/scripts/nexus-workflow.mjs review-check
   ```
+- Review records are typed. Use `--kind general|pattern|design|workflow|integrated`; design-system/workflow/parallel changes require the matching focused review kind.
 - For user-facing, API, design-system, workflow, or cross-cutting changes, verification and audit evidence are required before final handover/release:
   ```bash
   node .codex/scripts/nexus-workflow.mjs verify-check
   node .codex/scripts/nexus-workflow.mjs audit-check
   ```
+- Generated workflow guide artifacts also require browser evidence before release:
+  ```bash
+  node .codex/scripts/nexus-workflow.mjs guide-browser-check
+  ```
 - After review passes, record it:
   ```bash
-  node .codex/scripts/nexus-workflow.mjs record-review --scope worktree --verdict pass --reviewer <name> --notes "<summary>"
+  node .codex/scripts/nexus-workflow.mjs record-review --scope worktree --kind <general|pattern|design|workflow|integrated> --verdict pass --reviewer <name> --notes "<summary>"
   ```
 - Record verification and audit evidence:
   ```bash
@@ -74,9 +82,14 @@ Use subagents only when delegation materially helps.
 - Use `nexus_spark_worker` only for small, heavily guided edits with narrow write scope, explicit expected behavior, and clear tests.
 - Use `nexus_strong_worker` as a normal coding worker for ambiguous debugging, architecture, cross-cutting refactors, design judgment, visual validation, deployment issues, and any task where missing context is dangerous.
 - Before delegating, the lead must classify the task against the Spark-allowed and Spark-forbidden criteria. Do not use Spark first and hope it self-corrects.
+- For non-trivial delegation, record a routing preflight:
+  ```bash
+  node .codex/scripts/nexus-workflow.mjs record-routing --summary "<task>" --route <lead|spark|strong|research|review|integrated-review|escalate-to-strong> --worker <agent> --files "a,b" --verification "<commands>" --fallback-trigger "<when>" --fallback-target "<agent>"
+  ```
 - If Spark receives a task that violates its criteria, it must refuse/escalate before editing. If it fails tests, stalls, loops, edits outside scope, or produces shallow output, stop that worker and escalate to `nexus_strong_worker` or the lead model.
 - Use `nexus_pattern_reviewer` after substantive code changes.
 - Use `nexus_design_reviewer` for visual/design-system changes.
+- For parallel worker edits, run one final integrated review on the merged worktree hash before recording review pass.
 
 ## Git Note
 

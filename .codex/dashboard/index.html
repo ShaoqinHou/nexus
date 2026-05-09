@@ -3,45 +3,85 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="nexus-guide-version" content="nexus-public-workflow-guide/v2" />
+  <meta name="nexus-guide-source-hash" content="dd9ebbdd1ec3065f41e3e940" />
+  <meta name="nexus-guide-content-hash" content="eeab9046e45ae3093e12b03d" />
+  <meta name="nexus-token-source" content="packages/web/src/platform/theme/tokens.css" />
   <title>Nexus Workflow Dashboard</title>
   <style>
-    :root { color-scheme: light; --bg:#f6f7f9; --panel:#fff; --text:#17202a; --muted:#627084; --line:#dde3ea; --brand:#185b57; --accent:#b7772d; --risk:#b42318; }
+    :root {
+      color-scheme: light;
+      --color-bg-surface: #f9fafb;
+      --color-bg-muted: #f3f4f6;
+      --color-bg-elevated: #ffffff;
+      --color-bg-strong: #111827;
+      --color-text: #111827;
+      --color-text-secondary: #6b7280;
+      --color-text-inverse: #ffffff;
+      --color-border: #e5e7eb;
+      --color-primary: #2563eb;
+      --color-primary-light: #dbeafe;
+      --color-danger: #dc2626;
+      --color-accent: #f59e0b;
+      --radius-md: 0.375rem;
+      --radius-lg: 0.5rem;
+      --radius-full: 9999px;
+      --radius-card: var(--radius-lg);
+      --radius-btn: var(--radius-md);
+      --radius-chip: var(--radius-full);
+      --hit-sm: 44px;
+      --hit-md: 48px;
+      --hit-lg: 52px;
+      --guide-bg: var(--color-bg-surface);
+      --guide-panel: var(--color-bg-elevated);
+      --guide-muted-surface: var(--color-bg-muted);
+      --guide-text: var(--color-text);
+      --guide-muted-text: var(--color-text-secondary);
+      --guide-line: var(--color-border);
+      --guide-brand: var(--color-primary);
+      --guide-accent: var(--color-accent);
+      --guide-risk: var(--color-danger);
+    }
     * { box-sizing: border-box; }
-    body { margin:0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; background:var(--bg); color:var(--text); line-height:1.45; }
-    header { padding:28px 32px 18px; background:var(--panel); border-bottom:1px solid var(--line); }
+    body { margin:0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; background:var(--guide-bg); color:var(--guide-text); line-height:1.45; }
+    header { padding:28px 32px 18px; background:var(--guide-panel); border-bottom:1px solid var(--guide-line); }
     h1 { margin:0 0 8px; font-size:28px; letter-spacing:0; }
     h2 { margin:0 0 14px; font-size:18px; letter-spacing:0; }
     h3 { margin:18px 0 8px; font-size:15px; letter-spacing:0; }
     p { margin:8px 0; }
-    pre { white-space:pre-wrap; overflow:auto; background:#f2f5f7; border:1px solid var(--line); padding:10px; border-radius:6px; font-size:12px; }
-    code { background:#eef3f5; padding:1px 4px; border-radius:4px; }
-    a { color:var(--brand); text-decoration:none; }
+    pre { white-space:pre-wrap; overflow:auto; background:var(--guide-muted-surface); border:1px solid var(--guide-line); padding:10px; border-radius:var(--radius-card); font-size:12px; }
+    code { background:var(--guide-muted-surface); padding:1px 4px; border-radius:var(--radius-btn); }
+    a { color:var(--guide-brand); text-decoration:none; }
     a:hover { text-decoration:underline; }
-    .meta { color:var(--muted); font-size:13px; }
+    .meta { color:var(--guide-muted-text); font-size:13px; }
     .layout { display:grid; grid-template-columns:260px 1fr; min-height:calc(100vh - 92px); }
-    nav { position:sticky; top:0; height:100vh; padding:18px; border-right:1px solid var(--line); background:#eef2f4; overflow:auto; }
-    nav a { display:block; padding:7px 9px; border-radius:6px; color:var(--text); font-size:14px; }
-    nav a:hover { background:#fff; text-decoration:none; }
+    nav { position:sticky; top:0; height:100vh; padding:18px; border-right:1px solid var(--guide-line); background:var(--guide-muted-surface); overflow:auto; }
+    nav a { display:flex; align-items:center; min-height:var(--hit-sm); padding:7px 9px; border-radius:var(--radius-btn); color:var(--guide-text); font-size:14px; }
+    nav a:hover { background:var(--guide-panel); text-decoration:none; }
     main { padding:22px; max-width:1180px; }
     .grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:12px; margin:16px 0 22px; }
-    .card, .panel, .record { background:var(--panel); border:1px solid var(--line); border-radius:8px; }
-    .card { padding:14px; }
+    .card, .panel, .record { background:var(--guide-panel); border:1px solid var(--guide-line); border-radius:var(--radius-card); }
+    .card { min-height:var(--hit-md); padding:14px; }
     .card strong { display:block; font-size:24px; }
     .panel { padding:18px; margin:0 0 18px; }
     .record { padding:12px; margin:10px 0; }
     .record-top { display:flex; justify-content:space-between; gap:12px; align-items:baseline; }
-    .record-top span, .path, .muted { color:var(--muted); font-size:12px; }
-    .pill { display:inline-block; margin-top:8px; padding:2px 8px; border-radius:999px; background:#e9f2ef; color:var(--brand); font-size:12px; }
-    .warn { border-left:4px solid var(--accent); }
-    .risk { border-left:4px solid var(--risk); }
+    .record-top span, .path, .muted { color:var(--guide-muted-text); font-size:12px; }
+    .pill { display:inline-block; margin-top:8px; padding:2px 8px; border-radius:var(--radius-chip); background:var(--color-primary-light); color:var(--guide-brand); font-size:12px; }
+    .warn { border-left:4px solid var(--guide-accent); }
+    .risk { border-left:4px solid var(--guide-risk); }
     .zoo-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:10px; }
-    @media (max-width: 820px) { .layout { grid-template-columns:1fr; } nav { position:static; height:auto; border-right:0; border-bottom:1px solid var(--line); } }
+    @media (max-width: 820px) {
+      .layout { grid-template-columns:1fr; }
+      nav { position:static; height:auto; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; border-right:0; border-bottom:1px solid var(--guide-line); }
+      nav a { min-height:var(--hit-sm); }
+    }
   </style>
 </head>
 <body>
   <header>
     <h1>Nexus Workflow Dashboard</h1>
-    <div class="meta">Generated 2026-05-09T02:08:49.462Z · branch codex/native-workflow · worktree c36ed3a2b12f97eb</div>
+    <div class="meta">Generated 2026-05-09T08:18:05.793Z · branch codex/native-workflow · worktree 224679ad265e8e27</div>
   </header>
   <div class="layout">
     <nav>
@@ -56,6 +96,7 @@
       <a href="#patches">Patches</a>
       <a href="#reviews">Reviews</a>
       <a href="#tests">Tests</a>
+      <a href="#audits">Audits</a>
       <a href="#deployments">Deployments</a>
       <a href="#risks">Risks</a>
       <a href="#deployment">Deployment</a>
@@ -65,23 +106,79 @@
         <h2>Overview</h2>
         <div class="grid">
           <div class="card"><span class="meta">Decisions</span><strong>1</strong></div>
-<div class="card"><span class="meta">Pattern Proposals</span><strong>3</strong></div>
-<div class="card"><span class="meta">Patches</span><strong>7</strong></div>
-<div class="card"><span class="meta">Reviews</span><strong>22</strong></div>
-<div class="card"><span class="meta">Tests</span><strong>29</strong></div>
+<div class="card"><span class="meta">Pattern Proposals</span><strong>5</strong></div>
+<div class="card"><span class="meta">Routing</span><strong>11</strong></div>
+<div class="card"><span class="meta">Patches</span><strong>19</strong></div>
+<div class="card"><span class="meta">Reviews</span><strong>21</strong></div>
+<div class="card"><span class="meta">Tests</span><strong>34</strong></div>
+<div class="card"><span class="meta">Audits</span><strong>16</strong></div>
 <div class="card"><span class="meta">Deployments</span><strong>2</strong></div>
 <div class="card"><span class="meta">Zoo Pages</span><strong>24/24</strong></div>
         </div>
         <div class="grid">
-          <div class="card"><span class="meta">Review Gate</span><strong>needed</strong></div>
-          <div class="card"><span class="meta">Verify Gate</span><strong>needed</strong></div>
-          <div class="card"><span class="meta">Audit Gate</span><strong>needed</strong></div>
+          <div class="card"><span class="meta">Review Gate</span><strong>pass</strong></div>
+          <div class="card"><span class="meta">Verify Gate</span><strong>pass</strong></div>
+          <div class="card"><span class="meta">Audit Gate</span><strong>pass</strong></div>
         </div>
-        <p class="meta">Last patch trigger: 2026-05-09T02:02:35.023Z · patch PATCH-20260509T020234Z-harden-handover-workflow-model-routing-hooks-gui</p>
+        <p class="meta">Last patch trigger: 2026-05-09T08:15:44.717Z · patch PATCH-20260509T081544Z-final-workflow-hardening-scope-after-removing-ge</p>
         <pre>## codex/native-workflow...origin/codex/native-workflow
+ M .agents/skills/nexus-review/SKILL.md
+ M .agents/skills/nexus-verify/SKILL.md
+ M .agents/skills/nexus-workflow/SKILL.md
+ M .codex/README.md
+ M .codex/agents/nexus-spark-worker.toml
+ M .codex/agents/nexus-strong-worker.toml
+ M .codex/config.toml
+ M .codex/dashboard/index.html
+ M .codex/dashboard/public.html
+ M .codex/knowledge/hooks.md
+ M .codex/knowledge/model-routing.md
+ M .codex/scripts/nexus-workflow.mjs
  M .codex/workflow/current-state.md
-?? .codex/workflow/records/deployments/DEPLOYMENT-20260509T020848Z-public-workflow-guide-deployed.md
-?? .codex/workflow/records/tests/TEST-20260509T020848Z-public-guide-url-validation.md</pre>
+ M .codex/workflow/records/audit-state.json
+ M .codex/workflow/records/patch-state.json
+ M .codex/workflow/records/review-state.json
+ M .codex/workflow/records/verify-state.json
+ M .codex/workflow/templates/README.md
+ M .codex/workflow/templates/patch.md
+ M .codex/workflow/templates/review.md
+ M AGENTS.md
+ M package.json
+?? .codex/agents/nexus-auditor.toml
+?? .codex/agents/nexus-verifier.toml
+?? .codex/workflow/artifacts/
+?? .codex/workflow/records/audits/
+?? .codex/workflow/records/guide-browser-state.json
+?? .codex/workflow/records/patches/PATCH-20260509T062357Z-codex-workflow-hardening-after-audit.md
+?? .codex/workflow/records/patches/PATCH-20260509T064305Z-fix-focused-review-workflow-blockers.md
+?? .codex/workflow/records/patches/PATCH-20260509T070015Z-second-hardening-final-blocker-fixes.md
+?? .codex/workflow/records/patches/PATCH-20260509T070957Z-hash-bound-guide-and-gate-hardening.md
+?? .codex/workflow/records/patches/PATCH-20260509T071421Z-final-workflow-gate-stabilization.md
+?? .codex/workflow/records/patches/PATCH-20260509T072300Z-final-guide-browser-screenshot-gate-hardening.md
+?? .codex/workflow/records/patches/PATCH-20260509T073502Z-post-build-workflow-hardening-current-hash-cover.md
+?? .codex/workflow/records/patches/PATCH-20260509T074827Z-deterministic-workflow-kernel-hardening-after-fo.md
+?? .codex/workflow/records/patches/PATCH-20260509T075627Z-true-delegated-routing-preflight-enforcement-and.md
+?? .codex/workflow/records/patches/PATCH-20260509T080743Z-generated-guide-whitespace-normalization.md
+?? .codex/workflow/records/patches/PATCH-20260509T081544Z-final-workflow-hardening-scope-after-removing-ge.md
+?? .codex/workflow/records/pattern-proposals/PATTERN-PROPOSAL-20260509T065619Z-pattern-accepted-generated-workflow-guide-artifa.md
+?? .codex/workflow/records/pattern-proposals/PATTERN-PROPOSAL-20260509T065629Z-pattern-accepted-pattern-proposal-records-are-ap.md
+?? .codex/workflow/records/reviews/REVIEW-20260509T072836Z-review-general-pass-worktree.md
+?? .codex/workflow/records/reviews/REVIEW-20260509T072850Z-review-workflow-pass-worktree.md
+?? .codex/workflow/records/reviews/REVIEW-20260509T080232Z-review-general-pass-worktree.md
+?? .codex/workflow/records/reviews/REVIEW-20260509T080242Z-review-workflow-pass-worktree.md
+?? .codex/workflow/records/reviews/REVIEW-20260509T081117Z-review-general-pass-worktree.md
+?? .codex/workflow/records/reviews/REVIEW-20260509T081127Z-review-workflow-pass-worktree.md
+?? .codex/workflow/records/reviews/REVIEW-20260509T081709Z-review-general-pass-worktree.md
+?? .codex/workflow/records/reviews/REVIEW-20260509T081719Z-review-workflow-pass-worktree.md
+?? .codex/workflow/records/routing-state.json
+?? .codex/workflow/records/routing/
+?? .codex/workflow/records/tests/TEST-20260509T080318Z-verification-pass-worktree.md
+?? .codex/workflow/records/tests/TEST-20260509T081137Z-verification-pass-worktree.md
+?? .codex/workflow/records/tests/TEST-20260509T081731Z-verification-pass-worktree.md
+?? .codex/workflow/scenarios/
+?? .codex/workflow/templates/audit.md
+?? .codex/workflow/templates/guide-browser.md
+?? .codex/workflow/templates/routing.md</pre>
       </section>
       <section id="current" class="panel"><h1>Current State</h1>
 <p>Updated: 2026-05-09</p>
@@ -113,7 +210,7 @@
 <li>continued design-system completion work after workflow migration.</li>
 </ul>
 <h2>Current Phase</h2>
-<p>Codex workflow migration is implemented, locally release-gated, committed, pushed, and deployed for validation on branch `codex/native-workflow`.</p>
+<p>Codex workflow migration is in a second hardening pass after user-requested workflow-design audit. The earlier migration was implemented and deployed, but the audit found several prose-only guarantees. This pass is converting those guarantees into structured records, executable checks, and guide validation before final server deployment.</p>
 <p>Implemented workflow pieces:</p>
 <ul>
 <li>`.codex/` workflow root with compact state, knowledge files, records, templates, research, scripts, hooks, agents, archived Claude material, and generated dashboard.</li>
@@ -125,7 +222,20 @@
 <li>Active Claude workflow files are archived under `.codex/archive/claude-code-2026-05-09/`.</li>
 <li>Design-system continuation work: Toast now has semantic `info` styling, `warning` support, registry coverage, tests, and Design Zoo validation.</li>
 </ul>
-<p>Representative gate records from the workflow migration:</p>
+<p>Hardening pass additions in progress:</p>
+<ul>
+<li>Pattern proposal, routing, patch, review, test, audit, and deployment records are append-only after publication; corrections should be new records.</li>
+<li>Audits are first-class records under `.codex/workflow/records/audits/`.</li>
+<li>Routing records are structured and can constrain Spark write scope.</li>
+<li>Review records are typed: `general`, `pattern`, `design`, `workflow`, or `integrated`.</li>
+<li>Release gates include record integrity, hash-bound routing state, public guide safety/freshness, recorded guide browser validation, Zoo/Gym registry consistency, handover hygiene, and workflow self-tests.</li>
+<li>Generated guide artifacts are treated as user-facing workflow surfaces and must pass dedicated freshness/content-hash and recorded browser validation gates; their generator, source docs, state files, records, and workflow rules remain the substantive review surface.</li>
+<li>Public guide now includes workflow nodes, project/code structure, design-system flow, curated design docs, Zoo/Gym coverage, model-routing examples, and grouped event history.</li>
+<li>Public and repo-local guide generation now use source-hash metadata, production token subsets including hit-target tokens, redaction checks, and consistent legacy audit counting.</li>
+<li>Model routing scenarios now assert Spark escalation fallback owners, not only escalation route names.</li>
+<li>Hook runtime heartbeats are written under `.codex/workflow/runtime/` when hooks are active.</li>
+</ul>
+<p>Representative gate records from the initial workflow migration:</p>
 <ul>
 <li>`PATCH-20260508T174121Z-codex-native-workflow-migration-claude-workflow-`</li>
 <li>`REVIEW-20260508T174152Z-review-pass-worktree`</li>
@@ -155,12 +265,19 @@
 <li>Public guide deployment: `https://cv.rehou.games/nexus/workflow/` returned 200 after `.codex/dashboard/public.html` was copied to the static workflow path.</li>
 <li>Preserved server dirty state: pre-existing `package-lock.json` modification remains and was backed up to `/root/monoWeb/deploy-backups/nexus/package-lock-local-20260509-codex-native-workflow.diff`.</li>
 </ul>
+<p>Second hardening pass deployment validation is still pending.</p>
 <p>Historical/model-routing evidence:</p>
 <ul>
 <li>`TEST-20260508T170320Z-historical-hard-case-routing-analysis-c4a438e`</li>
 <li>`TEST-20260508T170615Z-spark-worker-toast-warning-slice`</li>
 <li>`TEST-20260508T171755Z-spark-routing-guard-broad-theme-task`</li>
 <li>`PATTERN-PROPOSAL-20260508T170332Z-pattern-accepted-theme-cascade-changes-require-s`</li>
+<li>`.codex/workflow/scenarios/model-routing.json` now includes Spark success, Spark failure/escalation, mixed strong-over-Spark cases, research-only routing, design review, integrated parallel review, and lead-only integration scenarios.</li>
+</ul>
+<p>Second hardening pattern evidence:</p>
+<ul>
+<li>`PATTERN-PROPOSAL-20260509T065619Z-pattern-accepted-generated-workflow-guide-artifa`</li>
+<li>`PATTERN-PROPOSAL-20260509T065629Z-pattern-accepted-pattern-proposal-records-are-ap`</li>
 </ul>
 <h2>Important Git Note</h2>
 <p>Plain `git` may misread this linked worktree if it resolves the submodule common git dir. The reliable command form is:</p>
@@ -169,7 +286,7 @@
 <p>```</p>
 <p>The earlier large dirty-tree report came from using the submodule common git dir directly and should not be treated as the current worktree state.</p>
 <h2>Next Required Work</h2>
-<p>No mandatory migration step remains. Optional follow-ups are tracked as risks:</p>
+<p>Finish the second hardening pass local gates, focused review, visual guide validation, and server validation. Optional follow-ups remain tracked as risks:</p>
 <ul>
 <li>Decide whether to clean or adopt the server's pre-existing dirty `package-lock.json`.</li>
 <li>Triage pre-existing `npm audit` findings from server `npm ci`.</li>
@@ -185,7 +302,7 @@
           <p class="path">24 of 24 registry entries declare a zoo route.</p>
         </div>
         <div class="zoo-grid">
-          
+
             <article class="record">
               <div class="record-top">
                 <strong>Button</strong>
@@ -195,7 +312,7 @@
               <p><a href="http://localhost:5173/design/button">/design/button</a></p>
               <p>Primary action control with four variants and three token-sized touch targets.</p>
             </article>
-          
+
 
             <article class="record">
               <div class="record-top">
@@ -206,7 +323,7 @@
               <p><a href="http://localhost:5173/design/badge">/design/badge</a></p>
               <p>Small status label; rounded-full pill. Exports BadgeVariant type.</p>
             </article>
-          
+
 
             <article class="record">
               <div class="record-top">
@@ -217,7 +334,7 @@
               <p><a href="http://localhost:5173/design/card">/design/card</a></p>
               <p>Elevated content container. Composition: CardHeader + CardTitle + CardContent + CardFooter.</p>
             </article>
-          
+
 
             <article class="record">
               <div class="record-top">
@@ -228,7 +345,7 @@
               <p><a href="http://localhost:5173/design/dialog">/design/dialog</a></p>
               <p>Modal dialog with overlay, title, optional footer. z-50 budget.</p>
             </article>
-          
+
 
             <article class="record">
               <div class="record-top">
@@ -239,7 +356,7 @@
               <p><a href="http://localhost:5173/design/input">/design/input</a></p>
               <p>Text input with label, error, helperText slots. Focus ring tied to --color-primary.</p>
             </article>
-          
+
 
             <article class="record">
               <div class="record-top">
@@ -250,7 +367,7 @@
               <p><a href="http://localhost:5173/design/toggle">/design/toggle</a></p>
               <p>Boolean switch. 200ms slide animation. ON uses --color-primary.</p>
             </article>
-          
+
 
             <article class="record">
               <div class="record-top">
@@ -261,7 +378,7 @@
               <p><a href="http://localhost:5173/design/select">/design/select</a></p>
               <p>Dropdown with options array. Keyboard navigable. z-20 menu.</p>
             </article>
-          
+
 
             <article class="record">
               <div class="record-top">
@@ -272,7 +389,7 @@
               <p><a href="http://localhost:5173/design/image-upload">/design/image-upload</a></p>
               <p>Drag-drop image upload with progress indicator, preview, and remove. Calls API client directly (internal i18n + api lib import).</p>
             </article>
-          
+
 
             <article class="record">
               <div class="record-top">
@@ -283,7 +400,7 @@
               <p><a href="http://localhost:5173/design/toast">/design/toast</a></p>
               <p>Toast notification renderer. Mounted via ToastProvider + useToast(). Exports ToastContainer + ToastData type.</p>
             </article>
-          
+
 
             <article class="record">
               <div class="record-top">
@@ -294,7 +411,7 @@
               <p><a href="http://localhost:5173/design/tour-overlay">/design/tour-overlay</a></p>
               <p>Onboarding step highlighter with spotlight hole + next/prev controls. Uses i18n for step text.</p>
             </article>
-          
+
 
             <article class="record">
               <div class="record-top">
@@ -305,7 +422,7 @@
               <p><a href="http://localhost:5173/design/language-picker">/design/language-picker</a></p>
               <p>Locale switcher dropdown — cycles through en/zh/ja/ko/fr. Uses useT() hook to display localized names.</p>
             </article>
-          
+
 
             <article class="record">
               <div class="record-top">
@@ -316,7 +433,7 @@
               <p><a href="http://localhost:5173/design/dietary-icon">/design/dietary-icon</a></p>
               <p>The ONE sanctioned way to render dietary / allergen / spice / promo markers in Nexus UI. Emoji / unicode alternatives are banned (S-DIETARY-SPRITE).</p>
             </article>
-          
+
 
             <article class="record">
               <div class="record-top">
@@ -327,7 +444,7 @@
               <p><a href="http://localhost:5173/design/data-table">/design/data-table</a></p>
               <p>Sortable, filterable table with generic row typing. Header click toggles sort.</p>
             </article>
-          
+
 
             <article class="record">
               <div class="record-top">
@@ -338,7 +455,7 @@
               <p><a href="http://localhost:5173/design/form-field">/design/form-field</a></p>
               <p>Label + input + error wrapper. Composes Input under a label with gap-1.5.</p>
             </article>
-          
+
 
             <article class="record">
               <div class="record-top">
@@ -349,7 +466,7 @@
               <p><a href="http://localhost:5173/design/status-badge">/design/status-badge</a></p>
               <p>Order-status / generic-status badge that maps status enum to Badge variant + capitalized label.</p>
             </article>
-          
+
 
             <article class="record">
               <div class="record-top">
@@ -360,7 +477,7 @@
               <p><a href="http://localhost:5173/design/empty-state">/design/empty-state</a></p>
               <p>No-data placeholder. Icon → title → context → single CTA button.</p>
             </article>
-          
+
 
             <article class="record">
               <div class="record-top">
@@ -371,7 +488,7 @@
               <p><a href="http://localhost:5173/design/confirm-button">/design/confirm-button</a></p>
               <p>Two-click destructive action with 3s auto-reset. S-CONFIRM-DESTRUCTIVE requires this for delete/cancel/remove actions.</p>
             </article>
-          
+
 
             <article class="record">
               <div class="record-top">
@@ -382,7 +499,7 @@
               <p><a href="http://localhost:5173/design/error-boundary">/design/error-boundary</a></p>
               <p>React error boundary fallback — catches thrown errors in a subtree and shows a recoverable message. Only class component in codebase (React API requires class).</p>
             </article>
-          
+
 
             <article class="record">
               <div class="record-top">
@@ -393,7 +510,7 @@
               <p><a href="http://localhost:5173/design/pull-to-refresh">/design/pull-to-refresh</a></p>
               <p>Mobile pull-to-refresh visual indicator. Shows loading spinner once pull distance exceeds threshold.</p>
             </article>
-          
+
 
             <article class="record">
               <div class="record-top">
@@ -404,7 +521,7 @@
               <p><a href="http://localhost:5173/design/add-to-cart-toast">/design/add-to-cart-toast</a></p>
               <p>Customer-flow confirmation pill — slides up briefly after an item is added to cart. Uses slide-up-fade keyframe.</p>
             </article>
-          
+
 
             <article class="record">
               <div class="record-top">
@@ -415,7 +532,7 @@
               <p><a href="http://localhost:5173/design/order-tracker">/design/order-tracker</a></p>
               <p>Themed order status timeline. Horizontal step tracker with connector lines and pulsing active bubble. Supports dine-in (Received→Preparing→Ready→Served) and delivery (Received→Preparing→On the way→Delivered) modes. data-theme wrapper drives full theme cascade.</p>
             </article>
-          
+
 
             <article class="record">
               <div class="record-top">
@@ -426,7 +543,7 @@
               <p><a href="http://localhost:5173/design/receipt">/design/receipt</a></p>
               <p>Themed visual receipt block for the customer confirmation screen (NOT a print template). Monospace font, dashed dividers, itemised line items, subtotal/tax/tip rows, bold total, and a thank-you footer. data-theme wrapper drives full theme cascade.</p>
             </article>
-          
+
 
             <article class="record">
               <div class="record-top">
@@ -437,7 +554,7 @@
               <p><a href="http://localhost:5173/design/promo-card">/design/promo-card</a></p>
               <p>Themed promotion banner with primary-colour background, decorative accent circle, large discount headline, and mono-font promo-code chip. All props are optional — render any subset. data-theme wrapper drives full theme cascade.</p>
             </article>
-          
+
 
             <article class="record">
               <div class="record-top">
@@ -448,7 +565,7 @@
               <p><a href="http://localhost:5173/design/checkout-summary">/design/checkout-summary</a></p>
               <p>Themed cart/order summary block: itemised line items, divider, per-line cost breakdown (subtotal / delivery / tax), bold total, and a full-width place-order CTA that mirrors the total in its label. Display-only — pass onPlaceOrder for the mutation. data-theme wrapper drives full theme cascade.</p>
             </article>
-          
+
         </div>
       </section>
       <section id="patterns" class="panel"><h1>Nexus Patterns And Traps</h1>
@@ -565,26 +682,62 @@
         <h2>Record Index</h2>
         <p class="muted">Records are markdown files under .codex/workflow/records. This dashboard is a generated browser view; the markdown remains the source of truth.</p>
       </section>
-      
+
     <section id="decisions" class="panel">
       <h2>Decisions</h2>
-      
+
         <article class="record">
           <div class="record-top">
             <strong>Workflow mechanism split</strong>
             <span>2026-05-08T16:38:32.282Z</span>
           </div>
-          
+
           <p class="path">.codex/workflow/records/decisions/DECISION-20260508T163832Z-workflow-mechanism-split.md</p>
           <pre>Skills are lightweight discovery/reminder entry points, not enforcement. AGENTS.md and .codex/knowledge carry durable guidance; .codex/scripts provide deterministic checks/bookkeeping; Codex hooks are thin triggers that inject state, invalidate gates, or block unsafe commits, but they do not perform review/verification/audit judgment. Review, verification, audit, and pattern promotion remain agent/skill workflows with explicit records. .codex/agents provide isolated roles/model defaults; .codex/dashboard visualizes records for humans and future agents.</pre>
         </article>
-      
+
     </section>
-  
+
 
     <section id="pattern-proposals" class="panel">
       <h2>Pattern-proposals</h2>
-      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Pattern accepted pattern proposal records are append-only evidence</strong>
+            <span>2026-05-09T06:56:29.299Z</span>
+          </div>
+          <span class="pill">accepted</span>
+          <p class="path">.codex/workflow/records/pattern-proposals/PATTERN-PROPOSAL-20260509T065629Z-pattern-accepted-pattern-proposal-records-are-ap.md</p>
+          <pre>Status: accepted
+Reporter: codex
+Reviewer: codex-lead
+Decision: Accepted after audit: dynamic pattern discovery is part of the workflow evidence chain and needs the same correction-record discipline as tests, reviews, audits, and deployments.
+
+Summary: pattern proposal records are append-only evidence
+
+Evidence: Bacon audit finding on pattern-proposals missing from EVIDENCE_RECORD_KINDS; .codex/scripts/nexus-workflow.mjs recordIntegrityProblems</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Pattern accepted generated workflow guide artifacts are gated user-facing workflow surfaces</strong>
+            <span>2026-05-09T06:56:19.956Z</span>
+          </div>
+          <span class="pill">accepted</span>
+          <p class="path">.codex/workflow/records/pattern-proposals/PATTERN-PROPOSAL-20260509T065619Z-pattern-accepted-generated-workflow-guide-artifa.md</p>
+          <pre>Status: accepted
+Reporter: codex
+Reviewer: codex-lead
+Decision: Accepted after audit: generated guide files can affect humans and deployed workflow docs, so they must not bypass the dedicated guide freshness/content-hash and browser validation gates.
+
+Summary: generated workflow guide artifacts are gated user-facing workflow surfaces
+
+Evidence: Bacon audit finding on .codex/dashboard bypass; .codex/scripts/nexus-workflow.mjs substantiveFiles and guide-check; AGENTS.md/.codex/README.md guidance</pre>
+        </article>
+
+
         <article class="record">
           <div class="record-top">
             <strong>Pattern proposed Browser validation locators need exact names when component names overlap</strong>
@@ -601,7 +754,7 @@ Evidence: npm run workflow:design-zoo initially failed because getByRole link na
 
 Proposed guidance: For zoo/dashboard browser checks, use exact accessible names or scoped locators when names are substrings of other component names.</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
@@ -619,7 +772,7 @@ Evidence: Historical commit c4a438e12f9; ThemeProvider.tsx body mirror and initi
 
 Proposed guidance: For cuisine theme cascade changes, verify .dark descendant selectors, no .light-only inversion, tenant wrapper/body portal mirroring and cleanup, and live-preview prop sync. Route this class to a strong model/reviewer, not Spark.</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
@@ -637,19 +790,438 @@ Evidence: User reminder during migration; .codex/hooks.json only dispatches even
 
 Proposed guidance: Keep Codex hooks as compact dispatch/gate triggers. Review, verification, audit, and project judgment belong in agents, skills, knowledge files, and explicit records.</pre>
         </article>
-      
+
     </section>
-  
+
+
+    <section id="routing" class="panel">
+      <h2>Routing</h2>
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Final workflow hardening commit scope after excluding generated TypeScript build metadata</strong>
+            <span>2026-05-09T08:15:35.188Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/routing/ROUTING-20260509T081535Z-final-workflow-hardening-commit-scope-after-excl.md</p>
+          <pre>Summary: Final workflow hardening commit scope after excluding generated TypeScript build metadata
+Route: lead
+Worker: codex-lead
+Rejected routes: n/a
+Write scope: .codex/scripts/nexus-workflow.mjs, .codex/README.md, .codex/knowledge/hooks.md, .codex/knowledge/model-routing.md, .codex/dashboard/index.html, .codex/dashboard/public.html, .codex/workflow/current-state.md, AGENTS.md, package.json
+Verification: workflow self-test; validate --full; release gate; guide/browser checks
+Fallback trigger: Any gate regression or generated-guide stale state
+Fallback target: codex-lead</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>generated guide whitespace normalization</strong>
+            <span>2026-05-09T08:07:34.263Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/routing/ROUTING-20260509T080734Z-generated-guide-whitespace-normalization.md</p>
+          <pre>Summary: generated guide whitespace normalization
+Route: lead
+Worker: codex-lead
+Rejected routes: n/a
+Write scope: n/a
+Verification: node --check .codex/scripts/nexus-workflow.mjs; workflow:self-test; guide regeneration; git diff --check; workflow:guide-check; workflow:guide-browser-check; workflow:release-gate
+Fallback trigger: any content hash, whitespace, guide, or release gate failure
+Fallback target: codex-lead</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>true delegated routing preflight enforcement and participant canonicalization</strong>
+            <span>2026-05-09T07:56:18.295Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/routing/ROUTING-20260509T075618Z-true-delegated-routing-preflight-enforcement-and.md</p>
+          <pre>Summary: true delegated routing preflight enforcement and participant canonicalization
+Route: lead
+Worker: codex-lead
+Rejected routes: n/a
+Write scope: n/a
+Verification: node --check .codex/scripts/nexus-workflow.mjs; npm run workflow:self-test; npm run workflow:routing-check; npm run workflow:review-check after focused review; npm run workflow:release-gate
+Fallback trigger: any routing self-test, review-check, or release gate failure
+Fallback target: codex-lead</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>deterministic workflow kernel hardening after focused review findings</strong>
+            <span>2026-05-09T07:48:18.975Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/routing/ROUTING-20260509T074818Z-deterministic-workflow-kernel-hardening-after-fo.md</p>
+          <pre>Summary: deterministic workflow kernel hardening after focused review findings
+Route: lead
+Worker: codex-lead
+Rejected routes: n/a
+Write scope: n/a
+Verification: node --check .codex/scripts/nexus-workflow.mjs; npm run workflow:self-test; npm run workflow:records-check; npm run workflow:routing-check; npm run workflow:guide-check; npm run workflow:guide-browser-check; npm run workflow:release-gate
+Fallback trigger: any self-test, gate, review, or browser-guide failure
+Fallback target: codex-lead</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>post-build workflow hardening verification and tracked build-info stabilization</strong>
+            <span>2026-05-09T07:34:50.859Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/routing/ROUTING-20260509T073450Z-post-build-workflow-hardening-verification-and-t.md</p>
+          <pre>Summary: post-build workflow hardening verification and tracked build-info stabilization
+Route: lead
+Worker: codex-lead
+Rejected routes: n/a
+Write scope: .agents/skills/nexus-review/SKILL.md, .agents/skills/nexus-verify/SKILL.md, .agents/skills/nexus-workflow/SKILL.md, .codex/README.md, .codex/agents/nexus-auditor.toml, .codex/agents/nexus-spark-worker.toml, .codex/agents/nexus-strong-worker.toml, .codex/agents/nexus-verifier.toml, .codex/config.toml, .codex/knowledge/hooks.md, .codex/knowledge/model-routing.md, .codex/scripts/nexus-workflow.mjs, .codex/workflow/current-state.md, .codex/workflow/scenarios/model-routing.json, .codex/workflow/templates/README.md, .codex/workflow/templates/audit.md, .codex/workflow/templates/guide-browser.md, .codex/workflow/templates/patch.md, .codex/workflow/templates/review.md, .codex/workflow/templates/routing.md, AGENTS.md, package.json, packages/web/tsconfig.tsbuildinfo
+Verification: node --check .codex/scripts/nexus-workflow.mjs; npm run workflow:records-check; npm run workflow:model-routing-check; npm run workflow:zoo-check; npm run workflow:self-test; npm run build; npm test; npm run workflow:release-gate
+Fallback trigger: any gate failure, stale guide evidence, or review finding
+Fallback target: codex-lead</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Final guide browser screenshot gate hardening</strong>
+            <span>2026-05-09T07:22:50.865Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/routing/ROUTING-20260509T072250Z-final-guide-browser-screenshot-gate-hardening.md</p>
+          <pre>Summary: Final guide browser screenshot gate hardening
+Route: lead
+Worker: codex-lead
+Rejected routes: n/a
+Write scope: .codex/scripts/nexus-workflow.mjs, .codex/dashboard/index.html, .codex/dashboard/public.html
+Verification: node --check .codex/scripts/nexus-workflow.mjs; self-test; records-check; routing-check; guide-check; guide-browser-check after final screenshots; release gate
+Fallback trigger: n/a
+Fallback target: n/a</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Final workflow gate stabilization</strong>
+            <span>2026-05-09T07:14:11.737Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/routing/ROUTING-20260509T071411Z-final-workflow-gate-stabilization.md</p>
+          <pre>Summary: Final workflow gate stabilization
+Route: lead
+Worker: codex-lead
+Rejected routes: n/a
+Write scope: .codex/scripts/nexus-workflow.mjs, .codex/README.md, .agents/skills/nexus-verify/SKILL.md, .codex/workflow/current-state.md, .codex/workflow/templates/README.md, .codex/workflow/templates/guide-browser.md, AGENTS.md, package.json
+Verification: node --check .codex/scripts/nexus-workflow.mjs; records-check; routing-check; guide-check; guide-browser-check after final screenshots; zoo-check; model-routing-check; self-test; focused review; release gate
+Fallback trigger: n/a
+Fallback target: n/a</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Hash-bound guide and gate hardening</strong>
+            <span>2026-05-09T07:09:47.512Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/routing/ROUTING-20260509T070947Z-hash-bound-guide-and-gate-hardening.md</p>
+          <pre>Summary: Hash-bound guide and gate hardening
+Route: lead
+Worker: codex-lead
+Rejected routes: n/a
+Write scope: .codex/scripts/nexus-workflow.mjs, .codex/README.md, .agents/skills/nexus-verify/SKILL.md, .codex/workflow/current-state.md, .codex/workflow/templates/guide-browser.md, package.json
+Verification: node --check .codex/scripts/nexus-workflow.mjs; records-check; routing-check; guide-check; guide-browser-check after screenshots; zoo-check; model-routing-check; self-test; focused review; release gate
+Fallback trigger: n/a
+Fallback target: n/a</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Second hardening final blocker fixes</strong>
+            <span>2026-05-09T07:00:06.817Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/routing/ROUTING-20260509T070006Z-second-hardening-final-blocker-fixes.md</p>
+          <pre>Summary: Second hardening final blocker fixes
+Route: lead
+Worker: codex-lead
+Rejected routes: n/a
+Write scope: .codex/scripts/nexus-workflow.mjs, .codex/README.md, .codex/config.toml, .codex/agents/, .codex/knowledge/, .codex/workflow/current-state.md, .codex/workflow/scenarios/, .codex/workflow/templates/, .agents/skills/, AGENTS.md, package.json
+Verification: node --check .codex/scripts/nexus-workflow.mjs; records-check; routing-check; guide-check; zoo-check; model-routing-check; self-test; browser screenshots; focused review; release gate
+Fallback trigger: n/a
+Fallback target: n/a</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Focused review blocker correction</strong>
+            <span>2026-05-09T06:42:55.285Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/routing/ROUTING-20260509T064255Z-focused-review-blocker-correction.md</p>
+          <pre>Summary: Focused review blocker correction
+Route: lead
+Worker: codex-lead
+Rejected routes: n/a
+Write scope: .codex/scripts/nexus-workflow.mjs, AGENTS.md, .agents/skills/nexus-review/SKILL.md, .codex/dashboard/index.html, .codex/dashboard/public.html
+Verification: node --check .codex/scripts/nexus-workflow.mjs; records-check; guide-check; self-test; browser screenshots; release gate after focused review
+Fallback trigger: n/a
+Fallback target: n/a</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Workflow hardening after design audit</strong>
+            <span>2026-05-09T06:23:45.805Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/routing/ROUTING-20260509T062345Z-workflow-hardening-after-design-audit.md</p>
+          <pre>Summary: Workflow hardening after design audit
+Route: lead
+Worker: codex-lead
+Rejected routes: spark, strong
+Write scope: n/a
+Verification: node --check .codex/scripts/nexus-workflow.mjs; workflow self-test; model routing check; guide check; zoo check; release gate after review/verify/audit
+Fallback trigger: n/a
+Fallback target: n/a</pre>
+        </article>
+
+    </section>
+
 
     <section id="patches" class="panel">
       <h2>Patches</h2>
-      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Final workflow hardening scope after removing generated TypeScript build metadata from the commit</strong>
+            <span>2026-05-09T08:15:44.373Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/patches/PATCH-20260509T081544Z-final-workflow-hardening-scope-after-removing-ge.md</p>
+          <pre>Summary: Final workflow hardening scope after removing generated TypeScript build metadata from the commit
+Agent: codex-lead
+Routing: ROUTING-20260509T081535Z-final-workflow-hardening-commit-scope-after-excl
+
+Files:
+- .codex/scripts/nexus-workflow.mjs
+- .codex/README.md
+- .codex/knowledge/hooks.md</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>generated guide whitespace normalization</strong>
+            <span>2026-05-09T08:07:43.099Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/patches/PATCH-20260509T080743Z-generated-guide-whitespace-normalization.md</p>
+          <pre>Summary: generated guide whitespace normalization
+Agent: codex-lead
+Routing: ROUTING-20260509T080734Z-generated-guide-whitespace-normalization
+
+Files:
+- .agents/skills/nexus-review/SKILL.md
+- .agents/skills/nexus-verify/SKILL.md
+- .agents/skills/nexus-workflow/SKILL.md</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>true delegated routing preflight enforcement and participant canonicalization</strong>
+            <span>2026-05-09T07:56:27.174Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/patches/PATCH-20260509T075627Z-true-delegated-routing-preflight-enforcement-and.md</p>
+          <pre>Summary: true delegated routing preflight enforcement and participant canonicalization
+Agent: codex-lead
+Routing: ROUTING-20260509T075618Z-true-delegated-routing-preflight-enforcement-and
+
+Files:
+- .agents/skills/nexus-review/SKILL.md
+- .agents/skills/nexus-verify/SKILL.md
+- .agents/skills/nexus-workflow/SKILL.md</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>deterministic workflow kernel hardening after focused review findings</strong>
+            <span>2026-05-09T07:48:27.529Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/patches/PATCH-20260509T074827Z-deterministic-workflow-kernel-hardening-after-fo.md</p>
+          <pre>Summary: deterministic workflow kernel hardening after focused review findings
+Agent: codex-lead
+Routing: ROUTING-20260509T074818Z-deterministic-workflow-kernel-hardening-after-fo
+
+Files:
+- .agents/skills/nexus-review/SKILL.md
+- .agents/skills/nexus-verify/SKILL.md
+- .agents/skills/nexus-workflow/SKILL.md</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>post-build workflow hardening current hash coverage</strong>
+            <span>2026-05-09T07:35:02.346Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/patches/PATCH-20260509T073502Z-post-build-workflow-hardening-current-hash-cover.md</p>
+          <pre>Summary: post-build workflow hardening current hash coverage
+
+Files:
+- .agents/skills/nexus-review/SKILL.md
+- .agents/skills/nexus-verify/SKILL.md
+- .agents/skills/nexus-workflow/SKILL.md
+- .codex/README.md
+- .codex/agents/nexus-auditor.toml</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Final guide browser screenshot gate hardening</strong>
+            <span>2026-05-09T07:23:00.607Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/patches/PATCH-20260509T072300Z-final-guide-browser-screenshot-gate-hardening.md</p>
+          <pre>Summary: Final guide browser screenshot gate hardening
+
+Files:
+- .agents/skills/nexus-review/SKILL.md
+- .agents/skills/nexus-verify/SKILL.md
+- .agents/skills/nexus-workflow/SKILL.md
+- .codex/README.md
+- .codex/agents/nexus-auditor.toml</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Final workflow gate stabilization</strong>
+            <span>2026-05-09T07:14:21.824Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/patches/PATCH-20260509T071421Z-final-workflow-gate-stabilization.md</p>
+          <pre>Summary: Final workflow gate stabilization
+
+Files:
+- .agents/skills/nexus-review/SKILL.md
+- .agents/skills/nexus-verify/SKILL.md
+- .agents/skills/nexus-workflow/SKILL.md
+- .codex/README.md
+- .codex/agents/nexus-auditor.toml</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Hash-bound guide and gate hardening</strong>
+            <span>2026-05-09T07:09:57.625Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/patches/PATCH-20260509T070957Z-hash-bound-guide-and-gate-hardening.md</p>
+          <pre>Summary: Hash-bound guide and gate hardening
+
+Files:
+- .agents/skills/nexus-review/SKILL.md
+- .agents/skills/nexus-verify/SKILL.md
+- .agents/skills/nexus-workflow/SKILL.md
+- .codex/README.md
+- .codex/agents/nexus-auditor.toml</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Second hardening final blocker fixes</strong>
+            <span>2026-05-09T07:00:15.522Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/patches/PATCH-20260509T070015Z-second-hardening-final-blocker-fixes.md</p>
+          <pre>Summary: Second hardening final blocker fixes
+
+Files:
+- .agents/skills/nexus-review/SKILL.md
+- .agents/skills/nexus-workflow/SKILL.md
+- .codex/README.md
+- .codex/agents/nexus-auditor.toml
+- .codex/agents/nexus-spark-worker.toml</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Fix focused review workflow blockers</strong>
+            <span>2026-05-09T06:43:05.427Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/patches/PATCH-20260509T064305Z-fix-focused-review-workflow-blockers.md</p>
+          <pre>Summary: Fix focused review workflow blockers
+
+Files:
+- .agents/skills/nexus-review/SKILL.md
+- .agents/skills/nexus-workflow/SKILL.md
+- .codex/README.md
+- .codex/agents/nexus-auditor.toml
+- .codex/agents/nexus-spark-worker.toml</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Codex workflow hardening after audit</strong>
+            <span>2026-05-09T06:23:57.834Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/patches/PATCH-20260509T062357Z-codex-workflow-hardening-after-audit.md</p>
+          <pre>Summary: Codex workflow hardening after audit
+
+Files:
+- .agents/skills/nexus-workflow/SKILL.md
+- .codex/README.md
+- .codex/agents/nexus-auditor.toml
+- .codex/agents/nexus-spark-worker.toml
+- .codex/agents/nexus-strong-worker.toml</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Record public guide deployment evidence</strong>
+            <span>2026-05-09T02:09:03.683Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/patches/PATCH-20260509T020903Z-record-public-guide-deployment-evidence.md</p>
+          <pre>Summary: Record public guide deployment evidence
+
+Files:
+- .codex/dashboard/index.html
+- .codex/dashboard/public.html
+- .codex/workflow/current-state.md
+- .codex/workflow/records/deployments/DEPLOYMENT-20260509T020848Z-public-workflow-guide-deployed.md
+- .codex/workflow/records/tests/TEST-20260509T020848Z-public-guide-url-validation.md</pre>
+        </article>
+
+
         <article class="record">
           <div class="record-top">
             <strong>Harden handover workflow, model routing, hooks guidance, and public guide</strong>
             <span>2026-05-09T02:02:34.660Z</span>
           </div>
-          
+
           <p class="path">.codex/workflow/records/patches/PATCH-20260509T020234Z-harden-handover-workflow-model-routing-hooks-gui.md</p>
           <pre>Summary: Harden handover workflow, model routing, hooks guidance, and public guide
 
@@ -660,14 +1232,14 @@ Files:
 - .codex/dashboard/README.md
 - .codex/dashboard/index.html</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
             <strong>Make final server-head handover wording stable</strong>
             <span>2026-05-09T01:40:04.418Z</span>
           </div>
-          
+
           <p class="path">.codex/workflow/records/patches/PATCH-20260509T014004Z-make-final-server-head-handover-wording-stable.md</p>
           <pre>Summary: Make final server-head handover wording stable
 
@@ -677,14 +1249,14 @@ Files:
 
 Worktree hash after patch: 036f24d237f026b0</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
             <strong>Correct final handover state after server pull</strong>
             <span>2026-05-09T01:38:40.475Z</span>
           </div>
-          
+
           <p class="path">.codex/workflow/records/patches/PATCH-20260509T013840Z-correct-final-handover-state-after-server-pull.md</p>
           <pre>Summary: Correct final handover state after server pull
 
@@ -695,14 +1267,14 @@ Files:
 
 Worktree hash after patch: fe99264c7e0a042b</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
             <strong>Record deployment evidence and update workflow handover</strong>
             <span>2026-05-08T17:50:45.855Z</span>
           </div>
-          
+
           <p class="path">.codex/workflow/records/patches/PATCH-20260508T175045Z-record-deployment-evidence-and-update-workflow-h.md</p>
           <pre>Summary: Record deployment evidence and update workflow handover
 
@@ -713,14 +1285,14 @@ Files:
 - .codex/workflow/records/deployments/DEPLOYMENT-20260508T175020Z-server-deployment-validation-for-codex-native-wo.md
 - .codex/workflow/records/risks.md</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
             <strong>Refresh compact workflow state and dashboard after local gate validation</strong>
             <span>2026-05-08T17:43:48.318Z</span>
           </div>
-          
+
           <p class="path">.codex/workflow/records/patches/PATCH-20260508T174348Z-refresh-compact-workflow-state-and-dashboard-aft.md</p>
           <pre>Summary: Refresh compact workflow state and dashboard after local gate validation
 
@@ -731,14 +1303,14 @@ Files:
 - .agents/skills/nexus-review/agents/openai.yaml
 - .agents/skills/nexus-verify/SKILL.md</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
             <strong>Codex-native workflow migration, Claude workflow archive, and design-system Toast continuation</strong>
             <span>2026-05-08T17:41:21.965Z</span>
           </div>
-          
+
           <p class="path">.codex/workflow/records/patches/PATCH-20260508T174121Z-codex-native-workflow-migration-claude-workflow-.md</p>
           <pre>Summary: Codex-native workflow migration, Claude workflow archive, and design-system Toast continuation
 
@@ -749,14 +1321,14 @@ Files:
 - .agents/skills/nexus-review/agents/openai.yaml
 - .agents/skills/nexus-verify/SKILL.md</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
             <strong>Design-system toast semantic parity</strong>
             <span>2026-05-08T17:07:13.546Z</span>
           </div>
-          
+
           <p class="path">.codex/workflow/records/patches/PATCH-20260508T170713Z-design-system-toast-semantic-parity.md</p>
           <pre>Summary: Design-system toast semantic parity
 
@@ -767,28 +1339,188 @@ Files:
 - packages/web/src/routes/__design/Zoo.tsx
 </pre>
         </article>
-      
+
     </section>
-  
+
 
     <section id="reviews" class="panel">
       <h2>Reviews</h2>
-      
+
         <article class="record">
           <div class="record-top">
-            <strong>Audit pass staged-workflow-followup</strong>
-            <span>2026-05-09T02:03:06.298Z</span>
+            <strong>Review workflow pass worktree</strong>
+            <span>2026-05-09T08:17:19.368Z</span>
           </div>
           <span class="pill">pass</span>
-          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T020306Z-audit-pass-staged-workflow-followup.md</p>
-          <pre>Scope: staged-workflow-followup
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T081719Z-review-workflow-pass-worktree.md</p>
+          <pre>Scope: worktree
+Kind: workflow
 Verdict: pass
-Auditor: codex-lead
-Worktree hash: e72bde7e6f0576c6
+Reviewer: codex-lead
+Patch: PATCH-20260509T081544Z-final-workflow-hardening-scope-after-removing-ge
+Worktree hash: 224679ad265e8e27
 
-Notes: Final staged audit confirms workflow files are centralized, public guide is separated from internal dashboard, and release gate includes handover hygiene.</pre>
+Reviewed files:</pre>
         </article>
-      
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review general pass worktree</strong>
+            <span>2026-05-09T08:17:09.680Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T081709Z-review-general-pass-worktree.md</p>
+          <pre>Scope: worktree
+Kind: general
+Verdict: pass
+Reviewer: codex-lead
+Patch: PATCH-20260509T081544Z-final-workflow-hardening-scope-after-removing-ge
+Worktree hash: 224679ad265e8e27
+
+Reviewed files:</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review workflow pass worktree</strong>
+            <span>2026-05-09T08:11:27.082Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T081127Z-review-workflow-pass-worktree.md</p>
+          <pre>Scope: worktree
+Kind: workflow
+Verdict: pass
+Reviewer: codex-lead
+Patch: PATCH-20260509T080743Z-generated-guide-whitespace-normalization
+Worktree hash: 7584872d7d9c200b
+
+Reviewed files:</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review general pass worktree</strong>
+            <span>2026-05-09T08:11:17.538Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T081117Z-review-general-pass-worktree.md</p>
+          <pre>Scope: worktree
+Kind: general
+Verdict: pass
+Reviewer: codex-lead
+Patch: PATCH-20260509T080743Z-generated-guide-whitespace-normalization
+Worktree hash: 7584872d7d9c200b
+
+Reviewed files:</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review workflow pass worktree</strong>
+            <span>2026-05-09T08:02:42.731Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T080242Z-review-workflow-pass-worktree.md</p>
+          <pre>Scope: worktree
+Kind: workflow
+Verdict: pass
+Reviewer: nexus-pattern-reviewer
+Patch: PATCH-20260509T075627Z-true-delegated-routing-preflight-enforcement-and
+Worktree hash: fe671a1208d1539b
+
+Reviewed files:</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review general pass worktree</strong>
+            <span>2026-05-09T08:02:32.220Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T080232Z-review-general-pass-worktree.md</p>
+          <pre>Scope: worktree
+Kind: general
+Verdict: pass
+Reviewer: nexus-pattern-reviewer
+Patch: PATCH-20260509T075627Z-true-delegated-routing-preflight-enforcement-and
+Worktree hash: fe671a1208d1539b
+
+Reviewed files:</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review workflow pass worktree</strong>
+            <span>2026-05-09T07:28:50.538Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T072850Z-review-workflow-pass-worktree.md</p>
+          <pre>Scope: worktree
+Kind: workflow
+Verdict: pass
+Reviewer: nexus-pattern-reviewer
+Patch: PATCH-20260509T072300Z-final-guide-browser-screenshot-gate-hardening
+Worktree hash: bdbd15d7906c65a3
+
+Reviewed files:</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review general pass worktree</strong>
+            <span>2026-05-09T07:28:36.586Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T072836Z-review-general-pass-worktree.md</p>
+          <pre>Scope: worktree
+Kind: general
+Verdict: pass
+Reviewer: codex-lead
+Patch: PATCH-20260509T072300Z-final-guide-browser-screenshot-gate-hardening
+Worktree hash: bdbd15d7906c65a3
+
+Reviewed files:</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review pass staged-public-guide-evidence</strong>
+            <span>2026-05-09T02:09:24.858Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T020924Z-review-pass-staged-public-guide-evidence.md</p>
+          <pre>Scope: staged-public-guide-evidence
+Verdict: pass
+Reviewer: codex-lead
+Worktree hash: 93389503192dc6f6
+
+Notes: Final staged review for public guide deployment evidence.</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review pass public-guide-deployment-evidence</strong>
+            <span>2026-05-09T02:09:04.421Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T020904Z-review-pass-public-guide-deployment-evidence.md</p>
+          <pre>Scope: public-guide-deployment-evidence
+Verdict: pass
+Reviewer: codex-lead
+Worktree hash: c36ed3a2b12f97eb
+
+Notes: Reviewed deployment evidence for public guide URL and current-state wording.</pre>
+        </article>
+
 
         <article class="record">
           <div class="record-top">
@@ -804,23 +1536,7 @@ Worktree hash: e72bde7e6f0576c6
 
 Notes: Final staged review for handover/hook/model-routing/public-guide follow-up.</pre>
         </article>
-      
 
-        <article class="record">
-          <div class="record-top">
-            <strong>Audit pass workflow-followup</strong>
-            <span>2026-05-09T02:02:36.578Z</span>
-          </div>
-          <span class="pill">pass</span>
-          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T020236Z-audit-pass-workflow-followup.md</p>
-          <pre>Scope: workflow-followup
-Verdict: pass
-Auditor: codex-lead
-Worktree hash: 670f79dd501cd6cb
-
-Notes: Audit passed: workflow-related files are managed under .codex, not a one-off note; public guide is separated from internal dashboard; hook limitations and model-routing coverage gaps are explicit.</pre>
-        </article>
-      
 
         <article class="record">
           <div class="record-top">
@@ -836,23 +1552,7 @@ Worktree hash: 670f79dd501cd6cb
 
 Notes: Reviewed follow-up against user points: handover check is now centralized in workflow script/release gate; public-safe guide generation added; model-routing docs clarify strong coding worker and Spark failure escalation; hook trust/interception examples moved into .codex/knowledge/hooks.md.</pre>
         </article>
-      
 
-        <article class="record">
-          <div class="record-top">
-            <strong>Audit pass staged-final-handover-wording</strong>
-            <span>2026-05-09T01:40:23.239Z</span>
-          </div>
-          <span class="pill">pass</span>
-          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T014023Z-audit-pass-staged-final-handover-wording.md</p>
-          <pre>Scope: staged-final-handover-wording
-Verdict: pass
-Auditor: codex-lead
-Worktree hash: d9ece1cf83322875
-
-Notes: Final staged audit for stable server-head wording.</pre>
-        </article>
-      
 
         <article class="record">
           <div class="record-top">
@@ -868,7 +1568,7 @@ Worktree hash: d9ece1cf83322875
 
 Notes: Final staged review for stable server-head wording. Only workflow docs/dashboard/records changed.</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
@@ -884,23 +1584,7 @@ Worktree hash: 036f24d237f026b0
 
 Notes: Changed current-state.md to avoid naming a self-staling final workflow-record commit; server branch HEAD is the source of truth.</pre>
         </article>
-      
 
-        <article class="record">
-          <div class="record-top">
-            <strong>Audit pass final-handover-wording</strong>
-            <span>2026-05-09T01:40:05.988Z</span>
-          </div>
-          <span class="pill">pass</span>
-          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T014005Z-audit-pass-final-handover-wording.md</p>
-          <pre>Scope: final-handover-wording
-Verdict: pass
-Auditor: codex-lead
-Worktree hash: 036f24d237f026b0
-
-Notes: Audit passed: handover no longer becomes stale when this record-only commit is pulled.</pre>
-        </article>
-      
 
         <article class="record">
           <div class="record-top">
@@ -916,39 +1600,7 @@ Worktree hash: f38c7c6f8d4d53b1
 
 Notes: Final staged review for handover correction. Only current-state, risks, dashboard, and workflow records changed; content corrects completed work from pending to optional risk follow-ups.</pre>
         </article>
-      
 
-        <article class="record">
-          <div class="record-top">
-            <strong>Audit pass staged-handover-correction</strong>
-            <span>2026-05-09T01:39:08.959Z</span>
-          </div>
-          <span class="pill">pass</span>
-          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T013908Z-audit-pass-staged-handover-correction.md</p>
-          <pre>Scope: staged-handover-correction
-Verdict: pass
-Auditor: codex-lead
-Worktree hash: f38c7c6f8d4d53b1
-
-Notes: Final staged audit for handover correction. Durable state is now aligned with the actual completed server pull and residual risks.</pre>
-        </article>
-      
-
-        <article class="record">
-          <div class="record-top">
-            <strong>Audit pass handover-correction</strong>
-            <span>2026-05-09T01:38:42.176Z</span>
-          </div>
-          <span class="pill">pass</span>
-          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T013842Z-audit-pass-handover-correction.md</p>
-          <pre>Scope: handover-correction
-Verdict: pass
-Auditor: codex-lead
-Worktree hash: fe99264c7e0a042b
-
-Notes: Audit passed: durable guide no longer lists completed server pull/commit work as pending; open items are now explicitly optional residual risks.</pre>
-        </article>
-      
 
         <article class="record">
           <div class="record-top">
@@ -964,23 +1616,7 @@ Worktree hash: fe99264c7e0a042b
 
 Notes: Corrected stale Next Required Work in current-state.md and clarified final server commit c3cca6e versus runtime build commit cf069ce.</pre>
         </article>
-      
 
-        <article class="record">
-          <div class="record-top">
-            <strong>Audit pass staged-deployment-evidence</strong>
-            <span>2026-05-08T17:51:40.088Z</span>
-          </div>
-          <span class="pill">pass</span>
-          <p class="path">.codex/workflow/records/reviews/REVIEW-20260508T175140Z-audit-pass-staged-deployment-evidence.md</p>
-          <pre>Scope: staged-deployment-evidence
-Verdict: pass
-Auditor: codex-lead
-Worktree hash: 512baa650dff5428
-
-Notes: Final staged audit for deployment evidence commit. Remaining risks are explicit and old Claude workflow remains archived, not active.</pre>
-        </article>
-      
 
         <article class="record">
           <div class="record-top">
@@ -996,23 +1632,7 @@ Worktree hash: 512baa650dff5428
 
 Notes: Final staged review for deployment evidence commit. Only workflow/deployment records, dashboard, risks, and deployment knowledge changed after commit cf069ce.</pre>
         </article>
-      
 
-        <article class="record">
-          <div class="record-top">
-            <strong>Audit pass deployment-evidence</strong>
-            <span>2026-05-08T17:50:47.296Z</span>
-          </div>
-          <span class="pill">pass</span>
-          <p class="path">.codex/workflow/records/reviews/REVIEW-20260508T175047Z-audit-pass-deployment-evidence.md</p>
-          <pre>Scope: deployment-evidence
-Verdict: pass
-Auditor: codex-lead
-Worktree hash: 335347afeac44d92
-
-Notes: Audit passed for deployment evidence and handover update; remaining risks are explicit in records/risks.md.</pre>
-        </article>
-      
 
         <article class="record">
           <div class="record-top">
@@ -1028,23 +1648,7 @@ Worktree hash: 335347afeac44d92
 
 Notes: Reviewed deployment evidence update: records the server build failure, npm ci fix, required /nexus/ base rebuild, health checks, preserved dirty package-lock state, and deployment record pointer.</pre>
         </article>
-      
 
-        <article class="record">
-          <div class="record-top">
-            <strong>Audit pass staged-worktree</strong>
-            <span>2026-05-08T17:45:08.137Z</span>
-          </div>
-          <span class="pill">pass</span>
-          <p class="path">.codex/workflow/records/reviews/REVIEW-20260508T174508Z-audit-pass-staged-worktree.md</p>
-          <pre>Scope: staged-worktree
-Verdict: pass
-Auditor: codex-lead
-Worktree hash: cb71f1536fb57562
-
-Notes: Final staged tree audit pass. Workflow mechanisms match saved brief: thin hooks, script-backed gates, lightweight skills, evidence-based dynamic patterns, dashboard/wiki, design zoo, model routing records, and server pre-deploy record.</pre>
-        </article>
-      
 
         <article class="record">
           <div class="record-top">
@@ -1060,23 +1664,7 @@ Worktree hash: cb71f1536fb57562
 
 Notes: Final staged tree review pass. Focused reviewer returned no findings after tokenizer hook fix; staged tree includes workflow migration, archive move, dashboard, records, and Toast design-system continuation.</pre>
         </article>
-      
 
-        <article class="record">
-          <div class="record-top">
-            <strong>Audit pass worktree</strong>
-            <span>2026-05-08T17:43:50.244Z</span>
-          </div>
-          <span class="pill">pass</span>
-          <p class="path">.codex/workflow/records/reviews/REVIEW-20260508T174350Z-audit-pass-worktree.md</p>
-          <pre>Scope: worktree
-Verdict: pass
-Auditor: codex-lead
-Worktree hash: 398ef3a3ae818e5e
-
-Notes: State/dashboard refresh keeps the saved brief, gates, records, design zoo, and archive pointers discoverable.</pre>
-        </article>
-      
 
         <article class="record">
           <div class="record-top">
@@ -1092,7 +1680,7 @@ Worktree hash: 398ef3a3ae818e5e
 
 Notes: Follow-up state/dashboard refresh after the no-findings focused review. No behavior changes beyond the compact handover and generated dashboard.</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
@@ -1108,39 +1696,103 @@ Worktree hash: 3fcb9e6e46c5b3ee
 
 Notes: Focused review found hook false-positive/false-negative issues, they were fixed, and re-review returned no findings. Prior focused review also verified post-tool invalidation, workflow verification relevance, substantive hash coverage, and verify/audit skill record instructions.</pre>
         </article>
-      
 
-        <article class="record">
-          <div class="record-top">
-            <strong>Audit pass worktree</strong>
-            <span>2026-05-08T17:41:52.953Z</span>
-          </div>
-          <span class="pill">pass</span>
-          <p class="path">.codex/workflow/records/reviews/REVIEW-20260508T174152Z-audit-pass-worktree.md</p>
-          <pre>Scope: worktree
-Verdict: pass
-Auditor: codex-lead
-Worktree hash: 3fcb9e6e46c5b3ee
-
-Notes: Workflow audit passed against saved brief: original brief preserved; AGENTS.md/WORKFLOW.md/.codex root created; old Claude active files archived; hooks are thin triggers; skills are lightweight reminders; deterministic gates are script-backed; pattern discovery uses evidence records; design zoo/gym is linked in dashboard and script; model routing/fallback was tested with Spark-suitable and strong-model cases; server pre-deploy details captured.</pre>
-        </article>
-      
     </section>
-  
+
 
     <section id="tests" class="panel">
       <h2>Tests</h2>
-      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Verification pass worktree</strong>
+            <span>2026-05-09T08:17:31.591Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/tests/TEST-20260509T081731Z-verification-pass-worktree.md</p>
+          <pre>Scope: worktree
+Verdict: pass
+Verifier: codex-lead
+Worktree hash: 224679ad265e8e27
+
+Notes: Verification passed for hash 224679ad265e8e27: node --check passed; workflow self-test 54 checks passed; routing-check and guide-check passed; git diff --check returned only line-ending warnings; validate --full passed with design-tokens OK. Browser screenshots will be refreshed for the regenerated guide artifact hash.</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Verification pass worktree</strong>
+            <span>2026-05-09T08:11:37.990Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/tests/TEST-20260509T081137Z-verification-pass-worktree.md</p>
+          <pre>Scope: worktree
+Verdict: pass
+Verifier: codex-lead
+Worktree hash: 7584872d7d9c200b
+
+Notes: Final script-only verification for hash 7584872d7d9c200b: node --check passed; workflow self-test 54 checks passed; git diff --check passed after regenerating guides; routing-check passed; guide-check passed. Earlier unchanged app/package gates in this same pass: lint:design:quiet OK, npm test API 187/web 87 passed with known non-failing act warning, npm run build passed.</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Verification pass worktree</strong>
+            <span>2026-05-09T08:03:18.193Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/tests/TEST-20260509T080318Z-verification-pass-worktree.md</p>
+          <pre>Scope: worktree
+Verdict: pass
+Verifier: codex-lead
+Worktree hash: fe671a1208d1539b
+
+Notes: Local verification for hash fe671a1208d1539b passed: node --check .codex/scripts/nexus-workflow.mjs; workflow:self-test 53 checks; workflow:records-check; workflow:routing-check; workflow:guide-check before review records; workflow:model-routing-check 15/15; workflow:zoo-check 0 problems; npm run lint:design:quiet OK 90 files; npm test passed API 6 files/187 tests and web 10 files/87 tests with existing non-failing React act warning; npm run build passed. Guide-browser evidence is recorded separately after final guide regeneration.</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Verification pass staged-public-guide-evidence</strong>
+            <span>2026-05-09T02:09:25.323Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/tests/TEST-20260509T020925Z-verification-pass-staged-public-guide-evidence.md</p>
+          <pre>Scope: staged-public-guide-evidence
+Verdict: pass
+Verifier: codex-lead
+Worktree hash: 93389503192dc6f6
+
+Notes: Final staged verification for public guide deployment evidence; no product/runtime source changed after URL validation.</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Verification pass public-guide-deployment-evidence</strong>
+            <span>2026-05-09T02:09:05.179Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/tests/TEST-20260509T020905Z-verification-pass-public-guide-deployment-eviden.md</p>
+          <pre>Scope: public-guide-deployment-evidence
+Verdict: pass
+Verifier: codex-lead
+Worktree hash: c36ed3a2b12f97eb
+
+Notes: Verified guide URL 200, web 200, API 200, server workflow validate and handover-check passed, and public guide did not contain checked sensitive strings.</pre>
+        </article>
+
+
         <article class="record">
           <div class="record-top">
             <strong>Public guide URL validation</strong>
             <span>2026-05-09T02:08:48.934Z</span>
           </div>
-          
+
           <p class="path">.codex/workflow/records/tests/TEST-20260509T020848Z-public-guide-url-validation.md</p>
           <pre>Local curl checks: guide=200 for https://cv.rehou.games/nexus/workflow/, web=200 for https://cv.rehou.games/nexus/, api=200 for https://cv.rehou.games/nexus/api/platform/health. Content check found Nexus Workflow Guide, Spark Worker, and Strong Worker text, and no obvious sensitive deployment strings.</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
@@ -1156,7 +1808,7 @@ Worktree hash: e72bde7e6f0576c6
 
 Notes: Final staged verification carries forward passing syntax, handover, public guide, dashboard, lint, targeted Toast test, and workflow validate checks.</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
@@ -1172,18 +1824,18 @@ Worktree hash: 670f79dd501cd6cb
 
 Notes: Verification passed with script syntax, handover check, public guide generation, dashboard generation, design token lint, targeted Toast test, and base workflow validation.</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
             <strong>Handover public guide and workflow checks</strong>
             <span>2026-05-09T02:02:35.092Z</span>
           </div>
-          
+
           <p class="path">.codex/workflow/records/tests/TEST-20260509T020235Z-handover-public-guide-and-workflow-checks.md</p>
           <pre>Passed: node --check .codex/scripts/nexus-workflow.mjs; npm run workflow:handover-check; npm run workflow:public-guide; npm run workflow:dashboard; npm run lint:design:quiet; npm run test --workspace=packages/web -- src/components/ui/__tests__/Toast.test.tsx; node .codex/scripts/nexus-workflow.mjs validate. Public guide generated at .codex/dashboard/public.html with no matches for obvious sensitive strings DIOkii, 134.199.148.87, /root/monoWeb, root@, deploy-backups.</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
@@ -1199,7 +1851,7 @@ Worktree hash: d9ece1cf83322875
 
 Notes: Final staged verification for stable server-head wording. No runtime code changed.</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
@@ -1215,7 +1867,7 @@ Worktree hash: 036f24d237f026b0
 
 Notes: No product/runtime change; dashboard regenerated and durable handover now uses stable wording for server final HEAD.</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
@@ -1231,7 +1883,7 @@ Worktree hash: f38c7c6f8d4d53b1
 
 Notes: Final staged verification for handover correction. No product/runtime code changed; final server state was already validated and this records it accurately.</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
@@ -1247,7 +1899,7 @@ Worktree hash: fe99264c7e0a042b
 
 Notes: Verified local git clean before correction, server final pull had completed, and this patch only updates durable workflow handover/risk records plus regenerated dashboard.</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
@@ -1263,7 +1915,7 @@ Worktree hash: 512baa650dff5428
 
 Notes: Final staged verification for deployment evidence commit. Server validation evidence remains: cf069ce deployed, web 200, API health 200, nexus-api active, /nexus/assets/ base confirmed.</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
@@ -1279,7 +1931,7 @@ Worktree hash: 335347afeac44d92
 
 Notes: Server validation passed for commit cf069ce: workflow validate ok; web 200; API health 200; nexus-api active; deployed HTML references /nexus/assets/.</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
@@ -1295,7 +1947,7 @@ Worktree hash: cb71f1536fb57562
 
 Notes: Final staged tree verification pass. Full local validation already passed after behavior changes; staging introduced no source changes beyond those reviewed.</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
@@ -1311,7 +1963,7 @@ Worktree hash: 398ef3a3ae818e5e
 
 Notes: Carries forward full local validation already recorded for the same code changes; follow-up patch only refreshed current-state/dashboard records.</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
@@ -1327,212 +1979,473 @@ Worktree hash: 3fcb9e6e46c5b3ee
 
 Notes: Latest full local validation passed: workflow script syntax, design-zoo script syntax, workflow validate, lint:design:quiet, API tests 6/187, web tests 10/87, production build, workflow:design-zoo. Hook matrix passed for Windows git invocation detection and false-positive avoidance.</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
             <strong>PreToolUse commit hook Windows command matrix</strong>
             <span>2026-05-08T17:41:36.054Z</span>
           </div>
-          
+
           <p class="path">.codex/workflow/records/tests/TEST-20260508T174136Z-pretooluse-commit-hook-windows-command-matrix.md</p>
           <pre>Passed tokenizer matrix: DENY git commit, git.exe commit, quoted git commit, PowerShell call operator, git -C commit, git --git-dir/--work-tree commit, chained Write-Host ok; git commit, cmd /c quoted git commit. ALLOW echo git commit, Write-Host git commit, git status commit, Write-Host nope. Focused reviewer rechecked and returned no findings.</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
             <strong>Full local validation after workflow review fixes</strong>
             <span>2026-05-08T17:41:35.975Z</span>
           </div>
-          
+
           <p class="path">.codex/workflow/records/tests/TEST-20260508T174135Z-full-local-validation-after-workflow-review-fixe.md</p>
           <pre>Passed on 2026-05-09 local time: node --check .codex/scripts/nexus-workflow.mjs; node --check .codex/scripts/validate-design-zoo.mjs; node .codex/scripts/nexus-workflow.mjs validate; npm run lint:design:quiet; npm run test --workspace=packages/api (6 files, 187 tests); npm run test --workspace=packages/web (10 files, 87 tests); npm run build; npm run workflow:design-zoo. Known non-failing output: existing ThemeProvider act warning and Vite empty vendor-react chunk warning. Design zoo result confirmed /design/toast, active toasts 5, htmlDark 1, selectedTheme sichuan, warningVisible true.</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
             <strong>Review finding regression fixes</strong>
             <span>2026-05-08T17:28:07.098Z</span>
           </div>
-          
+
           <p class="path">.codex/workflow/records/tests/TEST-20260508T172807Z-review-finding-regression-fixes.md</p>
           <pre>Fixed focused-review findings: PostToolUse now ignores Bash events without parsed patch files; commit hook detects git commit with options such as --git-dir/--work-tree; workflow files including AGENTS.md, WORKFLOW.md, .codex/README.md, .codex/config.toml, hooks, scripts, agents, skills, knowledge, templates, and research now require verification; verify/audit skills now mention record-verify/record-audit. Regression checks: node --check nexus-workflow ok; validate ok; verify-check now reports 51 verification-relevant files and fails until evidence; pre-tool-use deny works for git --git-dir ... --work-tree ... commit; post-tool-use read-only Bash leaves review-state unchanged.</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
             <strong>Hook command subdirectory dispatch</strong>
             <span>2026-05-08T17:22:18.862Z</span>
           </div>
-          
+
           <p class="path">.codex/workflow/records/tests/TEST-20260508T172218Z-hook-command-subdirectory-dispatch.md</p>
           <pre>Updated .codex/hooks.json commands to locate .codex/scripts/nexus-workflow.mjs by walking up from session cwd instead of relying on git rev-parse, because this linked worktree resolves git root incorrectly. Validated hooks.json parses and SessionStart dispatch works from packages/web/src.</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
             <strong>Server pre-deploy validation</strong>
             <span>2026-05-08T17:18:20.443Z</span>
           </div>
-          
+
           <p class="path">.codex/workflow/records/tests/TEST-20260508T171820Z-server-pre-deploy-validation.md</p>
           <pre>SSH read-only check succeeded for root@134.199.148.87 using ~/.ssh/DIOkii. Server repo /root/monoWeb/nexus exists at commit 1cbd123 on main with package-lock.json modified. systemd nexus-api is active; ExecStart=/usr/bin/npx tsx packages/api/src/index.ts; port 3010 listening. Hosted web https://cv.rehou.games/nexus/ returned 200. API health https://cv.rehou.games/nexus/api/platform/health returned 200; /nexus/api/health returned 404 because health lives under /api/platform/health.</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
             <strong>Spark routing guard broad theme task</strong>
             <span>2026-05-08T17:17:55.238Z</span>
           </div>
-          
+
           <p class="path">.codex/workflow/records/tests/TEST-20260508T171755Z-spark-routing-guard-broad-theme-task.md</p>
           <pre>Spark worker Mill read routing guidance and refused a broad theme cascade/body portal/live-preview/browser validation task. It identified Spark allowed=no, escalation target nexus_strong_worker/lead, and required review/verify/audit plus targeted theme tests and browser checks. This validates the negative routing path.</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
             <strong>Reusable design-zoo validator</strong>
             <span>2026-05-08T17:16:14.481Z</span>
           </div>
-          
+
           <p class="path">.codex/workflow/records/tests/TEST-20260508T171614Z-reusable-design-zoo-validator.md</p>
           <pre>Added npm run workflow:design-zoo. First run failed because getByRole('link', { name: 'Toast' }) also matched AddToCartToast; fixed with exact: true. Final run passed against http://127.0.0.1:5173: active toasts=5, html.dark=1, selectedTheme=sichuan, warningVisible=true.</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
             <strong>Design Zoo browser validation</strong>
             <span>2026-05-08T17:13:09.212Z</span>
           </div>
-          
+
           <p class="path">.codex/workflow/records/tests/TEST-20260508T171309Z-design-zoo-browser-validation.md</p>
           <pre>Vite dev server at http://127.0.0.1:5173. Browser DOM validation found /design index title, Toast link, /design/toast warning initial toast, + Warning button, info toast, and ToastContainer explanatory text. Browser plugin click timed out on CDP, so project Playwright runtime performed the interaction: clicked + Warning, confirmed Ingredient threshold reached, toggled dark mode, selected sichuan theme, confirmed warning toast stayed visible; html.dark count=1, selectedTheme=sichuan, active toast count=5.</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
             <strong>Full local web validation</strong>
             <span>2026-05-08T17:09:02.104Z</span>
           </div>
-          
+
           <p class="path">.codex/workflow/records/tests/TEST-20260508T170902Z-full-local-web-validation.md</p>
           <pre>npm run test --workspace=packages/web passed 10 files / 87 tests, including new Toast tests. npm run build passed production web build; Vite emitted existing-style warning Generated an empty chunk: vendor-react. npm run lint:design:quiet passed.</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
             <strong>Local API and theme regression tests</strong>
             <span>2026-05-08T17:06:26.705Z</span>
           </div>
-          
+
           <p class="path">.codex/workflow/records/tests/TEST-20260508T170626Z-local-api-and-theme-regression-tests.md</p>
           <pre>After npm ci, npm run test --workspace=packages/api passed 6 files / 187 tests. npm run test --workspace=packages/web -- src/platform/theme/__tests__/ThemeProvider.test.tsx passed 1 file / 11 tests; React emitted an existing act(...) warning in the live-preview ping-pong regression test but the test passed. npm run lint:design:quiet passed.</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
             <strong>Spark worker toast warning slice</strong>
             <span>2026-05-08T17:06:15.647Z</span>
           </div>
-          
+
           <p class="path">.codex/workflow/records/tests/TEST-20260508T170615Z-spark-worker-toast-warning-slice.md</p>
           <pre>Spark worker Hooke implemented warning ToastData type, warning icon/classes, zoo warning demo, registry propsShape, and focused Toast test. Lead review added adjacent fix for info toasts to use bg-info-light/text-info/border-info instead of primary tokens. Targeted test passed: npm run test --workspace=packages/web -- src/components/ui/__tests__/Toast.test.tsx (2 tests). lint:design:quiet and workflow validate passed.</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
             <strong>Historical hard-case routing analysis c4a438e</strong>
             <span>2026-05-08T17:03:20.323Z</span>
           </div>
-          
+
           <p class="path">.codex/workflow/records/tests/TEST-20260508T170320Z-historical-hard-case-routing-analysis-c4a438e.md</p>
           <pre>Strong-model explorer analyzed commit c4a438e12f9. Result: route to stronger model/reviewer, not Spark, because the fix spans CSS selector semantics, React provider state sync, body-mounted portals, tenant scoping, ThemeSettings live preview, and E2E browser behavior. Suggested focused checks: descendant dark selectors, no .light inversion, body portal mirroring/cleanup, initialThemeId sync behavior, ThemeSettings feedback loop, and browser checks for /design and tenant shells.</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
             <strong>Dashboard browser validation</strong>
             <span>2026-05-08T16:56:07.935Z</span>
           </div>
-          
+
           <p class="path">.codex/workflow/records/tests/TEST-20260508T165607Z-dashboard-browser-validation.md</p>
           <pre>Served .codex/dashboard/index.html from http://127.0.0.1:8765 after file:// was blocked by browser policy. Browser DOM validation found title Nexus Workflow Dashboard plus Overview, Pattern Proposals, Design Zoo / Gym, Review Gate, accepted hook pattern, and localhost /design link. Screenshot capture timed out in the browser plugin, so DOM validation is the recorded evidence.</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
             <strong>Dynamic pattern proposal command</strong>
             <span>2026-05-08T16:52:07.191Z</span>
           </div>
-          
+
           <p class="path">.codex/workflow/records/tests/TEST-20260508T165207Z-dynamic-pattern-proposal-command.md</p>
           <pre>record-pattern created accepted proposal PATTERN-PROPOSAL-20260508T165157Z-pattern-accepted-hooks-stay-as-thin-workflow-tri with evidence, candidate guidance, status, and files; dashboard includes pattern-proposals in its record index.</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
             <strong>Hook invalidation dry run</strong>
             <span>2026-05-08T16:49:37.919Z</span>
           </div>
-          
+
           <p class="path">.codex/workflow/records/tests/TEST-20260508T164937Z-hook-invalidation-dry-run.md</p>
           <pre>Manual PostToolUse payload for apply_patch updated patch-state.json and invalidated review/verify/audit gates without creating a durable patch record, matching the thin-hook policy.</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
             <strong>Workflow negative gate test</strong>
             <span>2026-05-08T16:49:09.987Z</span>
           </div>
-          
+
           <p class="path">.codex/workflow/records/tests/TEST-20260508T164909Z-workflow-negative-gate-test.md</p>
           <pre>review-check, verify-check, audit-check, validate --commit-gate, and validate --release-gate all failed as expected before evidence records existed for worktree hash 4379f8bf9e55ae86.</pre>
         </article>
-      
+
     </section>
-  
+
+
+    <section id="audits" class="panel">
+      <h2>Audits</h2>
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Audit pass worktree</strong>
+            <span>2026-05-09T08:17:40.939Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/audits/AUDIT-20260509T081740Z-audit-pass-worktree.md</p>
+          <pre>Scope: worktree
+Verdict: pass
+Auditor: codex-lead
+Worktree hash: 224679ad265e8e27
+
+Notes: Audit passed for hash 224679ad265e8e27: the previous bookkeeping gap cause is handled by hash-bound records plus generated guide freshness/browser gates; hook logic remains trigger-only; final scope excludes generated tsbuildinfo noise.</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Audit pass worktree</strong>
+            <span>2026-05-09T08:11:47.139Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/audits/AUDIT-20260509T081147Z-audit-pass-worktree.md</p>
+          <pre>Scope: worktree
+Verdict: pass
+Auditor: codex-lead
+Worktree hash: 7584872d7d9c200b
+
+Notes: Final audit pass: workflow kernel centralization remains intact; whitespace fix is in generator rather than a manual artifact edit; self-test covers the normalizer; all prior focused-review findings remain closed.</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Audit pass worktree</strong>
+            <span>2026-05-09T08:03:28.713Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/audits/AUDIT-20260509T080328Z-audit-pass-worktree.md</p>
+          <pre>Scope: worktree
+Verdict: pass
+Auditor: codex-lead
+Worktree hash: fe671a1208d1539b
+
+Notes: Audit passed after repeated focused reviews and kernel self-tests. Checked causes rather than patch-only fixes: review-kind fallback removed; delegated routing must be linked and preflighted; lead aliases canonicalize; guide-browser status surfaced; guide contract checks required nodes/docs/Zoo/model-routing/history; hooks remain thin callers of deterministic kernel. Residual known risks: server dirty package-lock, npm audit findings, and existing ThemeProvider act warning are tracked separately.</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Audit pass staged-public-guide-evidence</strong>
+            <span>2026-05-09T02:09:25.762Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T020925Z-audit-pass-staged-public-guide-evidence.md</p>
+          <pre>Scope: staged-public-guide-evidence
+Verdict: pass
+Auditor: codex-lead
+Worktree hash: 93389503192dc6f6
+
+Notes: Final staged audit for public guide deployment evidence.</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Audit pass public-guide-deployment-evidence</strong>
+            <span>2026-05-09T02:09:05.553Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T020905Z-audit-pass-public-guide-deployment-evidence.md</p>
+          <pre>Scope: public-guide-deployment-evidence
+Verdict: pass
+Auditor: codex-lead
+Worktree hash: c36ed3a2b12f97eb
+
+Notes: Audit passed: public guide is a redacted artifact separate from internal dashboard; evidence recorded centrally.</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Audit pass staged-workflow-followup</strong>
+            <span>2026-05-09T02:03:06.298Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T020306Z-audit-pass-staged-workflow-followup.md</p>
+          <pre>Scope: staged-workflow-followup
+Verdict: pass
+Auditor: codex-lead
+Worktree hash: e72bde7e6f0576c6
+
+Notes: Final staged audit confirms workflow files are centralized, public guide is separated from internal dashboard, and release gate includes handover hygiene.</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Audit pass workflow-followup</strong>
+            <span>2026-05-09T02:02:36.578Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T020236Z-audit-pass-workflow-followup.md</p>
+          <pre>Scope: workflow-followup
+Verdict: pass
+Auditor: codex-lead
+Worktree hash: 670f79dd501cd6cb
+
+Notes: Audit passed: workflow-related files are managed under .codex, not a one-off note; public guide is separated from internal dashboard; hook limitations and model-routing coverage gaps are explicit.</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Audit pass staged-final-handover-wording</strong>
+            <span>2026-05-09T01:40:23.239Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T014023Z-audit-pass-staged-final-handover-wording.md</p>
+          <pre>Scope: staged-final-handover-wording
+Verdict: pass
+Auditor: codex-lead
+Worktree hash: d9ece1cf83322875
+
+Notes: Final staged audit for stable server-head wording.</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Audit pass final-handover-wording</strong>
+            <span>2026-05-09T01:40:05.988Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T014005Z-audit-pass-final-handover-wording.md</p>
+          <pre>Scope: final-handover-wording
+Verdict: pass
+Auditor: codex-lead
+Worktree hash: 036f24d237f026b0
+
+Notes: Audit passed: handover no longer becomes stale when this record-only commit is pulled.</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Audit pass staged-handover-correction</strong>
+            <span>2026-05-09T01:39:08.959Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T013908Z-audit-pass-staged-handover-correction.md</p>
+          <pre>Scope: staged-handover-correction
+Verdict: pass
+Auditor: codex-lead
+Worktree hash: f38c7c6f8d4d53b1
+
+Notes: Final staged audit for handover correction. Durable state is now aligned with the actual completed server pull and residual risks.</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Audit pass handover-correction</strong>
+            <span>2026-05-09T01:38:42.176Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T013842Z-audit-pass-handover-correction.md</p>
+          <pre>Scope: handover-correction
+Verdict: pass
+Auditor: codex-lead
+Worktree hash: fe99264c7e0a042b
+
+Notes: Audit passed: durable guide no longer lists completed server pull/commit work as pending; open items are now explicitly optional residual risks.</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Audit pass staged-deployment-evidence</strong>
+            <span>2026-05-08T17:51:40.088Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260508T175140Z-audit-pass-staged-deployment-evidence.md</p>
+          <pre>Scope: staged-deployment-evidence
+Verdict: pass
+Auditor: codex-lead
+Worktree hash: 512baa650dff5428
+
+Notes: Final staged audit for deployment evidence commit. Remaining risks are explicit and old Claude workflow remains archived, not active.</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Audit pass deployment-evidence</strong>
+            <span>2026-05-08T17:50:47.296Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260508T175047Z-audit-pass-deployment-evidence.md</p>
+          <pre>Scope: deployment-evidence
+Verdict: pass
+Auditor: codex-lead
+Worktree hash: 335347afeac44d92
+
+Notes: Audit passed for deployment evidence and handover update; remaining risks are explicit in records/risks.md.</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Audit pass staged-worktree</strong>
+            <span>2026-05-08T17:45:08.137Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260508T174508Z-audit-pass-staged-worktree.md</p>
+          <pre>Scope: staged-worktree
+Verdict: pass
+Auditor: codex-lead
+Worktree hash: cb71f1536fb57562
+
+Notes: Final staged tree audit pass. Workflow mechanisms match saved brief: thin hooks, script-backed gates, lightweight skills, evidence-based dynamic patterns, dashboard/wiki, design zoo, model routing records, and server pre-deploy record.</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Audit pass worktree</strong>
+            <span>2026-05-08T17:43:50.244Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260508T174350Z-audit-pass-worktree.md</p>
+          <pre>Scope: worktree
+Verdict: pass
+Auditor: codex-lead
+Worktree hash: 398ef3a3ae818e5e
+
+Notes: State/dashboard refresh keeps the saved brief, gates, records, design zoo, and archive pointers discoverable.</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Audit pass worktree</strong>
+            <span>2026-05-08T17:41:52.953Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260508T174152Z-audit-pass-worktree.md</p>
+          <pre>Scope: worktree
+Verdict: pass
+Auditor: codex-lead
+Worktree hash: 3fcb9e6e46c5b3ee
+
+Notes: Workflow audit passed against saved brief: original brief preserved; AGENTS.md/WORKFLOW.md/.codex root created; old Claude active files archived; hooks are thin triggers; skills are lightweight reminders; deterministic gates are script-backed; pattern discovery uses evidence records; design zoo/gym is linked in dashboard and script; model routing/fallback was tested with Spark-suitable and strong-model cases; server pre-deploy details captured.</pre>
+        </article>
+
+    </section>
+
 
     <section id="deployments" class="panel">
       <h2>Deployments</h2>
-      
+
         <article class="record">
           <div class="record-top">
             <strong>Public workflow guide deployed</strong>
             <span>2026-05-09T02:08:48.861Z</span>
           </div>
-          
+
           <p class="path">.codex/workflow/records/deployments/DEPLOYMENT-20260509T020848Z-public-workflow-guide-deployed.md</p>
           <pre>Published .codex/dashboard/public.html to /var/www/cv.rehou.games/nexus/workflow/index.html on the server. Validated https://cv.rehou.games/nexus/workflow/ returned 200, https://cv.rehou.games/nexus/ returned 200, and https://cv.rehou.games/nexus/api/platform/health returned 200. Server branch HEAD b026491, node --check .codex/scripts/nexus-workflow.mjs passed, node .codex/scripts/nexus-workflow.mjs validate passed, and handover-check returned 0 problems. Public guide content included Nexus Workflow Guide, Spark Worker, and Strong Worker; checked no matches for DIOkii, 134.199.148.87, /root/monoWeb, root@, or deploy-backups. Server worktree remained clean except pre-existing package-lock.json.</pre>
         </article>
-      
+
 
         <article class="record">
           <div class="record-top">
             <strong>Server deployment validation for Codex-native workflow</strong>
             <span>2026-05-08T17:50:20.520Z</span>
           </div>
-          
+
           <p class="path">.codex/workflow/records/deployments/DEPLOYMENT-20260508T175020Z-server-deployment-validation-for-codex-native-wo.md</p>
           <pre>Validated on 2026-05-09. Pushed branch codex/native-workflow and deployed commit cf069ce to /root/monoWeb/nexus on 134.199.148.87. Server workflow validate passed. Initial production build failed because node_modules was stale and missing @fontsource-variable/fraunces; npm ci fixed it. Initial npm run build produced root /assets URLs; corrected by rebuilding packages/web with npx vite build --base /nexus/. Synced packages/web/dist to /var/www/cv.rehou.games/nexus, restarted nexus-api, service active. Hosted checks: https://cv.rehou.games/nexus/ returned 200, https://cv.rehou.games/nexus/api/platform/health returned 200, deployed index referenced /nexus/assets/ and asset assets/index-BXPaLsHH.js. Preserved pre-existing dirty package-lock.json; backup diff saved on server at /root/monoWeb/deploy-backups/nexus/package-lock-local-20260509-codex-native-workflow.diff. Server npm ci reported audit findings; not remediated in this migration.</pre>
         </article>
-      
+
     </section>
-  
+
       <section id="risks" class="panel risk"><h1>Risks</h1>
 <h2>Open</h2>
 <ul>

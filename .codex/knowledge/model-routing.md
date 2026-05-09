@@ -12,6 +12,14 @@ Before delegating implementation, the lead classifies the task:
 
 The lead should record representative routing decisions as tests or pattern proposals when a task teaches a durable lesson.
 
+For delegated implementation, record a compact routing preflight when the decision is not trivial:
+
+```bash
+node .codex/scripts/nexus-workflow.mjs record-routing --summary "<task>" --route <route> --worker <agent> --files "a,b" --verification "<commands>" --fallback-trigger "<when>" --fallback-target "<agent>"
+```
+
+The preflight is bookkeeping, not bureaucracy. It gives the lead a durable place to state why Spark is allowed, why a strong worker is required, or why the lead should keep the task local. Use `.codex/workflow/templates/routing.md` for detailed routing records.
+
 ## Spark Worker Contract
 
 Spark is a fast coding worker, not the default coding worker.
@@ -30,6 +38,8 @@ Spark must stop and return `ESCALATE` when:
 Escalation output should include files read, files changed, commands run, current failure, and the smallest suggested next step.
 
 The lead must also enforce the fallback. If a Spark worker hangs, loops, or fails to return usable output within the assigned timebox, the lead closes/stops that worker and reassigns the slice to a strong worker or handles it locally. Do not wait indefinitely for Spark to self-diagnose.
+
+When Spark escalates after editing, create a routing or patch record that says what changed, why Spark stopped, and who owns the takeover. The fallback owner should be explicit, usually `nexus_strong_worker` or `lead`. This prevents a failed worker slice from disappearing into chat history.
 
 ## Strong Worker Contract
 
@@ -54,6 +64,8 @@ Implementation routing does not replace focused review.
 - Pattern-sensitive code changes get `nexus_pattern_reviewer` or equivalent focused review.
 - Visual/design-system changes get `nexus_design_reviewer` or equivalent focused review plus browser/design-zoo evidence.
 - Large workflow changes require audit evidence, not only tests.
+- Parallel worker changes require a final integrated review of the merged worktree hash, even if each worker reported a local review. Worker-local review can miss cross-slice conflicts. Record it with `record-review --kind integrated`.
+- Verification and audit may be done by the lead, dedicated verifier/auditor agents, or the `nexus-verify` / `nexus-audit` skills, but the evidence must be recorded with `record-verify` and `record-audit`.
 
 ## Evidence
 
@@ -61,7 +73,10 @@ Implementation routing does not replace focused review.
 - `TEST-20260508T171755Z-spark-routing-guard-broad-theme-task`: Spark refused/escalated a broad theme cascade task.
 - `TEST-20260508T170320Z-historical-hard-case-routing-analysis-c4a438e`: a hard theme cascade historical case was routed to a stronger model/reviewer.
 - `PATTERN-PROPOSAL-20260508T170332Z-pattern-accepted-theme-cascade-changes-require-s`: theme cascade requires strong-model review and portal evidence.
+- `.codex/workflow/scenarios/model-routing.json`: executable synthetic routing cases for Spark success, Spark failure/escalation, strong-worker tasks, research-only work, design review, and integrated parallel review.
 
 ## Coverage Note
 
 The workflow has representative positive and negative routing evidence. It does not claim every possible failure mode has been empirically exhausted. The durable control is the preflight criteria plus lead-enforced fallback, not a belief that Spark will always self-police perfectly.
+
+Synthetic routing tests deliberately include fabricated situations that are not tied to one Nexus feature. They test the workflow's decision logic and fallback rules. Real historical cases still matter for project-specific pattern validation.

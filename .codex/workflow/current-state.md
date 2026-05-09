@@ -35,7 +35,7 @@ Build and validate a reusable Codex-native workflow that preserves the useful in
 
 ## Current Phase
 
-Codex workflow migration is implemented, locally release-gated, committed, pushed, and deployed for validation on branch `codex/native-workflow`.
+Codex workflow migration is in a second hardening pass after user-requested workflow-design audit. The earlier migration was implemented and deployed, but the audit found several prose-only guarantees. This pass is converting those guarantees into structured records, executable checks, and guide validation before final server deployment.
 
 Implemented workflow pieces:
 
@@ -48,7 +48,20 @@ Implemented workflow pieces:
 - Active Claude workflow files are archived under `.codex/archive/claude-code-2026-05-09/`.
 - Design-system continuation work: Toast now has semantic `info` styling, `warning` support, registry coverage, tests, and Design Zoo validation.
 
-Representative gate records from the workflow migration:
+Hardening pass additions in progress:
+
+- Pattern proposal, routing, patch, review, test, audit, and deployment records are append-only after publication; corrections should be new records.
+- Audits are first-class records under `.codex/workflow/records/audits/`.
+- Routing records are structured and can constrain Spark write scope.
+- Review records are typed: `general`, `pattern`, `design`, `workflow`, or `integrated`.
+- Release gates include record integrity, hash-bound routing state, public guide safety/freshness, recorded guide browser validation, Zoo/Gym registry consistency, handover hygiene, and workflow self-tests.
+- Generated guide artifacts are treated as user-facing workflow surfaces and must pass dedicated freshness/content-hash and recorded browser validation gates; their generator, source docs, state files, records, and workflow rules remain the substantive review surface.
+- Public guide now includes workflow nodes, project/code structure, design-system flow, curated design docs, Zoo/Gym coverage, model-routing examples, and grouped event history.
+- Public and repo-local guide generation now use source-hash metadata, production token subsets including hit-target tokens, redaction checks, and consistent legacy audit counting.
+- Model routing scenarios now assert Spark escalation fallback owners, not only escalation route names.
+- Hook runtime heartbeats are written under `.codex/workflow/runtime/` when hooks are active.
+
+Representative gate records from the initial workflow migration:
 
 - `PATCH-20260508T174121Z-codex-native-workflow-migration-claude-workflow-`
 - `REVIEW-20260508T174152Z-review-pass-worktree`
@@ -78,12 +91,20 @@ Server deployment validation:
 - Public guide deployment: `https://cv.rehou.games/nexus/workflow/` returned 200 after `.codex/dashboard/public.html` was copied to the static workflow path.
 - Preserved server dirty state: pre-existing `package-lock.json` modification remains and was backed up to `/root/monoWeb/deploy-backups/nexus/package-lock-local-20260509-codex-native-workflow.diff`.
 
+Second hardening pass deployment validation is still pending.
+
 Historical/model-routing evidence:
 
 - `TEST-20260508T170320Z-historical-hard-case-routing-analysis-c4a438e`
 - `TEST-20260508T170615Z-spark-worker-toast-warning-slice`
 - `TEST-20260508T171755Z-spark-routing-guard-broad-theme-task`
 - `PATTERN-PROPOSAL-20260508T170332Z-pattern-accepted-theme-cascade-changes-require-s`
+- `.codex/workflow/scenarios/model-routing.json` now includes Spark success, Spark failure/escalation, mixed strong-over-Spark cases, research-only routing, design review, integrated parallel review, and lead-only integration scenarios.
+
+Second hardening pattern evidence:
+
+- `PATTERN-PROPOSAL-20260509T065619Z-pattern-accepted-generated-workflow-guide-artifa`
+- `PATTERN-PROPOSAL-20260509T065629Z-pattern-accepted-pattern-proposal-records-are-ap`
 
 ## Important Git Note
 
@@ -97,7 +118,7 @@ The earlier large dirty-tree report came from using the submodule common git dir
 
 ## Next Required Work
 
-No mandatory migration step remains. Optional follow-ups are tracked as risks:
+Finish the second hardening pass local gates, focused review, visual guide validation, and server validation. Optional follow-ups remain tracked as risks:
 
 - Decide whether to clean or adopt the server's pre-existing dirty `package-lock.json`.
 - Triage pre-existing `npm audit` findings from server `npm ci`.

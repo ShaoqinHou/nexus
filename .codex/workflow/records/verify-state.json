@@ -1,8 +1,8 @@
 {
-  "worktreeHash": "93389503192dc6f6",
+  "worktreeHash": "224679ad265e8e27",
   "verdict": "pass",
   "verifier": "codex-lead",
-  "verifiedAt": "2026-05-09T02:09:25.324Z",
-  "verifyRecord": ".codex/workflow/records/tests/TEST-20260509T020925Z-verification-pass-staged-public-guide-evidence.md",
-  "notes": "Final staged verification for public guide deployment evidence; no product/runtime source changed after URL validation."
+  "verifiedAt": "2026-05-09T08:17:31.592Z",
+  "verifyRecord": ".codex/workflow/records/tests/TEST-20260509T081731Z-verification-pass-worktree.md",
+  "notes": "Verification passed for hash 224679ad265e8e27: node --check passed; workflow self-test 54 checks passed; routing-check and guide-check passed; git diff --check returned only line-ending warnings; validate --full passed with design-tokens OK. Browser screenshots will be refreshed for the regenerated guide artifact hash."
 }

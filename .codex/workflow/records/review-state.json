@@ -1,8 +1,28 @@
 {
-  "worktreeHash": "93389503192dc6f6",
+  "worktreeHash": "224679ad265e8e27",
   "verdict": "pass",
   "reviewer": "codex-lead",
-  "reviewedAt": "2026-05-09T02:09:24.858Z",
-  "reviewRecord": ".codex/workflow/records/reviews/REVIEW-20260509T020924Z-review-pass-staged-public-guide-evidence.md",
-  "notes": "Final staged review for public guide deployment evidence."
+  "reviewedAt": "2026-05-09T08:17:19.370Z",
+  "reviewRecord": ".codex/workflow/records/reviews/REVIEW-20260509T081719Z-review-workflow-pass-worktree.md",
+  "notes": "Workflow review passed for hash 224679ad265e8e27: deterministic kernel owns gates, hooks remain thin triggers, routing preflight and guide freshness checks are executable, and generated-guide whitespace normalization is self-tested.",
+  "kind": "workflow",
+  "patchId": "PATCH-20260509T081544Z-final-workflow-hardening-scope-after-removing-ge",
+  "reviewKinds": {
+    "general": {
+      "worktreeHash": "224679ad265e8e27",
+      "verdict": "pass",
+      "reviewer": "codex-lead",
+      "reviewedAt": "2026-05-09T08:17:09.682Z",
+      "reviewRecord": ".codex/workflow/records/reviews/REVIEW-20260509T081709Z-review-general-pass-worktree.md",
+      "patchId": "PATCH-20260509T081544Z-final-workflow-hardening-scope-after-removing-ge"
+    },
+    "workflow": {
+      "worktreeHash": "224679ad265e8e27",
+      "verdict": "pass",
+      "reviewer": "codex-lead",
+      "reviewedAt": "2026-05-09T08:17:19.370Z",
+      "reviewRecord": ".codex/workflow/records/reviews/REVIEW-20260509T081719Z-review-workflow-pass-worktree.md",
+      "patchId": "PATCH-20260509T081544Z-final-workflow-hardening-scope-after-removing-ge"
+    }
+  }
 }

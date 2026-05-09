@@ -13,9 +13,19 @@ Hooks are guardrails, not the workflow brain. They must stay small and understan
 
 Review, verification, audit, pattern judgment, and model routing stay outside hooks.
 
+The shared deterministic layer is `.codex/scripts/nexus-workflow.mjs`. Hooks should call that layer for trigger/block/remind behavior. They should not become separate workflow engines, because that would split handover, review, audit, routing, and guide logic across too many places.
+
 ## Trust And Loading
 
 The repo can provide hook config, but it cannot force every Codex client/session to trust and load that config. That is a security boundary: a repository should not be able to silently make arbitrary local hooks run for every user.
+
+Current Codex behavior checked on 2026-05-09:
+
+- User config lives in `~/.codex/config.toml`.
+- Project-scoped overrides can live in `<repo>/.codex/config.toml`.
+- Codex loads project-scoped config and project-local hooks only when the project is trusted.
+- Hooks need `features.codex_hooks = true`.
+- Runtime permission mode such as Full access controls what this session may do; it does not prove future sessions will trust project hooks.
 
 Current mitigation:
 
@@ -25,6 +35,25 @@ Current mitigation:
 - The public/internal guides point humans to the same scripts.
 
 Operational rule: if hooks do not appear to run, continue with the scripts. Do not treat hooks as the only enforcement mechanism.
+
+## Thin Hook Examples
+
+Good hook responsibilities:
+
+- `SessionStart`: inject a small pointer to `.codex/workflow/current-state.md` and `workflow:status`.
+- `PostToolUse`: notice a structured file-edit payload and invalidate review/verify/audit gates for the current worktree hash.
+- `PreToolUse`: deny common `git commit` shell forms when review is stale.
+- `Stop`: remind the lead when review, verification, audit, or handover checks are still missing.
+
+Bad hook responsibilities:
+
+- Running a full code review prompt inside a hook.
+- Deciding whether a theme cascade implementation is correct.
+- Doing deployment diagnosis or SSH validation.
+- Promoting dynamic pattern discoveries directly into durable guidance.
+- Writing long handover prose from hook context.
+
+The hook can trigger, invalidate, or block obvious unsafe flow. The lead, focused agents, skills, and deterministic scripts own the judgment and records.
 
 ## Commit Hook Examples
 

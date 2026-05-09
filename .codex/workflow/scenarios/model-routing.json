@@ -1,0 +1,127 @@
+[
+  {
+    "id": "spark-narrow-toast-warning",
+    "summary": "Add a warning variant to one UI primitive with explicit files and targeted tests.",
+    "narrow": true,
+    "explicitBehavior": true,
+    "clearTests": true,
+    "narrowWriteScope": true,
+    "expectedRoute": "spark"
+  },
+  {
+    "id": "strong-theme-cascade-body-portal",
+    "summary": "Fix cuisine theme cascade across dark selectors, ThemeProvider body mirroring, portals, and live preview.",
+    "themeCascade": true,
+    "crossCutting": true,
+    "designJudgment": true,
+    "visualValidation": true,
+    "expectedRoute": "strong"
+  },
+  {
+    "id": "strong-routing-basepath-deploy",
+    "summary": "Debug production subpath routing and Vite base behavior on the server.",
+    "deployment": true,
+    "routingBasepath": true,
+    "ambiguous": true,
+    "expectedRoute": "strong"
+  },
+  {
+    "id": "strong-tenant-isolation-api",
+    "summary": "Change ordering service query behavior where tenantId invariants and API tests must be checked.",
+    "tenantIsolation": true,
+    "architecture": true,
+    "expectedRoute": "strong"
+  },
+  {
+    "id": "escalate-spark-test-failure-not-obvious",
+    "summary": "Spark started a narrow slice but tests fail and the fix is not obvious in the assigned scope.",
+    "sparkStarted": true,
+    "testsFailed": true,
+    "fallbackTarget": "nexus_strong_worker",
+    "expectedFallbackTarget": "nexus_strong_worker",
+    "expectedRoute": "escalate"
+  },
+  {
+    "id": "escalate-spark-timebox-stalled",
+    "summary": "Spark has not made progress inside the agreed timebox.",
+    "sparkStarted": true,
+    "stalled": true,
+    "timeboxExceeded": true,
+    "fallbackTarget": "nexus_strong_worker",
+    "expectedFallbackTarget": "nexus_strong_worker",
+    "expectedRoute": "escalate"
+  },
+  {
+    "id": "escalate-spark-missing-verification",
+    "summary": "Spark discovers the slice cannot be verified with the assigned targeted command.",
+    "sparkStarted": true,
+    "missingVerification": true,
+    "fallbackTarget": "lead",
+    "expectedFallbackTarget": "lead",
+    "expectedRoute": "escalate"
+  },
+  {
+    "id": "escalate-spark-out-of-scope-discovery",
+    "summary": "Spark discovers the requested edit requires changing related files outside the assigned ownership.",
+    "sparkStarted": true,
+    "outOfScopeDiscovery": true,
+    "fallbackTarget": "lead",
+    "expectedFallbackTarget": "lead",
+    "expectedRoute": "escalate"
+  },
+  {
+    "id": "strong-takeover-after-spark-failure",
+    "summary": "A previously narrow slice now requires a strong worker to diagnose failing tests and coupled changes.",
+    "sparkStarted": true,
+    "testsFailed": true,
+    "needsArchitecture": true,
+    "fallbackTarget": "nexus_strong_worker",
+    "expectedFallbackTarget": "nexus_strong_worker",
+    "expectedRoute": "escalate"
+  },
+  {
+    "id": "mixed-narrow-but-tenant-isolation",
+    "summary": "Looks narrow and testable, but changes tenant-scoped API query behavior, so strong worker beats Spark-positive signals.",
+    "narrow": true,
+    "explicitBehavior": true,
+    "clearTests": true,
+    "narrowWriteScope": true,
+    "tenantIsolation": true,
+    "expectedRoute": "strong"
+  },
+  {
+    "id": "mixed-narrow-but-design-visual",
+    "summary": "Looks like a small UI primitive edit, but requires visual/design judgment and screenshot validation.",
+    "narrow": true,
+    "explicitBehavior": true,
+    "clearTests": true,
+    "narrowWriteScope": true,
+    "designJudgment": true,
+    "visualValidation": true,
+    "expectedRoute": "strong"
+  },
+  {
+    "id": "research-only-map-module-boundaries",
+    "summary": "Map current tenant-scoped API modules without editing files.",
+    "researchOnly": true,
+    "expectedRoute": "research"
+  },
+  {
+    "id": "design-review-only-theme-portal-proof",
+    "summary": "Review a completed theme cascade patch for portal inheritance and Zoo evidence.",
+    "designReview": true,
+    "expectedRoute": "review"
+  },
+  {
+    "id": "integrated-review-after-parallel-workers",
+    "summary": "Multiple workers changed separate files and the final merged worktree needs one focused integrated review.",
+    "integratedReview": true,
+    "expectedRoute": "integrated-review"
+  },
+  {
+    "id": "lead-current-context-integration",
+    "summary": "Integrate results from multiple parallel workers and decide final conflict resolution.",
+    "leadOnly": true,
+    "expectedRoute": "lead"
+  }
+]

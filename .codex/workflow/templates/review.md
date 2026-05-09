@@ -2,9 +2,15 @@
 
 Scope:
 
+Kind: general | pattern | design | workflow | integrated
+
 Verdict: pass | fail | needs-work
 
 Reviewer:
+
+Patch:
+
+Reviewed Files:
 
 Findings:
 
@@ -15,4 +21,3 @@ Residual Risk:
 Pattern Updates Proposed:
 
 Next Action:
-

@@ -52,6 +52,8 @@ After meaningful validation:
 node .codex/scripts/nexus-workflow.mjs record-verify --scope worktree --verdict pass --verifier <name> --notes "<commands and results>"
 node .codex/scripts/nexus-workflow.mjs record-test --summary "<gate>" --notes "<commands and results>"
 node .codex/scripts/nexus-workflow.mjs record-deployment --summary "<deploy>" --notes "<server evidence>"
+node .codex/scripts/nexus-workflow.mjs record-guide-browser --verdict pass --reviewer <name> --screenshots "path1,path2" --notes "<guide browser checks>"
 ```
 
 `record-verify` is the gate record. `record-test` and `record-deployment` are supporting evidence.
+`record-guide-browser` is the generated guide visual gate and is checked by `workflow:guide-browser-check`.
