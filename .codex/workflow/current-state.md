@@ -66,7 +66,7 @@ Server deployment validation:
 - Record: `DEPLOYMENT-20260508T175020Z-server-deployment-validation-for-codex-native-wo`
 - Branch pushed and deployed: `codex/native-workflow`
 - Runtime/source commit deployed and rebuilt on server: `cf069ce`
-- Final workflow-record commit pulled on server: `c3cca6e`
+- Post-deployment workflow-record commits were pulled on the server after runtime validation. Check branch HEAD for the exact latest commit.
 - Server repo: `/root/monoWeb/nexus`
 - Public web check: `https://cv.rehou.games/nexus/` returned 200.
 - API health check: `https://cv.rehou.games/nexus/api/platform/health` returned 200.

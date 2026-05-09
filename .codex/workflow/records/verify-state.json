@@ -1,8 +1,8 @@
 {
-  "worktreeHash": "f38c7c6f8d4d53b1",
+  "worktreeHash": "d9ece1cf83322875",
   "verdict": "pass",
   "verifier": "codex-lead",
-  "verifiedAt": "2026-05-09T01:39:08.615Z",
-  "verifyRecord": ".codex/workflow/records/tests/TEST-20260509T013908Z-verification-pass-staged-handover-correction.md",
-  "notes": "Final staged verification for handover correction. No product/runtime code changed; final server state was already validated and this records it accurately."
+  "verifiedAt": "2026-05-09T01:40:22.747Z",
+  "verifyRecord": ".codex/workflow/records/tests/TEST-20260509T014022Z-verification-pass-staged-final-handover-wording.md",
+  "notes": "Final staged verification for stable server-head wording. No runtime code changed."
 }

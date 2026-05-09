@@ -41,7 +41,7 @@
 <body>
   <header>
     <h1>Nexus Workflow Dashboard</h1>
-    <div class="meta">Generated 2026-05-09T01:38:39.579Z · branch codex/native-workflow · worktree fe99264c7e0a042b</div>
+    <div class="meta">Generated 2026-05-09T01:40:03.477Z · branch codex/native-workflow · worktree 036f24d237f026b0</div>
   </header>
   <div class="layout">
     <nav>
@@ -66,9 +66,9 @@
         <div class="grid">
           <div class="card"><span class="meta">Decisions</span><strong>1</strong></div>
 <div class="card"><span class="meta">Pattern Proposals</span><strong>3</strong></div>
-<div class="card"><span class="meta">Patches</span><strong>4</strong></div>
-<div class="card"><span class="meta">Reviews</span><strong>10</strong></div>
-<div class="card"><span class="meta">Tests</span><strong>21</strong></div>
+<div class="card"><span class="meta">Patches</span><strong>5</strong></div>
+<div class="card"><span class="meta">Reviews</span><strong>14</strong></div>
+<div class="card"><span class="meta">Tests</span><strong>23</strong></div>
 <div class="card"><span class="meta">Deployments</span><strong>1</strong></div>
 <div class="card"><span class="meta">Zoo Pages</span><strong>24/24</strong></div>
         </div>
@@ -77,10 +77,9 @@
           <div class="card"><span class="meta">Verify Gate</span><strong>needed</strong></div>
           <div class="card"><span class="meta">Audit Gate</span><strong>needed</strong></div>
         </div>
-        <p class="meta">Last patch trigger: 2026-05-08T17:50:46.150Z · patch PATCH-20260508T175045Z-record-deployment-evidence-and-update-workflow-h</p>
+        <p class="meta">Last patch trigger: 2026-05-09T01:38:40.807Z · patch PATCH-20260509T013840Z-correct-final-handover-state-after-server-pull</p>
         <pre>## codex/native-workflow...origin/codex/native-workflow
- M .codex/workflow/current-state.md
- M .codex/workflow/records/risks.md</pre>
+ M .codex/workflow/current-state.md</pre>
       </section>
       <section id="current" class="panel"><h1>Current State</h1>
 <p>Updated: 2026-05-09</p>
@@ -142,7 +141,7 @@
 <li>Record: `DEPLOYMENT-20260508T175020Z-server-deployment-validation-for-codex-native-wo`</li>
 <li>Branch pushed and deployed: `codex/native-workflow`</li>
 <li>Runtime/source commit deployed and rebuilt on server: `cf069ce`</li>
-<li>Final workflow-record commit pulled on server: `c3cca6e`</li>
+<li>Post-deployment workflow-record commits were pulled on the server after runtime validation. Check branch HEAD for the exact latest commit.</li>
 <li>Server repo: `/root/monoWeb/nexus`</li>
 <li>Public web check: `https://cv.rehou.games/nexus/` returned 200.</li>
 <li>API health check: `https://cv.rehou.games/nexus/api/platform/health` returned 200.</li>
@@ -643,6 +642,24 @@ Proposed guidance: Keep Codex hooks as compact dispatch/gate triggers. Review, v
       
         <article class="record">
           <div class="record-top">
+            <strong>Correct final handover state after server pull</strong>
+            <span>2026-05-09T01:38:40.475Z</span>
+          </div>
+          
+          <p class="path">.codex/workflow/records/patches/PATCH-20260509T013840Z-correct-final-handover-state-after-server-pull.md</p>
+          <pre>Summary: Correct final handover state after server pull
+
+Files:
+- .codex/dashboard/index.html
+- .codex/workflow/current-state.md
+- .codex/workflow/records/risks.md
+
+Worktree hash after patch: fe99264c7e0a042b</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
             <strong>Record deployment evidence and update workflow handover</strong>
             <span>2026-05-08T17:50:45.855Z</span>
           </div>
@@ -718,6 +735,70 @@ Files:
     <section id="reviews" class="panel">
       <h2>Reviews</h2>
       
+        <article class="record">
+          <div class="record-top">
+            <strong>Review pass staged-handover-correction</strong>
+            <span>2026-05-09T01:39:08.179Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T013908Z-review-pass-staged-handover-correction.md</p>
+          <pre>Scope: staged-handover-correction
+Verdict: pass
+Reviewer: codex-lead
+Worktree hash: f38c7c6f8d4d53b1
+
+Notes: Final staged review for handover correction. Only current-state, risks, dashboard, and workflow records changed; content corrects completed work from pending to optional risk follow-ups.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Audit pass staged-handover-correction</strong>
+            <span>2026-05-09T01:39:08.959Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T013908Z-audit-pass-staged-handover-correction.md</p>
+          <pre>Scope: staged-handover-correction
+Verdict: pass
+Auditor: codex-lead
+Worktree hash: f38c7c6f8d4d53b1
+
+Notes: Final staged audit for handover correction. Durable state is now aligned with the actual completed server pull and residual risks.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Audit pass handover-correction</strong>
+            <span>2026-05-09T01:38:42.176Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T013842Z-audit-pass-handover-correction.md</p>
+          <pre>Scope: handover-correction
+Verdict: pass
+Auditor: codex-lead
+Worktree hash: fe99264c7e0a042b
+
+Notes: Audit passed: durable guide no longer lists completed server pull/commit work as pending; open items are now explicitly optional residual risks.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review pass handover-correction</strong>
+            <span>2026-05-09T01:38:41.145Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260509T013841Z-review-pass-handover-correction.md</p>
+          <pre>Scope: handover-correction
+Verdict: pass
+Reviewer: codex-lead
+Worktree hash: fe99264c7e0a042b
+
+Notes: Corrected stale Next Required Work in current-state.md and clarified final server commit c3cca6e versus runtime build commit cf069ce.</pre>
+        </article>
+      
+
         <article class="record">
           <div class="record-top">
             <strong>Audit pass staged-deployment-evidence</strong>
@@ -883,6 +964,38 @@ Notes: Workflow audit passed against saved brief: original brief preserved; AGEN
     <section id="tests" class="panel">
       <h2>Tests</h2>
       
+        <article class="record">
+          <div class="record-top">
+            <strong>Verification pass staged-handover-correction</strong>
+            <span>2026-05-09T01:39:08.614Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/tests/TEST-20260509T013908Z-verification-pass-staged-handover-correction.md</p>
+          <pre>Scope: staged-handover-correction
+Verdict: pass
+Verifier: codex-lead
+Worktree hash: f38c7c6f8d4d53b1
+
+Notes: Final staged verification for handover correction. No product/runtime code changed; final server state was already validated and this records it accurately.</pre>
+        </article>
+      
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Verification pass handover-correction</strong>
+            <span>2026-05-09T01:38:41.528Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/tests/TEST-20260509T013841Z-verification-pass-handover-correction.md</p>
+          <pre>Scope: handover-correction
+Verdict: pass
+Verifier: codex-lead
+Worktree hash: fe99264c7e0a042b
+
+Notes: Verified local git clean before correction, server final pull had completed, and this patch only updates durable workflow handover/risk records plus regenerated dashboard.</pre>
+        </article>
+      
+
         <article class="record">
           <div class="record-top">
             <strong>Verification pass staged-deployment-evidence</strong>

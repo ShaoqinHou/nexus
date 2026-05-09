@@ -1,6 +1,16 @@
 {
   "events": [
     {
+      "at": "2026-05-09T01:40:04.782Z",
+      "source": "codex-lead",
+      "reason": "patch PATCH-20260509T014004Z-make-final-server-head-handover-wording-stable",
+      "files": [
+        ".codex/dashboard/index.html",
+        ".codex/workflow/current-state.md"
+      ],
+      "worktreeHash": "036f24d237f026b0"
+    },
+    {
       "at": "2026-05-09T01:38:40.807Z",
       "source": "codex-lead",
       "reason": "patch PATCH-20260509T013840Z-correct-final-handover-state-after-server-pull",
@@ -791,13 +801,12 @@
       "worktreeHash": "4379f8bf9e55ae86"
     }
   ],
-  "worktreeHash": "fe99264c7e0a042b",
-  "lastChangedAt": "2026-05-09T01:38:40.807Z",
-  "reason": "patch PATCH-20260509T013840Z-correct-final-handover-state-after-server-pull",
+  "worktreeHash": "036f24d237f026b0",
+  "lastChangedAt": "2026-05-09T01:40:04.782Z",
+  "reason": "patch PATCH-20260509T014004Z-make-final-server-head-handover-wording-stable",
   "source": "codex-lead",
   "files": [
     ".codex/dashboard/index.html",
-    ".codex/workflow/current-state.md",
-    ".codex/workflow/records/risks.md"
+    ".codex/workflow/current-state.md"
   ]
 }
