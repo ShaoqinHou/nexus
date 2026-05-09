@@ -7,7 +7,7 @@
       "height": 900
     },
     "title": "Nexus Workflow Dashboard",
-    "textSample": "Nexus Workflow Dashboard\nGenerated 2026-05-09T17:23:42.113Z · branch codex/native-workflow\nOverview\nCurrent State\nDesign Zoo/Gym\nPatterns\nDesign System\nRecords\nDecisions\nPattern Proposals\nPatches\nReviews\nTests\nAudits\nDeployments\nRisks\nDeployment\nOverview\nDecisions\n5\nPattern Proposals\n12\nRouting\n24\nP",
+    "textSample": "Nexus Workflow Dashboard\nGenerated 2026-05-09T17:27:36.667Z · branch codex/native-workflow\nOverview\nCurrent State\nDesign Zoo/Gym\nPatterns\nDesign System\nRecords\nDecisions\nPattern Proposals\nPatches\nReviews\nTests\nAudits\nDeployments\nRisks\nDeployment\nOverview\nDecisions\n5\nPattern Proposals\n12\nRouting\n24\nP",
     "imageCount": 0,
     "brokenImages": 0
   },
@@ -19,7 +19,7 @@
       "height": 900
     },
     "title": "Nexus Workflow Guide",
-    "textSample": "Nexus Workflow Guide\nGenerated snapshot 2026-05-09T17:23:42.207Z · branch codex/native-workflow · run workflow gates for live state before deploy\nWhat This Is\n\nThis is the public-safe guide for the Nexus Codex workflow. The complete internal workflow system lives in the repository under .codex/, wit",
+    "textSample": "Nexus Workflow Guide\nGenerated snapshot 2026-05-09T17:27:36.764Z · branch codex/native-workflow · run workflow gates for live state before deploy\nWhat This Is\n\nThis is the public-safe guide for the Nexus Codex workflow. The complete internal workflow system lives in the repository under .codex/, wit",
     "imageCount": 0,
     "brokenImages": 0
   },
@@ -31,7 +31,7 @@
       "height": 900
     },
     "title": "Nexus Design Zoo / Gym",
-    "textSample": "Nexus Design Zoo / Gym\nVisual Demo Surface · generated 2026-05-09T17:23:42.025Z · captured 2026-05-09T15:46:39.491Z\nCaptured From Real /design Routes\n\nThis page is the deployable visual guide for the dev-only component gym. Screenshots are captured from real Nexus components rendered by packages/web",
+    "textSample": "Nexus Design Zoo / Gym\nVisual Demo Surface · generated 2026-05-09T17:27:36.571Z · captured 2026-05-09T15:46:39.491Z\nCaptured From Real /design Routes\n\nThis page is the deployable visual guide for the dev-only component gym. Screenshots are captured from real Nexus components rendered by packages/web",
     "imageCount": 54,
     "brokenImages": 0
   },
@@ -43,7 +43,7 @@
       "height": 844
     },
     "title": "Nexus Design Zoo / Gym",
-    "textSample": "Nexus Design Zoo / Gym\nVisual Demo Surface · generated 2026-05-09T17:23:42.025Z · captured 2026-05-09T15:46:39.491Z\nCaptured From Real /design Routes\n\nThis page is the deployable visual guide for the dev-only component gym. Screenshots are captured from real Nexus components rendered by packages/web",
+    "textSample": "Nexus Design Zoo / Gym\nVisual Demo Surface · generated 2026-05-09T17:27:36.571Z · captured 2026-05-09T15:46:39.491Z\nCaptured From Real /design Routes\n\nThis page is the deployable visual guide for the dev-only component gym. Screenshots are captured from real Nexus components rendered by packages/web",
     "imageCount": 54,
     "brokenImages": 0
   }
