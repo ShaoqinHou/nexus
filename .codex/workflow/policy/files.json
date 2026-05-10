@@ -6,6 +6,7 @@
     ".codex/README.md",
     ".codex/config.toml",
     ".codex/hooks.json",
+    ".codex/dashboard/README.md",
     ".codex/workflow/current-state.md",
     ".codex/workflow/profile.json",
     ".codex/workflow/policy/records.json",
@@ -19,10 +20,14 @@
     ".codex/workflow/state/.gitignore",
     ".codex/workflow/runtime/.gitignore",
     ".codex/workflow/dependency-audit-baseline.json",
+    ".github/workflows/nexus-workflow-gates.yml",
     ".codex/scripts/audit-deps.mjs",
+    ".codex/scripts/check-design-tokens.mjs",
     ".codex/scripts/check-public-guide-images.mjs",
     ".codex/scripts/check-production-zoo-bundle.mjs",
+    ".codex/scripts/nexus-workflow.mjs",
     ".codex/scripts/run-hook.mjs",
+    ".codex/scripts/validate-design-zoo.mjs",
     ".codex/scripts/workflow-engine.mjs",
     ".codex/scripts/capture-design-zoo-visuals.mjs",
     ".codex/knowledge/patterns.md",
@@ -39,6 +44,7 @@
     ".codex/workflow/templates/guide-browser.md",
     ".codex/workflow/templates/patch.md",
     ".codex/workflow/templates/pattern-proposal.md",
+    ".codex/workflow/templates/project-bootstrap.md",
     ".codex/workflow/templates/review.md",
     ".codex/workflow/templates/routing.md",
     ".codex/workflow/templates/test.md",
@@ -54,6 +60,35 @@
     ".agents/skills/nexus-verify/SKILL.md",
     ".agents/skills/nexus-audit/SKILL.md"
   ],
+  "inventory": {
+    "root": ".codex",
+    "allowedRootFiles": [
+      ".codex/README.md",
+      ".codex/config.toml",
+      ".codex/hooks.json"
+    ],
+    "allowedRootDirectories": [
+      ".codex/agents/",
+      ".codex/archive/",
+      ".codex/dashboard/",
+      ".codex/knowledge/",
+      ".codex/scripts/",
+      ".codex/workflow/"
+    ],
+    "runtimeDirectories": [
+      ".codex/workflow/state/",
+      ".codex/workflow/runtime/"
+    ],
+    "runtimeTrackedAllowlist": [
+      ".codex/workflow/state/.gitignore",
+      ".codex/workflow/runtime/.gitignore"
+    ],
+    "allowedArtifactDirectories": [
+      ".codex/workflow/artifacts/screenshots/guide-browser-final/",
+      ".codex/workflow/artifacts/screenshots/server-final/",
+      ".codex/workflow/artifacts/screenshots/visual-zoo-guide/"
+    ]
+  },
   "reviewKinds": {
     "general": {
       "whenSubstantive": true
@@ -102,6 +137,7 @@
         "WORKFLOW.md",
         ".codex/README.md",
         ".codex/config.toml",
+        ".codex/hooks.json",
         ".github/workflows/",
         ".agents/skills/",
         ".codex/agents/",
@@ -142,6 +178,7 @@
         "WORKFLOW.md",
         ".codex/README.md",
         ".codex/config.toml",
+        ".codex/hooks.json",
         ".github/workflows/",
         "package.json",
         "package-lock.json"
@@ -168,7 +205,9 @@
       "exclude": [
         ".codex/workflow/state/",
         ".codex/workflow/runtime/",
-        ".codex/workflow/records/guide-browser/"
+        ".codex/workflow/records/guide-browser/",
+        ".codex/workflow/records/deployments/",
+        ".codex/archive/"
       ],
       "include": [
         "AGENTS.md",
@@ -177,7 +216,8 @@
         ".agents/skills/",
         ".codex/dashboard/",
         ".codex/",
-        ".github/workflows/"
+        ".github/workflows/",
+        "packages/web/src/platform/theme/"
       ]
     },
     "zooVisual": {
@@ -197,6 +237,7 @@
         ".codex/scripts/capture-design-zoo-visuals.mjs",
         ".codex/scripts/validate-design-zoo.mjs",
         ".codex/scripts/check-production-zoo-bundle.mjs",
+        ".codex/scripts/workflow-engine.mjs",
         ".codex/workflow/profile.json",
         ".codex/workflow/policy/design.json"
       ]

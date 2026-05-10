@@ -11,5 +11,6 @@ These templates describe the expected content of durable workflow records. Prefe
 - `current-state.md`: compact managed handover.
 - `routing.md`: lead/worker model-routing and fallback decision.
 - `audit.md`: workflow/project health audit.
+- `project-bootstrap.md`: portable checklist for creating project-local Codex config, hooks, profile, policy, and workflow checks in another repo.
 
 `current-state.md` is not a record transcript. It must stay small, link to detailed records, avoid self-staling finalization details, and pass `npm run workflow:handover-check`.

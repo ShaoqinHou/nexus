@@ -14,6 +14,8 @@
     "package.json",
     ".codex/README.md",
     ".codex/config.toml",
+    ".codex/hooks.json",
+    ".codex/dashboard/README.md",
     ".codex/workflow/profile.json",
     ".codex/workflow/policy/records.json",
     ".codex/workflow/policy/files.json",
@@ -25,11 +27,14 @@
     ".codex/workflow/policy/gates.json",
     ".codex/workflow/dependency-audit-baseline.json",
     ".codex/scripts/audit-deps.mjs",
+    ".codex/scripts/check-design-tokens.mjs",
     ".codex/scripts/check-public-guide-images.mjs",
     ".codex/scripts/check-production-zoo-bundle.mjs",
+    ".codex/scripts/run-hook.mjs",
     ".codex/scripts/workflow-engine.mjs",
     ".codex/scripts/nexus-workflow.mjs",
     ".codex/scripts/capture-design-zoo-visuals.mjs",
+    ".codex/scripts/validate-design-zoo.mjs",
     ".codex/knowledge/design-system.md",
     ".codex/knowledge/deployment.md",
     ".codex/knowledge/hooks.md",
@@ -37,6 +42,7 @@
     ".codex/knowledge/patterns.md",
     ".codex/knowledge/verification.md",
     ".codex/workflow/current-state.md",
+    ".codex/workflow/templates/project-bootstrap.md",
     ".codex/workflow/records/risks.md",
     "packages/web/src/components/registry.json",
     "packages/web/src/routes/__design/Zoo.tsx"
@@ -97,7 +103,8 @@
     ".codex/workflow/records/guide-browser/",
     ".codex/workflow/records/deployments/",
     ".codex/workflow/state/",
-    ".codex/workflow/runtime/"
+    ".codex/workflow/runtime/",
+    ".codex/archive/"
   ],
   "viewContract": {
     "requiredStrings": [
@@ -116,6 +123,9 @@
       "packages/web/src/components/registry.json",
       "packages/web/src/routes/__design/Zoo.tsx",
       "How Future Sessions Resume",
+      "Custom (config.toml)",
+      "workflow:hook-runtime-check",
+      "project-bootstrap.md",
       "Model Routing Examples",
       "spark-narrow-toast-warning",
       "strong-theme-cascade-body-portal",

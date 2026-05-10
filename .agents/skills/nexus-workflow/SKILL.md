@@ -21,6 +21,7 @@ Use one canonical ladder:
 4. `npm run workflow:deployed-gate` after server validation when deployment is in scope.
 
 Other workflow commands create records or diagnose a failed gate; they should not become a competing checklist.
+The release gate includes `.codex` inventory, policy-consumption, and command-trace checks. Use `workflow:inventory-check`, `workflow:policy-check`, or `workflow:trace-check` only to diagnose those parts directly.
 
 ## During Work
 
@@ -31,6 +32,7 @@ Other workflow commands create records or diagnose a failed gate; they should no
 - Hook-triggered patch state is only a compact invalidation signal. Create an explicit patch record for meaningful work slices before review or handover.
 - Keep `.codex/workflow/current-state.md` compact and link detailed records instead of pasting long logs.
 - Use subagents only when the task is independently useful and has a clear scope.
+- For a second project or a fresh Codex setup, start from `.codex/workflow/templates/project-bootstrap.md`. Each project should have its own `.codex/config.toml`; Nexus expects trusted `Custom (config.toml)` for hooks plus no-prompt permissions.
 
 ## Before Commit
 

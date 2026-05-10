@@ -36,6 +36,8 @@ Current Codex behavior checked on 2026-05-09:
 
 If Custom starts prompting, treat that as a client/config/trust issue and fall back to Full access plus the deterministic workflow scripts. Do not weaken release gates to compensate.
 
+For a new project, create its own `.codex/config.toml` instead of sharing Nexus config blindly. Use `.codex/workflow/templates/project-bootstrap.md` as the portable checklist, then replace Nexus-specific profile, policy, patterns, design-system inputs, and deployment URLs.
+
 Current mitigation:
 
 - Project config and hooks are checked in.

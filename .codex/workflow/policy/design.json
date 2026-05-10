@@ -1,6 +1,8 @@
 {
   "schema": "nexus-design-workflow-policy/v1",
   "zooVisualGuideVersion": "nexus-design-zoo-visual-guide/v1",
+  "localWebUrl": "http://localhost:5173",
+  "designRoute": "/design",
   "registryPath": "packages/web/src/components/registry.json",
   "zooRoutePath": "packages/web/src/routes/__design/Zoo.tsx",
   "themeMatrixPath": "packages/web/src/platform/theme/themes.css",

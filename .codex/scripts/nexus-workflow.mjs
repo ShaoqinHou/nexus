@@ -5,10 +5,17 @@ import { dirname, join, resolve, relative } from 'node:path';
 import { platform, tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
-import { loadCodexWorkflow, pathMatchesPattern as workflowPathMatchesPattern, pathMatchesPolicy } from './workflow-engine.mjs';
+import {
+  DEFAULT_POLICY_NAMES,
+  findWorkflowRoot,
+  loadCodexWorkflow,
+  pathMatchesPattern as workflowPathMatchesPattern,
+  pathMatchesPolicy,
+  readJsonFile,
+} from './workflow-engine.mjs';
 
 const START = process.cwd();
-const ROOT = findRoot(START);
+const ROOT = findWorkflowRoot(START);
 const CODEX = join(ROOT, '.codex');
 const WORKFLOW = loadCodexWorkflow(ROOT);
 const PROFILE = WORKFLOW.profile || {};
@@ -28,24 +35,21 @@ const ROUTING_SCENARIOS_FILE = resolveProjectPath(POLICY.routing?.scenarioFile |
 const ROUTING_STATE_FILE = join(STATE_DIR, 'routing-state.json');
 const COMMAND_RUNS_FILE = join(RUNTIME_DIR, 'command-runs.jsonl');
 const PUBLIC_GUIDE_URL = POLICY.deployment?.publicGuideUrl || 'https://cv.rehou.games/nexus/workflow/';
+const PUBLIC_ZOO_GUIDE_URL = POLICY.deployment?.visualZooGuideUrl || `${PUBLIC_GUIDE_URL.replace(/\/?$/, '/')}zoo/`;
 const PUBLIC_GUIDE_VERSION = POLICY.guide?.version || 'nexus-public-workflow-guide/v2';
 const ZOO_VISUAL_GUIDE_VERSION = POLICY.design?.zooVisualGuideVersion || 'nexus-design-zoo-visual-guide/v1';
 const PUBLIC_GUIDE_CONTENT_HASH_PLACEHOLDER = POLICY.guide?.contentHashPlaceholder || '__NEXUS_GUIDE_CONTENT_HASH__';
+const DEFAULT_CANONICAL_LADDER = ['workflow:status', 'workflow:health', 'workflow:release-gate', 'workflow:deployed-gate'];
+const LOCAL_WEB_URL = String(POLICY.design?.localWebUrl || 'http://localhost:5173').replace(/\/$/, '');
+const DESIGN_ROUTE = String(POLICY.design?.designRoute || '/design').startsWith('/')
+  ? String(POLICY.design?.designRoute || '/design')
+  : `/${String(POLICY.design?.designRoute || 'design')}`;
 const RECORD_KINDS = POLICY.records?.kinds || ['decisions', 'pattern-proposals', 'routing', 'patches', 'reviews', 'tests', 'audits', 'guide-browser', 'deployments'];
 const EVIDENCE_RECORD_KINDS = POLICY.records?.evidenceKinds || RECORD_KINDS.filter((kind) => kind !== 'decisions');
 const GUIDE_RECORD_KINDS = POLICY.records?.guideKinds || RECORD_KINDS.filter((kind) => kind !== 'guide-browser');
 const SCHEMA_BY_KIND = POLICY.records?.schemaByKind || {};
 const LEGACY_SCHEMA_BY_KIND = POLICY.records?.legacySchemaByKind || {};
 const LEGACY_SCHEMA_RECORDS = new Set(POLICY.records?.legacySchemaRecords || []);
-
-function findRoot(start) {
-  let dir = resolve(start);
-  while (dir !== dirname(dir)) {
-    if (existsSync(join(dir, '.codex')) || existsSync(join(dir, 'package.json'))) return dir;
-    dir = dirname(dir);
-  }
-  return resolve(start);
-}
 
 function ensureDir(path) {
   mkdirSync(path, { recursive: true });
@@ -89,6 +93,24 @@ function sortedStringSet(values = []) {
 
 function sameStringSet(actual = [], expected = []) {
   return JSON.stringify(sortedStringSet(actual)) === JSON.stringify(sortedStringSet(expected));
+}
+
+function canonicalLadder(policy = POLICY) {
+  const ladder = policy.gates?.canonicalLadder;
+  return Array.isArray(ladder) && ladder.length ? ladder.map(String) : DEFAULT_CANONICAL_LADDER;
+}
+
+function canonicalLadderCommands(policy = POLICY) {
+  return canonicalLadder(policy).map((script) => `npm run ${script}`);
+}
+
+function canonicalLadderInline(policy = POLICY, html = escapeHtml) {
+  return canonicalLadderCommands(policy).map((command) => `<code>${html(command)}</code>`).join(', ');
+}
+
+function localDesignUrl(route = DESIGN_ROUTE) {
+  const normalized = String(route || DESIGN_ROUTE).startsWith('/') ? String(route || DESIGN_ROUTE) : `/${String(route || DESIGN_ROUTE)}`;
+  return `${LOCAL_WEB_URL}${normalized}`;
 }
 
 function gitDir() {
@@ -1110,7 +1132,7 @@ function zooRegistryProblems() {
       problems.push(`Registry entry ${entry.name || '(unnamed)'} is missing zooRoute.`);
       continue;
     }
-    const slugName = entry.zooRoute.replace(/^\/design\//, '');
+    const slugName = slugFromZooRoute(entry.zooRoute);
     const escapedSlug = slugName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const slugPattern = /^[A-Za-z_$][\w$]*$/.test(slugName)
       ? new RegExp(`(?:['"]${escapedSlug}['"]|\\b${escapedSlug})\\s*:`)
@@ -1121,7 +1143,8 @@ function zooRegistryProblems() {
 }
 
 function slugFromZooRoute(route) {
-  return String(route || '').replace(/^\/design\/?/, '') || 'index';
+  const designPrefix = DESIGN_ROUTE.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return String(route || '').replace(new RegExp(`^${designPrefix}\\/?`), '') || 'index';
 }
 
 function zooVisualEntries() {
@@ -1135,7 +1158,7 @@ function zooVisualEntries() {
       slug: 'index',
       title: 'Zoo Index',
       kind: 'foundation',
-      route: '/design',
+      route: DESIGN_ROUTE,
       path: zooRoutePath,
       purpose: 'Entry page for the live component catalog.',
     },
@@ -1143,7 +1166,7 @@ function zooVisualEntries() {
       slug: 'tokens',
       title: 'Token Foundations',
       kind: 'foundation',
-      route: '/design/tokens',
+      route: `${DESIGN_ROUTE}/tokens`,
       path: tokenPath,
       purpose: 'Production token swatches for colors, radii, shadows, and hit targets.',
     },
@@ -1151,7 +1174,7 @@ function zooVisualEntries() {
       slug: 'themes',
       title: 'Theme Matrix',
       kind: 'foundation',
-      route: '/design/themes',
+      route: `${DESIGN_ROUTE}/themes`,
       path: themeMatrixPath,
       purpose: 'All cuisine themes rendered side by side from real components.',
     },
@@ -1160,7 +1183,7 @@ function zooVisualEntries() {
     slug: slugFromZooRoute(entry.zooRoute),
     title: entry.name || slugFromZooRoute(entry.zooRoute),
     kind: entry.kind || 'component',
-    route: entry.zooRoute || `/design/${slugFromZooRoute(entry.zooRoute)}`,
+    route: entry.zooRoute || `${DESIGN_ROUTE}/${slugFromZooRoute(entry.zooRoute)}`,
     path: entry.path || '',
     spriteAsset: entry.spriteAsset || '',
     purpose: entry.purpose || '',
@@ -1382,6 +1405,30 @@ function listFilesUnder(relPath, maxDepth = 2, limit = 20) {
   }
   if (existsSync(start) && statSync(start).isDirectory()) walk(start, 0);
   return files;
+}
+
+function listAllFilesUnder(relPath, options = {}) {
+  const start = join(ROOT, relPath);
+  if (!existsSync(start)) return [];
+  const skip = new Set(options.skipDirectories || []);
+  const files = [];
+  function walk(dir) {
+    for (const name of readdirSync(dir).sort()) {
+      if (name === '.git' || name === 'node_modules') continue;
+      const path = join(dir, name);
+      const rel = relative(ROOT, path).replaceAll('\\', '/');
+      if ([...skip].some((pattern) => workflowPathMatchesPattern(rel, pattern))) continue;
+      const st = statSync(path);
+      if (st.isDirectory()) walk(path);
+      else files.push(rel);
+    }
+  }
+  walk(start);
+  return files.sort();
+}
+
+function gitTrackedFiles(pathspec = '.') {
+  return gitText(['ls-files', pathspec]).split(/\r?\n/).filter(Boolean).map((file) => file.replaceAll('\\', '/')).sort();
 }
 
 function publicGuideInputFiles() {
@@ -1948,9 +1995,9 @@ function commandDashboard(args = {}) {
       <section id="current" class="panel">${markdownLite(currentState)}</section>
       <section id="zoo" class="panel">
         <h2>Design Zoo / Gym</h2>
-        <p>The production component gym is the dev-only app route at <code>http://localhost:5173/design</code>. It reads real source components through <code>packages/web/src/routes/__design/Zoo.tsx</code>; this dashboard reads <code>packages/web/src/components/registry.json</code> so coverage is visible here too.</p>
-        <p><a href="http://localhost:5173/design">Open local zoo index</a> after running <code>npm run dev:web</code> or <code>npm run dev:all</code>.</p>
-        <p><a href="zoo/index.html">Open generated Visual Zoo/Gym Guide</a> for captured previews that can be deployed to <code>${escapeHtml(PUBLIC_GUIDE_URL)}zoo/</code>.</p>
+        <p>The production component gym is the dev-only app route at <code>${escapeHtml(localDesignUrl())}</code>. It reads real source components through <code>packages/web/src/routes/__design/Zoo.tsx</code>; this dashboard reads <code>packages/web/src/components/registry.json</code> so coverage is visible here too.</p>
+        <p><a href="${escapeHtml(localDesignUrl())}">Open local zoo index</a> after running <code>npm run dev:web</code> or <code>npm run dev:all</code>.</p>
+        <p><a href="zoo/index.html">Open generated Visual Zoo/Gym Guide</a> for captured previews that can be deployed to <code>${escapeHtml(PUBLIC_ZOO_GUIDE_URL)}</code>.</p>
         <div class="record">
           <strong>Registry coverage</strong>
           <p class="path">${zooLinked} of ${zooEntries.length} registry entries declare a zoo route.</p>
@@ -1963,7 +2010,7 @@ function commandDashboard(args = {}) {
                 <span>${escapeHtml(entry.kind)}</span>
               </div>
               <p class="path">${escapeHtml(entry.path || '')}</p>
-              ${entry.zooRoute ? `<p><a href="http://localhost:5173${escapeHtml(entry.zooRoute)}">${escapeHtml(entry.zooRoute)}</a></p>` : '<p class="muted">No zoo route declared.</p>'}
+              ${entry.zooRoute ? `<p><a href="${escapeHtml(localDesignUrl(entry.zooRoute))}">${escapeHtml(entry.zooRoute)}</a></p>` : '<p class="muted">No zoo route declared.</p>'}
               <p>${escapeHtml(entry.purpose || '')}</p>
             </article>
           `).join('\n')}
@@ -2165,7 +2212,7 @@ function commandPublicGuide(args = {}) {
         { label: 'Visual Zoo/Gym Guide', detail: 'deployed screenshot gallery' },
       ], [['Reference bundle', 'Production tokens/themes'], ['Production tokens/themes', 'ThemeProvider'], ['ThemeProvider', 'Component registry'], ['Component registry', 'Design Zoo/Gym'], ['Design Zoo/Gym', 'validate-design-zoo'], ['Design Zoo/Gym', 'Visual Zoo/Gym Guide']])}
       <p>Design Zoo/Gym coverage: <strong>${zooLinked}/${zooEntries.length}</strong> registry entries declare a route.</p>
-      <p><a href="zoo/">Open Visual Zoo/Gym Guide</a>. Production <code>/nexus/design</code> remains dev-only; the deployable visual surface is <code>/nexus/workflow/zoo/</code>.</p>
+      <p><a href="zoo/">Open Visual Zoo/Gym Guide</a>. Production <code>/nexus/design</code> remains dev-only; the deployable visual surface is <code>${publicHtml(PUBLIC_ZOO_GUIDE_URL)}</code>.</p>
       <div class="grid">
         <div class="card"><strong>${registry.primitives?.length || 0}</strong><p>primitives</p></div>
         <div class="card"><strong>${registry.patterns?.length || 0}</strong><p>patterns</p></div>
@@ -2184,7 +2231,8 @@ function commandPublicGuide(args = {}) {
       <h2>How Future Sessions Resume</h2>
       <ul>
         <li>Read <code>WORKFLOW.md</code>, <code>AGENTS.md</code>, then <code>.codex/workflow/current-state.md</code>.</li>
-        <li>Use the canonical ladder: <code>npm run workflow:status</code>, <code>npm run workflow:health</code> when diagnosis is needed, <code>npm run workflow:release-gate</code> before local handover, and <code>npm run workflow:deployed-gate</code> after server validation.</li>
+        <li>Use the canonical ladder: ${canonicalLadderInline(POLICY, publicHtml)}.</li>
+        <li>Use trusted <code>Custom (config.toml)</code> when project hooks matter. <code>Full access</code> grants permissions but does not prove hooks/config loaded; diagnose with <code>npm run workflow:hook-runtime-check</code> and bootstrap new projects from <code>.codex/workflow/templates/project-bootstrap.md</code>.</li>
         <li>Use detailed records under <code>.codex/workflow/records/</code> instead of loading chat transcripts.</li>
         <li>Use <code>.codex/knowledge/</code> for patterns, design-system rules, model routing, and deployment guidance.</li>
       </ul>
@@ -2360,7 +2408,7 @@ function commandZooVisualGuide(args = {}) {
       <div class="panel">
         <h2>Captured From Real /design Routes</h2>
         <p>This page is the deployable visual guide for the dev-only component gym. Screenshots are captured from real Nexus components rendered by <code>packages/web/src/routes/__design/Zoo.tsx</code>, and coverage is driven by <code>packages/web/src/components/registry.json</code>.</p>
-        <p>Production <code>/nexus/design</code> is intentionally not mounted. Use this guide at <code>/nexus/workflow/zoo/</code> for deployed visual inspection, and use local <code>http://localhost:5173/design</code> for live interaction.</p>
+        <p>Production <code>/nexus/design</code> is intentionally not mounted. Use this guide at <code>${publicHtml(PUBLIC_ZOO_GUIDE_URL)}</code> for deployed visual inspection, and use local <code>${publicHtml(localDesignUrl())}</code> for live interaction.</p>
         <p><strong>Visual Contexts:</strong> ${publicHtml(contextSummary || 'not captured')}</p>
         <p><a href="../">Back to workflow guide</a></p>
       </div>
@@ -2390,6 +2438,249 @@ function commandZooVisualGuideCheck({ quiet = false } = {}) {
   const problems = zooVisualGuideProblems();
   if (!quiet) {
     console.log(`zoo visual guide problems: ${problems.length}`);
+    for (const problem of problems) console.log(`- ${problem}`);
+  }
+  return problems.length === 0;
+}
+
+function inventoryPolicy() {
+  return POLICY.files?.inventory || {};
+}
+
+function inventoryDurableFiles() {
+  const inventory = inventoryPolicy();
+  const runtimeDirs = inventory.runtimeDirectories || ['.codex/workflow/state/', '.codex/workflow/runtime/'];
+  const runtimeAllow = new Set(inventory.runtimeTrackedAllowlist || ['.codex/workflow/state/.gitignore', '.codex/workflow/runtime/.gitignore']);
+  return listAllFilesUnder(inventory.root || '.codex')
+    .filter((file) => runtimeAllow.has(file) || !runtimeDirs.some((dir) => workflowPathMatchesPattern(file, dir)));
+}
+
+function inventoryProblems(options = {}) {
+  const inventory = inventoryPolicy();
+  const allowedRootFiles = inventory.allowedRootFiles || ['.codex/README.md', '.codex/config.toml', '.codex/hooks.json'];
+  const allowedRootDirectories = inventory.allowedRootDirectories || [
+    '.codex/agents/',
+    '.codex/archive/',
+    '.codex/dashboard/',
+    '.codex/knowledge/',
+    '.codex/scripts/',
+    '.codex/workflow/',
+  ];
+  const runtimeDirs = inventory.runtimeDirectories || ['.codex/workflow/state/', '.codex/workflow/runtime/'];
+  const runtimeAllow = new Set(inventory.runtimeTrackedAllowlist || ['.codex/workflow/state/.gitignore', '.codex/workflow/runtime/.gitignore']);
+  const allowedArtifactDirectories = inventory.allowedArtifactDirectories || [
+    '.codex/workflow/artifacts/screenshots/guide-browser-final/',
+    '.codex/workflow/artifacts/screenshots/server-final/',
+    '.codex/workflow/artifacts/screenshots/visual-zoo-guide/',
+  ];
+  const files = options.files || inventoryDurableFiles();
+  const tracked = options.tracked || gitTrackedFiles('.codex');
+  const checked = sortedStringSet([...files, ...tracked.filter((file) => file.startsWith('.codex/'))]);
+  const required = requiredWorkflowFiles();
+  const requiredSet = new Set(required);
+  const problems = [];
+  for (const file of checked) {
+    const allowedRoot = allowedRootFiles.includes(file) || allowedRootDirectories.some((dir) => workflowPathMatchesPattern(file, dir));
+    if (!allowedRoot) problems.push(`${file} is under .codex but outside the allowed workflow roots.`);
+    const inRuntime = runtimeDirs.some((dir) => workflowPathMatchesPattern(file, dir));
+    if (inRuntime && !runtimeAllow.has(file)) problems.push(`${file} is mutable runtime/state data and must not be durable workflow inventory.`);
+    if (file.includes('/.claude/') && !file.startsWith('.codex/archive/')) problems.push(`${file} contains active Claude Code material outside the archive.`);
+    if (file.endsWith('/CLAUDE.md') && !file.startsWith('.codex/archive/')) problems.push(`${file} is an active Claude instruction file; Codex guidance belongs in AGENTS.md/.codex.`);
+    if (file.startsWith('.codex/workflow/artifacts/') && !allowedArtifactDirectories.some((dir) => workflowPathMatchesPattern(file, dir))) {
+      problems.push(`${file} is an unmanaged workflow artifact; move it under a policy-approved evidence directory or remove it.`);
+    }
+    if (file.startsWith('.codex/workflow/policy/')) {
+      const expected = new Set(DEFAULT_POLICY_NAMES.map((name) => `.codex/workflow/policy/${name}.json`));
+      if (!expected.has(file)) problems.push(`${file} is an unregistered policy file; add it to workflow-engine DEFAULT_POLICY_NAMES or remove it.`);
+    }
+    if (file.startsWith('.codex/workflow/records/')) {
+      const parts = file.split('/');
+      const kind = parts[3];
+      if (file !== '.codex/workflow/records/risks.md' && !RECORD_KINDS.includes(kind)) problems.push(`${file} is under an unknown record kind.`);
+      if (file !== '.codex/workflow/records/risks.md' && !file.endsWith('.md') && !file.endsWith('/.gitkeep')) problems.push(`${file} is a record file but is not markdown.`);
+    }
+    if (file.startsWith('.codex/scripts/') && file.endsWith('.mjs') && !requiredSet.has(file)) problems.push(`${file} is a workflow script but is missing from requiredWorkflowFiles.`);
+    if (file.startsWith('.codex/knowledge/') && file.endsWith('.md') && !requiredSet.has(file)) problems.push(`${file} is workflow knowledge but is missing from requiredWorkflowFiles.`);
+    if (file.startsWith('.codex/workflow/templates/') && file.endsWith('.md') && !requiredSet.has(file)) problems.push(`${file} is a workflow template but is missing from requiredWorkflowFiles.`);
+    if (file.startsWith('.codex/agents/') && file.endsWith('.toml') && !requiredSet.has(file)) problems.push(`${file} is a Codex agent config but is missing from requiredWorkflowFiles.`);
+    if (file === '.codex/dashboard/README.md' && !requiredSet.has(file)) problems.push(`${file} is durable folder guidance but is missing from requiredWorkflowFiles.`);
+  }
+  for (const file of tracked) {
+    const inRuntime = runtimeDirs.some((dir) => workflowPathMatchesPattern(file, dir));
+    if (inRuntime && !runtimeAllow.has(file)) problems.push(`${file} is tracked mutable runtime/state data.`);
+  }
+  const activeClaude = gitTrackedFiles().filter((file) => (file === 'CLAUDE.md' || file.startsWith('.claude/') || file.includes('/.claude/')) && !file.startsWith('.codex/archive/'));
+  for (const file of activeClaude) problems.push(`${file} is active Claude Code material; archive it under .codex/archive/.`);
+  return [...new Set(problems)].sort();
+}
+
+function commandInventoryCheck({ quiet = false } = {}) {
+  const files = inventoryDurableFiles();
+  const problems = inventoryProblems({ files });
+  if (!quiet) {
+    console.log(`codex inventory files: ${files.length}`);
+    console.log(`codex inventory problems: ${problems.length}`);
+    for (const problem of problems) console.log(`- ${problem}`);
+  }
+  return problems.length === 0;
+}
+
+function packageWorkflowScripts() {
+  return loadJson(join(ROOT, 'package.json'), {}).scripts || {};
+}
+
+function requiredWorkflowFileProblems(required = requiredWorkflowFiles()) {
+  const problems = [];
+  const seen = new Set();
+  for (const file of required) {
+    if (seen.has(file)) problems.push(`requiredWorkflowFiles contains duplicate path: ${file}.`);
+    seen.add(file);
+    if (!existsSync(join(ROOT, file))) problems.push(`required workflow file is missing: ${file}.`);
+  }
+  return problems;
+}
+
+function policyClassifierTestCases() {
+  return [
+    { file: '.codex/scripts/nexus-workflow.mjs', substantive: true, verification: true, audit: true, guide: true, zooVisual: false },
+    { file: '.codex/scripts/workflow-engine.mjs', substantive: true, verification: true, audit: true, guide: true, zooVisual: true },
+    { file: '.codex/workflow/policy/files.json', substantive: true, verification: true, audit: true, guide: true, zooVisual: false },
+    { file: '.codex/workflow/templates/project-bootstrap.md', substantive: true, verification: true, audit: true, guide: true, zooVisual: false },
+    { file: '.codex/workflow/state/review-state.json', substantive: false, verification: false, audit: false, guide: false, zooVisual: false },
+    { file: '.codex/workflow/runtime/command-runs.jsonl', substantive: false, verification: false, audit: false, guide: false, zooVisual: false },
+    { file: '.codex/archive/claude-code-2026-05-09/.claude/settings.json', substantive: false, verification: false, audit: false, guide: false, zooVisual: false },
+    { file: '.codex/workflow/records/patches/PATCH-fixture.md', substantive: false, verification: false, audit: false, guide: true, zooVisual: false },
+    { file: '.codex/workflow/records/guide-browser/GUIDE-BROWSER-fixture.md', substantive: false, verification: false, audit: false, guide: false, zooVisual: false },
+    { file: '.codex/workflow/records/deployments/DEPLOYMENT-fixture.md', substantive: false, verification: false, audit: false, guide: false, zooVisual: false },
+    { file: 'packages/web/src/platform/theme/tokens.css', substantive: true, verification: true, audit: true, guide: true, zooVisual: true },
+    { file: 'packages/web/src/components/ui/Button.tsx', substantive: true, verification: true, audit: true, guide: false, zooVisual: true },
+    { file: 'packages/api/src/modules/orders/service.ts', substantive: true, verification: true, audit: true, guide: false, zooVisual: false },
+  ];
+}
+
+function policyClassifierProblems(cases = policyClassifierTestCases()) {
+  const checks = {
+    substantive: (file) => substantiveFiles([file]).includes(file),
+    verification: (file) => verificationRelevantFiles([file]).includes(file),
+    audit: (file) => auditRelevantFiles([file]).includes(file),
+    guide: (file) => guideRelevantFiles([file]).includes(file),
+    zooVisual: (file) => zooVisualRelevantFiles([file]).includes(file),
+  };
+  const problems = [];
+  for (const testCase of cases) {
+    for (const [name, fn] of Object.entries(checks)) {
+      if (!Object.hasOwn(testCase, name)) continue;
+      const actual = fn(testCase.file);
+      if (actual !== testCase[name]) problems.push(`${name} classifier mismatch for ${testCase.file}: expected ${testCase[name]}, got ${actual}.`);
+    }
+  }
+  return problems;
+}
+
+function policyProblems() {
+  const problems = [];
+  const policyNames = new Set(DEFAULT_POLICY_NAMES);
+  for (const name of DEFAULT_POLICY_NAMES) {
+    const path = `.codex/workflow/policy/${name}.json`;
+    if (!existsSync(join(ROOT, path))) problems.push(`missing default policy file: ${path}.`);
+    if (!POLICY[name]?.schema) problems.push(`policy ${name} has no schema field.`);
+  }
+  for (const file of listAllFilesUnder('.codex/workflow/policy')) {
+    const name = file.match(/\.codex\/workflow\/policy\/(.+)\.json$/)?.[1];
+    if (!name || !policyNames.has(name)) problems.push(`${file} is not loaded by DEFAULT_POLICY_NAMES.`);
+  }
+  problems.push(...requiredWorkflowFileProblems());
+  problems.push(...policyClassifierProblems());
+  const scripts = packageWorkflowScripts();
+  for (const script of [...canonicalLadder(), 'workflow:policy-check', 'workflow:inventory-check', 'workflow:trace-check']) {
+    if (!scripts[script]) problems.push(`package.json is missing ${script}.`);
+  }
+  for (const doc of ['AGENTS.md', 'WORKFLOW.md', '.codex/README.md']) {
+    const text = readText(doc);
+    for (const script of canonicalLadder()) {
+      if (!text.includes(script)) problems.push(`${doc} does not mention canonical ladder item ${script}.`);
+    }
+  }
+  const inputs = publicGuideInputFiles();
+  for (const file of [
+    '.codex/scripts/nexus-workflow.mjs',
+    '.codex/scripts/workflow-engine.mjs',
+    '.codex/workflow/templates/project-bootstrap.md',
+    '.codex/workflow/policy/files.json',
+    '.codex/workflow/policy/gates.json',
+    '.codex/workflow/policy/deployment.json',
+  ]) {
+    if (!inputs.includes(file)) problems.push(`${file} is not part of public guide source hash inputs.`);
+  }
+  if (!POLICY.deployment?.publicGuideUrl) problems.push('.codex/workflow/policy/deployment.json must define publicGuideUrl.');
+  if (!POLICY.deployment?.visualZooGuideUrl) problems.push('.codex/workflow/policy/deployment.json must define visualZooGuideUrl.');
+  if (!POLICY.design?.localWebUrl) problems.push('.codex/workflow/policy/design.json must define localWebUrl for generated local Zoo links.');
+  if (!POLICY.design?.designRoute) problems.push('.codex/workflow/policy/design.json must define designRoute for generated local Zoo links.');
+  const allowedGuideUrls = new Set([PUBLIC_GUIDE_URL, PUBLIC_ZOO_GUIDE_URL]);
+  for (const doc of ['WORKFLOW.md', '.codex/README.md', '.codex/knowledge/deployment.md']) {
+    const text = readText(doc);
+    const urls = [...text.matchAll(/https:\/\/[^\s`)]+\/nexus\/workflow\/(?:zoo\/)?/g)].map((match) => match[0]);
+    for (const url of urls) {
+      if (!allowedGuideUrls.has(url)) problems.push(`${doc} contains workflow guide URL ${url}, which does not match deployment policy.`);
+    }
+  }
+  if (!sameStringSet(canonicalLadder(), DEFAULT_CANONICAL_LADDER)) problems.push('canonical ladder should stay status -> health -> release-gate -> deployed-gate unless the workflow contract is intentionally redesigned.');
+  return [...new Set(problems)].sort();
+}
+
+function commandPolicyCheck({ quiet = false } = {}) {
+  const problems = policyProblems();
+  if (!quiet) {
+    console.log(`workflow policy problems: ${problems.length}`);
+    for (const problem of problems) console.log(`- ${problem}`);
+  }
+  return problems.length === 0;
+}
+
+function commandTraceProblems(options = {}) {
+  const file = options.file || COMMAND_RUNS_FILE;
+  const strict = Boolean(options.strict);
+  const problems = [];
+  if (!existsSync(file)) return problems;
+  const lines = readFileSync(file, 'utf8').split(/\r?\n/).filter(Boolean);
+  const latest = new Map();
+  for (let index = 0; index < lines.length; index++) {
+    let run;
+    try {
+      run = JSON.parse(lines[index]);
+    } catch (error) {
+      problems.push(`command telemetry line ${index + 1} is not valid JSON: ${error.message}.`);
+      continue;
+    }
+    latest.set(run.id || `line-${index + 1}`, run);
+    for (const field of ['id', 'command', 'cwd', 'startedAt', 'endedAt', 'durationMs', 'timeoutMs', 'warnMs', 'exitCode', 'timedOut', 'warned']) {
+      if (!Object.hasOwn(run, field)) problems.push(`command telemetry ${run.id || `line ${index + 1}`} is missing ${field}.`);
+    }
+    if (!Array.isArray(run.command) || !run.command.length) problems.push(`command telemetry ${run.id || `line ${index + 1}`} has no command array.`);
+    if (!Number.isFinite(Number(run.durationMs)) || Number(run.durationMs) < 0) problems.push(`command telemetry ${run.id || `line ${index + 1}`} has invalid durationMs.`);
+    if (!Number.isFinite(Number(run.timeoutMs)) || Number(run.timeoutMs) <= 0) problems.push(`command telemetry ${run.id || `line ${index + 1}`} has invalid timeoutMs.`);
+    if (Boolean(run.timedOut) && Number(run.exitCode) !== 124) problems.push(`command telemetry ${run.id || `line ${index + 1}`} timed out but exitCode is not 124.`);
+    if (Number(run.warnMs) > 0 && Boolean(run.warned) !== (Number(run.durationMs) > Number(run.warnMs))) problems.push(`command telemetry ${run.id || `line ${index + 1}`} warned flag does not match durationMs/warnMs.`);
+  }
+  if (strict) {
+    for (const run of latest.values()) {
+      if (Number(run.exitCode ?? 1) !== 0 || Boolean(run.timedOut)) problems.push(`latest command telemetry ${run.id || '(missing id)'} did not pass.`);
+      if (Boolean(run.warned)) problems.push(`latest command telemetry ${run.id || '(missing id)'} exceeded its warn threshold.`);
+    }
+  }
+  return problems;
+}
+
+function commandTraceCheck(args = {}) {
+  const problems = commandTraceProblems({ strict: Boolean(args.strict) });
+  const runs = readCommandRuns();
+  const warned = runs.filter((run) => run.warned).length;
+  const timedOut = runs.filter((run) => run.timedOut).length;
+  if (!args.quiet) {
+    console.log(`command trace runs: ${runs.length}`);
+    console.log(`command trace warned: ${warned}`);
+    console.log(`command trace timed out: ${timedOut}`);
+    console.log(`command trace problems: ${problems.length}`);
     for (const problem of problems) console.log(`- ${problem}`);
   }
   return problems.length === 0;
@@ -2442,7 +2733,7 @@ function hookRuntimeProblems({ maxAgeDays = 14 } = {}) {
   const runtime = loadJson(join(RUNTIME_DIR, 'hooks-state.json'), {});
   const problems = [];
   if (!runtime.lastSeenAt) {
-    problems.push('no hook runtime heartbeat recorded in this checkout; hooks may not be loaded, so rely on explicit workflow gates.');
+    problems.push('no hook runtime heartbeat recorded in this checkout; use trusted Custom (config.toml) for project hooks, and rely on explicit workflow gates when hooks are not loaded.');
     return problems;
   }
   const ageMs = Date.now() - Date.parse(runtime.lastSeenAt);
@@ -2663,10 +2954,15 @@ function parseRunCommandArgs(rawArgs = []) {
   return out;
 }
 
-function commandRunCommand(rawArgs = []) {
+function commandRunCommand(rawArgs = [], options = {}) {
   const args = parseRunCommandArgs(rawArgs);
   if (!args.commandArgs.length) {
-    console.error('run-command requires a command after --, for example: node .codex/scripts/nexus-workflow.mjs run-command --id status -- npm run workflow:status');
+    if (options.error !== false) console.error('run-command requires a command after --, for example: node .codex/scripts/nexus-workflow.mjs run-command --id status -- npm run workflow:status');
+    return 2;
+  }
+  const telemetryFile = options.telemetryFile || COMMAND_RUNS_FILE;
+  if (args.id && readCommandRuns(telemetryFile).some((run) => run.id === args.id)) {
+    if (options.error !== false) console.error(`command run id already exists in telemetry: ${args.id}`);
     return 2;
   }
   return runTimedCommand(args.commandArgs, {
@@ -2674,6 +2970,8 @@ function commandRunCommand(rawArgs = []) {
     timeoutMs: args.timeoutMs || 120000,
     warnMs: args.warnMs || undefined,
     cwd: args.cwd || ROOT,
+    telemetryFile,
+    echo: options.echo,
   }).exitCode;
 }
 
@@ -2685,6 +2983,42 @@ function cachedRoutingOk(routingState, hash) {
   if (!routingState.routingId) return true;
   if (['completed', 'closed', 'escalated'].includes(String(routingState.status || '').toLowerCase())) return true;
   return routingState.worktreeHash === hash;
+}
+
+function printProblemDetails(label, problems = []) {
+  if (!problems.length) return false;
+  console.log('');
+  console.log(`${label} details:`);
+  for (const problem of problems) console.log(`- ${problem}`);
+  return true;
+}
+
+function printHealthDetails() {
+  let printed = false;
+  printed = printProblemDetails('handover', handoverProblems()) || printed;
+  printed = printProblemDetails('records', recordIntegrityProblems()) || printed;
+  printed = printProblemDetails('routing', routingScopeProblems()) || printed;
+  if (!commandGuideCheck({ quiet: true })) {
+    const problems = [];
+    const expectedHash = publicGuideSourceHash();
+    for (const [label, file] of [['public guide', 'public.html'], ['dashboard', 'index.html']]) {
+      const path = join(DASHBOARD_DIR, file);
+      if (!existsSync(path)) problems.push(`${label} artifact is missing.`);
+      else if (htmlMetaContent(readFileSync(path, 'utf8'), 'nexus-guide-source-hash') !== expectedHash) problems.push(`${label} source hash is stale; regenerate with npm run workflow:dashboard and npm run workflow:public-guide.`);
+    }
+    printed = printProblemDetails('guide', problems.length ? problems : ['run npm run workflow:guide-check for details']) || printed;
+  }
+  printed = printProblemDetails('guide browser', guideBrowserProblems()) || printed;
+  printed = printProblemDetails('zoo registry', zooRegistryProblems()) || printed;
+  printed = printProblemDetails('zoo visual guide', zooVisualGuideProblems()) || printed;
+  printed = printProblemDetails('codex inventory', inventoryProblems()) || printed;
+  printed = printProblemDetails('workflow policy', policyProblems()) || printed;
+  printed = printProblemDetails('command trace', commandTraceProblems()) || printed;
+  printed = printProblemDetails('hook config', hookConfigProblems()) || printed;
+  printed = printProblemDetails('branch evidence', branchEvidenceProblems()) || printed;
+  if (!commandDependencyAuditCheck({ quiet: true })) printed = printProblemDetails('dependency audit', ['run npm run audit:deps for the npm advisory/baseline breakdown']) || printed;
+  if (!commandProductionZooBundleCheck({ quiet: true })) printed = printProblemDetails('production zoo bundle', ['run npm run workflow:prod-zoo-bundle-check for bundle evidence details']) || printed;
+  if (!printed) console.log('\nhealth details: no deterministic problems reported');
 }
 
 function commandStatus({ health = false } = {}) {
@@ -2702,6 +3036,9 @@ function commandStatus({ health = false } = {}) {
   const guideOk = health ? commandGuideCheck({ quiet: true }) : null;
   const guideBrowserOk = health ? commandGuideBrowserCheck({ quiet: true }) : null;
   const zooVisualOk = health ? commandZooVisualGuideCheck({ quiet: true }) : null;
+  const inventoryOk = health ? commandInventoryCheck({ quiet: true }) : null;
+  const policyOk = health ? commandPolicyCheck({ quiet: true }) : null;
+  const traceOk = health ? commandTraceCheck({ quiet: true }) : null;
   const hookConfigOk = health ? commandHookConfigCheck({ quiet: true }) : null;
   const hookRuntimeOk = commandHookRuntimeCheck({ quiet: true });
   const depAuditOk = health ? commandDependencyAuditCheck({ quiet: true }) : null;
@@ -2734,6 +3071,9 @@ function commandStatus({ health = false } = {}) {
     console.log(`guide: ${guideOk ? 'ok' : 'needs attention'}`);
     console.log(`guide browser: ${guideBrowserOk ? 'ok' : 'needs attention'}`);
     console.log(`zoo visual guide: ${zooVisualOk ? 'ok' : 'needs attention'}`);
+    console.log(`codex inventory: ${inventoryOk ? 'ok' : 'needs attention'}`);
+    console.log(`workflow policy: ${policyOk ? 'ok' : 'needs attention'}`);
+    console.log(`command trace: ${traceOk ? 'ok' : 'needs attention'}`);
     console.log(`hook config: ${hookConfigOk ? 'ok' : 'needs attention'}`);
   }
   console.log(`hook runtime: ${hookRuntimeOk ? 'seen' : 'not seen'}`);
@@ -2758,6 +3098,7 @@ function commandStatus({ health = false } = {}) {
 
 function commandHealth() {
   commandStatus({ health: true });
+  printHealthDetails();
 }
 
 function commandRecordPatch(args, hookPayload = null) {
@@ -3636,12 +3977,20 @@ function workflowSelfTestChecks() {
   add('verification knowledge is required workflow manifest', requiredWorkflowFiles().includes('.codex/knowledge/verification.md'));
   add('workflow profile is required workflow manifest', requiredWorkflowFiles().includes('.codex/workflow/profile.json'));
   add('workflow engine is required workflow manifest', requiredWorkflowFiles().includes('.codex/scripts/workflow-engine.mjs'));
+  add('workflow kernel is required workflow manifest', requiredWorkflowFiles().includes('.codex/scripts/nexus-workflow.mjs'));
+  add('workflow bootstrap template is required workflow manifest', requiredWorkflowFiles().includes('.codex/workflow/templates/project-bootstrap.md'));
   add('workflow policy files participate in public guide source hash', publicGuideInputFiles().includes('.codex/workflow/policy/guide.json'));
   add('workflow policy files are substantive changes', substantiveFiles(['.codex/workflow/policy/files.json']).length === 1);
   add('review kind policy classifies workflow policy changes', requiredReviewKinds(['.codex/workflow/policy/files.json']).includes('workflow'));
   add('review kind policy classifies design source changes', requiredReviewKinds(['packages/web/src/platform/theme/tokens.css']).includes('design'));
   add('review kind policy classifies design policy changes', requiredReviewKinds(['.codex/workflow/policy/design.json']).includes('design'));
   add('workflow research reports participate in public guide source hash', publicGuideInputFiles().some((file) => file.startsWith('.codex/workflow/research/') && file.endsWith('.md')));
+  add('workflow policy check passes current policy pack', policyProblems().length === 0);
+  add('codex inventory check passes current workflow tree', inventoryProblems().length === 0);
+  add('workflow trace check passes current telemetry shape', commandTraceProblems().length === 0);
+  add('canonical ladder comes from gates policy', sameStringSet(canonicalLadder(POLICY), POLICY.gates?.canonicalLadder || []));
+  add('canonical ladder package scripts exist', canonicalLadder().every((script) => Object.hasOwn(packageWorkflowScripts(), script)));
+  add('public guide uses deployment policy visual zoo URL', PUBLIC_ZOO_GUIDE_URL === POLICY.deployment?.visualZooGuideUrl);
   add('deployment records do not self-stale public guide source hash', !publicGuideInputFiles().some((file) => file.startsWith('.codex/workflow/records/deployments/')));
   add('deployment records remain displayable guide records', GUIDE_RECORD_KINDS.includes('deployments'));
   add('cheap status gates use cached state instead of full evidence scan', cachedGatePass({ worktreeHash: 'h', verdict: 'pass' }, 'h', ['x'])
@@ -3878,6 +4227,9 @@ function workflowSelfTestChecks() {
     'packages/web/src/components/registry.json',
     'packages/web/src/routes/__design/Zoo.tsx',
     'How Future Sessions Resume',
+    'Custom (config.toml)',
+    'workflow:hook-runtime-check',
+    'project-bootstrap.md',
     'Model Routing Examples',
     'spark-narrow-toast-warning',
     'strong-theme-cascade-body-portal',
@@ -4113,6 +4465,66 @@ function workflowSelfTestChecks() {
       return true;
     }
   })());
+  add('workflow engine globstar matches nested paths', workflowPathMatchesPattern('.codex/archive/claude-code-2026-05-09/.claude/settings.json', '.codex/archive/**'));
+  add('workflow engine excludes take precedence over includes', !pathMatchesPolicy('.codex/workflow/runtime/hooks-state.json', {
+    include: ['.codex/'],
+    exclude: ['.codex/workflow/runtime/'],
+  }));
+  add('workflow engine normalizes Windows path separators', workflowPathMatchesPattern('.codex\\workflow\\policy\\files.json', '.codex/workflow/policy/*.json'));
+  add('workflow engine finds custom workflow root', (() => {
+    const dir = mkdtempSync(join(tmpdir(), 'nexus-engine-root-'));
+    const sub = join(dir, 'a', 'b');
+    ensureDir(join(dir, '_codex', 'workflow'));
+    ensureDir(sub);
+    writeFileSync(join(dir, '_codex', 'workflow', 'profile.json'), '{}\n');
+    const found = findWorkflowRoot(sub, { codexDir: '_codex' }) === dir;
+    rmSync(dir, { recursive: true, force: true });
+    return found;
+  })());
+  add('workflow engine ignores nested codex cache without profile when parent has profile', (() => {
+    const dir = mkdtempSync(join(tmpdir(), 'nexus-engine-root-'));
+    const sub = join(dir, 'packages', 'web');
+    ensureDir(join(dir, '.codex', 'workflow'));
+    ensureDir(join(sub, '.codex', 'workflow', 'runtime'));
+    writeFileSync(join(dir, '.codex', 'workflow', 'profile.json'), '{}\n');
+    const found = findWorkflowRoot(sub) === dir;
+    rmSync(dir, { recursive: true, force: true });
+    return found;
+  })());
+  add('workflow engine loads selected policy names', (() => {
+    const dir = mkdtempSync(join(tmpdir(), 'nexus-engine-load-'));
+    ensureDir(join(dir, '.codex', 'workflow', 'policy'));
+    writeFileSync(join(dir, '.codex', 'workflow', 'profile.json'), '{"project":"fixture"}\n');
+    writeFileSync(join(dir, '.codex', 'workflow', 'policy', 'gates.json'), '{"canonicalLadder":["workflow:status"]}\n');
+    const loaded = loadCodexWorkflow(dir, { policyNames: ['gates'] });
+    rmSync(dir, { recursive: true, force: true });
+    return loaded.profile.project === 'fixture' && loaded.policy.gates.canonicalLadder[0] === 'workflow:status' && !loaded.policy.files;
+  })());
+  add('workflow engine rejects malformed json', (() => {
+    const dir = mkdtempSync(join(tmpdir(), 'nexus-engine-json-'));
+    const path = join(dir, 'bad.json');
+    writeFileSync(path, '{bad json');
+    let threw = false;
+    try {
+      readJsonFile(path, {});
+    } catch {
+      threw = true;
+    }
+    rmSync(dir, { recursive: true, force: true });
+    return threw;
+  })());
+  add('workflow wrapper resolves repository root from workspace subdirectory', (() => {
+    const script = process.argv[1] ? resolve(process.argv[1]) : join(CODEX, 'scripts', 'nexus-workflow.mjs');
+    const cwd = join(ROOT, 'packages', 'web');
+    if (!existsSync(cwd)) return false;
+    const result = spawnSync(process.execPath, [script, 'status'], {
+      cwd,
+      encoding: 'utf8',
+      timeout: 30000,
+      maxBuffer: 1024 * 1024,
+    });
+    return result.status === 0 && result.stdout.includes(`root: ${ROOT}`);
+  })());
   const denied = [
     'git commit -m test',
     'git.exe commit -m test',
@@ -4157,6 +4569,52 @@ function workflowSelfTestChecks() {
     const records = readFileSync(telemetryFile, 'utf8').trim().split(/\r?\n/).map((line) => JSON.parse(line));
     rmSync(dir, { recursive: true, force: true });
     return run.exitCode === 124 && records[0]?.timedOut === true;
+  })());
+  add('timed command telemetry records warn threshold without failing', (() => {
+    const dir = mkdtempSync(join(tmpdir(), 'nexus-command-run-'));
+    const telemetryFile = join(dir, 'runs.jsonl');
+    const run = runTimedCommand([process.execPath, '-e', 'setTimeout(() => console.log("slow-ok"), 120)'], {
+      id: 'self-test-warn',
+      timeoutMs: 2000,
+      warnMs: 1,
+      telemetryFile,
+      echo: false,
+    });
+    const records = readFileSync(telemetryFile, 'utf8').trim().split(/\r?\n/).map((line) => JSON.parse(line));
+    const traceOk = commandTraceProblems({ file: telemetryFile }).length === 0;
+    rmSync(dir, { recursive: true, force: true });
+    return run.exitCode === 0 && records[0]?.warned === true && traceOk;
+  })());
+  add('workflow run command rejects duplicate command ids', (() => {
+    const dir = mkdtempSync(join(tmpdir(), 'nexus-command-run-'));
+    const telemetryFile = join(dir, 'runs.jsonl');
+    const first = commandRunCommand(['--id', 'dupe-id', '--', process.execPath, '-e', 'process.exit(0)'], { telemetryFile, echo: false, error: false });
+    const second = commandRunCommand(['--id', 'dupe-id', '--', process.execPath, '-e', 'process.exit(0)'], { telemetryFile, echo: false, error: false });
+    rmSync(dir, { recursive: true, force: true });
+    return first === 0 && second === 2;
+  })());
+  add('command evidence lookup rejects failed runtime ids', (() => {
+    const dir = mkdtempSync(join(tmpdir(), 'nexus-command-run-'));
+    const telemetryFile = join(dir, 'runs.jsonl');
+    runTimedCommand([process.execPath, '-e', 'process.exit(7)'], {
+      id: 'self-test-failed',
+      timeoutMs: 2000,
+      warnMs: 1000,
+      telemetryFile,
+      echo: false,
+    });
+    const result = commandEvidenceForIds(['self-test-failed'], { telemetryFile });
+    rmSync(dir, { recursive: true, force: true });
+    return result.problems.some((problem) => problem.includes('did not pass'));
+  })());
+  add('command trace check reports malformed telemetry lines', (() => {
+    const dir = mkdtempSync(join(tmpdir(), 'nexus-command-run-'));
+    const telemetryFile = join(dir, 'runs.jsonl');
+    writeFileSync(telemetryFile, '{"id":"ok","command":["node"],"cwd":".","startedAt":"a","endedAt":"b","durationMs":1,"timeoutMs":10,"warnMs":5,"exitCode":0,"timedOut":false,"warned":false}\nnot-json\n');
+    const hasProblem = commandTraceProblems({ file: telemetryFile }).some((problem) => problem.includes('not valid JSON'));
+    const evidenceStillWorks = commandEvidenceForIds(['ok'], { telemetryFile }).problems.length === 0;
+    rmSync(dir, { recursive: true, force: true });
+    return hasProblem && evidenceStillWorks;
   })());
   add('routing check catches Spark out-of-scope file', routingScopeProblemsForState({
     routingId: 'routing-test',
@@ -4253,12 +4711,15 @@ function commandValidate(args) {
     const guideBrowserOk = !needsGuide || commandGuideBrowserCheck({ quiet: true });
     const zooOk = commandZooCheck({ quiet: true });
     const zooVisualOk = !needsZooVisual || commandZooVisualGuideCheck({ quiet: true });
+    const inventoryOk = commandInventoryCheck({ quiet: true });
+    const policyOk = commandPolicyCheck({ quiet: true });
+    const traceOk = commandTraceCheck({ quiet: true });
     const hookConfigOk = commandHookConfigCheck({ quiet: true });
     const depAuditOk = commandDependencyAuditCheck({ quiet: true });
     const prodZooOk = commandProductionZooBundleCheck({ quiet: true });
     const selfTestFailures = workflowSelfTestChecks().filter((check) => !check.ok);
     const deploymentOk = !args['deployed-gate'] || commandDeploymentCheck({ quiet: true });
-    if (!reviewOk || !verifyOk || !auditOk || !handoverOk || !recordsOk || !routingOk || !guideOk || !guideBrowserOk || !zooOk || !zooVisualOk || !hookConfigOk || !branchEvidenceOk || !depAuditOk || !prodZooOk || !deploymentOk || selfTestFailures.length) {
+    if (!reviewOk || !verifyOk || !auditOk || !handoverOk || !recordsOk || !routingOk || !guideOk || !guideBrowserOk || !zooOk || !zooVisualOk || !inventoryOk || !policyOk || !traceOk || !hookConfigOk || !branchEvidenceOk || !depAuditOk || !prodZooOk || !deploymentOk || selfTestFailures.length) {
       if (!reviewOk) console.error('Release gate failed: missing passing review record.');
       if (!verifyOk) console.error('Release gate failed: missing passing verification record.');
       if (!auditOk) console.error('Release gate failed: missing passing audit record.');
@@ -4282,6 +4743,18 @@ function commandValidate(args) {
       if (!zooVisualOk) {
         console.error('Release gate failed: Visual Zoo/Gym guide is missing or stale. Run npm run workflow:capture-zoo-visuals and npm run workflow:zoo-visual-guide.');
         for (const problem of zooVisualGuideProblems()) console.error(`- ${problem}`);
+      }
+      if (!inventoryOk) {
+        console.error('Release gate failed: .codex workflow inventory has unmanaged or misplaced files.');
+        for (const problem of inventoryProblems()) console.error(`- ${problem}`);
+      }
+      if (!policyOk) {
+        console.error('Release gate failed: workflow policy pack is incomplete or not executable truth.');
+        for (const problem of policyProblems()) console.error(`- ${problem}`);
+      }
+      if (!traceOk) {
+        console.error('Release gate failed: workflow command trace telemetry is malformed.');
+        for (const problem of commandTraceProblems()) console.error(`- ${problem}`);
       }
       if (!hookConfigOk) {
         console.error('Release gate failed: hook/config enforcement is not pinned.');
@@ -4615,6 +5088,15 @@ else if (command === 'verify-check') {
   process.exit(ok ? 0 : 1);
 } else if (command === 'zoo-visual-guide-check') {
   const ok = commandZooVisualGuideCheck(args);
+  process.exit(ok ? 0 : 1);
+} else if (command === 'inventory-check') {
+  const ok = commandInventoryCheck(args);
+  process.exit(ok ? 0 : 1);
+} else if (command === 'policy-check') {
+  const ok = commandPolicyCheck(args);
+  process.exit(ok ? 0 : 1);
+} else if (command === 'trace-check') {
+  const ok = commandTraceCheck(args);
   process.exit(ok ? 0 : 1);
 } else if (command === 'hook-config-check') {
   const ok = commandHookConfigCheck(args);

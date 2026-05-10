@@ -28,6 +28,7 @@ Other workflow commands are helpers for creating evidence records or diagnosing 
 - `workflow/policy/*.json` is the project-specific policy pack consumed by the workflow engine.
 - `workflow/research/codex-capabilities-2026-05-09.md` records the Codex behavior research.
 - `workflow/research/workflow-engine-profile-extraction-2026-05-10.md` records the first reusable engine/profile extraction boundary.
+- `workflow/templates/project-bootstrap.md` is the portable bootstrap checklist for creating `.codex/config.toml`, hooks, profile, and policy in a second project.
 - `knowledge/patterns.md` captures durable project patterns and traps.
 - `knowledge/design-system.md` captures the design-system source of truth and invariants.
 - `knowledge/model-routing.md` captures lead/worker routing, Spark limits, strong-worker usage, and fallback rules.
@@ -49,6 +50,7 @@ Other workflow commands are helpers for creating evidence records or diagnosing 
 - `workflow/state/` stores mutable workflow cache JSON. It is not durable evidence.
 - `workflow/runtime/` stores operational telemetry, hook heartbeats, PIDs, and local logs. It is not durable evidence.
 - `npm run workflow:status`, `npm run workflow:health`, `npm run workflow:release-gate`, and `npm run workflow:deployed-gate` are the public workflow ladder.
+- `npm run workflow:inventory-check`, `npm run workflow:policy-check`, and `npm run workflow:trace-check` are deterministic checks for workflow file placement, policy consumption, and command execution telemetry.
 - `npm run workflow:guide-browser-finalize` is the deterministic final guide-evidence step when guide artifacts are in scope. Run it after review, verification, and audit records are in place; it regenerates guide artifacts, captures browser evidence, and records the hash-bound guide-browser pass.
 
 ## Workflow Kernel
@@ -65,6 +67,7 @@ The center of the system is the deterministic kernel exposed through `scripts/ne
 - record integrity also checks committed evidence-record history against the configured base branch when available, so old records must be corrected by adding a new record instead of rewriting the old one.
 - branch evidence checks compare the current branch diff against its base and require hash-bound branch-scope patch, review, verification, and audit records even on a clean checkout.
 - Worktree-scope records should not carry branch hashes. Branch hashes belong to final branch-scope records. Delegated worker patch records introduced on the branch remain branch evidence through routing id plus integrated review, even if later lead edits change the final branch hash.
+- `.codex/` inventory, policy consumption, and command trace telemetry are first-class release-gate inputs. This keeps workflow self-checks centralized in the kernel instead of relying on scattered handover reminders.
 
 When the kernel needs LLM judgment, it should fail with a specific missing-record message rather than hide judgment inside a hook. Add new workflow rules to the kernel and records first; keep skills and docs as concise usage guidance around that shared system.
 
@@ -108,7 +111,7 @@ Before final local handover, run the canonical gate:
 npm run workflow:release-gate
 ```
 
-If it fails, run `npm run workflow:health` for the diagnostic breakdown. The release gate covers records, routing, generated guides, guide-browser evidence, Zoo/Gym evidence, hook config, branch evidence, dependency-audit baseline, production Zoo bundling, handover hygiene, and workflow self-tests.
+If it fails, run `npm run workflow:health` for the diagnostic breakdown. The release gate covers records, routing, generated guides, guide-browser evidence, Zoo/Gym evidence, `.codex` inventory, workflow policy, command trace telemetry, hook config, branch evidence, dependency-audit baseline, production Zoo bundling, handover hygiene, and workflow self-tests.
 
 Pattern proposal, routing, patch, review, test, audit, guide-browser, and deployment records are append-only once committed. If a record is wrong, create a correction record rather than editing committed evidence. `NEXUS_RECORD_BASE=<ref>` can be used to force the base ref for append-only history checks; otherwise the kernel uses `origin/main` or `main` when present.
 

@@ -38,11 +38,13 @@ export function loadCodexWorkflow(root, options = {}) {
 export function findWorkflowRoot(start = process.cwd(), options = {}) {
   const codexDir = options.codexDir || '.codex';
   let dir = resolve(start);
+  let firstCodexRoot = null;
   while (dir !== dirname(dir)) {
-    if (existsSync(join(dir, codexDir, 'workflow', 'profile.json')) || existsSync(join(dir, codexDir))) return dir;
+    if (existsSync(join(dir, codexDir, 'workflow', 'profile.json'))) return dir;
+    if (!firstCodexRoot && existsSync(join(dir, codexDir))) firstCodexRoot = dir;
     dir = dirname(dir);
   }
-  return resolve(start);
+  return firstCodexRoot || resolve(start);
 }
 
 export function readJsonFile(path, fallback = {}) {
@@ -66,7 +68,12 @@ export function pathMatchesPattern(file, pattern) {
   if (!p) return false;
   if (p.endsWith('/')) return f.startsWith(p);
   if (!p.includes('*')) return f === p || f.startsWith(`${p}/`);
-  const escaped = p.replace(/[.+^${}()|[\]\\]/g, '\\$&').replaceAll('**', '.*').replaceAll('*', '[^/]*');
+  const globstar = '__CODEX_WORKFLOW_GLOBSTAR__';
+  const escaped = p
+    .replace(/[.+^${}()|[\]\\]/g, '\\$&')
+    .replaceAll('**', globstar)
+    .replaceAll('*', '[^/]*')
+    .replaceAll(globstar, '.*');
   return new RegExp(`^${escaped}$`).test(f);
 }
 

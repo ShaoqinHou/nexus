@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="nexus-guide-version" content="nexus-public-workflow-guide/v2" />
-  <meta name="nexus-guide-source-hash" content="1953379ff24f9ab5b84e4dfb" />
-  <meta name="nexus-guide-content-hash" content="2575fad43c260e5a9d9ca1bd" />
+  <meta name="nexus-guide-source-hash" content="f254838318d0ce9b3d11cc6d" />
+  <meta name="nexus-guide-content-hash" content="ac23f782be72e9d26d5233ba" />
   <meta name="nexus-token-source" content="packages/web/src/platform/theme/tokens.css" />
   <title>Nexus Workflow Guide</title>
   <style>
@@ -70,7 +70,7 @@
 <body>
   <header>
     <h1>Nexus Workflow Guide</h1>
-    <div class="meta">Generated snapshot 2026-05-10T05:47:08.820Z · branch codex/native-workflow · run workflow gates for live state before deploy</div>
+    <div class="meta">Generated snapshot 2026-05-10T06:35:30.921Z · branch codex/native-workflow · run workflow gates for live state before deploy</div>
   </header>
   <main>
     <section>
@@ -99,7 +99,7 @@
 <div class="node"><strong>.codex/agents</strong><span>7 agent config files</span></div>
 <div class="node"><strong>.agents/skills</strong><span>4 repo skills</span></div>
 <div class="node"><strong>nexus-workflow.mjs</strong><span>deterministic gates and records</span></div>
-<div class="node"><strong>.codex/workflow/records</strong><span>234 indexed records</span></div>
+<div class="node"><strong>.codex/workflow/records</strong><span>242 indexed records</span></div>
       </div>
       <p class="meta">AGENTS.md -> .codex/README.md · .codex/knowledge -> .codex/agents · nexus-workflow.mjs -> .codex/workflow/records</p>
     </div>
@@ -123,8 +123,8 @@
 <div class="node"><strong>packages/web/src/routes</strong><span>1 indexed route files</span></div>
 <div class="node"><strong>packages/web/src/locales</strong><span>5 locale files</span></div>
 <div class="node"><strong>packages/shared</strong><span>2 source files</span></div>
-<div class="node"><strong>.codex workflow</strong><span>323 workflow files</span></div>
-<div class="node"><strong>.codex/workflow/records</strong><span>234 indexed records</span></div>
+<div class="node"><strong>.codex workflow</strong><span>331 workflow files</span></div>
+<div class="node"><strong>.codex/workflow/records</strong><span>242 indexed records</span></div>
       </div>
       <p class="meta">packages/api -> packages/shared · packages/web -> packages/shared · .codex workflow -> .codex/workflow/records</p>
     </div>
@@ -180,7 +180,7 @@
     </div>
 
       <p>Design Zoo/Gym coverage: <strong>24/24</strong> registry entries declare a route.</p>
-      <p><a href="zoo/">Open Visual Zoo/Gym Guide</a>. Production <code>/nexus/design</code> remains dev-only; the deployable visual surface is <code>/nexus/workflow/zoo/</code>.</p>
+      <p><a href="zoo/">Open Visual Zoo/Gym Guide</a>. Production <code>/nexus/design</code> remains dev-only; the deployable visual surface is <code>https://cv.rehou.games/nexus/workflow/zoo/</code>.</p>
       <div class="grid">
         <div class="card"><strong>12</strong><p>primitives</p></div>
         <div class="card"><strong>12</strong><p>patterns</p></div>
@@ -229,6 +229,7 @@
 <li><code>.codex/workflow/research/codex-capabilities-2026-05-09.md</code></li>
 <li><code>.codex/workflow/research/workflow-architecture-audit-2026-05-09.md</code></li>
 <li><code>.codex/workflow/research/workflow-engine-profile-extraction-2026-05-10.md</code></li>
+<li><code>.codex/workflow/research/workflow-kernel-self-check-audit-2026-05-10.md</code></li>
 <li><code>.codex/workflow/research/workflow-portability-audit-2026-05-10.md</code></li>
       </ul>
     </section>
@@ -236,7 +237,8 @@
       <h2>How Future Sessions Resume</h2>
       <ul>
         <li>Read <code>WORKFLOW.md</code>, <code>AGENTS.md</code>, then <code>.codex/workflow/current-state.md</code>.</li>
-        <li>Use the canonical ladder: <code>npm run workflow:status</code>, <code>npm run workflow:health</code> when diagnosis is needed, <code>npm run workflow:release-gate</code> before local handover, and <code>npm run workflow:deployed-gate</code> after server validation.</li>
+        <li>Use the canonical ladder: <code>npm run workflow:status</code>, <code>npm run workflow:health</code>, <code>npm run workflow:release-gate</code>, <code>npm run workflow:deployed-gate</code>.</li>
+        <li>Use trusted <code>Custom (config.toml)</code> when project hooks matter. <code>Full access</code> grants permissions but does not prove hooks/config loaded; diagnose with <code>npm run workflow:hook-runtime-check</code> and bootstrap new projects from <code>.codex/workflow/templates/project-bootstrap.md</code>.</li>
         <li>Use detailed records under <code>.codex/workflow/records/</code> instead of loading chat transcripts.</li>
         <li>Use <code>.codex/knowledge/</code> for patterns, design-system rules, model routing, and deployment guidance.</li>
       </ul>
@@ -275,11 +277,11 @@ node .codex/scripts/nexus-workflow.mjs record-audit --scope branch --verdict pas
         <div class="card"><strong>6</strong><p>decisions</p></div>
 <div class="card"><strong>12</strong><p>pattern-proposals</p></div>
 <div class="card"><strong>24</strong><p>routing</p></div>
-<div class="card"><strong>40</strong><p>patches</p></div>
-<div class="card"><strong>65</strong><p>reviews</p></div>
-<div class="card"><strong>50</strong><p>tests</p></div>
-<div class="card"><strong>30</strong><p>audits (first-class + legacy)</p></div>
-<div class="card"><strong>7</strong><p>deployments</p></div>
+<div class="card"><strong>41</strong><p>patches</p></div>
+<div class="card"><strong>69</strong><p>reviews</p></div>
+<div class="card"><strong>51</strong><p>tests</p></div>
+<div class="card"><strong>31</strong><p>audits (first-class + legacy)</p></div>
+<div class="card"><strong>8</strong><p>deployments</p></div>
       </div>
       <p class="meta">Guide-browser evidence is tracked separately by hash-bound records and omitted from this generated guide to avoid self-referential guide freshness loops.</p>
     </section>
@@ -289,7 +291,13 @@ node .codex/scripts/nexus-workflow.mjs record-audit --scope branch --verdict pas
 
         <h3>Validation</h3>
         <ul class="timeline">
-          <li><strong>audits:</strong> Audit pass branch <span class="meta">2026-05-10T05:46:51.104Z</span></li>
+          <li><strong>audits:</strong> Audit pass branch <span class="meta">2026-05-10T06:35:19.242Z</span></li>
+<li><strong>tests:</strong> Verification pass branch <span class="meta">2026-05-10T06:35:18.631Z</span></li>
+<li><strong>reviews:</strong> Review integrated pass branch <span class="meta">2026-05-10T06:35:07.561Z</span></li>
+<li><strong>reviews:</strong> Review design pass branch <span class="meta">2026-05-10T06:35:06.716Z</span></li>
+<li><strong>reviews:</strong> Review workflow pass branch <span class="meta">2026-05-10T06:35:05.951Z</span></li>
+<li><strong>reviews:</strong> Review general pass branch <span class="meta">2026-05-10T06:35:05.113Z</span></li>
+<li><strong>audits:</strong> Audit pass branch <span class="meta">2026-05-10T05:46:51.104Z</span></li>
 <li><strong>tests:</strong> Verification pass branch <span class="meta">2026-05-10T05:46:41.258Z</span></li>
 <li><strong>reviews:</strong> Review integrated pass branch <span class="meta">2026-05-10T05:46:32.168Z</span></li>
 <li><strong>reviews:</strong> Review design pass branch <span class="meta">2026-05-10T05:46:24.100Z</span></li>
@@ -443,9 +451,42 @@ node .codex/scripts/nexus-workflow.mjs record-audit --scope branch --verdict pas
         </ul>
 
 
+        <h3>Workflow</h3>
+        <ul class="timeline">
+          <li><strong>patches:</strong> Workflow kernel self-check hardening <span class="meta">2026-05-10T06:35:04.091Z</span></li>
+<li><strong>patches:</strong> Finalize workflow extraction handover wording <span class="meta">2026-05-10T05:37:19.672Z</span></li>
+<li><strong>decisions:</strong> Use conservative workflow engine/profile split for second-project reuse <span class="meta">2026-05-10T05:31:16.513Z</span></li>
+<li><strong>patches:</strong> Extract reusable workflow profile and Nexus policy pack <span class="meta">2026-05-10T05:30:16.970Z</span></li>
+<li><strong>patches:</strong> correct portability report evidence wording <span class="meta">2026-05-09T17:08:51.859Z</span></li>
+<li><strong>patches:</strong> cross-platform branch evidence hashing correction <span class="meta">2026-05-09T16:37:42.770Z</span></li>
+<li><strong>decisions:</strong> branch evidence hashes canonicalize text line endings <span class="meta">2026-05-09T16:37:17.812Z</span></li>
+<li><strong>patches:</strong> final Codex workflow ladder, guide, Zoo, and evidence hardening <span class="meta">2026-05-09T16:28:49.659Z</span></li>
+<li><strong>decisions:</strong> workflow execution ladder and evidence durability guardrails <span class="meta">2026-05-09T16:17:21.910Z</span></li>
+<li><strong>decisions:</strong> Workflow pass records embed durable command evidence <span class="meta">2026-05-09T15:49:52.471Z</span></li>
+<li><strong>decisions:</strong> Workflow proof model simplified around records git and gates <span class="meta">2026-05-09T15:20:30.878Z</span></li>
+<li><strong>patches:</strong> final visual Zoo guide and workflow gate hardening <span class="meta">2026-05-09T10:35:34.584Z</span></li>
+<li><strong>patches:</strong> Clean committed-state release gate fix plus compact handover refresh <span class="meta">2026-05-09T08:30:33.068Z</span></li>
+<li><strong>patches:</strong> Fix clean committed-state release gate and cross-platform guide hashing <span class="meta">2026-05-09T08:28:48.029Z</span></li>
+<li><strong>patches:</strong> Final workflow hardening scope after removing generated TypeScript build metadata from the commit <span class="meta">2026-05-09T08:15:44.373Z</span></li>
+<li><strong>patches:</strong> generated guide whitespace normalization <span class="meta">2026-05-09T08:07:43.099Z</span></li>
+<li><strong>patches:</strong> deterministic workflow kernel hardening after focused review findings <span class="meta">2026-05-09T07:48:27.529Z</span></li>
+<li><strong>patches:</strong> post-build workflow hardening current hash coverage <span class="meta">2026-05-09T07:35:02.346Z</span></li>
+<li><strong>patches:</strong> Final guide browser screenshot gate hardening <span class="meta">2026-05-09T07:23:00.607Z</span></li>
+<li><strong>patches:</strong> Final workflow gate stabilization <span class="meta">2026-05-09T07:14:21.824Z</span></li>
+<li><strong>patches:</strong> Hash-bound guide and gate hardening <span class="meta">2026-05-09T07:09:57.625Z</span></li>
+<li><strong>patches:</strong> Second hardening final blocker fixes <span class="meta">2026-05-09T07:00:15.522Z</span></li>
+<li><strong>patches:</strong> Fix focused review workflow blockers <span class="meta">2026-05-09T06:43:05.427Z</span></li>
+<li><strong>patches:</strong> Refresh compact workflow state and dashboard after local gate validation <span class="meta">2026-05-08T17:43:48.318Z</span></li>
+<li><strong>patches:</strong> Codex-native workflow migration, Claude workflow archive, and design-system Toast continuation <span class="meta">2026-05-08T17:41:21.965Z</span></li>
+<li><strong>patches:</strong> Design-system toast semantic parity <span class="meta">2026-05-08T17:07:13.546Z</span></li>
+<li><strong>decisions:</strong> Workflow mechanism split <span class="meta">2026-05-08T16:38:32.282Z</span></li>
+        </ul>
+
+
         <h3>Deployment</h3>
         <ul class="timeline">
-          <li><strong>patches:</strong> Fix deployment record guide self-staleness loop <span class="meta">2026-05-10T05:45:58.442Z</span></li>
+          <li><strong>deployments:</strong> Deploy workflow guide after self-reference fix <span class="meta">2026-05-10T05:50:31.566Z</span></li>
+<li><strong>patches:</strong> Fix deployment record guide self-staleness loop <span class="meta">2026-05-10T05:45:58.442Z</span></li>
 <li><strong>deployments:</strong> Deploy workflow profile extraction guide <span class="meta">2026-05-10T05:42:31.915Z</span></li>
 <li><strong>deployments:</strong> final workflow audit guide deployment with image-load proof <span class="meta">2026-05-09T17:27:29.498Z</span></li>
 <li><strong>patches:</strong> add reusable deployed guide image validation to final workflow <span class="meta">2026-05-09T17:22:41.624Z</span></li>
@@ -473,37 +514,6 @@ node .codex/scripts/nexus-workflow.mjs record-audit --scope branch --verdict pas
 <li><strong>patches:</strong> Record deployment evidence and update workflow handover <span class="meta">2026-05-08T17:50:45.855Z</span></li>
 <li><strong>deployments:</strong> Server deployment validation for Codex-native workflow <span class="meta">2026-05-08T17:50:20.520Z</span></li>
 <li><strong>tests:</strong> Server pre-deploy validation <span class="meta">2026-05-08T17:18:20.443Z</span></li>
-        </ul>
-
-
-        <h3>Workflow</h3>
-        <ul class="timeline">
-          <li><strong>patches:</strong> Finalize workflow extraction handover wording <span class="meta">2026-05-10T05:37:19.672Z</span></li>
-<li><strong>decisions:</strong> Use conservative workflow engine/profile split for second-project reuse <span class="meta">2026-05-10T05:31:16.513Z</span></li>
-<li><strong>patches:</strong> Extract reusable workflow profile and Nexus policy pack <span class="meta">2026-05-10T05:30:16.970Z</span></li>
-<li><strong>patches:</strong> correct portability report evidence wording <span class="meta">2026-05-09T17:08:51.859Z</span></li>
-<li><strong>patches:</strong> cross-platform branch evidence hashing correction <span class="meta">2026-05-09T16:37:42.770Z</span></li>
-<li><strong>decisions:</strong> branch evidence hashes canonicalize text line endings <span class="meta">2026-05-09T16:37:17.812Z</span></li>
-<li><strong>patches:</strong> final Codex workflow ladder, guide, Zoo, and evidence hardening <span class="meta">2026-05-09T16:28:49.659Z</span></li>
-<li><strong>decisions:</strong> workflow execution ladder and evidence durability guardrails <span class="meta">2026-05-09T16:17:21.910Z</span></li>
-<li><strong>decisions:</strong> Workflow pass records embed durable command evidence <span class="meta">2026-05-09T15:49:52.471Z</span></li>
-<li><strong>decisions:</strong> Workflow proof model simplified around records git and gates <span class="meta">2026-05-09T15:20:30.878Z</span></li>
-<li><strong>patches:</strong> final visual Zoo guide and workflow gate hardening <span class="meta">2026-05-09T10:35:34.584Z</span></li>
-<li><strong>patches:</strong> Clean committed-state release gate fix plus compact handover refresh <span class="meta">2026-05-09T08:30:33.068Z</span></li>
-<li><strong>patches:</strong> Fix clean committed-state release gate and cross-platform guide hashing <span class="meta">2026-05-09T08:28:48.029Z</span></li>
-<li><strong>patches:</strong> Final workflow hardening scope after removing generated TypeScript build metadata from the commit <span class="meta">2026-05-09T08:15:44.373Z</span></li>
-<li><strong>patches:</strong> generated guide whitespace normalization <span class="meta">2026-05-09T08:07:43.099Z</span></li>
-<li><strong>patches:</strong> deterministic workflow kernel hardening after focused review findings <span class="meta">2026-05-09T07:48:27.529Z</span></li>
-<li><strong>patches:</strong> post-build workflow hardening current hash coverage <span class="meta">2026-05-09T07:35:02.346Z</span></li>
-<li><strong>patches:</strong> Final guide browser screenshot gate hardening <span class="meta">2026-05-09T07:23:00.607Z</span></li>
-<li><strong>patches:</strong> Final workflow gate stabilization <span class="meta">2026-05-09T07:14:21.824Z</span></li>
-<li><strong>patches:</strong> Hash-bound guide and gate hardening <span class="meta">2026-05-09T07:09:57.625Z</span></li>
-<li><strong>patches:</strong> Second hardening final blocker fixes <span class="meta">2026-05-09T07:00:15.522Z</span></li>
-<li><strong>patches:</strong> Fix focused review workflow blockers <span class="meta">2026-05-09T06:43:05.427Z</span></li>
-<li><strong>patches:</strong> Refresh compact workflow state and dashboard after local gate validation <span class="meta">2026-05-08T17:43:48.318Z</span></li>
-<li><strong>patches:</strong> Codex-native workflow migration, Claude workflow archive, and design-system Toast continuation <span class="meta">2026-05-08T17:41:21.965Z</span></li>
-<li><strong>patches:</strong> Design-system toast semantic parity <span class="meta">2026-05-08T17:07:13.546Z</span></li>
-<li><strong>decisions:</strong> Workflow mechanism split <span class="meta">2026-05-08T16:38:32.282Z</span></li>
         </ul>
 
 
