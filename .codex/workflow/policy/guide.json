@@ -70,6 +70,10 @@
       "{rootPosix}",
       "/root/monoWeb/nexus",
       "/root/monoWeb/deploy-backups",
+      "http://localhost",
+      "https://localhost",
+      "127.0.0.1",
+      "localhost",
       "~/.ssh/",
       "DIOkii",
       "root@",
@@ -82,6 +86,59 @@
     "zoo/index.html",
     "zoo/manifest.json"
   ],
+  "ladderMentionFiles": [
+    "AGENTS.md",
+    "WORKFLOW.md",
+    ".codex/README.md"
+  ],
+  "dashboardKnowledgeSections": [
+    {
+      "id": "patterns",
+      "title": "Patterns",
+      "file": ".codex/knowledge/patterns.md"
+    },
+    {
+      "id": "design",
+      "title": "Design System",
+      "file": ".codex/knowledge/design-system.md"
+    },
+    {
+      "id": "deployment",
+      "title": "Deployment",
+      "file": ".codex/knowledge/deployment.md"
+    }
+  ],
+  "sessionStart": {
+    "readDocs": [
+      ".codex/README.md",
+      "{currentState}",
+      "closest relevant .codex/knowledge file"
+    ],
+    "statusCommand": "node .codex/scripts/nexus-workflow.mjs status"
+  },
+  "resume": {
+    "readDocs": [
+      "WORKFLOW.md",
+      "AGENTS.md",
+      ".codex/workflow/current-state.md"
+    ],
+    "permissionAdvice": "Use trusted Custom (config.toml) when project hooks matter. Full access grants permissions but does not prove hooks/config loaded; diagnose with npm run workflow:hook-runtime-check and bootstrap new projects from .codex/workflow/templates/project-bootstrap.md.",
+    "branchCloseoutCommands": [
+      "node .codex/scripts/nexus-workflow.mjs close-work-slice --slice <WORK-SLICE-id> --status done --notes \"<evidence complete>\"",
+      "node .codex/scripts/nexus-workflow.mjs record-patch --scope branch --summary \"<branch summary>\" --worker <lead-worker> --work-slice <WORK-SLICE-id>",
+      "node .codex/scripts/nexus-workflow.mjs record-review --scope branch --kind general --verdict pass --reviewer <name> --work-slice <WORK-SLICE-id> --notes \"<summary>\"",
+      "node .codex/scripts/nexus-workflow.mjs record-verify --scope branch --verdict pass --verifier <name> --work-slice <WORK-SLICE-id> --commands \"<timed-command-ids>\" --notes \"<commands/results>\"",
+      "node .codex/scripts/nexus-workflow.mjs record-audit --scope branch --verdict pass --auditor <name> --work-slice <WORK-SLICE-id> --commands \"<timed-command-ids>\" --notes \"<summary>\""
+    ]
+  },
+  "recordFeedExcludeKinds": [
+    "deployments"
+  ],
+  "publicTimeline": {
+    "excludeKinds": [
+      "deployments"
+    ]
+  },
   "sourceFiles": [
     "AGENTS.md",
     "WORKFLOW.md",
@@ -104,6 +161,7 @@
     ".codex/workflow/dependency-audit-baseline.json",
     ".codex/scripts/audit-deps.mjs",
     ".codex/scripts/check-design-tokens.mjs",
+    ".codex/scripts/check-production-app.mjs",
     ".codex/scripts/check-public-guide-images.mjs",
     ".codex/scripts/check-production-zoo-bundle.mjs",
     ".codex/scripts/run-hook.mjs",
@@ -136,6 +194,7 @@
     ".codex/workflow/policy/intake.json",
     ".codex/workflow/policy/deployment.json",
     ".codex/scripts/nexus-workflow.mjs",
+    ".codex/scripts/check-production-app.mjs",
     ".codex/scripts/workflow-engine.mjs",
     ".codex/workflow/templates/project-bootstrap.md"
   ],

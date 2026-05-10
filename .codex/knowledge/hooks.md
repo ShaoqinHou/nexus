@@ -18,7 +18,7 @@ Review, verification, audit, pattern judgment, and model routing stay outside ho
 
 The shared deterministic layer is `.codex/scripts/nexus-workflow.mjs`. Hooks should call that layer for trigger/block/remind behavior. They should not become separate workflow engines, because that would split handover, review, audit, routing, and guide logic across too many places.
 
-Hooks call `.codex/scripts/run-hook.mjs <event>` and nothing else. `run-hook.mjs` is a tiny dispatcher to `nexus-workflow.mjs hook <event>` so hook JSON remains readable and the hook-config check can reject inline shell logic.
+Hooks call `.codex/scripts/run-hook.mjs <event>` and nothing else. `run-hook.mjs` is a tiny dispatcher to the wrapper configured in `.codex/workflow/profile.json` `paths.workflowWrapper` (Nexus: `nexus-workflow.mjs hook <event>`) so hook JSON remains readable and the hook-config check can reject inline shell logic.
 
 ## Trust And Loading
 

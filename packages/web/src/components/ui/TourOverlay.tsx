@@ -255,9 +255,10 @@ export function TourOverlay({
 
       {/* Tooltip — above everything */}
       <div
+        data-tour-overlay="true"
         style={tooltipStyle}
         className={[
-          'bg-bg-elevated border border-border rounded-xl shadow-lg p-5 z-[91] transition-all duration-300',
+          'bg-bg-elevated text-text border border-border rounded-[var(--radius-card)] shadow-lg p-5 z-[91] transition-all duration-300',
           visible ? 'opacity-100 scale-100' : 'opacity-0 scale-95',
         ].join(' ')}
       >
@@ -302,7 +303,7 @@ export function TourOverlay({
           <button
             type="button"
             onClick={onSkip}
-            className="min-h-[var(--hit-sm)] px-3 text-sm font-medium text-text-tertiary hover:text-text-secondary hover:bg-bg-muted rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]"
+            className="min-h-[var(--hit-sm)] px-3 text-sm font-medium text-text-tertiary hover:text-text-secondary hover:bg-bg-muted rounded-[var(--radius-btn)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]"
           >
             {t('Skip tour')}
           </button>
@@ -310,7 +311,7 @@ export function TourOverlay({
             <button
               type="button"
               onClick={onNext}
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 min-h-[var(--hit-sm)] text-sm font-medium rounded-lg bg-primary text-text-inverse hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 min-h-[var(--hit-sm)] text-sm font-medium rounded-[var(--radius-btn)] bg-primary text-text-inverse hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]"
             >
               {buttonLabel}
             </button>

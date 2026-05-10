@@ -1,7 +1,9 @@
 {
   "schema": "nexus-design-workflow-policy/v1",
   "zooVisualGuideVersion": "nexus-design-zoo-visual-guide/v1",
+  "zooVisualManifestSchema": "nexus-design-zoo-visual-manifest/v1",
   "zooVisualGuideTitle": "Nexus Design Zoo / Gym",
+  "zooVisualSurfaceLabel": "Visual Demo Surface",
   "zooVisualGuideRequiredStrings": [
     "Nexus Design Zoo / Gym",
     "Visual Demo Surface",
@@ -19,6 +21,77 @@
   "registryPath": "packages/web/src/components/registry.json",
   "zooRoutePath": "packages/web/src/routes/__design/Zoo.tsx",
   "themeMatrixPath": "packages/web/src/platform/theme/themes.css",
+  "themeDirectoryPath": "packages/web/src/platform/theme/themes",
+  "zooVisualMinImages": 50,
+  "zooVisualCapture": {
+    "defaultTheme": "sichuan",
+    "waitForText": "Zoo",
+    "foundations": [
+      {
+        "slug": "index",
+        "title": "Zoo Index",
+        "kind": "foundation",
+        "route": "/design",
+        "path": "packages/web/src/routes/__design/Zoo.tsx",
+        "purpose": "Entry page for the live component catalog."
+      },
+      {
+        "slug": "tokens",
+        "title": "Token Foundations",
+        "kind": "foundation",
+        "route": "/design/tokens",
+        "path": "packages/web/src/platform/theme/tokens.css",
+        "purpose": "Production token swatches for colors, radii, shadows, and hit targets."
+      },
+      {
+        "slug": "themes",
+        "title": "Theme Matrix",
+        "kind": "foundation",
+        "route": "/design/themes",
+        "path": "packages/web/src/platform/theme/themes.css",
+        "purpose": "All cuisine themes rendered side by side from real components."
+      }
+    ],
+    "contexts": [
+      {
+        "id": "desktop-light-{theme}",
+        "label": "Desktop light {theme}",
+        "mode": "light",
+        "theme": "{theme}",
+        "viewport": {
+          "width": 1360,
+          "height": 860
+        }
+      },
+      {
+        "id": "mobile-dark-{theme}",
+        "label": "Mobile dark {theme}",
+        "mode": "dark",
+        "theme": "{theme}",
+        "viewport": {
+          "width": 390,
+          "height": 844
+        }
+      }
+    ],
+    "interactiveShowcases": {
+      "toast": {
+        "buttonName": "+ Warning",
+        "expectedText": "Ingredient threshold reached.",
+        "expectedPortalSelector": "[role=\"alert\"]"
+      },
+      "dialog": {
+        "buttonName": "Open dialog",
+        "expectedRole": "dialog",
+        "expectedText": "Confirm action"
+      },
+      "tour-overlay": {
+        "buttonName": "Start tour",
+        "expectedText": "Welcome to Nexus",
+        "expectedPortalSelector": "[data-tour-overlay]"
+      }
+    }
+  },
   "tokenSource": {
     "file": "packages/web/src/platform/theme/tokens.css",
     "publicGuideTokens": [

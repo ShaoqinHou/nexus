@@ -15,6 +15,10 @@ This file captures durable project knowledge that coding and review agents shoul
 - Business data is soft-deleted unless the table is a disposable join/session table.
 - Order items snapshot name, price, and modifiers at order creation time.
 
+## Workflow-System Patterns
+
+- Gate and proof helper scripts must fail closed from `.codex/workflow/profile.json` and `.codex/workflow/policy/*.json`. Do not add hidden Nexus, localhost, route, theme, deployment URL, or base-path fallbacks inside helper scripts that create or validate release evidence. Evidence: `PATTERN-PROPOSAL-20260510T191819Z-pattern-proposed-workflow-helper-scripts-that-fe`.
+
 ## Design-System Traps
 
 - Do not edit `design/reference/v<N>/`; add `v<N+1>/` for a new export.

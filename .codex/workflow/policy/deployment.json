@@ -1,5 +1,24 @@
 {
   "schema": "nexus-deployment-workflow-policy/v1",
+  "publicAppUrl": "https://cv.rehou.games/nexus/",
+  "apiHealthUrl": "https://cv.rehou.games/nexus/api/platform/health",
+  "publicAssetPrefix": "/nexus/assets/",
   "publicGuideUrl": "https://cv.rehou.games/nexus/workflow/",
-  "visualZooGuideUrl": "https://cv.rehou.games/nexus/workflow/zoo/"
+  "visualZooGuideUrl": "https://cv.rehou.games/nexus/workflow/zoo/",
+  "guideArtifactProofRequired": true,
+  "publicGuideRequiredStrings": [
+    "Nexus Workflow Guide",
+    "Visual Zoo/Gym Guide"
+  ],
+  "visualZooGuideRequiredStrings": [
+    "Nexus Design Zoo / Gym",
+    "Visual Demo Surface"
+  ],
+  "allowedTargetPrefixes": [
+    "https://cv.rehou.games/nexus/"
+  ],
+  "requiredCommandClasses": [
+    "production-app-check",
+    "public-guide-deployed-check"
+  ]
 }

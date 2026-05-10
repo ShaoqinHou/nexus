@@ -25,6 +25,7 @@
     ".github/workflows/nexus-workflow-gates.yml",
     ".codex/scripts/audit-deps.mjs",
     ".codex/scripts/check-design-tokens.mjs",
+    ".codex/scripts/check-production-app.mjs",
     ".codex/scripts/check-public-guide-images.mjs",
     ".codex/scripts/check-production-zoo-bundle.mjs",
     ".codex/scripts/nexus-workflow.mjs",

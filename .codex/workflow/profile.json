@@ -10,6 +10,19 @@
     "routingScenarios": ".codex/workflow/scenarios/model-routing.json",
     "records": ".codex/workflow/records",
     "state": ".codex/workflow/state",
-    "runtime": ".codex/workflow/runtime"
+    "runtime": ".codex/workflow/runtime",
+    "currentState": ".codex/workflow/current-state.md",
+    "risks": ".codex/workflow/records/risks.md",
+    "knowledgeDir": ".codex/knowledge",
+    "agentsDir": ".codex/agents",
+    "workflowWrapper": ".codex/scripts/nexus-workflow.mjs",
+    "hookDispatcher": ".codex/scripts/run-hook.mjs",
+    "guideBrowserFinalArtifacts": ".codex/workflow/artifacts/screenshots/guide-browser-final"
+  },
+  "env": {
+    "webUrl": "NEXUS_WEB_URL",
+    "publicWorkflowUrl": "NEXUS_PUBLIC_WORKFLOW_URL",
+    "zooCaptureTheme": "NEXUS_ZOO_CAPTURE_THEME",
+    "zooCaptureMode": "NEXUS_ZOO_CAPTURE_MODE"
   }
 }

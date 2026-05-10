@@ -1,19 +1,28 @@
 #!/usr/bin/env node
 import { existsSync, readFileSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { findWorkflowRoot, loadCodexWorkflow } from './workflow-engine.mjs';
 
 const event = process.argv[2] || '';
 const allowed = new Set(['session-start', 'pre-tool-use', 'post-tool-use', 'stop']);
 if (!allowed.has(event)) {
-  console.error(`Unknown Nexus hook event: ${event}`);
+  console.error(`Unknown Codex workflow hook event: ${event}`);
   process.exit(2);
 }
 
-const root = findRoot(process.cwd());
-const script = join(root, '.codex', 'scripts', 'nexus-workflow.mjs');
+const root = findWorkflowRoot(process.cwd());
+let script = join(root, '.codex', 'scripts', 'nexus-workflow.mjs');
+try {
+  const workflow = loadCodexWorkflow(root);
+  const configured = workflow.profile?.paths?.workflowWrapper;
+  if (configured) script = resolve(root, configured);
+} catch (error) {
+  console.error(`Could not load Codex workflow profile for hook dispatch: ${error.message || error}`);
+}
+
 if (!existsSync(script)) {
-  console.error('Nexus hook script not found.');
+  console.error(`Codex workflow hook wrapper not found: ${script}`);
   process.exit(event === 'pre-tool-use' ? 1 : 0);
 }
 
@@ -28,15 +37,6 @@ const result = spawnSync(process.execPath, [script, 'hook', event], {
 if (result.stdout) process.stdout.write(result.stdout);
 if (result.stderr) process.stderr.write(result.stderr);
 process.exit(result.status ?? 1);
-
-function findRoot(start) {
-  let dir = resolve(start);
-  while (dir !== dirname(dir)) {
-    if (existsSync(join(dir, '.codex', 'scripts', 'nexus-workflow.mjs'))) return dir;
-    dir = dirname(dir);
-  }
-  return resolve(start);
-}
 
 function readStdin() {
   try {

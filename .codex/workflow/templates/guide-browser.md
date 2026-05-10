@@ -5,6 +5,8 @@ name: "guide-browser"
 
 # Guide Browser Validation
 
+Body reference only. Create durable records with `npm run workflow:guide-browser-finalize` or `record-guide-browser ...` so guide hashes and artifact hashes are generated.
+
 Use this evidence when `.codex/dashboard/index.html` or `.codex/dashboard/public.html` is regenerated for release.
 
 Record with:

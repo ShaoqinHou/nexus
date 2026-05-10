@@ -548,7 +548,7 @@ function DiscountOverridePopover({
               onClick={handleSubmit}
               loading={isPending}
               disabled={!amount || parseFloat(amount) <= 0 || !reason.trim()}
-              className="w-full min-h-[36px]"
+              className="w-full min-h-[var(--hit-sm)]"
             >
               {t('Apply')}
             </Button>
@@ -736,7 +736,7 @@ function SplitPaymentPanel({
             onClick={handleSubmit}
             loading={addPaymentMutation.isPending}
             disabled={!amount || parseFloat(amount) <= 0}
-            className="w-full min-h-[36px]"
+            className="w-full min-h-[var(--hit-sm)]"
           >
             {t('Add Payment')}
           </Button>

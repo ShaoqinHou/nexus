@@ -4,9 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="nexus-guide-version" content="nexus-public-workflow-guide/v2" />
-  <meta name="nexus-guide-source-hash" content="1b2be9999d51874a10ea7641" />
-  <meta name="nexus-guide-record-feed-hash" content="990746473e8b0d19b76f8ba6" />
-  <meta name="nexus-guide-content-hash" content="354edd994f38bd8b1938384c" />
+  <meta name="nexus-guide-source-hash" content="8c18bb67d676794b426af08c" />
+  <meta name="nexus-guide-record-feed-hash" content="f3b277e4d07670e296cb6694" />
+  <meta name="nexus-guide-content-hash" content="d4cc260cf03d50daccb8f5cd" />
   <meta name="nexus-token-source" content="packages/web/src/platform/theme/tokens.css" />
   <title>Nexus Workflow Dashboard</title>
   <style>
@@ -83,7 +83,7 @@
 <body>
   <header>
     <h1>Nexus Workflow Dashboard</h1>
-    <div class="meta">Generated 2026-05-10T16:06:39.848Z · branch codex/native-workflow</div>
+    <div class="meta">Generated 2026-05-10T19:21:06.315Z · branch codex/native-workflow</div>
   </header>
   <div class="layout">
     <nav>
@@ -92,7 +92,8 @@
       <a href="#current">Current State</a>
       <a href="#zoo">Design Zoo/Gym</a>
       <a href="#patterns">Patterns</a>
-      <a href="#design">Design System</a>
+<a href="#design">Design System</a>
+<a href="#deployment">Deployment</a>
       <a href="#records">Records</a>
       <a href="#decisions">Decisions</a>
       <a href="#pattern-proposals">Pattern Proposals</a>
@@ -109,14 +110,14 @@
         <h2>Overview</h2>
         <div class="grid">
           <div class="card"><span class="meta">Decisions</span><strong>10</strong></div>
-<div class="card"><span class="meta">Intents</span><strong>5</strong></div>
-<div class="card"><span class="meta">Work Slices</span><strong>11</strong></div>
-<div class="card"><span class="meta">Pattern Proposals</span><strong>12</strong></div>
+<div class="card"><span class="meta">Intents</span><strong>6</strong></div>
+<div class="card"><span class="meta">Work Slices</span><strong>13</strong></div>
+<div class="card"><span class="meta">Pattern Proposals</span><strong>13</strong></div>
 <div class="card"><span class="meta">Routing</span><strong>24</strong></div>
-<div class="card"><span class="meta">Patches</span><strong>58</strong></div>
-<div class="card"><span class="meta">Reviews</span><strong>87</strong></div>
-<div class="card"><span class="meta">Tests</span><strong>56</strong></div>
-<div class="card"><span class="meta">Audits</span><strong>35</strong></div>
+<div class="card"><span class="meta">Patches</span><strong>59</strong></div>
+<div class="card"><span class="meta">Reviews</span><strong>92</strong></div>
+<div class="card"><span class="meta">Tests</span><strong>57</strong></div>
+<div class="card"><span class="meta">Audits</span><strong>36</strong></div>
 <div class="card"><span class="meta">Deployments</span><strong>11</strong></div>
 <div class="card"><span class="meta">Zoo Pages</span><strong>24/24</strong></div>
         </div>
@@ -127,24 +128,29 @@
       <h2>Work Intake</h2>
       <p class="meta">Local records are canonical. External trackers are optional references; gates use repo-local intent, work-slice, and evidence records.</p>
       <div class="grid">
-        <div class="card"><span class="meta">Inbox</span><strong>5</strong></div>
+        <div class="card"><span class="meta">Inbox</span><strong>0</strong></div>
         <div class="card"><span class="meta">Active Work Slices</span><strong>0</strong></div>
         <div class="card"><span class="meta">Feature Catalog</span><strong>2</strong></div>
         <div class="card"><span class="meta">Work Intake Warnings</span><strong>0</strong></div>
       </div>
       <h3>Work Intake Inbox</h3>
-      <ul><li data-work-intake-intent="INTENT-20260510T154949Z-intent-maintenance-final-acceptance-requires-aud"><strong>INTENT-20260510T154949Z-intent-maintenance-final-acceptance-requires-aud</strong> <span class="meta">captured · maintenance</span><br>Final acceptance requires auditing the actual workflow codebase for design drift and patch-on-patch fixes, not only documentation architecture.</li>
-<li data-work-intake-intent="INTENT-20260510T151209Z-intent-maintenance-before-final-completion-perfo"><strong>INTENT-20260510T151209Z-intent-maintenance-before-final-completion-perfo</strong> <span class="meta">captured · maintenance</span><br>Before final completion, perform a code-level workflow architecture audit for design drift, patch-on-patch fixes, and mismatch between intended architecture and actual workflow implementation</li>
-<li data-work-intake-intent="INTENT-20260510T145511Z-intent-feature-after-workflow-closeout-review-an"><strong>INTENT-20260510T145511Z-intent-feature-after-workflow-closeout-review-an</strong> <span class="meta">captured · feature</span><br>After workflow closeout, review and repair the partially migrated design-system integration that came from the old Claude workflow, rebuild stale/wrong documentation through the new workflow, and fix implementation gaps with proper records and validation</li>
-<li data-work-intake-intent="INTENT-20260510T144910Z-intent-maintenance-clean-remaining-themeprovider"><strong>INTENT-20260510T144910Z-intent-maintenance-clean-remaining-themeprovider</strong> <span class="meta">captured · maintenance</span><br>Clean remaining ThemeProvider React act warning using the Codex workflow</li>
-<li data-work-intake-intent="INTENT-20260510T134902Z-intent-feature-expand-codex-workflow-with-portab"><strong>INTENT-20260510T134902Z-intent-feature-expand-codex-workflow-with-portab</strong> <span class="meta">accepted · feature</span><br>Expand Codex workflow with portable solo-dev Work Intake and presentation system</li></ul>
+      <p class="muted">No open user-intent records.</p>
       <h3>Active Work Slices</h3>
       <p class="muted">No active work slices.</p>
 
     <div class="graph">
       <h3>Intent Trace Graph</h3>
       <div class="nodes">
-        <div class="node" data-graph-node="Slice WORK-SLICE-20260510T154958Z-work-slice-active-finalize-workflow-code-archite"><strong>Slice WORK-SLICE-20260510T154958Z-work-slice-active-finalize-workflow-code-archite</strong><span>done · Finalize workflow code architecture drift audit and closeout evidence.</span></div>
+        <div class="node" data-graph-node="Slice WORK-SLICE-20260510T161446Z-work-slice-active-duplicate-agent-code-and-archi"><strong>Slice WORK-SLICE-20260510T161446Z-work-slice-active-duplicate-agent-code-and-archi</strong><span>done · Duplicate-agent code and architecture audit of the Nexus Codex workflow.</span></div>
+<div class="node" data-graph-node="Intent INTENT-20260510T161407Z-intent-maintenance-run-a-larger-duplicate-agent-"><strong>Intent INTENT-20260510T161407Z-intent-maintenance-run-a-larger-duplicate-agent-</strong><span>captured · Run a larger duplicate-agent workflow audit wave. Every workflow area should be audited by at least two agents, including architecture and actual codebase drift, not only documentation.</span></div>
+<div class="node" data-graph-node="Patch PATCH-20260510T191907Z-duplicate-agent-workflow-architecture-audit-hard"><strong>Patch PATCH-20260510T191907Z-duplicate-agent-workflow-architecture-audit-hard</strong><span>PATCH-20260510T191907Z-duplicate-agent-workflow-architecture-audit-hard</span></div>
+<div class="node" data-graph-node="Review REVIEW-20260510T191916Z-review-general-pass-branch"><strong>Review REVIEW-20260510T191916Z-review-general-pass-branch</strong><span>REVIEW-20260510T191916Z-review-general-pass-branch</span></div>
+<div class="node" data-graph-node="Review REVIEW-20260510T191925Z-review-workflow-pass-branch"><strong>Review REVIEW-20260510T191925Z-review-workflow-pass-branch</strong><span>REVIEW-20260510T191925Z-review-workflow-pass-branch</span></div>
+<div class="node" data-graph-node="Review REVIEW-20260510T191935Z-review-pattern-pass-branch"><strong>Review REVIEW-20260510T191935Z-review-pattern-pass-branch</strong><span>REVIEW-20260510T191935Z-review-pattern-pass-branch</span></div>
+<div class="node" data-graph-node="Review REVIEW-20260510T191944Z-review-design-pass-branch"><strong>Review REVIEW-20260510T191944Z-review-design-pass-branch</strong><span>REVIEW-20260510T191944Z-review-design-pass-branch</span></div>
+<div class="node" data-graph-node="Verify TEST-20260510T192010Z-verification-pass-branch"><strong>Verify TEST-20260510T192010Z-verification-pass-branch</strong><span>TEST-20260510T192010Z-verification-pass-branch</span></div>
+<div class="node" data-graph-node="Audit AUDIT-20260510T192024Z-audit-pass-branch"><strong>Audit AUDIT-20260510T192024Z-audit-pass-branch</strong><span>AUDIT-20260510T192024Z-audit-pass-branch</span></div>
+<div class="node" data-graph-node="Slice WORK-SLICE-20260510T154958Z-work-slice-active-finalize-workflow-code-archite"><strong>Slice WORK-SLICE-20260510T154958Z-work-slice-active-finalize-workflow-code-archite</strong><span>done · Finalize workflow code architecture drift audit and closeout evidence.</span></div>
 <div class="node" data-graph-node="Intent INTENT-20260510T154949Z-intent-maintenance-final-acceptance-requires-aud"><strong>Intent INTENT-20260510T154949Z-intent-maintenance-final-acceptance-requires-aud</strong><span>captured · Final acceptance requires auditing the actual workflow codebase for design drift and patch-on-patch fixes, not only documentation architecture.</span></div>
 <div class="node" data-graph-node="Patch PATCH-20260510T155745Z-move-final-guide-redaction-and-zoo-gym-visual-co"><strong>Patch PATCH-20260510T155745Z-move-final-guide-redaction-and-zoo-gym-visual-co</strong><span>PATCH-20260510T155745Z-move-final-guide-redaction-and-zoo-gym-visual-co</span></div>
 <div class="node" data-graph-node="Patch PATCH-20260510T155915Z-codex-native-workflow-adaptation-work-intake-pol"><strong>Patch PATCH-20260510T155915Z-codex-native-workflow-adaptation-work-intake-pol</strong><span>PATCH-20260510T155915Z-codex-native-workflow-adaptation-work-intake-pol</span></div>
@@ -180,10 +186,23 @@
 <div class="node" data-graph-node="Patch PATCH-20260510T151309Z-reconcile-old-claude-design-system-guidance-with"><strong>Patch PATCH-20260510T151309Z-reconcile-old-claude-design-system-guidance-with</strong><span>PATCH-20260510T151309Z-reconcile-old-claude-design-system-guidance-with</span></div>
 <div class="node" data-graph-node="Patch PATCH-20260510T151659Z-fix-design-system-guidance-drift-found-by-old-cl"><strong>Patch PATCH-20260510T151659Z-fix-design-system-guidance-drift-found-by-old-cl</strong><span>PATCH-20260510T151659Z-fix-design-system-guidance-drift-found-by-old-cl</span></div>
       </div>
-      <p class="meta">Intent INTENT-20260510T154949Z-intent-maintenance-final-acceptance-requires-aud -> Slice WORK-SLICE-20260510T154958Z-work-slice-active-finalize-workflow-code-archite · Slice WORK-SLICE-20260510T154958Z-work-slice-active-finalize-workflow-code-archite -> Patch PATCH-20260510T155745Z-move-final-guide-redaction-and-zoo-gym-visual-co · Slice WORK-SLICE-20260510T154958Z-work-slice-active-finalize-workflow-code-archite -> Patch PATCH-20260510T155915Z-codex-native-workflow-adaptation-work-intake-pol · Slice WORK-SLICE-20260510T154958Z-work-slice-active-finalize-workflow-code-archite -> Review REVIEW-20260510T155942Z-review-general-pass-branch · Slice WORK-SLICE-20260510T154958Z-work-slice-active-finalize-workflow-code-archite -> Review REVIEW-20260510T155942Z-review-integrated-pass-branch · Slice WORK-SLICE-20260510T154958Z-work-slice-active-finalize-workflow-code-archite -> Review REVIEW-20260510T155942Z-review-pattern-pass-branch · Slice WORK-SLICE-20260510T154958Z-work-slice-active-finalize-workflow-code-archite -> Review REVIEW-20260510T155942Z-review-workflow-pass-branch · Slice WORK-SLICE-20260510T154958Z-work-slice-active-finalize-workflow-code-archite -> Verify TEST-20260510T160013Z-verification-pass-branch · Slice WORK-SLICE-20260510T154958Z-work-slice-active-finalize-workflow-code-archite -> Audit AUDIT-20260510T160013Z-audit-pass-branch · Slice WORK-SLICE-20260510T154958Z-work-slice-active-finalize-workflow-code-archite -> Deploy DEPLOYMENT-20260510T160628Z-deploy-codex-native-workflow-guide-and-validate- · Intent INTENT-20260510T151209Z-intent-maintenance-before-final-completion-perfo -> Slice WORK-SLICE-20260510T151217Z-work-slice-active-final-code-level-workflow-arch · Slice WORK-SLICE-20260510T151217Z-work-slice-active-final-code-level-workflow-arch -> Patch PATCH-20260510T153902Z-fix-workflow-architecture-drift-by-moving-contra · Slice WORK-SLICE-20260510T151217Z-work-slice-active-final-code-level-workflow-arch -> Patch PATCH-20260510T154054Z-refresh-current-state-with-architecture-audit-an · Slice WORK-SLICE-20260510T151217Z-work-slice-active-final-code-level-workflow-arch -> Patch PATCH-20260510T154550Z-codex-native-workflow-adaptation-work-intake-gui · Slice WORK-SLICE-20260510T151217Z-work-slice-active-final-code-level-workflow-arch -> Patch PATCH-20260510T155915Z-codex-native-workflow-adaptation-work-intake-pol · Slice WORK-SLICE-20260510T151217Z-work-slice-active-final-code-level-workflow-arch -> Review REVIEW-20260510T154622Z-review-design-pass-branch · Slice WORK-SLICE-20260510T151217Z-work-slice-active-final-code-level-workflow-arch -> Review REVIEW-20260510T154622Z-review-general-pass-branch · Slice WORK-SLICE-20260510T151217Z-work-slice-active-final-code-level-workflow-arch -> Review REVIEW-20260510T154622Z-review-integrated-pass-branch · Slice WORK-SLICE-20260510T151217Z-work-slice-active-final-code-level-workflow-arch -> Review REVIEW-20260510T154622Z-review-pattern-pass-branch · Slice WORK-SLICE-20260510T151217Z-work-slice-active-final-code-level-workflow-arch -> Verify TEST-20260510T154655Z-verification-pass-branch · Slice WORK-SLICE-20260510T151217Z-work-slice-active-final-code-level-workflow-arch -> Verify TEST-20260510T160013Z-verification-pass-branch · Slice WORK-SLICE-20260510T151217Z-work-slice-active-final-code-level-workflow-arch -> Audit AUDIT-20260510T154655Z-audit-pass-branch · Slice WORK-SLICE-20260510T151217Z-work-slice-active-final-code-level-workflow-arch -> Audit AUDIT-20260510T160013Z-audit-pass-branch · Slice WORK-SLICE-20260510T151217Z-work-slice-active-final-code-level-workflow-arch -> Deploy DEPLOYMENT-20260510T160628Z-deploy-codex-native-workflow-guide-and-validate- · Intent INTENT-20260510T134902Z-intent-feature-expand-codex-workflow-with-portab -> Slice WORK-SLICE-20260510T134914Z-work-slice-active-implement-and-validate-portabl · Slice WORK-SLICE-20260510T134914Z-work-slice-active-implement-and-validate-portabl -> Patch PATCH-20260510T135527Z-implement-portable-work-intake-workflow-subsyste · Slice WORK-SLICE-20260510T134914Z-work-slice-active-implement-and-validate-portabl -> Patch PATCH-20260510T141514Z-harden-work-intake-evidence-lifecycle-and-semant · Slice WORK-SLICE-20260510T134914Z-work-slice-active-implement-and-validate-portabl -> Patch PATCH-20260510T143404Z-harden-workflow-policy-ownership-pattern-review- · Slice WORK-SLICE-20260510T134914Z-work-slice-active-implement-and-validate-portabl -> Patch PATCH-20260510T143621Z-add-policy-manifest-pattern-review-gate-and-rout · Slice WORK-SLICE-20260510T134914Z-work-slice-active-implement-and-validate-portabl -> Review REVIEW-20260510T154622Z-review-design-pass-branch · Slice WORK-SLICE-20260510T134914Z-work-slice-active-implement-and-validate-portabl -> Review REVIEW-20260510T154622Z-review-general-pass-branch · Slice WORK-SLICE-20260510T134914Z-work-slice-active-implement-and-validate-portabl -> Review REVIEW-20260510T154622Z-review-integrated-pass-branch · Slice WORK-SLICE-20260510T134914Z-work-slice-active-implement-and-validate-portabl -> Review REVIEW-20260510T154622Z-review-pattern-pass-branch · Slice WORK-SLICE-20260510T134914Z-work-slice-active-implement-and-validate-portabl -> Verify TEST-20260510T154655Z-verification-pass-branch · Slice WORK-SLICE-20260510T134914Z-work-slice-active-implement-and-validate-portabl -> Verify TEST-20260510T160013Z-verification-pass-branch · Slice WORK-SLICE-20260510T134914Z-work-slice-active-implement-and-validate-portabl -> Audit AUDIT-20260510T154655Z-audit-pass-branch · Slice WORK-SLICE-20260510T134914Z-work-slice-active-implement-and-validate-portabl -> Audit AUDIT-20260510T160013Z-audit-pass-branch · Slice WORK-SLICE-20260510T134914Z-work-slice-active-implement-and-validate-portabl -> Deploy DEPLOYMENT-20260510T160628Z-deploy-codex-native-workflow-guide-and-validate- · Intent INTENT-20260510T144910Z-intent-maintenance-clean-remaining-themeprovider -> Slice WORK-SLICE-20260510T144918Z-work-slice-active-reproduce-and-remove-the-non-f · Slice WORK-SLICE-20260510T144918Z-work-slice-active-reproduce-and-remove-the-non-f -> Patch PATCH-20260510T145007Z-remove-themeprovider-test-act-warning-by-using-t · Slice WORK-SLICE-20260510T144918Z-work-slice-active-reproduce-and-remove-the-non-f -> Patch PATCH-20260510T154054Z-refresh-current-state-with-architecture-audit-an · Slice WORK-SLICE-20260510T144918Z-work-slice-active-reproduce-and-remove-the-non-f -> Patch PATCH-20260510T154550Z-codex-native-workflow-adaptation-work-intake-gui · Slice WORK-SLICE-20260510T144918Z-work-slice-active-reproduce-and-remove-the-non-f -> Patch PATCH-20260510T155915Z-codex-native-workflow-adaptation-work-intake-pol · Slice WORK-SLICE-20260510T144918Z-work-slice-active-reproduce-and-remove-the-non-f -> Review REVIEW-20260510T154622Z-review-design-pass-branch · Slice WORK-SLICE-20260510T144918Z-work-slice-active-reproduce-and-remove-the-non-f -> Review REVIEW-20260510T154622Z-review-general-pass-branch · Slice WORK-SLICE-20260510T144918Z-work-slice-active-reproduce-and-remove-the-non-f -> Review REVIEW-20260510T154622Z-review-integrated-pass-branch · Slice WORK-SLICE-20260510T144918Z-work-slice-active-reproduce-and-remove-the-non-f -> Review REVIEW-20260510T154622Z-review-pattern-pass-branch · Slice WORK-SLICE-20260510T144918Z-work-slice-active-reproduce-and-remove-the-non-f -> Verify TEST-20260510T154655Z-verification-pass-branch · Slice WORK-SLICE-20260510T144918Z-work-slice-active-reproduce-and-remove-the-non-f -> Verify TEST-20260510T160013Z-verification-pass-branch · Slice WORK-SLICE-20260510T144918Z-work-slice-active-reproduce-and-remove-the-non-f -> Audit AUDIT-20260510T154655Z-audit-pass-branch · Slice WORK-SLICE-20260510T144918Z-work-slice-active-reproduce-and-remove-the-non-f -> Audit AUDIT-20260510T160013Z-audit-pass-branch · Slice WORK-SLICE-20260510T144918Z-work-slice-active-reproduce-and-remove-the-non-f -> Deploy DEPLOYMENT-20260510T160628Z-deploy-codex-native-workflow-guide-and-validate- · Intent INTENT-20260510T145511Z-intent-feature-after-workflow-closeout-review-an -> Slice WORK-SLICE-20260510T145522Z-work-slice-deferred-review-and-repair-design-sys · Slice WORK-SLICE-20260510T145522Z-work-slice-deferred-review-and-repair-design-sys -> Patch PATCH-20260510T151309Z-reconcile-old-claude-design-system-guidance-with · Slice WORK-SLICE-20260510T145522Z-work-slice-deferred-review-and-repair-design-sys -> Patch PATCH-20260510T151659Z-fix-design-system-guidance-drift-found-by-old-cl · Slice WORK-SLICE-20260510T145522Z-work-slice-deferred-review-and-repair-design-sys -> Patch PATCH-20260510T154054Z-refresh-current-state-with-architecture-audit-an · Slice WORK-SLICE-20260510T145522Z-work-slice-deferred-review-and-repair-design-sys -> Patch PATCH-20260510T154550Z-codex-native-workflow-adaptation-work-intake-gui · Slice WORK-SLICE-20260510T145522Z-work-slice-deferred-review-and-repair-design-sys -> Review REVIEW-20260510T154622Z-review-design-pass-branch · Slice WORK-SLICE-20260510T145522Z-work-slice-deferred-review-and-repair-design-sys -> Review REVIEW-20260510T154622Z-review-general-pass-branch · Slice WORK-SLICE-20260510T145522Z-work-slice-deferred-review-and-repair-design-sys -> Review REVIEW-20260510T154622Z-review-integrated-pass-branch · Slice WORK-SLICE-20260510T145522Z-work-slice-deferred-review-and-repair-design-sys -> Review REVIEW-20260510T154622Z-review-pattern-pass-branch · Slice WORK-SLICE-20260510T145522Z-work-slice-deferred-review-and-repair-design-sys -> Verify TEST-20260510T154655Z-verification-pass-branch · Slice WORK-SLICE-20260510T145522Z-work-slice-deferred-review-and-repair-design-sys -> Verify TEST-20260510T160013Z-verification-pass-branch · Slice WORK-SLICE-20260510T145522Z-work-slice-deferred-review-and-repair-design-sys -> Audit AUDIT-20260510T154655Z-audit-pass-branch · Slice WORK-SLICE-20260510T145522Z-work-slice-deferred-review-and-repair-design-sys -> Audit AUDIT-20260510T160013Z-audit-pass-branch · Slice WORK-SLICE-20260510T145522Z-work-slice-deferred-review-and-repair-design-sys -> Deploy DEPLOYMENT-20260510T160628Z-deploy-codex-native-workflow-guide-and-validate-</p>
+      <p class="meta">Intent INTENT-20260510T161407Z-intent-maintenance-run-a-larger-duplicate-agent- -> Slice WORK-SLICE-20260510T161446Z-work-slice-active-duplicate-agent-code-and-archi · Slice WORK-SLICE-20260510T161446Z-work-slice-active-duplicate-agent-code-and-archi -> Patch PATCH-20260510T191907Z-duplicate-agent-workflow-architecture-audit-hard · Slice WORK-SLICE-20260510T161446Z-work-slice-active-duplicate-agent-code-and-archi -> Review REVIEW-20260510T191916Z-review-general-pass-branch · Slice WORK-SLICE-20260510T161446Z-work-slice-active-duplicate-agent-code-and-archi -> Review REVIEW-20260510T191925Z-review-workflow-pass-branch · Slice WORK-SLICE-20260510T161446Z-work-slice-active-duplicate-agent-code-and-archi -> Review REVIEW-20260510T191935Z-review-pattern-pass-branch · Slice WORK-SLICE-20260510T161446Z-work-slice-active-duplicate-agent-code-and-archi -> Review REVIEW-20260510T191944Z-review-design-pass-branch · Slice WORK-SLICE-20260510T161446Z-work-slice-active-duplicate-agent-code-and-archi -> Verify TEST-20260510T192010Z-verification-pass-branch · Slice WORK-SLICE-20260510T161446Z-work-slice-active-duplicate-agent-code-and-archi -> Audit AUDIT-20260510T192024Z-audit-pass-branch · Intent INTENT-20260510T154949Z-intent-maintenance-final-acceptance-requires-aud -> Slice WORK-SLICE-20260510T154958Z-work-slice-active-finalize-workflow-code-archite · Slice WORK-SLICE-20260510T154958Z-work-slice-active-finalize-workflow-code-archite -> Patch PATCH-20260510T155745Z-move-final-guide-redaction-and-zoo-gym-visual-co · Slice WORK-SLICE-20260510T154958Z-work-slice-active-finalize-workflow-code-archite -> Patch PATCH-20260510T155915Z-codex-native-workflow-adaptation-work-intake-pol · Slice WORK-SLICE-20260510T154958Z-work-slice-active-finalize-workflow-code-archite -> Review REVIEW-20260510T155942Z-review-general-pass-branch · Slice WORK-SLICE-20260510T154958Z-work-slice-active-finalize-workflow-code-archite -> Review REVIEW-20260510T155942Z-review-integrated-pass-branch · Slice WORK-SLICE-20260510T154958Z-work-slice-active-finalize-workflow-code-archite -> Review REVIEW-20260510T155942Z-review-pattern-pass-branch · Slice WORK-SLICE-20260510T154958Z-work-slice-active-finalize-workflow-code-archite -> Review REVIEW-20260510T155942Z-review-workflow-pass-branch · Slice WORK-SLICE-20260510T154958Z-work-slice-active-finalize-workflow-code-archite -> Verify TEST-20260510T160013Z-verification-pass-branch · Slice WORK-SLICE-20260510T154958Z-work-slice-active-finalize-workflow-code-archite -> Audit AUDIT-20260510T160013Z-audit-pass-branch · Slice WORK-SLICE-20260510T154958Z-work-slice-active-finalize-workflow-code-archite -> Deploy DEPLOYMENT-20260510T160628Z-deploy-codex-native-workflow-guide-and-validate- · Intent INTENT-20260510T151209Z-intent-maintenance-before-final-completion-perfo -> Slice WORK-SLICE-20260510T151217Z-work-slice-active-final-code-level-workflow-arch · Slice WORK-SLICE-20260510T151217Z-work-slice-active-final-code-level-workflow-arch -> Patch PATCH-20260510T153902Z-fix-workflow-architecture-drift-by-moving-contra · Slice WORK-SLICE-20260510T151217Z-work-slice-active-final-code-level-workflow-arch -> Patch PATCH-20260510T154054Z-refresh-current-state-with-architecture-audit-an · Slice WORK-SLICE-20260510T151217Z-work-slice-active-final-code-level-workflow-arch -> Patch PATCH-20260510T154550Z-codex-native-workflow-adaptation-work-intake-gui · Slice WORK-SLICE-20260510T151217Z-work-slice-active-final-code-level-workflow-arch -> Patch PATCH-20260510T155915Z-codex-native-workflow-adaptation-work-intake-pol · Slice WORK-SLICE-20260510T151217Z-work-slice-active-final-code-level-workflow-arch -> Review REVIEW-20260510T154622Z-review-design-pass-branch · Slice WORK-SLICE-20260510T151217Z-work-slice-active-final-code-level-workflow-arch -> Review REVIEW-20260510T154622Z-review-general-pass-branch · Slice WORK-SLICE-20260510T151217Z-work-slice-active-final-code-level-workflow-arch -> Review REVIEW-20260510T154622Z-review-integrated-pass-branch · Slice WORK-SLICE-20260510T151217Z-work-slice-active-final-code-level-workflow-arch -> Review REVIEW-20260510T154622Z-review-pattern-pass-branch · Slice WORK-SLICE-20260510T151217Z-work-slice-active-final-code-level-workflow-arch -> Verify TEST-20260510T154655Z-verification-pass-branch · Slice WORK-SLICE-20260510T151217Z-work-slice-active-final-code-level-workflow-arch -> Verify TEST-20260510T160013Z-verification-pass-branch · Slice WORK-SLICE-20260510T151217Z-work-slice-active-final-code-level-workflow-arch -> Audit AUDIT-20260510T154655Z-audit-pass-branch · Slice WORK-SLICE-20260510T151217Z-work-slice-active-final-code-level-workflow-arch -> Audit AUDIT-20260510T160013Z-audit-pass-branch · Slice WORK-SLICE-20260510T151217Z-work-slice-active-final-code-level-workflow-arch -> Deploy DEPLOYMENT-20260510T160628Z-deploy-codex-native-workflow-guide-and-validate- · Intent INTENT-20260510T134902Z-intent-feature-expand-codex-workflow-with-portab -> Slice WORK-SLICE-20260510T134914Z-work-slice-active-implement-and-validate-portabl · Slice WORK-SLICE-20260510T134914Z-work-slice-active-implement-and-validate-portabl -> Patch PATCH-20260510T135527Z-implement-portable-work-intake-workflow-subsyste · Slice WORK-SLICE-20260510T134914Z-work-slice-active-implement-and-validate-portabl -> Patch PATCH-20260510T141514Z-harden-work-intake-evidence-lifecycle-and-semant · Slice WORK-SLICE-20260510T134914Z-work-slice-active-implement-and-validate-portabl -> Patch PATCH-20260510T143404Z-harden-workflow-policy-ownership-pattern-review- · Slice WORK-SLICE-20260510T134914Z-work-slice-active-implement-and-validate-portabl -> Patch PATCH-20260510T143621Z-add-policy-manifest-pattern-review-gate-and-rout · Slice WORK-SLICE-20260510T134914Z-work-slice-active-implement-and-validate-portabl -> Review REVIEW-20260510T154622Z-review-design-pass-branch · Slice WORK-SLICE-20260510T134914Z-work-slice-active-implement-and-validate-portabl -> Review REVIEW-20260510T154622Z-review-general-pass-branch · Slice WORK-SLICE-20260510T134914Z-work-slice-active-implement-and-validate-portabl -> Review REVIEW-20260510T154622Z-review-integrated-pass-branch · Slice WORK-SLICE-20260510T134914Z-work-slice-active-implement-and-validate-portabl -> Review REVIEW-20260510T154622Z-review-pattern-pass-branch · Slice WORK-SLICE-20260510T134914Z-work-slice-active-implement-and-validate-portabl -> Verify TEST-20260510T154655Z-verification-pass-branch · Slice WORK-SLICE-20260510T134914Z-work-slice-active-implement-and-validate-portabl -> Verify TEST-20260510T160013Z-verification-pass-branch · Slice WORK-SLICE-20260510T134914Z-work-slice-active-implement-and-validate-portabl -> Audit AUDIT-20260510T154655Z-audit-pass-branch · Slice WORK-SLICE-20260510T134914Z-work-slice-active-implement-and-validate-portabl -> Audit AUDIT-20260510T160013Z-audit-pass-branch · Slice WORK-SLICE-20260510T134914Z-work-slice-active-implement-and-validate-portabl -> Deploy DEPLOYMENT-20260510T160628Z-deploy-codex-native-workflow-guide-and-validate- · Intent INTENT-20260510T144910Z-intent-maintenance-clean-remaining-themeprovider -> Slice WORK-SLICE-20260510T144918Z-work-slice-active-reproduce-and-remove-the-non-f · Slice WORK-SLICE-20260510T144918Z-work-slice-active-reproduce-and-remove-the-non-f -> Patch PATCH-20260510T145007Z-remove-themeprovider-test-act-warning-by-using-t · Slice WORK-SLICE-20260510T144918Z-work-slice-active-reproduce-and-remove-the-non-f -> Patch PATCH-20260510T154054Z-refresh-current-state-with-architecture-audit-an · Slice WORK-SLICE-20260510T144918Z-work-slice-active-reproduce-and-remove-the-non-f -> Patch PATCH-20260510T154550Z-codex-native-workflow-adaptation-work-intake-gui · Slice WORK-SLICE-20260510T144918Z-work-slice-active-reproduce-and-remove-the-non-f -> Patch PATCH-20260510T155915Z-codex-native-workflow-adaptation-work-intake-pol · Slice WORK-SLICE-20260510T144918Z-work-slice-active-reproduce-and-remove-the-non-f -> Review REVIEW-20260510T154622Z-review-design-pass-branch · Slice WORK-SLICE-20260510T144918Z-work-slice-active-reproduce-and-remove-the-non-f -> Review REVIEW-20260510T154622Z-review-general-pass-branch · Slice WORK-SLICE-20260510T144918Z-work-slice-active-reproduce-and-remove-the-non-f -> Review REVIEW-20260510T154622Z-review-integrated-pass-branch · Slice WORK-SLICE-20260510T144918Z-work-slice-active-reproduce-and-remove-the-non-f -> Review REVIEW-20260510T154622Z-review-pattern-pass-branch · Slice WORK-SLICE-20260510T144918Z-work-slice-active-reproduce-and-remove-the-non-f -> Verify TEST-20260510T154655Z-verification-pass-branch · Slice WORK-SLICE-20260510T144918Z-work-slice-active-reproduce-and-remove-the-non-f -> Verify TEST-20260510T160013Z-verification-pass-branch · Slice WORK-SLICE-20260510T144918Z-work-slice-active-reproduce-and-remove-the-non-f -> Audit AUDIT-20260510T154655Z-audit-pass-branch · Slice WORK-SLICE-20260510T144918Z-work-slice-active-reproduce-and-remove-the-non-f -> Audit AUDIT-20260510T160013Z-audit-pass-branch · Slice WORK-SLICE-20260510T144918Z-work-slice-active-reproduce-and-remove-the-non-f -> Deploy DEPLOYMENT-20260510T160628Z-deploy-codex-native-workflow-guide-and-validate- · Intent INTENT-20260510T145511Z-intent-feature-after-workflow-closeout-review-an -> Slice WORK-SLICE-20260510T145522Z-work-slice-deferred-review-and-repair-design-sys · Slice WORK-SLICE-20260510T145522Z-work-slice-deferred-review-and-repair-design-sys -> Patch PATCH-20260510T151309Z-reconcile-old-claude-design-system-guidance-with · Slice WORK-SLICE-20260510T145522Z-work-slice-deferred-review-and-repair-design-sys -> Patch PATCH-20260510T151659Z-fix-design-system-guidance-drift-found-by-old-cl · Slice WORK-SLICE-20260510T145522Z-work-slice-deferred-review-and-repair-design-sys -> Patch PATCH-20260510T154054Z-refresh-current-state-with-architecture-audit-an · Slice WORK-SLICE-20260510T145522Z-work-slice-deferred-review-and-repair-design-sys -> Patch PATCH-20260510T154550Z-codex-native-workflow-adaptation-work-intake-gui · Slice WORK-SLICE-20260510T145522Z-work-slice-deferred-review-and-repair-design-sys -> Review REVIEW-20260510T154622Z-review-design-pass-branch · Slice WORK-SLICE-20260510T145522Z-work-slice-deferred-review-and-repair-design-sys -> Review REVIEW-20260510T154622Z-review-general-pass-branch · Slice WORK-SLICE-20260510T145522Z-work-slice-deferred-review-and-repair-design-sys -> Review REVIEW-20260510T154622Z-review-integrated-pass-branch · Slice WORK-SLICE-20260510T145522Z-work-slice-deferred-review-and-repair-design-sys -> Review REVIEW-20260510T154622Z-review-pattern-pass-branch · Slice WORK-SLICE-20260510T145522Z-work-slice-deferred-review-and-repair-design-sys -> Verify TEST-20260510T154655Z-verification-pass-branch · Slice WORK-SLICE-20260510T145522Z-work-slice-deferred-review-and-repair-design-sys -> Verify TEST-20260510T160013Z-verification-pass-branch · Slice WORK-SLICE-20260510T145522Z-work-slice-deferred-review-and-repair-design-sys -> Audit AUDIT-20260510T154655Z-audit-pass-branch · Slice WORK-SLICE-20260510T145522Z-work-slice-deferred-review-and-repair-design-sys -> Audit AUDIT-20260510T160013Z-audit-pass-branch · Slice WORK-SLICE-20260510T145522Z-work-slice-deferred-review-and-repair-design-sys -> Deploy DEPLOYMENT-20260510T160628Z-deploy-codex-native-workflow-guide-and-validate-</p>
     </div>
 
-      <ul class="timeline"><li data-work-intake-trace-row="WORK-SLICE-20260510T154958Z-work-slice-active-finalize-workflow-code-archite">
+      <ul class="timeline"><li data-work-intake-trace-row="WORK-SLICE-20260510T161446Z-work-slice-active-duplicate-agent-code-and-archi">
+    <strong>WORK-SLICE-20260510T161446Z-work-slice-active-duplicate-agent-code-and-archi</strong> <span class="meta">done · codex-lead</span><br>
+    Duplicate-agent code and architecture audit of the Nexus Codex workflow.
+    <div class="trace-grid">
+      <span><strong>Intents</strong><br><span data-work-intake-trace-intent="INTENT-20260510T161407Z-intent-maintenance-run-a-larger-duplicate-agent-">INTENT-20260510T161407Z-intent-maintenance-run-a-larger-duplicate-agent-: Run a larger duplicate-agent workflow audit wave. Every workflow area should be audited by at least two agents, including architecture and actual codebase drift, not only documentation.</span></span>
+      <span><strong>Patch</strong><br><span data-work-intake-evidence-kind="patches" data-work-intake-evidence-id="PATCH-20260510T191907Z-duplicate-agent-workflow-architecture-audit-hard">Patch: PATCH-20260510T191907Z-duplicate-agent-workflow-architecture-audit-hard</span></span>
+<span><strong>Routing</strong><br><span class="muted">No routing evidence linked.</span></span>
+<span><strong>Review</strong><br><span data-work-intake-evidence-kind="reviews" data-work-intake-evidence-id="REVIEW-20260510T191916Z-review-general-pass-branch">Review: REVIEW-20260510T191916Z-review-general-pass-branch</span><br><span data-work-intake-evidence-kind="reviews" data-work-intake-evidence-id="REVIEW-20260510T191925Z-review-workflow-pass-branch">Review: REVIEW-20260510T191925Z-review-workflow-pass-branch</span><br><span data-work-intake-evidence-kind="reviews" data-work-intake-evidence-id="REVIEW-20260510T191935Z-review-pattern-pass-branch">Review: REVIEW-20260510T191935Z-review-pattern-pass-branch</span><br><span data-work-intake-evidence-kind="reviews" data-work-intake-evidence-id="REVIEW-20260510T191944Z-review-design-pass-branch">Review: REVIEW-20260510T191944Z-review-design-pass-branch</span></span>
+<span><strong>Verify</strong><br><span data-work-intake-evidence-kind="tests" data-work-intake-evidence-id="TEST-20260510T192010Z-verification-pass-branch">Verify: TEST-20260510T192010Z-verification-pass-branch</span></span>
+<span><strong>Audit</strong><br><span data-work-intake-evidence-kind="audits" data-work-intake-evidence-id="AUDIT-20260510T192024Z-audit-pass-branch">Audit: AUDIT-20260510T192024Z-audit-pass-branch</span></span>
+<span><strong>Deploy</strong><br><span class="muted">No deploy evidence linked.</span></span>
+    </div>
+  </li>
+<li data-work-intake-trace-row="WORK-SLICE-20260510T154958Z-work-slice-active-finalize-workflow-code-archite">
     <strong>WORK-SLICE-20260510T154958Z-work-slice-active-finalize-workflow-code-archite</strong> <span class="meta">done · codex-lead</span><br>
     Finalize workflow code architecture drift audit and closeout evidence.
     <div class="trace-grid">
@@ -264,7 +283,7 @@
     </section>
 
       <section id="current" class="panel"><h1>Current State</h1>
-<p>Updated: 2026-05-10</p>
+<p>Updated: 2026-05-11</p>
 <h2>Original Request</h2>
 <p>The user asked for a real Codex-native adaptation of the old Claude Code workflow, not a rename. The preserved brief is:</p>
 <ul>
@@ -327,6 +346,29 @@
 <li>removed the unreferenced `20260509-workflow-guide-visible` screenshot set,</li>
 <li>added `.codex/workflow/templates/project-bootstrap.md` for second-project setup and per-project `.codex/config.toml` guidance,</li>
 <li>made generated guide copy surface `Custom (config.toml)`, `Full access` limits, `workflow:hook-runtime-check`, and the bootstrap template.</li>
+<li>completed a duplicate-agent workflow architecture audit focused on gaps in the deterministic workflow itself, not just self-audit output:</li>
+<li>tightened command evidence to exact npm-script classes instead of substring matching,</li>
+<li>made branch-scope verification and audit derive files from the real branch diff,</li>
+<li>bound guide deployment proof to the configured public workflow guide URL,</li>
+<li>removed localhost/private-string leaks from public guide/Zoo surfaces and checks,</li>
+<li>made Work Intake inbox hide already-sliced intents,</li>
+<li>made guide-browser finalization depend on existing closeout evidence instead of acting as an alternate closeout path,</li>
+<li>made trace checks surface warned/timed-out command ids while keeping historical probes non-blocking,</li>
+<li>expanded deterministic self-tests to cover spoofing, path traversal, branch evidence narrowing, retired commands, timeout telemetry, and deployment target failures.</li>
+<li>completed the follow-up duplicate-agent audit fixes after independent reviewers found remaining workflow architecture gaps:</li>
+<li>new evidence records must now be cleanly staged before release; staged-then-modified evidence no longer satisfies commit-bound proof,</li>
+<li>branch-scope patch and review records reject narrowed file lists and branch evidence derives exact file coverage from the real branch diff,</li>
+<li>deployment evidence requires both production app/API proof and public workflow-guide/Zoo proof,</li>
+<li>remaining Design Zoo/Gym registry and route source paths used by generated guide surfaces now come from design policy data instead of script literals,</li>
+<li>live Zoo validation now checks warning toast, dark Sichuan body/theme mirroring, dialog portal contrast, and tour portal contrast,</li>
+<li>the deployable Zoo/Gym guide is a screenshot-based visual surface generated from the live `/design` routes, while production `/nexus/design` remains excluded from the app bundle.</li>
+<li>completed the user-requested additional executable workflow audit pass after the duplicate-agent wave:</li>
+<li>record integrity now expands untracked evidence directories with `git ls-files --others --exclude-standard`, so second-project/bootstrap cases cannot hide untracked proof behind a collapsed `?? records/&lt;kind&gt;/` status line,</li>
+<li>deployment app proof now reads `publicAppUrl`, `apiHealthUrl`, and `publicAssetPrefix` from deployment policy and fails closed when policy is missing,</li>
+<li>Design Zoo validation and visual capture helpers now require profile env names and design policy fields through reusable workflow-engine helpers instead of falling back to Nexus literals,</li>
+<li>public-guide sanitizer logic is shared from the workflow engine and consumes guide policy data,</li>
+<li>dashboard knowledge sections, session-start guidance, resume docs, hook-permission guidance, and branch-closeout command examples are policy-owned guide contracts,</li>
+<li>fresh evidence includes `final14b-self-test-20260511` with 233 checks passing, `final14-design-zoo-20260511`, `final14-zoo-visual-capture-20260511`, and `final14b-zoo-visual-guide-check-20260511`.</li>
 </ul>
 <p>The reusable boundary is intentionally conservative: `.codex/scripts/workflow-engine.mjs` is portable loader/matcher infrastructure, while `.codex/scripts/nexus-workflow.mjs` remains the Nexus deterministic wrapper until a second project proves which larger pieces should be extracted.</p>
 <h2>How To Resume</h2>
@@ -353,6 +395,7 @@
 <li>final workflow portability audit: `.codex/workflow/research/workflow-portability-audit-2026-05-10.md`</li>
 <li>engine/profile extraction note: `.codex/workflow/research/workflow-engine-profile-extraction-2026-05-10.md`</li>
 <li>workflow kernel self-check audit: `.codex/workflow/research/workflow-kernel-self-check-audit-2026-05-10.md`</li>
+<li>duplicate-agent workflow architecture audit: `.codex/workflow/research/workflow-duplicate-agent-audit-2026-05-11.md`</li>
 <li>second-project bootstrap template: `.codex/workflow/templates/project-bootstrap.md`</li>
 <li>records: `.codex/workflow/records/`</li>
 <li>risks: `.codex/workflow/records/risks.md`</li>
@@ -656,6 +699,10 @@
 <li>Business data is soft-deleted unless the table is a disposable join/session table.</li>
 <li>Order items snapshot name, price, and modifiers at order creation time.</li>
 </ul>
+<h2>Workflow-System Patterns</h2>
+<ul>
+<li>Gate and proof helper scripts must fail closed from `.codex/workflow/profile.json` and `.codex/workflow/policy/*.json`. Do not add hidden Nexus, localhost, route, theme, deployment URL, or base-path fallbacks inside helper scripts that create or validate release evidence. Evidence: `PATTERN-PROPOSAL-20260510T191819Z-pattern-proposed-workflow-helper-scripts-that-fe`.</li>
+</ul>
 <h2>Design-System Traps</h2>
 <ul>
 <li>Do not edit `design/reference/v&lt;N&gt;/`; add `v&lt;N+1&gt;/` for a new export.</li>
@@ -679,7 +726,7 @@
 <p>3. If accepted, add a short rule here or in another `knowledge/` file and cite the proposal or decision record.</p>
 <p>4. If rejected or one-off, keep the proposal/review record as history without promoting it into durable guidance.</p>
 <p>Reviewers and auditors should ask whether each new issue is a one-off defect, a repeated mistake, or evidence of an undocumented invariant.</p></section>
-      <section id="design" class="panel"><h1>Design-System Knowledge</h1>
+<section id="design" class="panel"><h1>Design-System Knowledge</h1>
 <h2>Source Of Truth</h2>
 <p>The frozen design reference is:</p>
 <ul>
@@ -787,6 +834,84 @@
 <li>the reusable interaction check: `npm run workflow:design-zoo` with the web dev server running.</li>
 <li>the visual guide gate: `npm run workflow:zoo-visual-guide-check` after recapturing screenshots.</li>
 <li>the browser evidence gate: `npm run workflow:guide-browser-check`, backed by append-only records under `.codex/workflow/records/guide-browser/`.</li>
+</ul></section>
+<section id="deployment" class="panel"><h1>Deployment Knowledge</h1>
+<p>Primary production target discovered from the neighboring monoWeb root:</p>
+<ul>
+<li>Public app: `https://cv.rehou.games/nexus/`</li>
+<li>Server: `134.199.148.87`</li>
+<li>SSH user: `root`</li>
+<li>SSH key: `~/.ssh/DIOkii`</li>
+<li>Server repo path: `/root/monoWeb/nexus`</li>
+<li>Static frontend path: `/var/www/cv.rehou.games/nexus/`</li>
+<li>API systemd service: `nexus-api`</li>
+<li>Production API port: `3010`</li>
+</ul>
+<p>Do not print secrets or private key material.</p>
+<h2>Local Commands</h2>
+<p>```bash</p>
+<p>npm install</p>
+<p>npm run db:push</p>
+<p>npm run db:seed</p>
+<p>npm run dev:all</p>
+<p>npm test</p>
+<p>npm run build</p>
+<p>npm run lint:design</p>
+<p>bash scripts/smoke-test.sh</p>
+<p>```</p>
+<h2>Production Build</h2>
+<p>The frontend is served from `/nexus/`, so production Vite builds must use:</p>
+<p>```bash</p>
+<p>cd packages/web</p>
+<p>MSYS_NO_PATHCONV=1 npx vite build --base /nexus/</p>
+<p>```</p>
+<p>Server evidence on 2026-05-09 confirmed why this matters: a plain `npm run build` produced root `/assets/` URLs in the deployed HTML. The corrected deployment rebuilt with `npx vite build --base /nexus/`, after which `/var/www/cv.rehou.games/nexus/index.html` referenced `/nexus/assets/`.</p>
+<h2>Deployment Shape</h2>
+<p>The server copy should be updated through the real repo and static assets copied into the nginx-served folder. The API service then restarts.</p>
+<p>Server validation must confirm:</p>
+<ul>
+<li>`/root/monoWeb/nexus` has the intended commit or files.</li>
+<li>`/var/www/cv.rehou.games/nexus/` has fresh built assets.</li>
+<li>`systemctl status nexus-api` is healthy after restart.</li>
+<li>`https://cv.rehou.games/nexus/` returns HTML.</li>
+<li>`https://cv.rehou.games/nexus/api/platform/health` returns 200.</li>
+<li>When publishing the workflow guide, `https://cv.rehou.games/nexus/workflow/` returns the expected guide and `https://cv.rehou.games/nexus/workflow/zoo/` returns the visual Zoo/Gym guide with all referenced screenshot images loading successfully.</li>
+</ul>
+<p>After validating the server, record deployment evidence and run the deployed gate:</p>
+<p>```bash</p>
+<p>npm run workflow:run -- --id &lt;app-check-id&gt; --timeout-ms 120000 -- npm run workflow:production-app-check</p>
+<p>npm run workflow:run -- --id &lt;guide-check-id&gt; --timeout-ms 180000 -- npm run workflow:public-guide-deployed-check</p>
+<p>node .codex/scripts/nexus-workflow.mjs record-deployment --summary &quot;&lt;deployment&gt;&quot; --target &quot;https://cv.rehou.games/nexus/&quot; --verdict pass --operator &lt;lead-worker&gt; --commands &quot;&lt;app-check-id&gt;,&lt;guide-check-id&gt;&quot; --checks &quot;&lt;health/assets/log checks&gt;&quot; --notes &quot;&lt;server result&gt;&quot;</p>
+<p>npm run workflow:deployed-gate</p>
+<p>```</p>
+<p>Use `npm run workflow:run` for SSH, curl, and smoke-check commands that should become deployment proof. The deployment record embeds compact summaries for those command ids. `--checks` is descriptive context; it does not replace command evidence or durable artifacts for a passing deployment record.</p>
+<p>The deployed gate requires both app/API proof and workflow-guide proof when guide artifacts changed. `workflow:production-app-check` validates the app root and API health. `workflow:public-guide-deployed-check` validates the public workflow guide, the Zoo/Gym guide, the deployed manifest, and every referenced screenshot image hash.</p>
+<p>`npm run workflow:release-gate` is local branch readiness. It does not prove the server was updated.</p>
+<h2>Workflow Guide URL</h2>
+<p>The public-safe workflow guide is deployed to:</p>
+<ul>
+<li>`https://cv.rehou.games/nexus/workflow/`</li>
+<li>`https://cv.rehou.games/nexus/workflow/zoo/` for the deployable visual Zoo/Gym guide</li>
+</ul>
+<p>Generate it with:</p>
+<p>```bash</p>
+<p>npm run workflow:public-guide</p>
+<p>npm run workflow:zoo-visual-guide</p>
+<p>```</p>
+<p>Deploy it by copying `.codex/dashboard/public.html` to `/var/www/cv.rehou.games/nexus/workflow/index.html` and `.codex/dashboard/zoo/` to `/var/www/cv.rehou.games/nexus/workflow/zoo/`. Do not publish the full repo-local `.codex/dashboard/index.html` unless intentionally exposing internal deployment paths and record excerpts.</p>
+<p>Workflow-guide deployment checks should fetch the public Zoo/Gym HTML, extract screenshot image paths, request those image URLs, and fail if any return a non-2xx response. Counting `.jpg` references is not sufficient deployment proof.</p>
+<p>Use the checked-in workflow command instead of an inline one-off script:</p>
+<p>```bash</p>
+<p>npm run workflow:public-guide-deployed-check</p>
+<p>```</p>
+<p>Known risk: do not skip production `db:push` when schema changes are present.</p>
+<p>Known server state on 2026-05-09:</p>
+<ul>
+<li>Before this migration deployment, `/root/monoWeb/nexus` was at commit `1cbd123` on `main`.</li>
+<li>After deployment validation, `/root/monoWeb/nexus` was on branch `codex/native-workflow` at commit `cf069ce`.</li>
+<li>`nexus-api` was active on port `3010`.</li>
+<li>The server worktree had an existing `package-lock.json` modification. Do not overwrite it blindly during deployment.</li>
+<li>Server `node_modules` was stale and missing `@fontsource-variable/fraunces`; `npm ci` fixed the install before the production build.</li>
 </ul></section>
       <section id="records" class="panel">
         <h2>Record Index</h2>
@@ -913,6 +1038,24 @@
 
         <article class="record">
           <div class="record-top">
+            <strong>Intent maintenance Run a larger duplicate-agent workflow audit wave. Every workflow area should be audited by at least two agents, including architecture and actual codebase drift, not only documentation.</strong>
+            <span>2026-05-10T16:14:07.513Z</span>
+          </div>
+          <span class="pill">captured</span>
+          <p class="path">.codex/workflow/records/intents/INTENT-20260510T161407Z-intent-maintenance-run-a-larger-duplicate-agent-.md</p>
+          <pre>Kind: maintenance
+Status: captured
+Source: user
+Summary: Run a larger duplicate-agent workflow audit wave. Every workflow area should be audited by at least two agents, including architecture and actual codebase drift, not only documentation.
+Normalized intent: Perform a detailed, multi-agent, duplicate-coverage audit of the Codex workflow system and code. Compare agent findings, inspect workflow code piece by piece, fix root causes, rerun gates, and record evidence.
+Constraints: n/a
+Acceptance signals: n/a
+Notes: n/a</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
             <strong>Intent maintenance Final acceptance requires auditing the actual workflow codebase for design drift and patch-on-patch fixes, not only documentation architecture.</strong>
             <span>2026-05-10T15:49:49.115Z</span>
           </div>
@@ -1005,6 +1148,42 @@ Acceptance signals: Intent/work-slice commands exist; records link to patches/re
 
     <section id="work-slices" class="panel">
       <h2>Work-slices</h2>
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Work slice done Duplicate-agent code and architecture audit of the Nexus Codex workflow.</strong>
+            <span>2026-05-10T19:18:37.876Z</span>
+          </div>
+          <span class="pill">done</span>
+          <p class="path">.codex/workflow/records/work-slices/WORK-SLICE-20260510T191837Z-work-slice-done-duplicate-agent-code-and-archite.md</p>
+          <pre>Status: done
+Source type: user-intent
+Owner: codex-lead
+Intent IDs: INTENT-20260510T161407Z-intent-maintenance-run-a-larger-duplicate-agent-
+Updates work slice: WORK-SLICE-20260510T161446Z-work-slice-active-duplicate-agent-code-and-archi
+Lead understanding: Duplicate-agent code and architecture audit of the Nexus Codex workflow.
+Acceptance criteria: Every major workflow subsystem is inspected by at least two read-only agents plus lead review; findings are compared against actual workflow code and policy; root-cause fixes are made where needed; final records and gates prove closure.
+Non-goals: n/a</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Work slice active Duplicate-agent code and architecture audit of the Nexus Codex workflow.</strong>
+            <span>2026-05-10T16:14:46.902Z</span>
+          </div>
+          <span class="pill">active</span>
+          <p class="path">.codex/workflow/records/work-slices/WORK-SLICE-20260510T161446Z-work-slice-active-duplicate-agent-code-and-archi.md</p>
+          <pre>Status: active
+Source type: user-intent
+Owner: codex-lead
+Intent IDs: INTENT-20260510T161407Z-intent-maintenance-run-a-larger-duplicate-agent-
+Lead understanding: Duplicate-agent code and architecture audit of the Nexus Codex workflow.
+Acceptance criteria: Every major workflow subsystem is inspected by at least two read-only agents plus lead review; findings are compared against actual workflow code and policy; root-cause fixes are made where needed; final records and gates prove closure.
+Non-goals: n/a
+Verification plan: multi-agent reports, lead code inspection, targeted checks after fixes, release/deployed gates only as final verification</pre>
+        </article>
+
 
         <article class="record">
           <div class="record-top">
@@ -1208,6 +1387,24 @@ Non-goals: n/a</pre>
 
     <section id="pattern-proposals" class="panel">
       <h2>Pattern-proposals</h2>
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Pattern proposed Workflow helper scripts that feed gates must fail closed from profile and policy</strong>
+            <span>2026-05-10T19:18:19.967Z</span>
+          </div>
+          <span class="pill">proposed</span>
+          <p class="path">.codex/workflow/records/pattern-proposals/PATTERN-PROPOSAL-20260510T191819Z-pattern-proposed-workflow-helper-scripts-that-fe.md</p>
+          <pre>Status: proposed
+Reporter: codex
+
+
+
+Summary: Workflow helper scripts that feed gates must fail closed from profile and policy
+
+Evidence: Fourth duplicate-agent audit found hardcoded defaults in check-production-app, validate-design-zoo, capture-design-zoo-visuals, and public-guide checks; fixed in final14 policy/self-test/design-zoo/capture evidence.</pre>
+        </article>
+
 
         <article class="record">
           <div class="record-top">
@@ -1864,6 +2061,24 @@ Fallback target: n/a</pre>
 
     <section id="patches" class="panel">
       <h2>Patches</h2>
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Duplicate-agent workflow architecture audit hardening and design-system proof refresh</strong>
+            <span>2026-05-10T19:19:07.257Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/patches/PATCH-20260510T191907Z-duplicate-agent-workflow-architecture-audit-hard.md</p>
+          <pre>Summary: Duplicate-agent workflow architecture audit hardening and design-system proof refresh
+Scope: branch
+Agent: codex-lead
+Routing: n/a
+Work slices: WORK-SLICE-20260510T161446Z-work-slice-active-duplicate-agent-code-and-archi
+Branch evidence hash: f25f571fdfdd0aa3
+
+Files:</pre>
+        </article>
+
 
         <article class="record">
           <div class="record-top">
@@ -2912,6 +3127,96 @@ Files:
 
     <section id="reviews" class="panel">
       <h2>Reviews</h2>
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review integrated pass branch</strong>
+            <span>2026-05-10T19:19:53.334Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260510T191953Z-review-integrated-pass-branch.md</p>
+          <pre>Scope: branch
+Kind: integrated
+Verdict: pass
+Reviewer: codex-lead
+Patch: PATCH-20260510T191907Z-duplicate-agent-workflow-architecture-audit-hard
+Work slices: WORK-SLICE-20260510T161446Z-work-slice-active-duplicate-agent-code-and-archi
+Worktree hash: 036c7fdb0332d59c
+Branch evidence hash: f25f571fdfdd0aa3</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review design pass branch</strong>
+            <span>2026-05-10T19:19:44.208Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260510T191944Z-review-design-pass-branch.md</p>
+          <pre>Scope: branch
+Kind: design
+Verdict: pass
+Reviewer: nexus_design_reviewer+codex-lead
+Patch: PATCH-20260510T191907Z-duplicate-agent-workflow-architecture-audit-hard
+Work slices: WORK-SLICE-20260510T161446Z-work-slice-active-duplicate-agent-code-and-archi
+Worktree hash: 036c7fdb0332d59c
+Branch evidence hash: f25f571fdfdd0aa3</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review pattern pass branch</strong>
+            <span>2026-05-10T19:19:35.203Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260510T191935Z-review-pattern-pass-branch.md</p>
+          <pre>Scope: branch
+Kind: pattern
+Verdict: pass
+Reviewer: nexus_pattern_reviewer+codex-lead
+Patch: PATCH-20260510T191907Z-duplicate-agent-workflow-architecture-audit-hard
+Work slices: WORK-SLICE-20260510T161446Z-work-slice-active-duplicate-agent-code-and-archi
+Worktree hash: 036c7fdb0332d59c
+Branch evidence hash: f25f571fdfdd0aa3</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review workflow pass branch</strong>
+            <span>2026-05-10T19:19:25.621Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260510T191925Z-review-workflow-pass-branch.md</p>
+          <pre>Scope: branch
+Kind: workflow
+Verdict: pass
+Reviewer: nexus_auditor+codex-lead
+Patch: PATCH-20260510T191907Z-duplicate-agent-workflow-architecture-audit-hard
+Work slices: WORK-SLICE-20260510T161446Z-work-slice-active-duplicate-agent-code-and-archi
+Worktree hash: 036c7fdb0332d59c
+Branch evidence hash: f25f571fdfdd0aa3</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review general pass branch</strong>
+            <span>2026-05-10T19:19:16.444Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260510T191916Z-review-general-pass-branch.md</p>
+          <pre>Scope: branch
+Kind: general
+Verdict: pass
+Reviewer: codex-lead
+Patch: PATCH-20260510T191907Z-duplicate-agent-workflow-architecture-audit-hard
+Work slices: WORK-SLICE-20260510T161446Z-work-slice-active-duplicate-agent-code-and-archi
+Worktree hash: 036c7fdb0332d59c
+Branch evidence hash: f25f571fdfdd0aa3</pre>
+        </article>
+
 
         <article class="record">
           <div class="record-top">
@@ -4461,6 +4766,24 @@ Notes: Focused review found hook false-positive/false-negative issues, they were
         <article class="record">
           <div class="record-top">
             <strong>Verification pass branch</strong>
+            <span>2026-05-10T19:20:10.490Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/tests/TEST-20260510T192010Z-verification-pass-branch.md</p>
+          <pre>Scope: branch
+Verdict: pass
+Verifier: codex-lead
+Worktree hash: 036c7fdb0332d59c
+Branch evidence hash: f25f571fdfdd0aa3
+Work slices: WORK-SLICE-20260510T161446Z-work-slice-active-duplicate-agent-code-and-archi
+Command run ids: final14b-self-test-20260511, final14-policy-check-20260511, final14-guide-check-20260511, final14-zoo-visual-guide-check-20260511, final14b-zoo-visual-guide-check-20260511, final14-inventory-check-20260511, final14-work-intake-check-20260511, final14-hook-config-check-20260511, final14-model-routing-20260511, final14-dependency-check-20260511, final14-prod-zoo-bundle-check-20260511, final14-design-lint-20260511, final14-unit-tests-20260511, final14-build-20260511, final14-design-zoo-20260511, final14-zoo-visual-capture-20260511, final14-trace-check-20260511
+</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Verification pass branch</strong>
             <span>2026-05-10T16:00:13.369Z</span>
           </div>
           <span class="pill">pass</span>
@@ -5292,6 +5615,24 @@ Notes: Latest full local validation passed: workflow script syntax, design-zoo s
         <article class="record">
           <div class="record-top">
             <strong>Audit pass branch</strong>
+            <span>2026-05-10T19:20:24.696Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/audits/AUDIT-20260510T192024Z-audit-pass-branch.md</p>
+          <pre>Scope: branch
+Verdict: pass
+Auditor: codex-lead
+Worktree hash: 036c7fdb0332d59c
+Branch evidence hash: f25f571fdfdd0aa3
+Work slices: WORK-SLICE-20260510T161446Z-work-slice-active-duplicate-agent-code-and-archi
+Command run ids: final14b-self-test-20260511, final14-policy-check-20260511, final14-guide-check-20260511, final14-zoo-visual-guide-check-20260511, final14b-zoo-visual-guide-check-20260511, final14-inventory-check-20260511, final14-work-intake-check-20260511, final14-hook-config-check-20260511, final14-model-routing-20260511, final14-dependency-check-20260511, final14-prod-zoo-bundle-check-20260511, final14-design-lint-20260511, final14-unit-tests-20260511, final14-build-20260511, final14-design-zoo-20260511, final14-zoo-visual-capture-20260511, final14-trace-check-20260511
+</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Audit pass branch</strong>
             <span>2026-05-10T16:00:13.419Z</span>
           </div>
           <span class="pill">pass</span>
@@ -6069,81 +6410,6 @@ Command evidence:
 <li>Server access, deployment, service restart, and hosted health checks were validated on 2026-05-09. Runtime/source deploy was validated at `cf069ce`; later workflow-record commits were fast-forwarded on the server branch.</li>
 <li>Direct dependency audit findings for `@anthropic-ai/sdk`, `drizzle-orm`, `hono`, and `postcss` were remediated on 2026-05-09; the remaining audit surface is explicit, dev-only, and expiring.</li>
 <li>The non-failing React `act(...)` warning in `ThemeProvider.test.tsx` was removed by using Testing Library `fireEvent.click`. Evidence: `themeprovider-warning-repro-20260510T1449Z` reproduced the warning, `themeprovider-warning-fixed-20260510T1451Z` passed without the warning, and `local-test-all-20260510T1452Z` passed the full API/web suite.</li>
-</ul></section>
-      <section id="deployment" class="panel"><h1>Deployment Knowledge</h1>
-<p>Primary production target discovered from the neighboring monoWeb root:</p>
-<ul>
-<li>Public app: `https://cv.rehou.games/nexus/`</li>
-<li>Server: `134.199.148.87`</li>
-<li>SSH user: `root`</li>
-<li>SSH key: `~/.ssh/DIOkii`</li>
-<li>Server repo path: `/root/monoWeb/nexus`</li>
-<li>Static frontend path: `/var/www/cv.rehou.games/nexus/`</li>
-<li>API systemd service: `nexus-api`</li>
-<li>Production API port: `3010`</li>
-</ul>
-<p>Do not print secrets or private key material.</p>
-<h2>Local Commands</h2>
-<p>```bash</p>
-<p>npm install</p>
-<p>npm run db:push</p>
-<p>npm run db:seed</p>
-<p>npm run dev:all</p>
-<p>npm test</p>
-<p>npm run build</p>
-<p>npm run lint:design</p>
-<p>bash scripts/smoke-test.sh</p>
-<p>```</p>
-<h2>Production Build</h2>
-<p>The frontend is served from `/nexus/`, so production Vite builds must use:</p>
-<p>```bash</p>
-<p>cd packages/web</p>
-<p>MSYS_NO_PATHCONV=1 npx vite build --base /nexus/</p>
-<p>```</p>
-<p>Server evidence on 2026-05-09 confirmed why this matters: a plain `npm run build` produced root `/assets/` URLs in the deployed HTML. The corrected deployment rebuilt with `npx vite build --base /nexus/`, after which `/var/www/cv.rehou.games/nexus/index.html` referenced `/nexus/assets/`.</p>
-<h2>Deployment Shape</h2>
-<p>The server copy should be updated through the real repo and static assets copied into the nginx-served folder. The API service then restarts.</p>
-<p>Server validation must confirm:</p>
-<ul>
-<li>`/root/monoWeb/nexus` has the intended commit or files.</li>
-<li>`/var/www/cv.rehou.games/nexus/` has fresh built assets.</li>
-<li>`systemctl status nexus-api` is healthy after restart.</li>
-<li>`https://cv.rehou.games/nexus/` returns HTML.</li>
-<li>`https://cv.rehou.games/nexus/api/platform/health` returns 200.</li>
-<li>When publishing the workflow guide, `https://cv.rehou.games/nexus/workflow/` returns the expected guide and `https://cv.rehou.games/nexus/workflow/zoo/` returns the visual Zoo/Gym guide with all referenced screenshot images loading successfully.</li>
-</ul>
-<p>After validating the server, record deployment evidence and run the deployed gate:</p>
-<p>```bash</p>
-<p>node .codex/scripts/nexus-workflow.mjs record-deployment --summary &quot;&lt;deployment&gt;&quot; --target &quot;https://cv.rehou.games/nexus/&quot; --verdict pass --operator codex-lead --commands &quot;&lt;timed-command-ids&gt;&quot; --checks &quot;&lt;health/assets/log checks&gt;&quot; --notes &quot;&lt;server result&gt;&quot;</p>
-<p>npm run workflow:deployed-gate</p>
-<p>```</p>
-<p>Use `npm run workflow:run` for SSH, curl, and smoke-check commands that should become deployment proof. The deployment record embeds compact summaries for those command ids. `--checks` is descriptive context; it does not replace command evidence or durable artifacts for a passing deployment record.</p>
-<p>`npm run workflow:release-gate` is local branch readiness. It does not prove the server was updated.</p>
-<h2>Workflow Guide URL</h2>
-<p>The public-safe workflow guide is deployed to:</p>
-<ul>
-<li>`https://cv.rehou.games/nexus/workflow/`</li>
-<li>`https://cv.rehou.games/nexus/workflow/zoo/` for the deployable visual Zoo/Gym guide</li>
-</ul>
-<p>Generate it with:</p>
-<p>```bash</p>
-<p>npm run workflow:public-guide</p>
-<p>npm run workflow:zoo-visual-guide</p>
-<p>```</p>
-<p>Deploy it by copying `.codex/dashboard/public.html` to `/var/www/cv.rehou.games/nexus/workflow/index.html` and `.codex/dashboard/zoo/` to `/var/www/cv.rehou.games/nexus/workflow/zoo/`. Do not publish the full repo-local `.codex/dashboard/index.html` unless intentionally exposing internal deployment paths and record excerpts.</p>
-<p>Workflow-guide deployment checks should fetch the public Zoo/Gym HTML, extract screenshot image paths, request those image URLs, and fail if any return a non-2xx response. Counting `.jpg` references is not sufficient deployment proof.</p>
-<p>Use the checked-in workflow command instead of an inline one-off script:</p>
-<p>```bash</p>
-<p>npm run workflow:public-guide-deployed-check</p>
-<p>```</p>
-<p>Known risk: do not skip production `db:push` when schema changes are present.</p>
-<p>Known server state on 2026-05-09:</p>
-<ul>
-<li>Before this migration deployment, `/root/monoWeb/nexus` was at commit `1cbd123` on `main`.</li>
-<li>After deployment validation, `/root/monoWeb/nexus` was on branch `codex/native-workflow` at commit `cf069ce`.</li>
-<li>`nexus-api` was active on port `3010`.</li>
-<li>The server worktree had an existing `package-lock.json` modification. Do not overwrite it blindly during deployment.</li>
-<li>Server `node_modules` was stale and missing `@fontsource-variable/fraunces`; `npm ci` fixed the install before the production build.</li>
 </ul></section>
     </main>
   </div>

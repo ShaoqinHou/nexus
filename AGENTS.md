@@ -45,9 +45,9 @@ Nexus is a multi-tenant mini-app platform. The first module is restaurant orderi
 
 - Use repo skills in `.agents/skills` for workflow, review, verification, and audits.
 - Record durable state under `.codex/workflow/records` instead of relying on the chat transcript.
-- Capture durable solo-dev user intent and lead work slices with Work Intake records instead of creating one-off planning docs:
+- Capture durable solo-dev user intent and lead work slices with Work Intake records instead of creating one-off planning docs. Valid intent kinds are policy-owned in `.codex/workflow/policy/intake.json`; do not duplicate the list in prose:
   ```bash
-  node .codex/scripts/nexus-workflow.mjs record-intent --kind <feature|bug|idea|clarification|constraint|change-request> --status captured --summary "<compact user intent>"
+  node .codex/scripts/nexus-workflow.mjs record-intent --kind <policy-kind> --status captured --summary "<compact user intent>"
   node .codex/scripts/nexus-workflow.mjs record-work-slice --intent <INTENT-id> --status active --summary "<lead interpretation>" --acceptance "<done signals>" --verification "<checks>"
   ```
 - Link substantive routing, patch, review, verification, audit, and deployment records to the relevant work slice with `--work-slice <WORK-SLICE-id>`.
@@ -87,13 +87,13 @@ Nexus is a multi-tenant mini-app platform. The first module is restaurant orderi
   ```
 - Branches require branch-diff evidence before release, even when the checkout is clean. Use a branch-scope patch record for the whole branch diff, not only small worktree patch records:
   ```bash
-  node .codex/scripts/nexus-workflow.mjs record-patch --scope branch --summary "<branch summary>" --worker codex-lead --work-slice <WORK-SLICE-id>
+  node .codex/scripts/nexus-workflow.mjs record-patch --scope branch --summary "<branch summary>" --worker <lead-worker> --work-slice <WORK-SLICE-id>
   node .codex/scripts/nexus-workflow.mjs branch-evidence-check
   ```
 - Worktree-scope patch/review/verify/audit records should not carry branch hashes. Branch hashes belong to branch-scope closing records.
 - Worktree-scope records are interim evidence while coding. Before release on a branch with substantive diff, close the branch with branch-scope records tied to the current branch hash:
   ```bash
-  node .codex/scripts/nexus-workflow.mjs record-patch --scope branch --summary "<branch summary>" --worker codex-lead --work-slice <WORK-SLICE-id>
+  node .codex/scripts/nexus-workflow.mjs record-patch --scope branch --summary "<branch summary>" --worker <lead-worker> --work-slice <WORK-SLICE-id>
   node .codex/scripts/nexus-workflow.mjs record-review --scope branch --kind general --verdict pass --reviewer <name> --work-slice <WORK-SLICE-id> --notes "<summary>"
   node .codex/scripts/nexus-workflow.mjs record-verify --scope branch --verdict pass --verifier <name> --work-slice <WORK-SLICE-id> --commands "<timed-command-ids>" --notes "<commands/results>"
   node .codex/scripts/nexus-workflow.mjs record-audit --scope branch --verdict pass --auditor <name> --work-slice <WORK-SLICE-id> --commands "<timed-command-ids>" --notes "<summary>"
@@ -125,8 +125,9 @@ Use subagents only when delegation materially helps.
 - Before delegating, the lead must classify the task against the Spark-allowed and Spark-forbidden criteria. Do not use Spark first and hope it self-corrects.
 - For non-trivial delegation, record a routing preflight:
   ```bash
-  node .codex/scripts/nexus-workflow.mjs record-routing --summary "<task>" --route <lead|spark|strong|research|review|integrated-review|escalate-to-strong> --worker <agent> --files "a,b" --verification "<commands>" --fallback-trigger "<when>" --fallback-target "<agent>"
+  node .codex/scripts/nexus-workflow.mjs record-routing --summary "<task>" --route <lead|spark|strong|research|review|integrated-review|escalate> --worker <agent> --files "a,b" --verification "<commands>" --fallback-trigger "<when>" --fallback-target "<agent>"
   ```
+- `escalate-to-strong` is accepted only as a compatibility alias and is stored as `escalate`.
 - When recording a delegated patch, pass the worker name and routing id so integrated review and routing checks can see the real participants:
   ```bash
   node .codex/scripts/nexus-workflow.mjs record-patch --summary "<slice>" --worker <agent> --routing <ROUTING-id> --files "a,b"

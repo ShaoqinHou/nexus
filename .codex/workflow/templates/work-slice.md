@@ -1,5 +1,7 @@
 # Work Slice Record Template
 
+Body reference only. Create durable records with the project wrapper from `.codex/workflow/profile.json` `paths.workflowWrapper` (Nexus: `node .codex/scripts/nexus-workflow.mjs record-work-slice ...` or `close-work-slice ...`) so required frontmatter is generated and gates can validate the record.
+
 Status:
 
 - proposed

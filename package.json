@@ -46,6 +46,7 @@
     "workflow:branch-evidence-check": "node .codex/scripts/nexus-workflow.mjs branch-evidence-check",
     "workflow:dependency-audit-check": "node .codex/scripts/nexus-workflow.mjs dependency-audit-check",
     "workflow:prod-zoo-bundle-check": "node .codex/scripts/nexus-workflow.mjs prod-zoo-bundle-check",
+    "workflow:production-app-check": "node .codex/scripts/check-production-app.mjs",
     "workflow:public-guide-deployed-check": "node .codex/scripts/check-public-guide-images.mjs",
     "workflow:deployment-check": "node .codex/scripts/nexus-workflow.mjs deployment-check",
     "workflow:run": "node .codex/scripts/nexus-workflow.mjs run",

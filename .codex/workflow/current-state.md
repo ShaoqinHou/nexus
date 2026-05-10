@@ -1,6 +1,6 @@
 # Current State
 
-Updated: 2026-05-10
+Updated: 2026-05-11
 
 ## Original Request
 
@@ -69,6 +69,29 @@ Workflow simplification, Work Intake, guide/Zoo surfaces, and the first engine/p
   - removed the unreferenced `20260509-workflow-guide-visible` screenshot set,
   - added `.codex/workflow/templates/project-bootstrap.md` for second-project setup and per-project `.codex/config.toml` guidance,
   - made generated guide copy surface `Custom (config.toml)`, `Full access` limits, `workflow:hook-runtime-check`, and the bootstrap template.
+- completed a duplicate-agent workflow architecture audit focused on gaps in the deterministic workflow itself, not just self-audit output:
+  - tightened command evidence to exact npm-script classes instead of substring matching,
+  - made branch-scope verification and audit derive files from the real branch diff,
+  - bound guide deployment proof to the configured public workflow guide URL,
+  - removed localhost/private-string leaks from public guide/Zoo surfaces and checks,
+  - made Work Intake inbox hide already-sliced intents,
+  - made guide-browser finalization depend on existing closeout evidence instead of acting as an alternate closeout path,
+  - made trace checks surface warned/timed-out command ids while keeping historical probes non-blocking,
+  - expanded deterministic self-tests to cover spoofing, path traversal, branch evidence narrowing, retired commands, timeout telemetry, and deployment target failures.
+- completed the follow-up duplicate-agent audit fixes after independent reviewers found remaining workflow architecture gaps:
+  - new evidence records must now be cleanly staged before release; staged-then-modified evidence no longer satisfies commit-bound proof,
+  - branch-scope patch and review records reject narrowed file lists and branch evidence derives exact file coverage from the real branch diff,
+  - deployment evidence requires both production app/API proof and public workflow-guide/Zoo proof,
+  - remaining Design Zoo/Gym registry and route source paths used by generated guide surfaces now come from design policy data instead of script literals,
+  - live Zoo validation now checks warning toast, dark Sichuan body/theme mirroring, dialog portal contrast, and tour portal contrast,
+  - the deployable Zoo/Gym guide is a screenshot-based visual surface generated from the live `/design` routes, while production `/nexus/design` remains excluded from the app bundle.
+- completed the user-requested additional executable workflow audit pass after the duplicate-agent wave:
+  - record integrity now expands untracked evidence directories with `git ls-files --others --exclude-standard`, so second-project/bootstrap cases cannot hide untracked proof behind a collapsed `?? records/<kind>/` status line,
+  - deployment app proof now reads `publicAppUrl`, `apiHealthUrl`, and `publicAssetPrefix` from deployment policy and fails closed when policy is missing,
+  - Design Zoo validation and visual capture helpers now require profile env names and design policy fields through reusable workflow-engine helpers instead of falling back to Nexus literals,
+  - public-guide sanitizer logic is shared from the workflow engine and consumes guide policy data,
+  - dashboard knowledge sections, session-start guidance, resume docs, hook-permission guidance, and branch-closeout command examples are policy-owned guide contracts,
+  - fresh evidence includes `final14b-self-test-20260511` with 233 checks passing, `final14-design-zoo-20260511`, `final14-zoo-visual-capture-20260511`, and `final14b-zoo-visual-guide-check-20260511`.
 
 The reusable boundary is intentionally conservative: `.codex/scripts/workflow-engine.mjs` is portable loader/matcher infrastructure, while `.codex/scripts/nexus-workflow.mjs` remains the Nexus deterministic wrapper until a second project proves which larger pieces should be extracted.
 
@@ -103,6 +126,7 @@ Use the generated guide and append-only records instead of this compact handover
 - final workflow portability audit: `.codex/workflow/research/workflow-portability-audit-2026-05-10.md`
 - engine/profile extraction note: `.codex/workflow/research/workflow-engine-profile-extraction-2026-05-10.md`
 - workflow kernel self-check audit: `.codex/workflow/research/workflow-kernel-self-check-audit-2026-05-10.md`
+- duplicate-agent workflow architecture audit: `.codex/workflow/research/workflow-duplicate-agent-audit-2026-05-11.md`
 - second-project bootstrap template: `.codex/workflow/templates/project-bootstrap.md`
 - records: `.codex/workflow/records/`
 - risks: `.codex/workflow/records/risks.md`

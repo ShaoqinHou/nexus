@@ -53,11 +53,15 @@ Server validation must confirm:
 After validating the server, record deployment evidence and run the deployed gate:
 
 ```bash
-node .codex/scripts/nexus-workflow.mjs record-deployment --summary "<deployment>" --target "https://cv.rehou.games/nexus/" --verdict pass --operator codex-lead --commands "<timed-command-ids>" --checks "<health/assets/log checks>" --notes "<server result>"
+npm run workflow:run -- --id <app-check-id> --timeout-ms 120000 -- npm run workflow:production-app-check
+npm run workflow:run -- --id <guide-check-id> --timeout-ms 180000 -- npm run workflow:public-guide-deployed-check
+node .codex/scripts/nexus-workflow.mjs record-deployment --summary "<deployment>" --target "https://cv.rehou.games/nexus/" --verdict pass --operator <lead-worker> --commands "<app-check-id>,<guide-check-id>" --checks "<health/assets/log checks>" --notes "<server result>"
 npm run workflow:deployed-gate
 ```
 
 Use `npm run workflow:run` for SSH, curl, and smoke-check commands that should become deployment proof. The deployment record embeds compact summaries for those command ids. `--checks` is descriptive context; it does not replace command evidence or durable artifacts for a passing deployment record.
+
+The deployed gate requires both app/API proof and workflow-guide proof when guide artifacts changed. `workflow:production-app-check` validates the app root and API health. `workflow:public-guide-deployed-check` validates the public workflow guide, the Zoo/Gym guide, the deployed manifest, and every referenced screenshot image hash.
 
 `npm run workflow:release-gate` is local branch readiness. It does not prove the server was updated.
 

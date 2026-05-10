@@ -5,5 +5,144 @@
     "workflow:health",
     "workflow:release-gate",
     "workflow:deployed-gate"
-  ]
+  ],
+  "packageScripts": {
+    "workflow:status": "node .codex/scripts/nexus-workflow.mjs status",
+    "workflow:health": "node .codex/scripts/nexus-workflow.mjs health",
+    "workflow:dashboard": "node .codex/scripts/nexus-workflow.mjs dashboard",
+    "workflow:public-guide": "node .codex/scripts/nexus-workflow.mjs public-guide",
+    "workflow:review-check": "node .codex/scripts/nexus-workflow.mjs review-check",
+    "workflow:verify-check": "node .codex/scripts/nexus-workflow.mjs verify-check",
+    "workflow:audit-check": "node .codex/scripts/nexus-workflow.mjs audit-check",
+    "workflow:handover-check": "node .codex/scripts/nexus-workflow.mjs handover-check",
+    "workflow:model-routing-check": "node .codex/scripts/nexus-workflow.mjs model-routing-check",
+    "workflow:routing-check": "node .codex/scripts/nexus-workflow.mjs routing-check",
+    "workflow:work-intake-check": "node .codex/scripts/nexus-workflow.mjs work-intake-check",
+    "workflow:complete-routing": "node .codex/scripts/nexus-workflow.mjs complete-routing",
+    "workflow:records-check": "node .codex/scripts/nexus-workflow.mjs records-check",
+    "workflow:guide-check": "node .codex/scripts/nexus-workflow.mjs guide-check",
+    "workflow:guide-browser-check": "node .codex/scripts/nexus-workflow.mjs guide-browser-check",
+    "workflow:guide-browser-finalize": "node .codex/scripts/nexus-workflow.mjs guide-browser-finalize",
+    "workflow:zoo-check": "node .codex/scripts/nexus-workflow.mjs zoo-check",
+    "workflow:capture-zoo-visuals": "node .codex/scripts/capture-design-zoo-visuals.mjs",
+    "workflow:zoo-visual-guide": "node .codex/scripts/nexus-workflow.mjs zoo-visual-guide",
+    "workflow:zoo-visual-guide-check": "node .codex/scripts/nexus-workflow.mjs zoo-visual-guide-check",
+    "workflow:inventory-check": "node .codex/scripts/nexus-workflow.mjs inventory-check",
+    "workflow:policy-check": "node .codex/scripts/nexus-workflow.mjs policy-check",
+    "workflow:trace-check": "node .codex/scripts/nexus-workflow.mjs trace-check",
+    "workflow:hook-config-check": "node .codex/scripts/nexus-workflow.mjs hook-config-check",
+    "workflow:hook-runtime-check": "node .codex/scripts/nexus-workflow.mjs hook-runtime-check",
+    "workflow:branch-evidence-check": "node .codex/scripts/nexus-workflow.mjs branch-evidence-check",
+    "workflow:dependency-audit-check": "node .codex/scripts/nexus-workflow.mjs dependency-audit-check",
+    "workflow:prod-zoo-bundle-check": "node .codex/scripts/nexus-workflow.mjs prod-zoo-bundle-check",
+    "workflow:production-app-check": "node .codex/scripts/check-production-app.mjs",
+    "workflow:public-guide-deployed-check": "node .codex/scripts/check-public-guide-images.mjs",
+    "workflow:deployment-check": "node .codex/scripts/nexus-workflow.mjs deployment-check",
+    "workflow:run": "node .codex/scripts/nexus-workflow.mjs run",
+    "workflow:self-test": "node .codex/scripts/nexus-workflow.mjs self-test",
+    "workflow:release-gate": "node .codex/scripts/nexus-workflow.mjs validate --release-gate",
+    "workflow:deployed-gate": "node .codex/scripts/nexus-workflow.mjs validate --deployed-gate",
+    "workflow:design-zoo": "node .codex/scripts/validate-design-zoo.mjs"
+  },
+  "ciWorkflowCommands": [
+    "npm run workflow:run -- --id ci-design-lint --timeout-ms 90000 -- npm run lint:design",
+    "npm run workflow:run -- --id ci-unit-tests --timeout-ms 330000 -- npm test",
+    "npm run workflow:run -- --id ci-build --timeout-ms 210000 -- npm run build",
+    "npm run workflow:run -- --id ci-release-gate --timeout-ms 150000 -- npm run workflow:release-gate"
+  ],
+  "evidence": {
+    "commandClasses": {
+      "workflow-policy": {
+        "npmScripts": ["workflow:policy-check"]
+      },
+      "workflow-self-test": {
+        "npmScripts": ["workflow:self-test"]
+      },
+      "workflow-trace": {
+        "npmScripts": ["workflow:trace-check"]
+      },
+      "model-routing": {
+        "npmScripts": ["workflow:model-routing-check"]
+      },
+      "guide-check": {
+        "npmScripts": ["workflow:guide-check"]
+      },
+      "guide-browser-check": {
+        "npmScripts": ["workflow:guide-browser-check"]
+      },
+      "zoo-visual-guide-check": {
+        "npmScripts": ["workflow:zoo-visual-guide-check"]
+      },
+      "design-lint": {
+        "npmScripts": ["lint:design"]
+      },
+      "unit-tests": {
+        "npmScripts": ["test"]
+      },
+      "build": {
+        "npmScripts": ["build"]
+      },
+      "dependency-audit": {
+        "npmScripts": ["workflow:dependency-audit-check"]
+      },
+      "public-guide-deployed-check": {
+        "npmScripts": ["workflow:public-guide-deployed-check"]
+      },
+      "production-app-check": {
+        "npmScripts": ["workflow:production-app-check"]
+      },
+      "deployed-gate": {
+        "npmScripts": ["workflow:deployed-gate"]
+      }
+    },
+    "verificationRules": [
+      {
+        "name": "workflow-system",
+        "include": ["AGENTS.md", "WORKFLOW.md", ".codex/", ".agents/skills/", ".github/workflows/", "package.json", "package-lock.json"],
+        "classes": ["workflow-policy", "workflow-self-test"]
+      },
+      {
+        "name": "routing",
+        "include": [".codex/workflow/policy/routing.json", ".codex/workflow/scenarios/model-routing.json", ".codex/knowledge/model-routing.md", "AGENTS.md"],
+        "classes": ["model-routing"]
+      },
+      {
+        "name": "guide-and-zoo",
+        "include": [".codex/dashboard/", ".codex/workflow/policy/guide.json", ".codex/workflow/policy/design.json", ".codex/scripts/check-public-guide-images.mjs", ".codex/scripts/capture-design-zoo-visuals.mjs", ".codex/scripts/nexus-workflow.mjs"],
+        "classes": ["guide-check", "zoo-visual-guide-check"]
+      },
+      {
+        "name": "project-build",
+        "include": ["packages/", "package.json", "package-lock.json"],
+        "classes": ["unit-tests", "build"]
+      },
+      {
+        "name": "design-surface",
+        "include": ["packages/web/src/", "design/", ".codex/dashboard/zoo/", ".codex/workflow/policy/design.json"],
+        "classes": ["design-lint"]
+      },
+      {
+        "name": "dependency-baseline",
+        "include": [".codex/workflow/dependency-audit-baseline.json", "package.json", "package-lock.json"],
+        "classes": ["dependency-audit"]
+      }
+    ],
+    "auditRules": [
+      {
+        "name": "workflow-audit",
+        "include": ["AGENTS.md", "WORKFLOW.md", ".codex/", ".agents/skills/", ".github/workflows/", "package.json", "package-lock.json"],
+        "classes": ["workflow-policy", "workflow-self-test", "workflow-trace"]
+      },
+      {
+        "name": "routing-audit",
+        "include": [".codex/workflow/policy/routing.json", ".codex/workflow/scenarios/model-routing.json", ".codex/knowledge/model-routing.md", "AGENTS.md"],
+        "classes": ["model-routing"]
+      },
+      {
+        "name": "guide-audit",
+        "include": [".codex/dashboard/", ".codex/workflow/policy/guide.json", ".codex/workflow/policy/design.json", ".codex/scripts/check-public-guide-images.mjs", ".codex/scripts/capture-design-zoo-visuals.mjs", ".codex/scripts/nexus-workflow.mjs"],
+        "classes": ["guide-check", "zoo-visual-guide-check"]
+      }
+    ]
+  }
 }

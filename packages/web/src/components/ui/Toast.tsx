@@ -43,7 +43,7 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
     <div
       role="alert"
       className={[
-        'flex items-center gap-3 px-4 py-3.5 min-h-[var(--hit-lg)] rounded-lg border shadow-md',
+        'flex items-center gap-3 px-4 py-3.5 min-h-[var(--hit-lg)] rounded-[var(--radius-card)] border shadow-md',
         'transition-all duration-300 ease-out',
         visible
           ? 'translate-x-0 opacity-100'
@@ -56,7 +56,7 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
       <button
         type="button"
         onClick={() => onDismiss(toast.id)}
-        className="min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] p-2 rounded hover:bg-bg-muted/50 transition-colors text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+        className="min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] p-2 rounded-[var(--radius-btn)] hover:bg-bg-muted/50 transition-colors text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         aria-label={t('Dismiss notification')}
       >
         <X className="h-4 w-4" />

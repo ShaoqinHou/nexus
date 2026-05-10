@@ -101,6 +101,36 @@
     "expectedRoute": "strong"
   },
   {
+    "id": "mixed-narrow-but-api-contract",
+    "summary": "Looks narrow and testable, but changes a shared API contract and cross-module expectations.",
+    "narrow": true,
+    "explicitBehavior": true,
+    "clearTests": true,
+    "narrowWriteScope": true,
+    "apiContract": true,
+    "expectedRoute": "strong"
+  },
+  {
+    "id": "mixed-narrow-but-accessibility-judgment",
+    "summary": "Looks like a small UI control edit, but requires accessibility judgment and behavior validation.",
+    "narrow": true,
+    "explicitBehavior": true,
+    "clearTests": true,
+    "narrowWriteScope": true,
+    "accessibilityJudgment": true,
+    "expectedRoute": "strong"
+  },
+  {
+    "id": "mixed-narrow-but-data-migration",
+    "summary": "Looks like a narrow persistence change, but requires data migration judgment and rollback risk analysis.",
+    "narrow": true,
+    "explicitBehavior": true,
+    "clearTests": true,
+    "narrowWriteScope": true,
+    "dataMigration": true,
+    "expectedRoute": "strong"
+  },
+  {
     "id": "research-only-map-module-boundaries",
     "summary": "Map current tenant-scoped API modules without editing files.",
     "researchOnly": true,

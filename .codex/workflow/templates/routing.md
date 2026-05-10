@@ -7,6 +7,8 @@ author: codex
 
 # Routing Decision
 
+Body reference only. Create durable records with the project wrapper from `.codex/workflow/profile.json` `paths.workflowWrapper` (Nexus: `node .codex/scripts/nexus-workflow.mjs record-routing ...` or `complete-routing ...`) so required frontmatter and routing state are generated.
+
 Summary:
 
 Task type:

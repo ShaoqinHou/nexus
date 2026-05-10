@@ -12,6 +12,11 @@
       "enable_experimental_windows_sandbox": "experimental_windows_sandbox"
     }
   },
+  "runtime": {
+    "requiredEvents": [
+      "session-start"
+    ]
+  },
   "hooks": {
     "SessionStart": {
       "matcher": "startup|resume",

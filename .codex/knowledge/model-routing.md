@@ -18,6 +18,8 @@ For delegated implementation, record a compact routing preflight when the decisi
 node .codex/scripts/nexus-workflow.mjs record-routing --summary "<task>" --route <route> --worker <agent> --files "a,b" --verification "<commands>" --fallback-trigger "<when>" --fallback-target "<agent>"
 ```
 
+Stored route names are `lead`, `spark`, `strong`, `research`, `review`, `integrated-review`, and `escalate`. `escalate-to-strong` is a compatibility alias only.
+
 The preflight is bookkeeping, not bureaucracy. It gives the lead a durable place to state why Spark is allowed, why a strong worker is required, or why the lead should keep the task local. Use `.codex/workflow/templates/routing.md` for detailed routing records.
 
 When a delegated worker edits files, the patch record must include the worker name and routing id:
@@ -59,7 +61,7 @@ Escalation output should include files read, files changed, commands run, curren
 
 The lead must also enforce the fallback. If a Spark worker hangs, loops, or fails to return usable output within the assigned timebox, the lead closes/stops that worker and reassigns the slice to a strong worker or handles it locally. Do not wait indefinitely for Spark to self-diagnose.
 
-When Spark escalates after editing, create a routing or patch record that says what changed, why Spark stopped, and who owns the takeover. The fallback owner should be explicit, usually `nexus_strong_worker` or `lead`. This prevents a failed worker slice from disappearing into chat history.
+When Spark escalates after editing, create a routing or patch record that says what changed, why Spark stopped, and who owns the takeover. The fallback owner should be explicit and should use the policy-owned escalation worker in `.codex/workflow/policy/routing.json`, or `lead` when the lead takes over. This prevents a failed worker slice from disappearing into chat history.
 
 ## Strong Worker Contract
 
@@ -71,6 +73,7 @@ Use the strong worker for:
 - hard debugging,
 - cross-cutting product changes,
 - design-system and theme cascade work,
+- API contract, accessibility judgment, and schema/data migration work,
 - deployment or server-environment fixes,
 - changes where related files must be discovered and updated together,
 - tasks where weak context could cause a project-pattern violation.

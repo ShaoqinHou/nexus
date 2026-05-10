@@ -13,7 +13,7 @@ export function AddToCartToast({ show, itemName, quantity = 1, onComplete }: Add
 
   return createPortal(
     <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 animate-slide-up-fade">
-      <div className="flex items-center gap-3 px-4 py-3 bg-bg-elevated rounded-full shadow-lg border border-border">
+      <div className="flex items-center gap-3 px-4 py-3 bg-bg-elevated rounded-[var(--radius-card)] shadow-lg border border-border">
         <div className="flex items-center justify-center w-8 h-8 rounded-full bg-success text-text-inverse">
           <Check className="h-4 w-4" />
         </div>

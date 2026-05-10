@@ -39,10 +39,12 @@ Produce a concise table sorted by severity:
 - suggested fix,
 - whether durable pattern guidance should be updated.
 
-Record a passing audit gate when the audit is complete:
+Read-only audit agents should return findings to the lead. They should not create passing records unless the assignment explicitly gives them write authority. The lead records the audit pass after reconciling findings and linking command or durable artifact evidence.
+
+Record a passing audit gate only when the audit is complete and proof is reference-based:
 
 ```bash
-node .codex/scripts/nexus-workflow.mjs record-audit --scope worktree --verdict pass --auditor <name> --work-slice <WORK-SLICE-id> --notes "<summary>"
+node .codex/scripts/nexus-workflow.mjs record-audit --scope worktree --verdict pass --auditor <name> --work-slice <WORK-SLICE-id> --commands "<timed-command-ids>" --notes "<summary>"
 ```
 
 Record durable discoveries as decisions or risks when they should survive the session.

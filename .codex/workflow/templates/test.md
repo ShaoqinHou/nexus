@@ -1,5 +1,7 @@
 # Test Record Template
 
+Body reference only. Create durable records with the project wrapper from `.codex/workflow/profile.json` `paths.workflowWrapper` (Nexus: `node .codex/scripts/nexus-workflow.mjs record-verify ...`) so required frontmatter and command/artifact evidence summaries are generated.
+
 Scope:
 
 Command Or Scenario:

@@ -151,7 +151,7 @@ When closing a branch, record the whole branch diff explicitly instead of relyin
 
 ```bash
 node .codex/scripts/nexus-workflow.mjs close-work-slice --slice <WORK-SLICE-id> --status done --notes "<evidence complete>"
-node .codex/scripts/nexus-workflow.mjs record-patch --scope branch --summary "<branch summary>" --worker codex-lead --work-slice <WORK-SLICE-id>
+node .codex/scripts/nexus-workflow.mjs record-patch --scope branch --summary "<branch summary>" --worker <lead-worker> --work-slice <WORK-SLICE-id>
 node .codex/scripts/nexus-workflow.mjs record-review --scope branch --kind general --verdict pass --reviewer <name> --work-slice <WORK-SLICE-id> --notes "<summary>"
 node .codex/scripts/nexus-workflow.mjs record-verify --scope branch --verdict pass --verifier <name> --work-slice <WORK-SLICE-id> --commands "<timed-command-ids>" --notes "<commands/results>"
 node .codex/scripts/nexus-workflow.mjs record-audit --scope branch --verdict pass --auditor <name> --work-slice <WORK-SLICE-id> --commands "<timed-command-ids>" --notes "<summary>"
@@ -183,7 +183,7 @@ Then run:
 npm run workflow:design-zoo
 ```
 
-The script checks the `/design` index, Toast showcase, warning toast interaction, dark-mode toggle, non-classic theme selection, the Zoo `data-theme` wrapper, and `document.body` theme mirroring for portal inheritance. Set `NEXUS_WEB_URL` if the local server is not at `http://localhost:5173`.
+The script checks the `/design` index, Toast showcase, warning toast interaction, dark-mode toggle, non-classic theme selection, the Zoo `data-theme` wrapper, `document.body` theme mirroring, and dialog/tour portal inheritance. The local server URL env name is defined in `workflow/profile.json` (`env.webUrl`; Nexus uses `NEXUS_WEB_URL`).
 
 ## Visual Zoo Guide
 

@@ -1,11 +1,55 @@
 {
   "schema": "nexus-routing-workflow-policy/v1",
+  "validRoutes": [
+    "lead",
+    "spark",
+    "strong",
+    "research",
+    "review",
+    "integrated-review",
+    "escalate"
+  ],
+  "routeAliases": {
+    "escalate-to-strong": "escalate"
+  },
   "leadAliases": [
     "codex",
     "codex-lead",
     "lead",
     "workflow",
     "codex-hook"
+  ],
+  "defaultWorkers": {
+    "lead": "codex-lead",
+    "spark": "nexus_spark_worker",
+    "strong": "nexus_strong_worker",
+    "research": "nexus_researcher",
+    "review": "nexus_pattern_reviewer",
+    "integrated-review": "nexus_pattern_reviewer",
+    "escalate": "nexus_strong_worker"
+  },
+  "strongSignals": [
+    "ambiguous",
+    "crossCutting",
+    "architecture",
+    "apiContract",
+    "accessibilityJudgment",
+    "dataMigration",
+    "designJudgment",
+    "visualValidation",
+    "deployment",
+    "themeCascade",
+    "tenantIsolation",
+    "routingBasepath",
+    "schemaMigration",
+    "missingTests",
+    "unknownPattern"
+  ],
+  "sparkPositiveSignals": [
+    "narrow",
+    "explicitBehavior",
+    "clearTests",
+    "narrowWriteScope"
   ],
   "scenarioFile": ".codex/workflow/scenarios/model-routing.json"
 }

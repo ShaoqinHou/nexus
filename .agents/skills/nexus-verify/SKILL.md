@@ -51,11 +51,11 @@ After meaningful validation:
 
 ```bash
 node .codex/scripts/nexus-workflow.mjs record-verify --scope worktree --verdict pass --verifier <name> --work-slice <WORK-SLICE-id> --commands "<timed-command-ids>" --notes "<commands and results>"
-node .codex/scripts/nexus-workflow.mjs record-test --summary "<gate>" --notes "<commands and results>"
-node .codex/scripts/nexus-workflow.mjs record-deployment --summary "<deploy>" --work-slice <WORK-SLICE-id> --notes "<server evidence>"
+node .codex/scripts/nexus-workflow.mjs record-deployment --summary "<deploy>" --target "<server-or-url>" --verdict pass --operator <name> --work-slice <WORK-SLICE-id> --commands "<timed-command-ids>" --checks "<health/assets/log checks>" --notes "<server evidence>"
 npm run workflow:guide-browser-finalize
 ```
 
-`record-verify` is the gate record. `record-test` and `record-deployment` are supporting evidence.
+`record-verify` is the local verification gate record. `record-test` is retired; use `record-verify` with command or artifact evidence. `record-deployment` is the server/hosted verification record and requires `--target`, `--verdict`, and command or durable artifact proof for passing records.
+Local artifact evidence is hash-bound into the record. Runtime/state files under `.codex/workflow/runtime/` or `.codex/workflow/state/` are mutable telemetry and cannot be durable pass artifacts.
 `workflow:guide-browser-finalize` is the generated guide visual gate finalizer and is checked by `workflow:guide-browser-check`.
 Screenshots attached to records are supporting evidence. Use deterministic checks and `summary.json` for pass/fail proof; use JPEG previews for broad page-render evidence and PNG/lossless images for pixel-sensitive work.

@@ -80,6 +80,22 @@ const RULES = [
     appliesTo: (rel) => /\.(tsx|ts)$/.test(rel),
   },
   {
+    id: 'hit-target-too-small',
+    standard: 'S-HIT-TARGET-TOKEN',
+    message: 'Interactive min-height below 44px - use min-h-[var(--hit-sm)] or a semantic control component.',
+    regex: /\bmin-h-\[(?:[1-3]?\d|4[0-3])px\]/g,
+    appliesTo: (rel) => /\.(tsx|ts)$/.test(rel),
+    ignoreLineRegex: /chart|label|text-\[10px\]|preserveAspectRatio/,
+  },
+  {
+    id: 'shape-token-hardcoded',
+    standard: 'S-SHAPE-TOKEN',
+    message: 'Core UI shape uses raw Tailwind radius - use rounded-[var(--radius-card/btn/chip)] or an approved circle/pill.',
+    regex: /\brounded(?:-(?:none|sm|md|lg|xl|2xl|3xl))?\b/g,
+    appliesTo: (rel) => /^packages\/web\/src\/components\/(ui|patterns)\//.test(rel) && /\.(tsx|ts)$/.test(rel),
+    ignoreLineRegex: /^\s*\/\/|rounded-full|rounded-\[var\(--radius-[^)]+\)\]|Hardcoded `rounded/,
+  },
+  {
     id: 'non-lucide-icon-import',
     standard: 'S-LUCIDE-ONLY',
     message: 'Only lucide-react is permitted for UI icons.',

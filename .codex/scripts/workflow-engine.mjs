@@ -5,10 +5,8 @@ export const DEFAULT_POLICY_NAMES = [
   'records',
   'files',
   'guide',
-  'design',
   'routing',
   'intake',
-  'deployment',
   'hooks',
   'gates',
 ];
@@ -81,6 +79,65 @@ export function readRequiredJsonFile(path) {
   return readJsonFile(path, {});
 }
 
+export function requiredProfileString(workflow, path) {
+  const value = nestedValue(workflow?.profile || {}, path);
+  if (!value || typeof value !== 'string') {
+    throw new Error(`Workflow profile ${path} must be a non-empty string.`);
+  }
+  return value;
+}
+
+export function requiredPolicySection(workflow, sectionName) {
+  const section = workflow?.policy?.[sectionName];
+  if (!section || typeof section !== 'object') {
+    throw new Error(`Workflow policy ${sectionName}.json is required.`);
+  }
+  return section;
+}
+
+export function requiredPolicyString(workflow, sectionName, path) {
+  const value = nestedValue(requiredPolicySection(workflow, sectionName), path);
+  if (!value || typeof value !== 'string') {
+    throw new Error(`Workflow policy ${sectionName}.${path} must be a non-empty string.`);
+  }
+  return value;
+}
+
+export function requiredPolicyArray(workflow, sectionName, path) {
+  const value = nestedValue(requiredPolicySection(workflow, sectionName), path);
+  if (!Array.isArray(value) || !value.length) {
+    throw new Error(`Workflow policy ${sectionName}.${path} must be a non-empty array.`);
+  }
+  return value;
+}
+
+export function requiredPolicyObject(workflow, sectionName, path) {
+  const value = nestedValue(requiredPolicySection(workflow, sectionName), path);
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error(`Workflow policy ${sectionName}.${path} must be an object.`);
+  }
+  return value;
+}
+
+export function publicSanitizerForbiddenStrings(workflow, root = '') {
+  return asArray(workflow?.policy?.guide?.publicSanitizer?.forbiddenStrings)
+    .map((value) => policyText(value, root))
+    .filter(Boolean);
+}
+
+export function applyPublicSanitizer(value, workflow, root = '') {
+  let safe = String(value || '');
+  for (const rule of asArray(workflow?.policy?.guide?.publicSanitizer?.redactions)) {
+    const replacement = String(rule?.replacement ?? 'redacted');
+    if (rule?.literal) {
+      safe = safe.replaceAll(policyText(rule.literal, root), replacement);
+    } else if (rule?.pattern) {
+      safe = safe.replace(new RegExp(policyText(rule.pattern, root), rule.flags || 'g'), replacement);
+    }
+  }
+  return safe;
+}
+
 export function asArray(value) {
   if (Array.isArray(value)) return value;
   if (value === undefined || value === null || value === '') return [];
@@ -150,4 +207,14 @@ export function tomlBooleanInSection(text, section, key) {
 
 function relativeProjectPath(root, path) {
   return path.replace(root, '').replace(/^[/\\]/, '').replaceAll('\\', '/');
+}
+
+function nestedValue(source, path) {
+  return String(path || '').split('.').reduce((current, key) => current?.[key], source);
+}
+
+function policyText(value, root = '') {
+  return String(value || '')
+    .replaceAll('{rootPosix}', String(root || '').replaceAll('\\', '/'))
+    .replaceAll('{root}', String(root || ''));
 }

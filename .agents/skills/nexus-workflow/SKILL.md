@@ -66,10 +66,11 @@ Passing verification/audit evidence should reference command ids or artifacts, f
 
 ## Handover
 
-Update `.codex/workflow/current-state.md` with:
+Update `.codex/workflow/current-state.md` only with stable resume facts:
 
 - current phase,
-- changed files,
-- tests and review records,
+- links to detailed patch/review/verify/audit records,
 - deployment state,
 - risks and next step.
+
+Do not paste long logs, live command output, exact "final" commit hashes that will stale after another handover commit, or duplicate detailed records. The release gate checks this file for common stale-handover patterns.

@@ -166,7 +166,7 @@ export function ImageUpload({
         /* --- Preview state --- */
         <div className="relative group">
           <div
-            className={`${aspectClass} w-full overflow-hidden rounded-lg border border-border bg-bg-muted`}
+            className={`${aspectClass} w-full overflow-hidden rounded-[var(--radius-card)] border border-border bg-bg-muted`}
           >
             <img
               src={value}
@@ -175,7 +175,7 @@ export function ImageUpload({
             />
           </div>
           {/* Overlay controls */}
-          <div className="absolute inset-0 flex items-center justify-center gap-2 rounded-lg bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="absolute inset-0 flex items-center justify-center gap-2 rounded-[var(--radius-card)] bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
             <Button
               variant="secondary"
               size="sm"
@@ -213,7 +213,7 @@ export function ImageUpload({
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           className={[
-            `${aspectClass} w-full flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed cursor-pointer transition-colors`,
+            `${aspectClass} w-full flex flex-col items-center justify-center gap-2 rounded-[var(--radius-card)] border-2 border-dashed cursor-pointer transition-colors`,
             isDragging
               ? 'border-primary bg-primary/5'
               : 'border-border hover:border-border-strong hover:bg-bg-muted',
@@ -318,7 +318,7 @@ export function ImageUpload({
             <button
               type="button"
               onClick={() => setShowUrlInput(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[40px] text-xs text-text-tertiary hover:text-text-secondary hover:bg-bg-muted rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]"
+              className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[var(--hit-sm)] text-xs text-text-tertiary hover:text-text-secondary hover:bg-bg-muted rounded-[var(--radius-btn)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]"
             >
               <LinkIcon className="h-4 w-4" />
               Or enter a URL instead

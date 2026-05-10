@@ -55,7 +55,10 @@ export function Dialog({ open, onClose, title, children, footer, 'data-tour': da
     >
       <div
         {...(dataTour ? { 'data-tour': dataTour } : {})}
-        className="w-full max-w-lg rounded-lg bg-bg-elevated shadow-lg border border-border flex flex-col max-h-[calc(100vh-2rem)] overflow-hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        className="w-full max-w-lg rounded-[var(--radius-card)] bg-bg-elevated text-text shadow-lg border border-border flex flex-col max-h-[calc(100vh-2rem)] overflow-hidden"
       >
         {/* Header (sticky) */}
         <div className="flex-shrink-0 flex items-center justify-between px-4 sm:px-6 py-4 border-b border-border">
@@ -63,7 +66,7 @@ export function Dialog({ open, onClose, title, children, footer, 'data-tour': da
           <button
             type="button"
             onClick={onClose}
-            className="min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] flex items-center justify-center rounded-md text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary active:scale-[0.95]"
+            className="min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] flex items-center justify-center rounded-[var(--radius-btn)] text-text-tertiary hover:text-text hover:bg-bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary active:scale-[0.95]"
             aria-label={t('Close dialog')}
           >
             <X className="h-6 w-6" />

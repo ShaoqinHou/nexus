@@ -1,23 +1,30 @@
 #!/usr/bin/env node
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join, resolve, relative } from 'node:path';
+import { join, relative } from 'node:path';
 import { chromium } from 'playwright';
+import {
+  findWorkflowRoot,
+  loadCodexWorkflow,
+  requiredPolicyObject,
+  requiredPolicyString,
+  requiredProfileString,
+} from './workflow-engine.mjs';
 
-const START = process.cwd();
-const ROOT = findRoot(START);
-const OUT_DIR = join(ROOT, '.codex', 'dashboard', 'zoo');
+const ROOT = findWorkflowRoot(process.cwd());
+const WORKFLOW = loadCodexWorkflow(ROOT);
+const DESIGN_POLICY = WORKFLOW.policy.design || {};
+const WEB_URL_ENV = requiredProfileString(WORKFLOW, 'env.webUrl');
+const ZOO_CAPTURE_THEME_ENV = requiredProfileString(WORKFLOW, 'env.zooCaptureTheme');
+const ZOO_CAPTURE_MODE_ENV = requiredProfileString(WORKFLOW, 'env.zooCaptureMode');
+const OUT_DIR = join(ROOT, requiredProfileString(WORKFLOW, 'paths.zooGuideDir'));
 const ASSET_DIR = join(OUT_DIR, 'assets');
-const MANIFEST = join(OUT_DIR, 'manifest.json');
-
-function findRoot(start) {
-  let dir = resolve(start);
-  while (dir !== dirname(dir)) {
-    if (existsSync(join(dir, '.codex')) || existsSync(join(dir, 'package.json'))) return dir;
-    dir = dirname(dir);
-  }
-  return resolve(start);
-}
+const MANIFEST = join(ROOT, requiredProfileString(WORKFLOW, 'paths.zooGuideManifest'));
+const DESIGN_ROUTE_VALUE = requiredPolicyString(WORKFLOW, 'design', 'designRoute');
+const DESIGN_ROUTE = DESIGN_ROUTE_VALUE.startsWith('/') ? DESIGN_ROUTE_VALUE : `/${DESIGN_ROUTE_VALUE.replace(/^\/+/, '')}`;
+const VISUAL_MANIFEST_SCHEMA = requiredPolicyString(WORKFLOW, 'design', 'zooVisualManifestSchema');
+const CAPTURE_POLICY = requiredPolicyObject(WORKFLOW, 'design', 'zooVisualCapture');
+const REGISTRY_PATH = requiredPolicyString(WORKFLOW, 'design', 'registryPath');
 
 function ensureDir(path) {
   mkdirSync(path, { recursive: true });
@@ -40,41 +47,19 @@ function parseArgs(argv) {
 }
 
 function loadRegistry() {
-  return JSON.parse(readFileSync(join(ROOT, 'packages', 'web', 'src', 'components', 'registry.json'), 'utf8'));
+  return JSON.parse(readFileSync(join(ROOT, REGISTRY_PATH), 'utf8'));
 }
 
 function slugFromRoute(route) {
-  return String(route || '').replace(/^\/design\/?/, '') || 'index';
+  const value = String(route || '');
+  if (value === DESIGN_ROUTE || value === `${DESIGN_ROUTE}/`) return 'index';
+  if (value.startsWith(`${DESIGN_ROUTE}/`)) return value.slice(DESIGN_ROUTE.length + 1) || 'index';
+  return value.replace(/^\/+/, '') || 'index';
 }
 
 function captureTargets() {
   const registry = loadRegistry();
-  const foundations = [
-    {
-      slug: 'index',
-      title: 'Zoo Index',
-      kind: 'foundation',
-      route: '/design',
-      path: 'packages/web/src/routes/__design/Zoo.tsx',
-      purpose: 'Entry page for the live component catalog.',
-    },
-    {
-      slug: 'tokens',
-      title: 'Token Foundations',
-      kind: 'foundation',
-      route: '/design/tokens',
-      path: 'packages/web/src/platform/theme/tokens.css',
-      purpose: 'Production token swatches for colors, radii, shadows, and hit targets.',
-    },
-    {
-      slug: 'themes',
-      title: 'Theme Matrix',
-      kind: 'foundation',
-      route: '/design/themes',
-      path: 'packages/web/src/platform/theme/themes.css',
-      purpose: 'All cuisine themes rendered side by side from real components.',
-    },
-  ];
+  const foundations = Array.isArray(CAPTURE_POLICY.foundations) ? CAPTURE_POLICY.foundations : [];
   const entries = [...(registry.primitives || []), ...(registry.patterns || [])].map((entry) => ({
     slug: slugFromRoute(entry.zooRoute),
     title: entry.name,
@@ -91,6 +76,10 @@ function captureTargets() {
   });
 }
 
+function applyTemplate(value, theme) {
+  return String(value || '').replaceAll('{theme}', theme);
+}
+
 function contextId(value) {
   return String(value || '')
     .toLowerCase()
@@ -99,13 +88,20 @@ function contextId(value) {
 }
 
 function captureContexts(args) {
-  const theme = String(args.theme || process.env.NEXUS_ZOO_CAPTURE_THEME || 'sichuan');
+  const theme = String(args.theme || process.env[ZOO_CAPTURE_THEME_ENV] || requiredPolicyString(WORKFLOW, 'design', 'zooVisualCapture.defaultTheme'));
+  const configured = Array.isArray(CAPTURE_POLICY.contexts) && CAPTURE_POLICY.contexts.length
+    ? CAPTURE_POLICY.contexts
+    : (() => { throw new Error('Design workflow policy zooVisualCapture.contexts must be a non-empty array.'); })();
   if (args.single) {
-    const mode = String(args.mode || process.env.NEXUS_ZOO_CAPTURE_MODE || 'light');
+    const source = configured[0] || {};
+    const mode = String(args.mode || process.env[ZOO_CAPTURE_MODE_ENV] || applyTemplate(source.mode, theme));
     const viewport = {
-      width: Number(args.width || 1360),
-      height: Number(args.height || 860),
+      width: Number(args.width || source.viewport?.width),
+      height: Number(args.height || source.viewport?.height),
     };
+    if (!mode || !viewport.width || !viewport.height) {
+      throw new Error('Single Zoo capture requires policy context mode and viewport defaults, or explicit --mode/--width/--height.');
+    }
     return [{
       id: contextId(`${viewport.width}x${viewport.height}-${mode}-${theme}`),
       label: `${viewport.width}x${viewport.height} ${mode} ${theme}`,
@@ -114,22 +110,21 @@ function captureContexts(args) {
       viewport,
     }];
   }
-  return [
-    {
-      id: contextId(`desktop-light-${theme}`),
-      label: `Desktop light ${theme}`,
-      mode: 'light',
-      theme,
-      viewport: { width: Number(args.width || 1360), height: Number(args.height || 860) },
+  return configured.map((context, index) => ({
+    id: contextId(applyTemplate(context.id, theme)),
+    label: applyTemplate(context.label, theme),
+    mode: applyTemplate(context.mode, theme),
+    theme: applyTemplate(context.theme, theme),
+    viewport: {
+      width: Number((index === 0 ? args.width : args.mobileWidth) || context.viewport?.width),
+      height: Number((index === 0 ? args.height : args.mobileHeight) || context.viewport?.height),
     },
-    {
-      id: contextId(`mobile-dark-${theme}`),
-      label: `Mobile dark ${theme}`,
-      mode: 'dark',
-      theme,
-      viewport: { width: Number(args.mobileWidth || 390), height: Number(args.mobileHeight || 844) },
-    },
-  ];
+  })).map((context) => {
+    if (!context.mode || !context.theme || !context.viewport.width || !context.viewport.height) {
+      throw new Error(`Zoo capture context ${context.id} is missing mode, theme, or viewport policy.`);
+    }
+    return context;
+  });
 }
 
 async function setChromeState(page, { mode, theme }) {
@@ -181,23 +176,29 @@ async function verifyChromeState(page, { mode, theme }) {
 }
 
 async function exerciseShowcase(page, slug) {
-  if (slug === 'toast') {
-    const button = page.getByRole('button', { name: '+ Warning' });
-    if (await button.count()) await button.click();
-  }
-  if (slug === 'dialog') {
-    const button = page.getByRole('button', { name: 'Open dialog' });
-    if (await button.count()) await button.click();
-  }
-  if (slug === 'tour-overlay') {
-    const button = page.getByRole('button', { name: 'Start tour' });
-    if (await button.count()) await button.click();
+  const config = CAPTURE_POLICY.interactiveShowcases?.[slug];
+  if (config?.buttonName) {
+    const button = page.getByRole('button', { name: config.buttonName });
+    if (!(await button.count())) throw new Error(`Configured interactive showcase ${slug} is missing button "${config.buttonName}".`);
+    await button.click();
+    if (config.expectedRole) {
+      const locator = config.expectedName
+        ? page.getByRole(config.expectedRole, { name: new RegExp(config.expectedName, 'i') })
+        : page.getByRole(config.expectedRole);
+      await locator.first().waitFor({ state: 'visible', timeout: 5000 });
+    }
+    if (config.expectedText) {
+      await page.getByText(config.expectedText, { exact: false }).first().waitFor({ state: 'visible', timeout: 5000 });
+    }
+    if (config.expectedPortalSelector) {
+      await page.locator(config.expectedPortalSelector).first().waitFor({ state: 'visible', timeout: 5000 });
+    }
   }
 }
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
-  const baseUrl = String(args.url || process.env.NEXUS_WEB_URL || 'http://localhost:5173').replace(/\/$/, '');
+  const baseUrl = String(args.url || process.env[WEB_URL_ENV] || requiredPolicyString(WORKFLOW, 'design', 'localWebUrl')).replace(/\/$/, '');
   const contexts = captureContexts(args);
 
   ensureDir(ASSET_DIR);
@@ -213,9 +214,10 @@ async function main() {
       const contextDir = join(ASSET_DIR, context.id);
       ensureDir(contextDir);
       for (const target of targets) {
-        const url = `${baseUrl}${target.route || `/design/${target.slug}`}`;
+        const route = target.route || `${DESIGN_ROUTE}/${target.slug}`;
+        const url = `${baseUrl}${route}`;
         await page.goto(url, { waitUntil: 'networkidle', timeout: 20000 });
-        await page.getByText('Zoo', { exact: false }).first().waitFor({ state: 'visible', timeout: 10000 });
+        await page.getByText(requiredPolicyString(WORKFLOW, 'design', 'zooVisualCapture.waitForText'), { exact: false }).first().waitFor({ state: 'visible', timeout: 10000 });
         const verifiedChromeState = await setChromeState(page, context);
         await exerciseShowcase(page, target.slug);
         await page.waitForTimeout(350);
@@ -246,7 +248,7 @@ async function main() {
   }
 
   writeFileSync(MANIFEST, `${JSON.stringify({
-    schema: 'nexus-design-zoo-visual-manifest/v1',
+    schema: VISUAL_MANIFEST_SCHEMA,
     capturedAt: new Date().toISOString(),
     baseUrl,
     contexts,

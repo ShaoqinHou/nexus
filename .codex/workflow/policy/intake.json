@@ -39,7 +39,13 @@
   "activeWorkSliceStatuses": [
     "ready",
     "active",
-    "review"
+    "review",
+    "blocked"
+  ],
+  "sourceTypes": [
+    "user-intent",
+    "internal-maintenance",
+    "workflow-maintenance"
   ],
   "evidenceRequiredStatuses": [
     "review",

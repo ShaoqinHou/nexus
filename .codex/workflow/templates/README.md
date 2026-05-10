@@ -1,6 +1,8 @@
 # Record Templates
 
-These templates describe the expected content of durable workflow records. Prefer the workflow script commands because they add stable IDs and frontmatter, but use these shapes when writing or reviewing records by hand.
+These templates describe the expected human-readable body of durable workflow records. Prefer the workflow script commands because they add stable IDs, frontmatter, hash-bound evidence, worktree/branch hashes, and policy-owned schema fields.
+
+Do not treat a hand-written template body as a valid gate record unless the frontmatter matches the active policy schema. For passing verification, audit, deployment, and guide-browser records, use the script commands so command summaries and artifact hashes are embedded correctly.
 
 - `patch.md`: meaningful implementation slice.
 - `intent.md`: compact user-intent slice captured from a durable prompt meaning.
