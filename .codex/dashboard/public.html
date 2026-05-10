@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="nexus-guide-version" content="nexus-public-workflow-guide/v2" />
-  <meta name="nexus-guide-source-hash" content="990925adcc43d2f6008425a5" />
-  <meta name="nexus-guide-content-hash" content="8806eaeb2137c54bdd8a5111" />
+  <meta name="nexus-guide-source-hash" content="a58bdfeae20131b66ab7ab7a" />
+  <meta name="nexus-guide-content-hash" content="6892b3b8f136a573f8875193" />
   <meta name="nexus-token-source" content="packages/web/src/platform/theme/tokens.css" />
   <title>Nexus Workflow Guide</title>
   <style>
@@ -70,7 +70,7 @@
 <body>
   <header>
     <h1>Nexus Workflow Guide</h1>
-    <div class="meta">Generated snapshot 2026-05-10T05:32:15.750Z · branch codex/native-workflow · run workflow gates for live state before deploy</div>
+    <div class="meta">Generated snapshot 2026-05-10T05:38:31.188Z · branch codex/native-workflow · run workflow gates for live state before deploy</div>
   </header>
   <main>
     <section>
@@ -99,7 +99,7 @@
 <div class="node"><strong>.codex/agents</strong><span>7 agent config files</span></div>
 <div class="node"><strong>.agents/skills</strong><span>4 repo skills</span></div>
 <div class="node"><strong>nexus-workflow.mjs</strong><span>deterministic gates and records</span></div>
-<div class="node"><strong>.codex/workflow/records</strong><span>219 indexed records</span></div>
+<div class="node"><strong>.codex/workflow/records</strong><span>226 indexed records</span></div>
       </div>
       <p class="meta">AGENTS.md -> .codex/README.md · .codex/knowledge -> .codex/agents · nexus-workflow.mjs -> .codex/workflow/records</p>
     </div>
@@ -123,8 +123,8 @@
 <div class="node"><strong>packages/web/src/routes</strong><span>1 indexed route files</span></div>
 <div class="node"><strong>packages/web/src/locales</strong><span>5 locale files</span></div>
 <div class="node"><strong>packages/shared</strong><span>2 source files</span></div>
-<div class="node"><strong>.codex workflow</strong><span>306 workflow files</span></div>
-<div class="node"><strong>.codex/workflow/records</strong><span>219 indexed records</span></div>
+<div class="node"><strong>.codex workflow</strong><span>314 workflow files</span></div>
+<div class="node"><strong>.codex/workflow/records</strong><span>226 indexed records</span></div>
       </div>
       <p class="meta">packages/api -> packages/shared · packages/web -> packages/shared · .codex workflow -> .codex/workflow/records</p>
     </div>
@@ -275,10 +275,10 @@ node .codex/scripts/nexus-workflow.mjs record-audit --scope branch --verdict pas
         <div class="card"><strong>6</strong><p>decisions</p></div>
 <div class="card"><strong>12</strong><p>pattern-proposals</p></div>
 <div class="card"><strong>24</strong><p>routing</p></div>
-<div class="card"><strong>38</strong><p>patches</p></div>
-<div class="card"><strong>57</strong><p>reviews</p></div>
-<div class="card"><strong>48</strong><p>tests</p></div>
-<div class="card"><strong>28</strong><p>audits (first-class + legacy)</p></div>
+<div class="card"><strong>39</strong><p>patches</p></div>
+<div class="card"><strong>61</strong><p>reviews</p></div>
+<div class="card"><strong>49</strong><p>tests</p></div>
+<div class="card"><strong>29</strong><p>audits (first-class + legacy)</p></div>
 <div class="card"><strong>6</strong><p>deployments</p></div>
       </div>
       <p class="meta">Guide-browser evidence is tracked separately by hash-bound records and omitted from this generated guide to avoid self-referential guide freshness loops.</p>
@@ -289,7 +289,13 @@ node .codex/scripts/nexus-workflow.mjs record-audit --scope branch --verdict pas
 
         <h3>Validation</h3>
         <ul class="timeline">
-          <li><strong>reviews:</strong> Review integrated pass branch <span class="meta">2026-05-10T05:31:48.696Z</span></li>
+          <li><strong>audits:</strong> Audit pass branch <span class="meta">2026-05-10T05:38:12.815Z</span></li>
+<li><strong>tests:</strong> Verification pass branch <span class="meta">2026-05-10T05:38:03.711Z</span></li>
+<li><strong>reviews:</strong> Review integrated pass branch <span class="meta">2026-05-10T05:37:54.665Z</span></li>
+<li><strong>reviews:</strong> Review design pass branch <span class="meta">2026-05-10T05:37:46.232Z</span></li>
+<li><strong>reviews:</strong> Review workflow pass branch <span class="meta">2026-05-10T05:37:37.916Z</span></li>
+<li><strong>reviews:</strong> Review general pass branch <span class="meta">2026-05-10T05:37:29.580Z</span></li>
+<li><strong>reviews:</strong> Review integrated pass branch <span class="meta">2026-05-10T05:31:48.696Z</span></li>
 <li><strong>audits:</strong> Audit pass branch <span class="meta">2026-05-10T05:31:03.726Z</span></li>
 <li><strong>tests:</strong> Verification pass branch <span class="meta">2026-05-10T05:30:54.271Z</span></li>
 <li><strong>reviews:</strong> Review design pass branch <span class="meta">2026-05-10T05:30:43.798Z</span></li>
@@ -433,7 +439,8 @@ node .codex/scripts/nexus-workflow.mjs record-audit --scope branch --verdict pas
 
         <h3>Workflow</h3>
         <ul class="timeline">
-          <li><strong>decisions:</strong> Use conservative workflow engine/profile split for second-project reuse <span class="meta">2026-05-10T05:31:16.513Z</span></li>
+          <li><strong>patches:</strong> Finalize workflow extraction handover wording <span class="meta">2026-05-10T05:37:19.672Z</span></li>
+<li><strong>decisions:</strong> Use conservative workflow engine/profile split for second-project reuse <span class="meta">2026-05-10T05:31:16.513Z</span></li>
 <li><strong>patches:</strong> Extract reusable workflow profile and Nexus policy pack <span class="meta">2026-05-10T05:30:16.970Z</span></li>
 <li><strong>patches:</strong> correct portability report evidence wording <span class="meta">2026-05-09T17:08:51.859Z</span></li>
 <li><strong>patches:</strong> cross-platform branch evidence hashing correction <span class="meta">2026-05-09T16:37:42.770Z</span></li>
