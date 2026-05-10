@@ -19,8 +19,8 @@ This file captures durable project knowledge that coding and review agents shoul
 
 - Do not edit `design/reference/v<N>/`; add `v<N+1>/` for a new export.
 - Do not import from `design/reference/` in production code.
-- New UI primitives and patterns need a `components/registry.json` entry and a `/design/*` zoo showcase.
-- Zoo pages import real components and must not redefine them inline.
+- New UI primitives and patterns need a `components/registry.json` entry and a `/design/*` Zoo showcase.
+- Zoo showcases are implemented in the consolidated `packages/web/src/routes/__design/Zoo.tsx` slug map, not one file per component. They import real components and must not redefine them inline.
 - Use semantic shape tokens: `--radius-card`, `--radius-btn`, `--radius-chip`.
 - Use hit target tokens: `--hit-sm`, `--hit-md`, `--hit-lg`.
 - Use Lucide for generic UI icons.

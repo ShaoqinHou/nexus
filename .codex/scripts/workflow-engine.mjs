@@ -7,6 +7,7 @@ export const DEFAULT_POLICY_NAMES = [
   'guide',
   'design',
   'routing',
+  'intake',
   'deployment',
   'hooks',
   'gates',
@@ -14,25 +15,44 @@ export const DEFAULT_POLICY_NAMES = [
 
 export function loadCodexWorkflow(root, options = {}) {
   const codexDir = options.codexDir || '.codex';
+  const strictPolicy = options.strictPolicy !== false;
   const codex = join(root, codexDir);
   const profilePath = join(codex, 'workflow', 'profile.json');
-  const profile = readJsonFile(profilePath, {});
+  const profile = strictPolicy ? readRequiredJsonFile(profilePath) : readJsonFile(profilePath, {});
   const policyRoot = join(codex, 'workflow', 'policy');
-  const policyNames = options.policyNames || DEFAULT_POLICY_NAMES;
-  const policy = {};
+  const manifestPath = join(policyRoot, 'manifest.json');
+  const explicitPolicyNames = Array.isArray(options.policyNames);
+  const manifest = explicitPolicyNames && !existsSync(manifestPath)
+    ? {}
+    : (strictPolicy ? readRequiredJsonFile(manifestPath) : readJsonFile(manifestPath, {}));
+  const policyNames = options.policyNames
+    || policyNamesFromManifest(manifest, strictPolicy);
+  const policy = { manifest };
   for (const name of policyNames) {
-    policy[name] = readJsonFile(join(policyRoot, `${name}.json`), {});
+    const policyPath = join(policyRoot, `${name}.json`);
+    policy[name] = strictPolicy ? readRequiredJsonFile(policyPath) : readJsonFile(policyPath, {});
   }
   return {
     root,
     codex,
     profile,
     policy,
+    policyNames,
     files: {
       profile: relativeProjectPath(root, profilePath),
-      policies: policyNames.map((name) => relativeProjectPath(root, join(policyRoot, `${name}.json`))),
+      manifest: relativeProjectPath(root, manifestPath),
+      policies: [manifestPath, ...policyNames.map((name) => join(policyRoot, `${name}.json`))]
+        .map((path) => relativeProjectPath(root, path)),
     },
   };
+}
+
+function policyNamesFromManifest(manifest, strictPolicy) {
+  if (Array.isArray(manifest.policyNames) && manifest.policyNames.length) return manifest.policyNames;
+  if (strictPolicy) {
+    throw new Error('Workflow policy manifest must declare a non-empty policyNames array.');
+  }
+  return DEFAULT_POLICY_NAMES;
 }
 
 export function findWorkflowRoot(start = process.cwd(), options = {}) {
@@ -54,6 +74,11 @@ export function readJsonFile(path, fallback = {}) {
   } catch (error) {
     throw new Error(`Could not parse workflow JSON ${path}: ${error.message}`);
   }
+}
+
+export function readRequiredJsonFile(path) {
+  if (!existsSync(path)) throw new Error(`Missing required workflow JSON ${path}`);
+  return readJsonFile(path, {});
 }
 
 export function asArray(value) {

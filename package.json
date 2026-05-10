@@ -28,6 +28,7 @@
     "workflow:handover-check": "node .codex/scripts/nexus-workflow.mjs handover-check",
     "workflow:model-routing-check": "node .codex/scripts/nexus-workflow.mjs model-routing-check",
     "workflow:routing-check": "node .codex/scripts/nexus-workflow.mjs routing-check",
+    "workflow:work-intake-check": "node .codex/scripts/nexus-workflow.mjs work-intake-check",
     "workflow:complete-routing": "node .codex/scripts/nexus-workflow.mjs complete-routing",
     "workflow:records-check": "node .codex/scripts/nexus-workflow.mjs records-check",
     "workflow:guide-check": "node .codex/scripts/nexus-workflow.mjs guide-check",

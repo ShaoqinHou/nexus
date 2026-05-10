@@ -2,6 +2,8 @@
   "schema": "codex-workflow-records-policy/v1",
   "kinds": [
     "decisions",
+    "intents",
+    "work-slices",
     "pattern-proposals",
     "routing",
     "patches",
@@ -12,6 +14,8 @@
     "deployments"
   ],
   "evidenceKinds": [
+    "intents",
+    "work-slices",
     "pattern-proposals",
     "routing",
     "patches",
@@ -23,6 +27,8 @@
   ],
   "guideKinds": [
     "decisions",
+    "intents",
+    "work-slices",
     "pattern-proposals",
     "routing",
     "patches",
@@ -31,16 +37,35 @@
     "audits",
     "deployments"
   ],
+  "prefixByKind": {
+    "decisions": "DECISION",
+    "deployments": "DEPLOYMENT",
+    "guide-browser": "GUIDE-BROWSER",
+    "intents": "INTENT",
+    "patches": "PATCH",
+    "pattern-proposals": "PATTERN-PROPOSAL",
+    "routing": "ROUTING",
+    "reviews": "REVIEW",
+    "tests": "TEST",
+    "audits": "AUDIT",
+    "work-slices": "WORK-SLICE"
+  },
+  "baseEnv": {
+    "recordHistory": "NEXUS_RECORD_BASE",
+    "branch": "NEXUS_BRANCH_BASE"
+  },
   "schemaByKind": {
     "decisions": "nexus-decision/v1",
     "deployments": "nexus-deployment/v1",
     "guide-browser": "nexus-guide-browser/v1",
+    "intents": "nexus-intent/v1",
     "patches": "nexus-patch/v1",
     "pattern-proposals": "nexus-pattern-proposal/v1",
     "routing": "nexus-routing/v1",
     "reviews": "nexus-review/v1",
     "tests": "nexus-test/v1",
-    "audits": "nexus-audit/v1"
+    "audits": "nexus-audit/v1",
+    "work-slices": "nexus-work-slice/v1"
   },
   "legacySchemaByKind": {
     "patches": [

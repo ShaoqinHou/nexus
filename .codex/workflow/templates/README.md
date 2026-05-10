@@ -3,6 +3,8 @@
 These templates describe the expected content of durable workflow records. Prefer the workflow script commands because they add stable IDs and frontmatter, but use these shapes when writing or reviewing records by hand.
 
 - `patch.md`: meaningful implementation slice.
+- `intent.md`: compact user-intent slice captured from a durable prompt meaning.
+- `work-slice.md`: lead-interpreted implementable slice linked to intents and evidence.
 - `review.md`: focused code/design/pattern review.
 - `test.md`: command, browser, server, or historical-case verification.
 - `guide-browser.md`: generated guide visual/browser validation.
@@ -13,4 +15,4 @@ These templates describe the expected content of durable workflow records. Prefe
 - `audit.md`: workflow/project health audit.
 - `project-bootstrap.md`: portable checklist for creating project-local Codex config, hooks, profile, policy, and workflow checks in another repo.
 
-`current-state.md` is not a record transcript. It must stay small, link to detailed records, avoid self-staling finalization details, and pass `npm run workflow:handover-check`.
+`current-state.md` is not a record transcript. It must stay small, link to detailed records, avoid self-staling finalization details, and pass the canonical `npm run workflow:release-gate`; use `npm run workflow:handover-check` only as a diagnostic helper.

@@ -1,0 +1,83 @@
+{
+  "schema": "codex-workflow-intake-policy/v1",
+  "enabled": true,
+  "recordKinds": {
+    "intents": "intents",
+    "workSlices": "work-slices"
+  },
+  "intentKinds": [
+    "initial",
+    "idea",
+    "feature",
+    "bug",
+    "clarification",
+    "constraint",
+    "change-request",
+    "maintenance",
+    "research"
+  ],
+  "intentStatuses": [
+    "captured",
+    "needs-clarification",
+    "accepted",
+    "converted",
+    "deferred",
+    "rejected",
+    "superseded"
+  ],
+  "workSliceStatuses": [
+    "proposed",
+    "ready",
+    "active",
+    "blocked",
+    "review",
+    "verified",
+    "done",
+    "deferred",
+    "superseded"
+  ],
+  "activeWorkSliceStatuses": [
+    "ready",
+    "active",
+    "review"
+  ],
+  "evidenceRequiredStatuses": [
+    "review",
+    "verified",
+    "done"
+  ],
+  "closedWorkSliceStatuses": [
+    "verified",
+    "done",
+    "deferred",
+    "superseded"
+  ],
+  "sourceTypesWithoutIntent": [
+    "internal-maintenance",
+    "workflow-maintenance"
+  ],
+  "staleActiveWorkSliceDays": 14,
+  "requireWorkSliceForSubstantivePatches": true,
+  "requireWorkSliceForEvidenceRecords": true,
+  "externalTrackerMode": "optional",
+  "externalRefPrefixes": [
+    "github:",
+    "linear:",
+    "jira:",
+    "url:"
+  ],
+  "guide": {
+    "maxInboxItems": 8,
+    "maxActiveSlices": 8,
+    "maxTraceItems": 12,
+    "maxEvidenceItemsPerSlice": 4,
+    "maxFeatureCatalogItems": 12,
+    "featureCatalogIntentKinds": [
+      "initial",
+      "idea",
+      "feature",
+      "bug",
+      "change-request"
+    ]
+  }
+}

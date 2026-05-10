@@ -22,7 +22,7 @@ Evidence checked:
 
 ## Active Goal
 
-Harden the Codex-native workflow around a simpler proof model:
+Finish and validate the Codex-native workflow adaptation around a deterministic proof model:
 
 - records plus git/worktree/branch state are truth,
 - `.codex/workflow/state/` is delete-safe cache,
@@ -31,11 +31,12 @@ Harden the Codex-native workflow around a simpler proof model:
 - `status` is a cheap resume snapshot,
 - `health`, `release-gate`, and `deployed-gate` are the heavier proof gates,
 - branch hashes live on branch-scope closing records,
-- delegated worker proof is explicit routing, worker patch, routing closeout, and integrated review.
+- delegated worker proof is explicit routing, worker patch, routing closeout, and integrated review,
+- solo-dev prompts are captured as compact intent records and lead-interpreted work slices.
 
 ## Current Phase
 
-Workflow simplification and boundary hardening are implemented and should be judged by the workflow records plus gates, not this compact note. The current pass has:
+Workflow simplification, Work Intake, guide/Zoo surfaces, and the first engine/profile extraction are implemented. Judge readiness by the workflow records plus gates, not this compact note. The current pass has:
 
 - moved mutable state JSON out of `.codex/workflow/records/`,
 - made status cheap and added `workflow:health`,
@@ -54,6 +55,11 @@ Workflow simplification and boundary hardening are implemented and should be jud
 - fixed the final audit findings by adding `.codex/knowledge/verification.md` to deterministic guide-hash and required-file inputs, including workflow research reports in guide freshness, keeping `workflow:status` cheap while moving record-history validation to `workflow:health` and release gates, and adding a checked-in deployed Zoo/Gym image-load validation command.
 - completed the first reusable extraction needed for a second project by adding `.codex/scripts/workflow-engine.mjs`, `.codex/workflow/profile.json`, and `.codex/workflow/policy/*.json`; Nexus-specific facts now live in policy data for records, file classifiers, review-kind classifiers, guide contracts, design inputs, hook expectations, and deployment URLs.
 - fixed a deployment-guide self-reference loop by excluding deployment records from public-guide source-hash inputs while keeping them displayable in regenerated guide views.
+- added Work Intake records and guide views so user prompt intent, lead work slices, patches, reviews, verification, audits, and deployments can be traced without reading the chat transcript.
+- audited and repaired the old-Claude design-system integration docs. Active guidance now says the production Zoo/Gym route is the consolidated `packages/web/src/routes/__design/Zoo.tsx` slug map, tenant settings currently expose brand/brand-hover colors only, and the remaining themed-parity gaps are explicit in `.codex/knowledge/design-system.md`.
+- removed the non-failing React `act(...)` warning in `ThemeProvider.test.tsx` with Testing Library `fireEvent.click`; focused and full local tests passed in recorded command evidence.
+- completed a final code-level workflow architecture audit in `.codex/workflow/research/workflow-code-architecture-audit-2026-05-10.md`; fixes moved core paths, record prefixes/schemas/env names, classifier fixtures, guide required inputs, guide topology, document lists, and handover-template closeout wording into profile/policy-owned contracts.
+- completed the user-requested end-of-work workflow-code drift re-audit; follow-up reviewers found no release-blocking drift, and the remaining low portability smell was fixed by moving public-guide redaction strings plus Zoo/Gym visual contract/title expectations into policy-owned data.
 - completed a workflow kernel self-check hardening pass after parallel audit:
   - added `workflow:inventory-check`, `workflow:policy-check`, and `workflow:trace-check`,
   - wired those checks into `workflow:health` and `workflow:release-gate`,
@@ -63,6 +69,8 @@ Workflow simplification and boundary hardening are implemented and should be jud
   - removed the unreferenced `20260509-workflow-guide-visible` screenshot set,
   - added `.codex/workflow/templates/project-bootstrap.md` for second-project setup and per-project `.codex/config.toml` guidance,
   - made generated guide copy surface `Custom (config.toml)`, `Full access` limits, `workflow:hook-runtime-check`, and the bootstrap template.
+
+The reusable boundary is intentionally conservative: `.codex/scripts/workflow-engine.mjs` is portable loader/matcher infrastructure, while `.codex/scripts/nexus-workflow.mjs` remains the Nexus deterministic wrapper until a second project proves which larger pieces should be extracted.
 
 ## How To Resume
 
@@ -89,6 +97,9 @@ Use the generated guide and append-only records instead of this compact handover
 - public workflow guide: `https://cv.rehou.games/nexus/workflow/`
 - visual Zoo/Gym guide: `https://cv.rehou.games/nexus/workflow/zoo/`
 - local generated dashboard: `.codex/dashboard/index.html`
+- Work Intake guide: `.codex/knowledge/work-intake.md`
+- final workflow code architecture audit: `.codex/workflow/research/workflow-code-architecture-audit-2026-05-10.md`
+- design-system integration audit: `.codex/workflow/research/design-system-integration-audit-2026-05-10.md`
 - final workflow portability audit: `.codex/workflow/research/workflow-portability-audit-2026-05-10.md`
 - engine/profile extraction note: `.codex/workflow/research/workflow-engine-profile-extraction-2026-05-10.md`
 - workflow kernel self-check audit: `.codex/workflow/research/workflow-kernel-self-check-audit-2026-05-10.md`
@@ -99,7 +110,7 @@ Use the generated guide and append-only records instead of this compact handover
 ## Open Risks
 
 - Hooks are configured but this checkout may still show `hook runtime: not seen`; explicit workflow gates remain the enforcement source when Codex project hooks are not loaded in a session. Use trusted `Custom (config.toml)` when hook loading matters. Full access grants permissions but does not prove project config or hooks loaded.
-- The first engine/profile split is in place, but it is still a conservative extraction: future projects should copy the profile/policy shape and then decide whether more of `nexus-workflow.mjs` should move into the generic engine after a second implementation proves the boundary.
+- The first engine/profile split is in place, but it is still a conservative extraction: future projects should copy the profile/policy shape and then decide whether more of `nexus-workflow.mjs` should move into the generic engine after a second implementation proves the boundary. This is intentional, not a hidden "done" claim.
 - Dependency audit baseline was rechecked on 2026-05-10 and still matches current npm audit output; recheck again by the 2026-06-09 expiry or sooner if `drizzle-kit` releases a fix. Evidence: `TEST-20260510T073945Z-dependency-audit-baseline-recheck`.
 - Codex config deprecation warnings were handled at the policy/engine layer on 2026-05-10: Nexus now uses `features.hooks`, rejects deprecated hook/windows-sandbox aliases, and records the architecture reasoning in `.codex/workflow/research/workflow-architecture-recheck-2026-05-10.md`.
-- Clean the non-failing React `act(...)` warning in `ThemeProvider.test.tsx`.
+- Remaining design-system parity gaps are tracked in `.codex/knowledge/design-system.md`; do not treat archived Claude notes or frozen `design/reference/v1/` docs as active implementation truth without reconciliation.

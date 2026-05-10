@@ -36,7 +36,7 @@ Close a routing slice as soon as the worker output has been recorded:
 node .codex/scripts/nexus-workflow.mjs complete-routing --routing <ROUTING-id> --notes "<outcome>"
 ```
 
-Hooks do not infer worker identity. Delegation proof comes from explicit `record-routing`, `record-patch --worker --routing`, and `complete-routing` records.
+Hooks do not infer worker identity from Codex subagents. Delegation proof comes from explicit `record-routing`, `record-patch --worker --routing`, and `complete-routing` records. If an active routing record covers the changed files, `record-patch` inherits its worker, routing id, and work-slice ids when the lead forgets those flags; without a routing preflight the kernel cannot observe hidden subagent provenance.
 
 Branch and release gates enforce the whole chain for delegated worker patches introduced on the branch: routing preflight, worker patch attribution, routing closeout, and integrated review. If any one part is missing, the branch is not release-ready.
 

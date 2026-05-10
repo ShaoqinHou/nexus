@@ -1,7 +1,7 @@
 {
   "schema": "nexus-design-zoo-visual-manifest/v1",
-  "capturedAt": "2026-05-09T15:46:39.491Z",
-  "baseUrl": "http://localhost:5173",
+  "capturedAt": "2026-05-10T14:57:07.630Z",
+  "baseUrl": "http://127.0.0.1:5175",
   "contexts": [
     {
       "id": "desktop-light-sichuan",
@@ -49,7 +49,7 @@
         "height": 860
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design",
+      "sourceUrl": "http://127.0.0.1:5175/design",
       "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/index.jpg",
       "sha256": "b4b960037c40cd37265953eff7798cd032bd52278b9ef90762645d8a2d77394c"
     },
@@ -77,7 +77,7 @@
         "height": 860
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/tokens",
+      "sourceUrl": "http://127.0.0.1:5175/design/tokens",
       "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/tokens.jpg",
       "sha256": "2aa1915033216fa8593ebada896b4a2ea435640ca100aad807e98b4dc670ea0d"
     },
@@ -105,7 +105,7 @@
         "height": 860
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/themes",
+      "sourceUrl": "http://127.0.0.1:5175/design/themes",
       "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/themes.jpg",
       "sha256": "6dab43f634178868e354749928cc2168b83bc2ecf923e95bd306c0874559231b"
     },
@@ -133,7 +133,7 @@
         "height": 860
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/button",
+      "sourceUrl": "http://127.0.0.1:5175/design/button",
       "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/button.jpg",
       "sha256": "e73fea1e6e3829d19540d99085f172ef844366245aa0ab430227ec3eaa7eb32d"
     },
@@ -161,7 +161,7 @@
         "height": 860
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/badge",
+      "sourceUrl": "http://127.0.0.1:5175/design/badge",
       "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/badge.jpg",
       "sha256": "90fdf3e5393b2a3fd6c560b09531a4556c426e7c6920aabe9b0c2b7d0c0f727c"
     },
@@ -189,7 +189,7 @@
         "height": 860
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/card",
+      "sourceUrl": "http://127.0.0.1:5175/design/card",
       "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/card.jpg",
       "sha256": "fdfc0c8ebf0b9a56d92f3df9587bc9a1137e9e2998034c71dab90b9ab0a659f4"
     },
@@ -217,7 +217,7 @@
         "height": 860
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/dialog",
+      "sourceUrl": "http://127.0.0.1:5175/design/dialog",
       "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/dialog.jpg",
       "sha256": "bdec62b029004a8f152a9caced28a1967898799e501c4d56034e4f528ee5d048"
     },
@@ -245,7 +245,7 @@
         "height": 860
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/input",
+      "sourceUrl": "http://127.0.0.1:5175/design/input",
       "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/input.jpg",
       "sha256": "638a2a7756d95f30c44193ba3baca951ed05b697d7a5f49d40486cff0b3e25fc"
     },
@@ -273,7 +273,7 @@
         "height": 860
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/toggle",
+      "sourceUrl": "http://127.0.0.1:5175/design/toggle",
       "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/toggle.jpg",
       "sha256": "03387ce0b2ef4b21fb6fb562809b33cc22b8f22f476f8ea7a0eccaaf63500a63"
     },
@@ -301,7 +301,7 @@
         "height": 860
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/select",
+      "sourceUrl": "http://127.0.0.1:5175/design/select",
       "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/select.jpg",
       "sha256": "aa1ecb20b6dececacb32b08f33b3697112c57b5f41e2695c7b602ea3fb76563b"
     },
@@ -329,7 +329,7 @@
         "height": 860
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/image-upload",
+      "sourceUrl": "http://127.0.0.1:5175/design/image-upload",
       "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/image-upload.jpg",
       "sha256": "c46c2f780a0ecfa64da87ab5220206051ee48973481853b1108ff01437ae7bfc"
     },
@@ -357,7 +357,7 @@
         "height": 860
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/toast",
+      "sourceUrl": "http://127.0.0.1:5175/design/toast",
       "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/toast.jpg",
       "sha256": "398815d9f3e7dde87c59e0e6d31c7f6df9765b7dde873fb7f90fe512ae34ca23"
     },
@@ -385,7 +385,7 @@
         "height": 860
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/tour-overlay",
+      "sourceUrl": "http://127.0.0.1:5175/design/tour-overlay",
       "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/tour-overlay.jpg",
       "sha256": "30fa631fb40cdc1850ea1630eb8c075709c63757b676f7206243fe01d264aae1"
     },
@@ -413,7 +413,7 @@
         "height": 860
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/language-picker",
+      "sourceUrl": "http://127.0.0.1:5175/design/language-picker",
       "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/language-picker.jpg",
       "sha256": "ecaee7b8b309ddcb062cb2d27e92d6aebb0105ea9fb908633ed0a15d08e95654"
     },
@@ -441,7 +441,7 @@
         "height": 860
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/dietary-icon",
+      "sourceUrl": "http://127.0.0.1:5175/design/dietary-icon",
       "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/dietary-icon.jpg",
       "sha256": "625c971922a336bdcf36ead134d4d213017ce97e49ebe902b62cba70db0c80ac"
     },
@@ -469,7 +469,7 @@
         "height": 860
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/data-table",
+      "sourceUrl": "http://127.0.0.1:5175/design/data-table",
       "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/data-table.jpg",
       "sha256": "b48ae59cbacffbfa197680c9d4ee8aa3ec515db8726375a8555eb4d06c4e5179"
     },
@@ -497,7 +497,7 @@
         "height": 860
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/form-field",
+      "sourceUrl": "http://127.0.0.1:5175/design/form-field",
       "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/form-field.jpg",
       "sha256": "0f77bb03010b136c4e1325704c340f9a3d07b5524015575290389a07fcf54216"
     },
@@ -525,7 +525,7 @@
         "height": 860
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/status-badge",
+      "sourceUrl": "http://127.0.0.1:5175/design/status-badge",
       "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/status-badge.jpg",
       "sha256": "f087d0d8c6d67622dc72f3ee8a2cfa46ebe89f9a986aafafb04dd3aaecb53bf0"
     },
@@ -553,7 +553,7 @@
         "height": 860
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/empty-state",
+      "sourceUrl": "http://127.0.0.1:5175/design/empty-state",
       "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/empty-state.jpg",
       "sha256": "a276540b4ea603bea54100cd7e32b87d45bd7ec0f46dc29c6c564ab560d916d1"
     },
@@ -581,7 +581,7 @@
         "height": 860
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/confirm-button",
+      "sourceUrl": "http://127.0.0.1:5175/design/confirm-button",
       "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/confirm-button.jpg",
       "sha256": "661b29c0cc6b82d61c20c2e2a4ebafba1dc8595e704df39022e7d953a169d049"
     },
@@ -609,7 +609,7 @@
         "height": 860
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/error-boundary",
+      "sourceUrl": "http://127.0.0.1:5175/design/error-boundary",
       "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/error-boundary.jpg",
       "sha256": "487c9ab76be89597833a1772f3ef131e6a9982f4fa6e11635ab59d21426aa8e4"
     },
@@ -637,7 +637,7 @@
         "height": 860
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/pull-to-refresh",
+      "sourceUrl": "http://127.0.0.1:5175/design/pull-to-refresh",
       "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/pull-to-refresh.jpg",
       "sha256": "6fdd85e6498174ed20ea27bcacf6b82d87dd82a1a0828e2d2b2a264067a0dddd"
     },
@@ -665,7 +665,7 @@
         "height": 860
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/add-to-cart-toast",
+      "sourceUrl": "http://127.0.0.1:5175/design/add-to-cart-toast",
       "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/add-to-cart-toast.jpg",
       "sha256": "37d9b8d179fd642d5928f15d41d932c6710b277cba813a7ede9eea10ab0f2faa"
     },
@@ -693,7 +693,7 @@
         "height": 860
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/order-tracker",
+      "sourceUrl": "http://127.0.0.1:5175/design/order-tracker",
       "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/order-tracker.jpg",
       "sha256": "a79f68e031e14a5b5fb3e84ad9d263af8b851b494f54e78f92852a529a9acfc4"
     },
@@ -721,9 +721,9 @@
         "height": 860
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/receipt",
+      "sourceUrl": "http://127.0.0.1:5175/design/receipt",
       "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/receipt.jpg",
-      "sha256": "300955665f120303a211a8fd90eddad32dc8923f4a7d25f0b560c1fa96821569"
+      "sha256": "af1635aee81cdb1558ac31f742c96de04465afa802779795e847b2c73c363ca8"
     },
     {
       "slug": "promo-card",
@@ -749,7 +749,7 @@
         "height": 860
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/promo-card",
+      "sourceUrl": "http://127.0.0.1:5175/design/promo-card",
       "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/promo-card.jpg",
       "sha256": "42512815f0bdbd4cc31c5ebe9f29717a24f17dbb82e6ab9c119e91821c483df5"
     },
@@ -777,7 +777,7 @@
         "height": 860
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/checkout-summary",
+      "sourceUrl": "http://127.0.0.1:5175/design/checkout-summary",
       "asset": ".codex/dashboard/zoo/assets/desktop-light-sichuan/checkout-summary.jpg",
       "sha256": "1f41ace313034169b166b08d95cd0a792e0b750e916fd592c59950bf97fe2167"
     },
@@ -805,7 +805,7 @@
         "height": 844
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design",
+      "sourceUrl": "http://127.0.0.1:5175/design",
       "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/index.jpg",
       "sha256": "6f4c27d6abef5e61456afeef413f9d6c34d7afd30243b6d702afb5074e1f59dd"
     },
@@ -833,7 +833,7 @@
         "height": 844
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/tokens",
+      "sourceUrl": "http://127.0.0.1:5175/design/tokens",
       "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/tokens.jpg",
       "sha256": "167e7c536be4fe9bc90c78620286438d6d273406cb78a4919c6a949c91c4809e"
     },
@@ -861,7 +861,7 @@
         "height": 844
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/themes",
+      "sourceUrl": "http://127.0.0.1:5175/design/themes",
       "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/themes.jpg",
       "sha256": "c4845c6135dcd89c56f5da3499b81ff86fb2acb1e7f8e50856f544b3124bf0a9"
     },
@@ -889,7 +889,7 @@
         "height": 844
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/button",
+      "sourceUrl": "http://127.0.0.1:5175/design/button",
       "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/button.jpg",
       "sha256": "5d01be5f67cdfa5cad2b86d8ff0d8641b356ac65172a68703c30955149fdc5fa"
     },
@@ -917,7 +917,7 @@
         "height": 844
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/badge",
+      "sourceUrl": "http://127.0.0.1:5175/design/badge",
       "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/badge.jpg",
       "sha256": "67d6c5b3ffef459674c5f91e3cbd7d3008fe40267e7f4454d91f581fdab5210b"
     },
@@ -945,7 +945,7 @@
         "height": 844
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/card",
+      "sourceUrl": "http://127.0.0.1:5175/design/card",
       "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/card.jpg",
       "sha256": "798fa154eb697faa5602ed25b0d942bc639b54f82e07682dc25b386c1981dc15"
     },
@@ -973,7 +973,7 @@
         "height": 844
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/dialog",
+      "sourceUrl": "http://127.0.0.1:5175/design/dialog",
       "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/dialog.jpg",
       "sha256": "ad38802a31749650e49032456a3264d4fa2d0d46b9b2a5476b1cf7a5b6369ab9"
     },
@@ -1001,7 +1001,7 @@
         "height": 844
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/input",
+      "sourceUrl": "http://127.0.0.1:5175/design/input",
       "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/input.jpg",
       "sha256": "a67f961cdab75dc9560f01a9393f4133fe272b25c6895ba7715083c1b3d21fdb"
     },
@@ -1029,7 +1029,7 @@
         "height": 844
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/toggle",
+      "sourceUrl": "http://127.0.0.1:5175/design/toggle",
       "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/toggle.jpg",
       "sha256": "98e51e3b755f4bb2dae21ffccc52eb71cd82290b2b39eb718a723874d530fe8c"
     },
@@ -1057,7 +1057,7 @@
         "height": 844
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/select",
+      "sourceUrl": "http://127.0.0.1:5175/design/select",
       "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/select.jpg",
       "sha256": "0398296e210fb5a42ca0f401e7d6c69d57d067816460c4f27a4293df10c85ccb"
     },
@@ -1085,7 +1085,7 @@
         "height": 844
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/image-upload",
+      "sourceUrl": "http://127.0.0.1:5175/design/image-upload",
       "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/image-upload.jpg",
       "sha256": "b51ad17049b4e16b7059f3e141067adf9c335d74079061fe56ebf06f686598be"
     },
@@ -1113,7 +1113,7 @@
         "height": 844
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/toast",
+      "sourceUrl": "http://127.0.0.1:5175/design/toast",
       "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/toast.jpg",
       "sha256": "2bdb60d388860732bf645da25e081b70f3098dc8c5a0cb831444bd0d4aecd032"
     },
@@ -1141,7 +1141,7 @@
         "height": 844
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/tour-overlay",
+      "sourceUrl": "http://127.0.0.1:5175/design/tour-overlay",
       "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/tour-overlay.jpg",
       "sha256": "a03e028d5be8f600665aa0d0e79534c517c7733e49f77ec89c9018ec32ffc947"
     },
@@ -1169,7 +1169,7 @@
         "height": 844
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/language-picker",
+      "sourceUrl": "http://127.0.0.1:5175/design/language-picker",
       "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/language-picker.jpg",
       "sha256": "f49a2506741455b7b6dfcf36927d48e4353114de4c5f5d0aeb7d9b00596200f0"
     },
@@ -1197,7 +1197,7 @@
         "height": 844
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/dietary-icon",
+      "sourceUrl": "http://127.0.0.1:5175/design/dietary-icon",
       "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/dietary-icon.jpg",
       "sha256": "676c3567123682e0e8886d3c08cd85bc64263ecaf43dd258f7575c000de8557d"
     },
@@ -1225,7 +1225,7 @@
         "height": 844
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/data-table",
+      "sourceUrl": "http://127.0.0.1:5175/design/data-table",
       "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/data-table.jpg",
       "sha256": "a86a54e7f1076cce1d9748f709754fb5fba62ecfd988eeeaac6eca0b005e9816"
     },
@@ -1253,7 +1253,7 @@
         "height": 844
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/form-field",
+      "sourceUrl": "http://127.0.0.1:5175/design/form-field",
       "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/form-field.jpg",
       "sha256": "8524a24a2a36f6030b15b31228687c9e597e529bfafc8c6081617d9581cebdee"
     },
@@ -1281,7 +1281,7 @@
         "height": 844
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/status-badge",
+      "sourceUrl": "http://127.0.0.1:5175/design/status-badge",
       "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/status-badge.jpg",
       "sha256": "89cecde5beef6ab02d60522d49b76b56f2958a58ec9c4fc1c42a398411288631"
     },
@@ -1309,7 +1309,7 @@
         "height": 844
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/empty-state",
+      "sourceUrl": "http://127.0.0.1:5175/design/empty-state",
       "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/empty-state.jpg",
       "sha256": "84f6b9d76dad17809b0583a5458328a60b6ccdb0886734c31d9c76c64eed5afc"
     },
@@ -1337,7 +1337,7 @@
         "height": 844
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/confirm-button",
+      "sourceUrl": "http://127.0.0.1:5175/design/confirm-button",
       "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/confirm-button.jpg",
       "sha256": "1dba0911557f51de1d415dc016ab41464aeec8a1d8b0f0d12a4379103dd8e526"
     },
@@ -1365,7 +1365,7 @@
         "height": 844
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/error-boundary",
+      "sourceUrl": "http://127.0.0.1:5175/design/error-boundary",
       "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/error-boundary.jpg",
       "sha256": "012f97726cb63fdc4f6ff4e6f1063517ae807eb40389e1b72d9af2bb526eecfb"
     },
@@ -1393,7 +1393,7 @@
         "height": 844
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/pull-to-refresh",
+      "sourceUrl": "http://127.0.0.1:5175/design/pull-to-refresh",
       "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/pull-to-refresh.jpg",
       "sha256": "d47a53df9769f2fa30f8712ef99c681a41e347527f6c380148b818d2d030a24b"
     },
@@ -1421,7 +1421,7 @@
         "height": 844
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/add-to-cart-toast",
+      "sourceUrl": "http://127.0.0.1:5175/design/add-to-cart-toast",
       "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/add-to-cart-toast.jpg",
       "sha256": "95b8893ca29d49f904b5cbf05b08bad157258defeed4c3fb7d48f54912210929"
     },
@@ -1449,7 +1449,7 @@
         "height": 844
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/order-tracker",
+      "sourceUrl": "http://127.0.0.1:5175/design/order-tracker",
       "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/order-tracker.jpg",
       "sha256": "335eb5673e1e5fbf7a8b92a5729ae1a312287b16b125e2d95d6271467680c9bf"
     },
@@ -1477,9 +1477,9 @@
         "height": 844
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/receipt",
+      "sourceUrl": "http://127.0.0.1:5175/design/receipt",
       "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/receipt.jpg",
-      "sha256": "0eb16441b7ec907fc754d7f09c4e0051012e35469cecc6e4a96a3883f52a59ac"
+      "sha256": "10fe0b9bf81de4374528a414b0b094f1c1169f9aa859f72bca89ac7fe93b153c"
     },
     {
       "slug": "promo-card",
@@ -1505,7 +1505,7 @@
         "height": 844
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/promo-card",
+      "sourceUrl": "http://127.0.0.1:5175/design/promo-card",
       "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/promo-card.jpg",
       "sha256": "076e95428db8eca8cd2f5f1294f3e015c215b4735d74ff741f1d027423f1ec3d"
     },
@@ -1533,7 +1533,7 @@
         "height": 844
       },
       "fullPage": true,
-      "sourceUrl": "http://localhost:5173/design/checkout-summary",
+      "sourceUrl": "http://127.0.0.1:5175/design/checkout-summary",
       "asset": ".codex/dashboard/zoo/assets/mobile-dark-sichuan/checkout-summary.jpg",
       "sha256": "a5664c27154f4345c3f09a26f98493a33b9b2903fadd96d9705585ce82ed95ac"
     }

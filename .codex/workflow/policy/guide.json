@@ -2,6 +2,80 @@
   "schema": "codex-workflow-guide-policy/v1",
   "version": "nexus-public-workflow-guide/v2",
   "contentHashPlaceholder": "__NEXUS_GUIDE_CONTENT_HASH__",
+  "metaNames": {
+    "version": "nexus-guide-version",
+    "sourceHash": "nexus-guide-source-hash",
+    "recordFeedHash": "nexus-guide-record-feed-hash",
+    "contentHash": "nexus-guide-content-hash",
+    "tokenSource": "nexus-token-source"
+  },
+  "tokenSourceLabel": "packages/web/src/platform/theme/tokens.css",
+  "titles": {
+    "dashboard": "Nexus Workflow Dashboard",
+    "public": "Nexus Workflow Guide"
+  },
+  "publicSanitizer": {
+    "redactions": [
+      {
+        "literal": "{rootPosix}",
+        "replacement": "local worktree"
+      },
+      {
+        "literal": "{root}",
+        "replacement": "local worktree"
+      },
+      {
+        "pattern": "C:\\\\Users\\\\[^\\\\\\s]+\\\\\\.codex\\\\worktrees\\\\\\d+\\\\nexus",
+        "flags": "gi",
+        "replacement": "local worktree"
+      },
+      {
+        "pattern": "\\/root\\/monoWeb\\/nexus",
+        "flags": "g",
+        "replacement": "server repo"
+      },
+      {
+        "pattern": "\\/root\\/monoWeb\\/deploy-backups\\/[^\\s)]+",
+        "flags": "g",
+        "replacement": "server backup path"
+      },
+      {
+        "pattern": "~\\/\\.ssh\\/[^\\s)`]+",
+        "flags": "g",
+        "replacement": "configured SSH key"
+      },
+      {
+        "pattern": "\\b[A-Za-z0-9._-]+@(?:\\d{1,3}\\.){3}\\d{1,3}\\b",
+        "flags": "g",
+        "replacement": "configured SSH endpoint"
+      },
+      {
+        "pattern": "\\broot@",
+        "flags": "g",
+        "replacement": "ssh-user@"
+      },
+      {
+        "pattern": "\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b",
+        "flags": "g",
+        "replacement": "production server"
+      },
+      {
+        "pattern": "(token|secret|password|api[_-]?key)=([^&\\s]+)",
+        "flags": "gi",
+        "replacement": "$1=redacted"
+      }
+    ],
+    "forbiddenStrings": [
+      "{root}",
+      "{rootPosix}",
+      "/root/monoWeb/nexus",
+      "/root/monoWeb/deploy-backups",
+      "~/.ssh/",
+      "DIOkii",
+      "root@",
+      "134.199.148.87"
+    ]
+  },
   "artifacts": [
     "index.html",
     "public.html",
@@ -17,11 +91,13 @@
     ".codex/hooks.json",
     ".codex/dashboard/README.md",
     ".codex/workflow/profile.json",
+    ".codex/workflow/policy/manifest.json",
     ".codex/workflow/policy/records.json",
     ".codex/workflow/policy/files.json",
     ".codex/workflow/policy/guide.json",
     ".codex/workflow/policy/design.json",
     ".codex/workflow/policy/routing.json",
+    ".codex/workflow/policy/intake.json",
     ".codex/workflow/policy/deployment.json",
     ".codex/workflow/policy/hooks.json",
     ".codex/workflow/policy/gates.json",
@@ -38,14 +114,53 @@
     ".codex/knowledge/design-system.md",
     ".codex/knowledge/deployment.md",
     ".codex/knowledge/hooks.md",
+    ".codex/knowledge/work-intake.md",
     ".codex/knowledge/model-routing.md",
     ".codex/knowledge/patterns.md",
     ".codex/knowledge/verification.md",
-    ".codex/workflow/current-state.md",
     ".codex/workflow/templates/project-bootstrap.md",
-    ".codex/workflow/records/risks.md",
     "packages/web/src/components/registry.json",
     "packages/web/src/routes/__design/Zoo.tsx"
+  ],
+  "requiredSourceFiles": [
+    "AGENTS.md",
+    "WORKFLOW.md",
+    "package.json",
+    ".codex/README.md",
+    ".codex/config.toml",
+    ".codex/hooks.json",
+    ".codex/workflow/profile.json",
+    ".codex/workflow/policy/manifest.json",
+    ".codex/workflow/policy/files.json",
+    ".codex/workflow/policy/gates.json",
+    ".codex/workflow/policy/intake.json",
+    ".codex/workflow/policy/deployment.json",
+    ".codex/scripts/nexus-workflow.mjs",
+    ".codex/scripts/workflow-engine.mjs",
+    ".codex/workflow/templates/project-bootstrap.md"
+  ],
+  "documentFiles": [
+    "design/reference/v1/nexus-design-system/README.md",
+    "design/reference/v1/nexus-design-system/project/DESIGN-SYSTEM.md",
+    "design/reference/v1/nexus-design-system/project/themes/THEME-GUIDE.md",
+    "design/reference/v1/nexus-design-system/project/ui_kits/customer/README.md",
+    "design/reference/v1/nexus-design-system/project/ui_kits/merchant/README.md",
+    ".codex/knowledge/design-system.md",
+    ".codex/knowledge/patterns.md",
+    ".codex/knowledge/model-routing.md",
+    ".codex/knowledge/hooks.md",
+    ".codex/knowledge/verification.md",
+    ".codex/knowledge/deployment.md"
+  ],
+  "documentDirectories": [
+    {
+      "path": ".codex/workflow/research",
+      "maxDepth": 1,
+      "limit": 32,
+      "extensions": [
+        ".md"
+      ]
+    }
   ],
   "sourceDirectories": [
     {
@@ -65,11 +180,6 @@
     },
     {
       "path": ".codex/workflow/research",
-      "maxDepth": 8,
-      "limit": 600
-    },
-    {
-      "path": ".codex/workflow/records",
       "maxDepth": 8,
       "limit": 600
     },
@@ -111,6 +221,12 @@
       "Workflow System Nodes",
       "Codex Workflow Nodes",
       ".codex/workflow/records",
+      "Work Intake",
+      "Work Intake Inbox",
+      "Active Work Slices",
+      "Intent Trace Graph",
+      "Feature Catalog",
+      "Work Intake Warnings",
       "Project Structure",
       "Repository Nodes",
       "Web App Nodes",
@@ -133,6 +249,7 @@
       "Workflow Event Timeline"
     ],
     "timelineCategoryHeadings": [
+      "Work Intake",
       "Workflow",
       "Validation",
       "Knowledge",
@@ -140,5 +257,270 @@
       "Deployment"
     ],
     "minTimelineCategories": 3
+  },
+  "viewGraphs": {
+    "repository": {
+      "title": "Repository Nodes",
+      "nodes": [
+        {
+          "label": "packages/api",
+          "detail": "Hono API, Drizzle ORM, SQLite, tenant-scoped services"
+        },
+        {
+          "label": "packages/api/src/modules",
+          "detail": "backend module boundaries: routes -> service -> schema"
+        },
+        {
+          "label": "packages/web",
+          "detail": "React 19, Vite, TanStack Router, TanStack Query"
+        },
+        {
+          "label": "packages/web/src/routes",
+          "detail": "TanStack routes and dev-only design routes"
+        },
+        {
+          "label": "packages/web/src/locales",
+          "detail": "five-locale i18n source"
+        },
+        {
+          "label": "packages/shared",
+          "detail": "shared constants and types"
+        },
+        {
+          "label": ".codex workflow",
+          "detail": "deterministic workflow kernel, policy, records, guide"
+        },
+        {
+          "label": ".codex/workflow/records",
+          "detail": "append-only durable evidence records"
+        }
+      ],
+      "edges": [
+        [
+          "packages/api",
+          "packages/shared"
+        ],
+        [
+          "packages/web",
+          "packages/shared"
+        ],
+        [
+          ".codex workflow",
+          ".codex/workflow/records"
+        ]
+      ]
+    },
+    "webApp": {
+      "title": "Web App Nodes",
+      "nodes": [
+        {
+          "label": "packages/web/src/routes",
+          "detail": "route declarations and module entry points"
+        },
+        {
+          "label": "apps/ordering",
+          "detail": "restaurant ordering mini-app"
+        },
+        {
+          "label": "platform",
+          "detail": "app registry, theme, i18n, shared platform services"
+        },
+        {
+          "label": "platform/theme",
+          "detail": "tokens, theme provider, data-theme cascade"
+        },
+        {
+          "label": "platform/registry.ts",
+          "detail": "app registry and module composition"
+        },
+        {
+          "label": "components/ui",
+          "detail": "domain-free UI primitives"
+        },
+        {
+          "label": "components/patterns",
+          "detail": "reusable composed UI patterns"
+        },
+        {
+          "label": "components/registry.json",
+          "detail": "design metadata and Zoo/Gym routes"
+        },
+        {
+          "label": "routes/__design",
+          "detail": "dev-only interactive design surface"
+        }
+      ],
+      "edges": [
+        [
+          "packages/web/src/routes",
+          "apps/ordering"
+        ],
+        [
+          "apps/ordering",
+          "platform"
+        ],
+        [
+          "components/ui",
+          "components/patterns"
+        ]
+      ]
+    },
+    "designSystem": {
+      "title": "Design-System Nodes",
+      "nodes": [
+        {
+          "label": "design/reference/v1",
+          "detail": "frozen source reference bundle"
+        },
+        {
+          "label": "theme tokens",
+          "detail": "packages/web/src/platform/theme"
+        },
+        {
+          "label": "ThemeProvider",
+          "detail": "body data-theme mirroring and cascade"
+        },
+        {
+          "label": "themed patterns",
+          "detail": "packages/web/src/components/patterns/themed"
+        },
+        {
+          "label": "registry",
+          "detail": "component metadata and Zoo/Gym route map"
+        },
+        {
+          "label": "Design Zoo/Gym",
+          "detail": "interactive visual component surface"
+        }
+      ],
+      "edges": [
+        [
+          "design/reference/v1",
+          "theme tokens"
+        ],
+        [
+          "theme tokens",
+          "themed patterns"
+        ],
+        [
+          "registry",
+          "Design Zoo/Gym"
+        ]
+      ]
+    },
+    "designFlow": {
+      "title": "Design-System Flow",
+      "nodes": [
+        {
+          "label": "Reference bundle",
+          "detail": "frozen v1 design source"
+        },
+        {
+          "label": "Production tokens/themes",
+          "detail": "CSS custom properties and data-theme"
+        },
+        {
+          "label": "ThemeProvider",
+          "detail": "runtime theme and body mirroring"
+        },
+        {
+          "label": "Component registry",
+          "detail": "metadata, paths, Zoo/Gym routes"
+        },
+        {
+          "label": "Design Zoo/Gym",
+          "detail": "interactive coverage route"
+        },
+        {
+          "label": "validate-design-zoo",
+          "detail": "browser validation script"
+        },
+        {
+          "label": "Visual Zoo/Gym Guide",
+          "detail": "deployed screenshot gallery"
+        }
+      ],
+      "edges": [
+        [
+          "Reference bundle",
+          "Production tokens/themes"
+        ],
+        [
+          "Production tokens/themes",
+          "ThemeProvider"
+        ],
+        [
+          "ThemeProvider",
+          "Component registry"
+        ],
+        [
+          "Component registry",
+          "Design Zoo/Gym"
+        ],
+        [
+          "Design Zoo/Gym",
+          "validate-design-zoo"
+        ],
+        [
+          "Design Zoo/Gym",
+          "Visual Zoo/Gym Guide"
+        ]
+      ]
+    },
+    "workflow": {
+      "title": "Codex Workflow Nodes",
+      "nodes": [
+        {
+          "label": "AGENTS.md",
+          "detail": "Codex project instructions"
+        },
+        {
+          "label": ".codex/README.md",
+          "detail": "workflow root navigation"
+        },
+        {
+          "label": ".codex/knowledge",
+          "detail": "patterns, design, routing, hooks, deployment"
+        },
+        {
+          "label": ".codex/agents",
+          "detail": "project-scoped Codex agent configs"
+        },
+        {
+          "label": ".agents/skills",
+          "detail": "repo skills for workflow, review, verification, and audit"
+        },
+        {
+          "label": "nexus-workflow.mjs",
+          "detail": "Nexus deterministic workflow wrapper"
+        },
+        {
+          "label": "workflow-engine.mjs",
+          "detail": "portable profile and policy loader"
+        },
+        {
+          "label": ".codex/workflow/records",
+          "detail": "append-only durable evidence records"
+        }
+      ],
+      "edges": [
+        [
+          "AGENTS.md",
+          ".codex/README.md"
+        ],
+        [
+          ".codex/knowledge",
+          ".codex/agents"
+        ],
+        [
+          "workflow-engine.mjs",
+          "nexus-workflow.mjs"
+        ],
+        [
+          "nexus-workflow.mjs",
+          ".codex/workflow/records"
+        ]
+      ]
+    }
   }
 }

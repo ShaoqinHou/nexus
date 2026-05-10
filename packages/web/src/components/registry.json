@@ -4,7 +4,7 @@
   "conventions": {
     "tokensUsed": "CSS custom property names the component reads (via Tailwind or inline). Excludes theme-agnostic sizing/spacing.",
     "dependencies": "External npm packages the component imports. Excludes React and @web/lib.",
-    "zooRoute": "Path under /design/* where this component is showcased. Each primitive/pattern MUST have a route per S-ZOO-PAGE.",
+    "zooRoute": "Path under /design/* where this component is showcased by the consolidated packages/web/src/routes/__design/Zoo.tsx slug map. Each primitive/pattern MUST have a registry-backed route per S-ZOO-PAGE; do not create one route file per component.",
     "propsShape": "Human-readable summary of the React prop surface. Not a JSON Schema — an index, not a validator."
   },
   "primitives": [

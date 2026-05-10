@@ -24,6 +24,7 @@ description: Audit Nexus project consistency and workflow health. Use for whole-
 - test depth,
 - deployment/subpath assumptions,
 - workflow record completeness,
+- work-intake traceability from user intent to closed work slice to patch/review/verify/audit evidence,
 - model routing and fallback evidence,
 - review trigger evidence.
 - dynamic pattern proposals under `.codex/workflow/records/pattern-proposals/`.
@@ -41,7 +42,7 @@ Produce a concise table sorted by severity:
 Record a passing audit gate when the audit is complete:
 
 ```bash
-node .codex/scripts/nexus-workflow.mjs record-audit --scope worktree --verdict pass --auditor <name> --notes "<summary>"
+node .codex/scripts/nexus-workflow.mjs record-audit --scope worktree --verdict pass --auditor <name> --work-slice <WORK-SLICE-id> --notes "<summary>"
 ```
 
 Record durable discoveries as decisions or risks when they should survive the session.

@@ -52,7 +52,15 @@ Evidence: `PATTERN-PROPOSAL-20260508T170332Z-pattern-accepted-theme-cascade-chan
 
 - Reference bundle includes themed `EmptyState` and `Toast`; production currently has themed `OrderTracker`, `Receipt`, `PromoCard`, and `CheckoutSummary`.
 - Theme semantic-token policy changed over time. Current implementation and reference re-theme semantic variants per cuisine; reviews should follow the current standards, not stale comments.
-- Existing tests do not fully prove visual contrast, all-theme differentiation, dark mode, portal inheritance, or portal cleanup ordering.
+- Current proof covers the ThemeProvider live-preview regression, tenant wrapper scoping, body portal inheritance for the live Zoo Toast path, desktop/light and mobile/dark Zoo screenshots for every registry-backed page, design-token lint, full app tests, and production Zoo-bundle exclusion. It does not yet prove contrast and visual differentiation across all 10 themes, every portal component cleanup order, or full parity for reference-only themed `EmptyState`/`Toast`.
+
+## Claude-Era Notes Reconciled
+
+- The archived Claude workflow is historical evidence only. Active design-system guidance is this file, `.codex/knowledge/patterns.md`, `.codex/knowledge/verification.md`, `packages/web/src/components/registry.json`, and `packages/web/src/routes/__design/Zoo.tsx`.
+- Archived rule wording such as `routes/__design/<name>.tsx` is stale for the current app. The live implementation uses one consolidated `Zoo.tsx` route with registry-backed slug mapping. The durable rule is: every primitive/pattern needs a registry entry, a `zooRoute`, and a real-source showcase that does not redefine the component inline.
+- `design/reference/v1/nexus-design-system/project/DESIGN-SYSTEM.md` contains older semantic-token language saying semantic colors should not be re-themed. The current production theme files intentionally re-theme semantic variants per cuisine and include dark-mode contrast adjustments. Until a new design reference version supersedes `v1`, reviewers should follow the current implementation plus cited pattern evidence rather than stale reference prose.
+- `design/reference/v1/nexus-design-system/project/themes/THEME-GUIDE.md` still describes tenant accent-color overrides and has leftover "6 theme" wording. Current production tenant settings and `ThemeProvider` support brand color and brand hover only; accent remains theme-defined. Do not promise per-tenant accent override until a dedicated implementation slice threads `accentColor` through tenant settings, theme provider wrapper styles, body mirroring, tests, and Zoo evidence.
+- The old Claude docs correctly identified useful traps around dark descendant selectors, body-mounted portals, live-preview ping-pong, brand override contrast, and production Zoo exclusion. Those traps are now captured as Codex workflow knowledge and validated by scripts/records instead of living only in the archive.
 
 ## Routing And Review Heuristics
 
@@ -88,6 +96,17 @@ The Codex workflow dashboard also surfaces the zoo route list so the guide app l
 - the visual guide source hash includes component source files from `packages/web/src/components/`, registry metadata, Zoo route code, and theme files.
 
 Evidence: `PATTERN-PROPOSAL-20260509T110413Z-pattern-proposed-pattern-accepted-visual-zoo-cap`.
+
+Latest local validation evidence:
+
+- `themeprovider-warning-fixed-20260510T1451Z`
+- `local-design-lint-20260510T1452Z`
+- `local-test-all-20260510T1452Z`
+- `local-build-20260510T1452Z`
+- `design-zoo-live-20260510T1455Z`
+- `zoo-visual-capture-20260510T1456Z`
+- `zoo-visual-guide-check-20260510T1458Z`
+- `prod-zoo-bundle-check-20260510T1459Z`
 
 When validating design-system work, check:
 

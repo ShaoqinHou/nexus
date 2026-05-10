@@ -1,8 +1,21 @@
 {
   "schema": "nexus-design-workflow-policy/v1",
   "zooVisualGuideVersion": "nexus-design-zoo-visual-guide/v1",
+  "zooVisualGuideTitle": "Nexus Design Zoo / Gym",
+  "zooVisualGuideRequiredStrings": [
+    "Nexus Design Zoo / Gym",
+    "Visual Demo Surface",
+    "Captured From Real /design Routes",
+    "Visual Contexts",
+    "Token Foundations",
+    "Theme Matrix",
+    "Component Gallery",
+    "packages/web/src/routes/__design/Zoo.tsx",
+    "packages/web/src/components/registry.json"
+  ],
   "localWebUrl": "http://localhost:5173",
   "designRoute": "/design",
+  "productionDesignPath": "/nexus/design",
   "registryPath": "packages/web/src/components/registry.json",
   "zooRoutePath": "packages/web/src/routes/__design/Zoo.tsx",
   "themeMatrixPath": "packages/web/src/platform/theme/themes.css",

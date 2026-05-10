@@ -1,0 +1,14 @@
+{
+  "schema": "codex-workflow-policy-manifest/v1",
+  "policyNames": [
+    "records",
+    "files",
+    "guide",
+    "design",
+    "routing",
+    "intake",
+    "deployment",
+    "hooks",
+    "gates"
+  ]
+}

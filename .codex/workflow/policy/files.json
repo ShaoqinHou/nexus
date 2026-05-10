@@ -9,11 +9,13 @@
     ".codex/dashboard/README.md",
     ".codex/workflow/current-state.md",
     ".codex/workflow/profile.json",
+    ".codex/workflow/policy/manifest.json",
     ".codex/workflow/policy/records.json",
     ".codex/workflow/policy/files.json",
     ".codex/workflow/policy/guide.json",
     ".codex/workflow/policy/design.json",
     ".codex/workflow/policy/routing.json",
+    ".codex/workflow/policy/intake.json",
     ".codex/workflow/policy/deployment.json",
     ".codex/workflow/policy/hooks.json",
     ".codex/workflow/policy/gates.json",
@@ -32,6 +34,7 @@
     ".codex/scripts/capture-design-zoo-visuals.mjs",
     ".codex/knowledge/patterns.md",
     ".codex/knowledge/design-system.md",
+    ".codex/knowledge/work-intake.md",
     ".codex/knowledge/model-routing.md",
     ".codex/knowledge/hooks.md",
     ".codex/knowledge/deployment.md",
@@ -42,12 +45,14 @@
     ".codex/workflow/templates/current-state.md",
     ".codex/workflow/templates/deployment.md",
     ".codex/workflow/templates/guide-browser.md",
+    ".codex/workflow/templates/intent.md",
     ".codex/workflow/templates/patch.md",
     ".codex/workflow/templates/pattern-proposal.md",
     ".codex/workflow/templates/project-bootstrap.md",
     ".codex/workflow/templates/review.md",
     ".codex/workflow/templates/routing.md",
     ".codex/workflow/templates/test.md",
+    ".codex/workflow/templates/work-slice.md",
     ".codex/agents/nexus-auditor.toml",
     ".codex/agents/nexus-design-reviewer.toml",
     ".codex/agents/nexus-pattern-reviewer.toml",
@@ -132,6 +137,112 @@
       ".codex/workflow/scenarios/model-routing.json"
     ]
   },
+  "classifierTestCases": [
+    {
+      "file": ".codex/scripts/nexus-workflow.mjs",
+      "substantive": true,
+      "verification": true,
+      "audit": true,
+      "guide": true,
+      "zooVisual": false
+    },
+    {
+      "file": ".codex/scripts/workflow-engine.mjs",
+      "substantive": true,
+      "verification": true,
+      "audit": true,
+      "guide": true,
+      "zooVisual": true
+    },
+    {
+      "file": ".codex/workflow/policy/files.json",
+      "substantive": true,
+      "verification": true,
+      "audit": true,
+      "guide": true,
+      "zooVisual": false
+    },
+    {
+      "file": ".codex/workflow/templates/project-bootstrap.md",
+      "substantive": true,
+      "verification": true,
+      "audit": true,
+      "guide": true,
+      "zooVisual": false
+    },
+    {
+      "file": ".codex/workflow/state/review-state.json",
+      "substantive": false,
+      "verification": false,
+      "audit": false,
+      "guide": false,
+      "zooVisual": false
+    },
+    {
+      "file": ".codex/workflow/runtime/command-runs.jsonl",
+      "substantive": false,
+      "verification": false,
+      "audit": false,
+      "guide": false,
+      "zooVisual": false
+    },
+    {
+      "file": ".codex/archive/claude-code-2026-05-09/.claude/settings.json",
+      "substantive": false,
+      "verification": false,
+      "audit": false,
+      "guide": false,
+      "zooVisual": false
+    },
+    {
+      "file": ".codex/workflow/records/patches/PATCH-fixture.md",
+      "substantive": false,
+      "verification": false,
+      "audit": false,
+      "guide": true,
+      "zooVisual": false
+    },
+    {
+      "file": ".codex/workflow/records/guide-browser/GUIDE-BROWSER-fixture.md",
+      "substantive": false,
+      "verification": false,
+      "audit": false,
+      "guide": false,
+      "zooVisual": false
+    },
+    {
+      "file": ".codex/workflow/records/deployments/DEPLOYMENT-fixture.md",
+      "substantive": false,
+      "verification": false,
+      "audit": false,
+      "guide": false,
+      "zooVisual": false
+    },
+    {
+      "file": "packages/web/src/platform/theme/tokens.css",
+      "substantive": true,
+      "verification": true,
+      "audit": true,
+      "guide": true,
+      "zooVisual": true
+    },
+    {
+      "file": "packages/web/src/components/ui/Button.tsx",
+      "substantive": true,
+      "verification": true,
+      "audit": true,
+      "guide": false,
+      "zooVisual": true
+    },
+    {
+      "file": "packages/api/src/modules/orders/service.ts",
+      "substantive": true,
+      "verification": true,
+      "audit": true,
+      "guide": false,
+      "zooVisual": false
+    }
+  ],
   "reviewKinds": {
     "general": {
       "whenSubstantive": true
@@ -162,6 +273,22 @@
         ".github/workflows/",
         ".codex/",
         ".agents/skills/"
+      ]
+    },
+    "pattern": {
+      "include": [
+        "AGENTS.md",
+        "WORKFLOW.md",
+        ".codex/README.md",
+        ".codex/knowledge/",
+        ".codex/workflow/policy/",
+        ".codex/workflow/scenarios/",
+        ".codex/workflow/templates/",
+        ".agents/skills/",
+        "packages/api/src/modules/",
+        "packages/web/src/apps/",
+        "packages/web/src/routes/",
+        "packages/web/src/components/"
       ]
     }
   },

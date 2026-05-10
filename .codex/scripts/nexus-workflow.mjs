@@ -23,36 +23,51 @@ const CODEX = join(ROOT, '.codex');
 const WORKFLOW = loadCodexWorkflow(ROOT);
 const PROFILE = WORKFLOW.profile || {};
 const POLICY = WORKFLOW.policy || {};
-const RECORDS = join(CODEX, 'workflow', 'records');
-const STATE_DIR = join(CODEX, 'workflow', 'state');
-const RUNTIME_DIR = join(CODEX, 'workflow', 'runtime');
+const LOADED_POLICY_NAMES = WORKFLOW.policyNames || DEFAULT_POLICY_NAMES;
+const RECORDS = profileProjectPath('records');
+const STATE_DIR = profileProjectPath('state');
+const RUNTIME_DIR = profileProjectPath('runtime');
 const STATE_FILE = join(STATE_DIR, 'review-state.json');
 const VERIFY_STATE_FILE = join(STATE_DIR, 'verify-state.json');
 const AUDIT_STATE_FILE = join(STATE_DIR, 'audit-state.json');
 const PATCH_STATE_FILE = join(STATE_DIR, 'patch-state.json');
 const GUIDE_BROWSER_STATE_FILE = join(STATE_DIR, 'guide-browser-state.json');
-const DASHBOARD_DIR = resolveProjectPath(PROFILE.paths?.dashboardDir || '.codex/dashboard');
-const ZOO_GUIDE_DIR = resolveProjectPath(PROFILE.paths?.zooGuideDir || '.codex/dashboard/zoo');
-const ZOO_GUIDE_MANIFEST = resolveProjectPath(PROFILE.paths?.zooGuideManifest || '.codex/dashboard/zoo/manifest.json');
-const ROUTING_SCENARIOS_FILE = resolveProjectPath(POLICY.routing?.scenarioFile || PROFILE.paths?.routingScenarios || '.codex/workflow/scenarios/model-routing.json');
+const DASHBOARD_DIR = profileProjectPath('dashboardDir');
+const ZOO_GUIDE_DIR = profileProjectPath('zooGuideDir');
+const ZOO_GUIDE_MANIFEST = profileProjectPath('zooGuideManifest');
+const ROUTING_SCENARIOS_FILE = POLICY.routing?.scenarioFile ? resolveProjectPath(POLICY.routing.scenarioFile) : profileProjectPath('routingScenarios');
 const ROUTING_STATE_FILE = join(STATE_DIR, 'routing-state.json');
 const COMMAND_RUNS_FILE = join(RUNTIME_DIR, 'command-runs.jsonl');
-const PUBLIC_GUIDE_URL = POLICY.deployment?.publicGuideUrl || 'https://cv.rehou.games/nexus/workflow/';
-const PUBLIC_ZOO_GUIDE_URL = POLICY.deployment?.visualZooGuideUrl || `${PUBLIC_GUIDE_URL.replace(/\/?$/, '/')}zoo/`;
-const PUBLIC_GUIDE_VERSION = POLICY.guide?.version || 'nexus-public-workflow-guide/v2';
-const ZOO_VISUAL_GUIDE_VERSION = POLICY.design?.zooVisualGuideVersion || 'nexus-design-zoo-visual-guide/v1';
-const PUBLIC_GUIDE_CONTENT_HASH_PLACEHOLDER = POLICY.guide?.contentHashPlaceholder || '__NEXUS_GUIDE_CONTENT_HASH__';
-const DEFAULT_CANONICAL_LADDER = ['workflow:status', 'workflow:health', 'workflow:release-gate', 'workflow:deployed-gate'];
-const LOCAL_WEB_URL = String(POLICY.design?.localWebUrl || 'http://localhost:5173').replace(/\/$/, '');
-const DESIGN_ROUTE = String(POLICY.design?.designRoute || '/design').startsWith('/')
-  ? String(POLICY.design?.designRoute || '/design')
-  : `/${String(POLICY.design?.designRoute || 'design')}`;
-const RECORD_KINDS = POLICY.records?.kinds || ['decisions', 'pattern-proposals', 'routing', 'patches', 'reviews', 'tests', 'audits', 'guide-browser', 'deployments'];
-const EVIDENCE_RECORD_KINDS = POLICY.records?.evidenceKinds || RECORD_KINDS.filter((kind) => kind !== 'decisions');
-const GUIDE_RECORD_KINDS = POLICY.records?.guideKinds || RECORD_KINDS.filter((kind) => kind !== 'guide-browser');
+const PUBLIC_GUIDE_URL = requiredPolicyString('deployment', 'publicGuideUrl');
+const PUBLIC_ZOO_GUIDE_URL = requiredPolicyString('deployment', 'visualZooGuideUrl');
+const PUBLIC_GUIDE_VERSION = requiredPolicyString('guide', 'version');
+const ZOO_VISUAL_GUIDE_VERSION = requiredPolicyString('design', 'zooVisualGuideVersion');
+const PUBLIC_GUIDE_CONTENT_HASH_PLACEHOLDER = requiredPolicyString('guide', 'contentHashPlaceholder');
+const GUIDE_META_NAMES = requiredPolicyObject('guide', 'metaNames');
+const GUIDE_TOKEN_SOURCE_LABEL = requiredPolicyString('guide', 'tokenSourceLabel');
+const GUIDE_TITLES = requiredPolicyObject('guide', 'titles');
+const GUIDE_PUBLIC_SANITIZER = POLICY.guide?.publicSanitizer || {};
+const ZOO_VISUAL_GUIDE_TITLE = requiredPolicyString('design', 'zooVisualGuideTitle');
+const ZOO_VISUAL_REQUIRED_STRINGS = requiredPolicyArray('design', 'zooVisualGuideRequiredStrings');
+const FALLBACK_CANONICAL_LADDER = ['workflow:status', 'workflow:health', 'workflow:release-gate', 'workflow:deployed-gate'];
+const LOCAL_WEB_URL = requiredPolicyString('design', 'localWebUrl').replace(/\/$/, '');
+const DESIGN_ROUTE = requiredPolicyString('design', 'designRoute').startsWith('/')
+  ? requiredPolicyString('design', 'designRoute')
+  : `/${requiredPolicyString('design', 'designRoute')}`;
+const PRODUCTION_DESIGN_PATH = requiredPolicyString('design', 'productionDesignPath');
+const RECORD_KINDS = requiredPolicyArray('records', 'kinds');
+const EVIDENCE_RECORD_KINDS = requiredPolicyArray('records', 'evidenceKinds');
+const GUIDE_RECORD_KINDS = requiredPolicyArray('records', 'guideKinds');
 const SCHEMA_BY_KIND = POLICY.records?.schemaByKind || {};
+const PREFIX_BY_KIND = POLICY.records?.prefixByKind || {};
 const LEGACY_SCHEMA_BY_KIND = POLICY.records?.legacySchemaByKind || {};
 const LEGACY_SCHEMA_RECORDS = new Set(POLICY.records?.legacySchemaRecords || []);
+const RECORD_HISTORY_BASE_ENV = POLICY.records?.baseEnv?.recordHistory || 'NEXUS_RECORD_BASE';
+const BRANCH_BASE_ENV = POLICY.records?.baseEnv?.branch || 'NEXUS_BRANCH_BASE';
+const INTAKE_POLICY = POLICY.intake || {};
+const INTAKE_ENABLED = INTAKE_POLICY.enabled !== false;
+const INTENT_RECORD_KIND = INTAKE_POLICY.recordKinds?.intents || 'intents';
+const WORK_SLICE_RECORD_KIND = INTAKE_POLICY.recordKinds?.workSlices || 'work-slices';
 
 function ensureDir(path) {
   mkdirSync(path, { recursive: true });
@@ -60,6 +75,44 @@ function ensureDir(path) {
 
 function resolveProjectPath(path) {
   return resolve(ROOT, path || '.');
+}
+
+function profileProjectPath(key) {
+  const value = PROFILE.paths?.[key];
+  if (!value || typeof value !== 'string') {
+    throw new Error(`Workflow profile paths.${key} must be configured.`);
+  }
+  return resolveProjectPath(value);
+}
+
+function requiredPolicySection(sectionName) {
+  const section = POLICY[sectionName];
+  if (!section || typeof section !== 'object') throw new Error(`Workflow policy ${sectionName}.json is required.`);
+  return section;
+}
+
+function requiredPolicyString(sectionName, key) {
+  const value = requiredPolicySection(sectionName)[key];
+  if (!value || typeof value !== 'string') throw new Error(`Workflow policy ${sectionName}.${key} must be a non-empty string.`);
+  return value;
+}
+
+function requiredPolicyArray(sectionName, key) {
+  const value = requiredPolicySection(sectionName)[key];
+  if (!Array.isArray(value) || !value.length) throw new Error(`Workflow policy ${sectionName}.${key} must be a non-empty array.`);
+  return value;
+}
+
+function requiredPolicyObject(sectionName, key) {
+  const value = requiredPolicySection(sectionName)[key];
+  if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error(`Workflow policy ${sectionName}.${key} must be an object.`);
+  return value;
+}
+
+function designTokenSourceFile() {
+  const file = POLICY.design?.tokenSource?.file;
+  if (!file || typeof file !== 'string') throw new Error('Workflow policy design.tokenSource.file must be configured.');
+  return file;
 }
 
 function readStdin() {
@@ -100,7 +153,7 @@ function sameStringSet(actual = [], expected = []) {
 
 function canonicalLadder(policy = POLICY) {
   const ladder = policy.gates?.canonicalLadder;
-  return Array.isArray(ladder) && ladder.length ? ladder.map(String) : DEFAULT_CANONICAL_LADDER;
+  return Array.isArray(ladder) && ladder.length ? ladder.map(String) : FALLBACK_CANONICAL_LADDER;
 }
 
 function canonicalLadderCommands(policy = POLICY) {
@@ -249,22 +302,13 @@ function slug(text) {
 }
 
 function recordPrefix(kind) {
-  const prefixes = {
-    decisions: 'DECISION',
-    deployments: 'DEPLOYMENT',
-    patches: 'PATCH',
-    'pattern-proposals': 'PATTERN-PROPOSAL',
-    routing: 'ROUTING',
-    reviews: 'REVIEW',
-    tests: 'TEST',
-    audits: 'AUDIT',
-    'guide-browser': 'GUIDE-BROWSER',
-  };
-  return prefixes[kind] || kind.replace(/s$/, '').toUpperCase();
+  if (PREFIX_BY_KIND[kind]) return PREFIX_BY_KIND[kind];
+  throw new Error(`Workflow records policy is missing prefixByKind.${kind}.`);
 }
 
 function recordSchema(kind) {
-  return SCHEMA_BY_KIND[kind] || `nexus-${kind.replace(/s$/, '')}/v1`;
+  if (SCHEMA_BY_KIND[kind]) return SCHEMA_BY_KIND[kind];
+  throw new Error(`Workflow records policy is missing schemaByKind.${kind}.`);
 }
 
 function writeRecord(kind, title, body, frontmatter = {}) {
@@ -518,18 +562,29 @@ function escapeHtml(value) {
     .replaceAll('"', '&quot;');
 }
 
-function publicSafe(value) {
+function policyText(value) {
   return String(value || '')
-    .replaceAll(ROOT.replaceAll('\\', '/'), 'local worktree')
-    .replaceAll(ROOT, 'local worktree')
-    .replace(/C:\\Users\\[^\\\s]+\\\.codex\\worktrees\\\d+\\nexus/gi, 'local worktree')
-    .replace(/\/root\/monoWeb\/nexus/g, 'server repo')
-    .replace(/\/root\/monoWeb\/deploy-backups\/[^\s)]+/g, 'server backup path')
-    .replace(/~\/\.ssh\/[^\s)`]+/g, 'configured SSH key')
-    .replace(/\b[A-Za-z0-9._-]+@(?:\d{1,3}\.){3}\d{1,3}\b/g, 'configured SSH endpoint')
-    .replace(/\broot@/g, 'ssh-user@')
-    .replace(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g, 'production server')
-    .replace(/(token|secret|password|api[_-]?key)=([^&\s]+)/gi, '$1=redacted');
+    .replaceAll('{rootPosix}', ROOT.replaceAll('\\', '/'))
+    .replaceAll('{root}', ROOT);
+}
+
+function publicGuideForbiddenStrings() {
+  return (GUIDE_PUBLIC_SANITIZER.forbiddenStrings || [])
+    .map((value) => policyText(value))
+    .filter(Boolean);
+}
+
+function publicSafe(value) {
+  let safe = String(value || '');
+  for (const rule of GUIDE_PUBLIC_SANITIZER.redactions || []) {
+    const replacement = String(rule.replacement ?? 'redacted');
+    if (rule.literal) {
+      safe = safe.replaceAll(policyText(rule.literal), replacement);
+    } else if (rule.pattern) {
+      safe = safe.replace(new RegExp(policyText(rule.pattern), rule.flags || 'g'), replacement);
+    }
+  }
+  return safe;
 }
 
 function publicHtml(value) {
@@ -540,6 +595,7 @@ function recordCategory(kind, title = '') {
   const text = `${kind} ${title}`.toLowerCase();
   if (kind === 'deployments' || text.includes('server') || text.includes('deploy')) return 'Deployment';
   if (kind === 'tests' || kind === 'reviews' || kind === 'guide-browser' || text.includes('audit') || text.includes('verify')) return 'Validation';
+  if (kind === INTENT_RECORD_KIND || kind === WORK_SLICE_RECORD_KIND || text.includes('intent') || text.includes('work slice')) return 'Work Intake';
   if (kind === 'pattern-proposals' || text.includes('pattern')) return 'Knowledge';
   if (kind === 'routing' || text.includes('routing') || text.includes('spark') || text.includes('worker')) return 'Agent Routing';
   return 'Workflow';
@@ -580,7 +636,7 @@ function gitPathExistsAtHead(file) {
 }
 
 function recordHistoryBase() {
-  const configured = process.env.NEXUS_RECORD_BASE;
+  const configured = process.env[RECORD_HISTORY_BASE_ENV];
   if (configured && gitRefExists(configured)) return configured;
   for (const ref of ['origin/main', 'main']) {
     if (gitRefExists(ref)) return ref;
@@ -617,7 +673,7 @@ function evidenceRecordHistoryProblemsFromLog(logText, base = 'base') {
 }
 
 function branchEvidenceBase() {
-  const configured = process.env.NEXUS_BRANCH_BASE || process.env.NEXUS_RECORD_BASE;
+  const configured = process.env[BRANCH_BASE_ENV] || process.env[RECORD_HISTORY_BASE_ENV];
   if (configured && gitRefExists(configured)) return configured;
   return recordHistoryBase();
 }
@@ -781,12 +837,370 @@ function commandRecordsCheck({ quiet = false } = {}) {
   return problems.length === 0;
 }
 
+function argString(args, keys = [], fallback = '') {
+  for (const key of keys) {
+    if (args[key] !== undefined && args[key] !== true) return String(args[key]);
+  }
+  return fallback;
+}
+
+function argCsv(args, keys = []) {
+  return csv(argString(args, keys, ''));
+}
+
+function allowedPolicyValues(key, fallback = []) {
+  return Array.isArray(INTAKE_POLICY[key]) && INTAKE_POLICY[key].length ? INTAKE_POLICY[key].map(String) : fallback;
+}
+
+function workSliceIdsFromArgs(args) {
+  return argCsv(args, ['workSliceIds', 'work-slices', 'work-slice-ids', 'work-slice', 'slice-ids', 'slice']);
+}
+
+function intentIdsFromArgs(args) {
+  return argCsv(args, ['intentIds', 'intents', 'intent-ids', 'intent']);
+}
+
+function evidenceWorkSliceFrontmatter(args) {
+  const workSliceIds = workSliceIdsFromArgs(args);
+  return workSliceIds.length ? { workSliceIds } : {};
+}
+
+function workSliceIdsFromPatchRecord(patchId = '') {
+  if (!patchId) return [];
+  const patch = recordFrontmatter('patches', patchId);
+  return csv(patch?.workSliceIds);
+}
+
+function inferredWorkSliceIds(args, context = {}) {
+  const explicit = workSliceIdsFromArgs(args);
+  if (explicit.length) return explicit;
+  const ids = new Set();
+  const patchId = context.patchId || args.patch || args['patch-id'] || '';
+  for (const id of workSliceIdsFromPatchRecord(patchId)) ids.add(id);
+  const hash = context.hash || worktreeHash();
+  const scope = context.scope || args.scope || 'worktree';
+  const branch = context.branch || branchEvidenceInfo();
+  const patchState = loadJson(PATCH_STATE_FILE, {});
+  if (patchState.worktreeHash === hash) {
+    for (const id of workSliceIdsFromPatchRecord(patchState.patchId)) ids.add(id);
+  }
+  for (const patch of recordFrontmatters('patches')) {
+    if (patch.worktreeHash === hash || (scope === 'branch' && branch?.hash && patch.branchHash === branch.hash)) {
+      for (const id of csv(patch.workSliceIds)) ids.add(id);
+    }
+  }
+  return [...ids].filter(Boolean);
+}
+
+function externalRefProblems(refs = [], label = 'external reference', options = {}) {
+  const values = csv(Array.isArray(refs) ? refs.join(',') : refs);
+  const mode = String(options.mode || INTAKE_POLICY.externalTrackerMode || 'optional').toLowerCase();
+  const problems = [];
+  if (!['optional', 'required', 'disabled'].includes(mode)) {
+    problems.push(`intake externalTrackerMode ${mode} is unsupported; use optional|required|disabled.`);
+    return problems;
+  }
+  if (mode === 'disabled' && values.length) problems.push(`${label} is not allowed because externalTrackerMode is disabled.`);
+  if (mode === 'required' && !values.length) problems.push(`${label} is required because externalTrackerMode is required.`);
+  const allowed = INTAKE_POLICY.externalRefPrefixes || ['github:', 'linear:', 'jira:', 'url:'];
+  return problems.concat(values
+    .filter((ref) => !allowed.some((prefix) => String(ref).startsWith(prefix)))
+    .map((ref) => `${label} ${ref} does not use an allowed prefix: ${allowed.join(', ')}.`));
+}
+
+function stringSet(values = []) {
+  if (values instanceof Set) return values;
+  return new Set(csv(Array.isArray(values) ? values.join(',') : values).filter(Boolean));
+}
+
+function missingReferenceProblems(ids = [], existingIds = new Set(), label = 'record') {
+  const existing = stringSet(existingIds);
+  return csv(Array.isArray(ids) ? ids.join(',') : ids)
+    .filter((id) => !existing.has(id))
+    .map((id) => `${label} ${id} does not exist.`);
+}
+
+function intakeIntentWriteProblems(record = {}, options = {}) {
+  const existingIntentIds = options.intentIds || recordFrontmatters(INTENT_RECORD_KIND).map((intent) => intent.id).filter(Boolean);
+  return [
+    ...missingReferenceProblems(record.parentIntentIds || [], existingIntentIds, 'parent intent'),
+    ...missingReferenceProblems(record.supersedesIntentIds || [], existingIntentIds, 'superseded intent'),
+    ...externalRefProblems(record.externalRefs || [], 'intent external reference'),
+  ];
+}
+
+function intakeWorkSliceWriteProblems(record = {}, options = {}) {
+  const existingIntentIds = options.intentIds || recordFrontmatters(INTENT_RECORD_KIND).map((intent) => intent.id).filter(Boolean);
+  const existingSliceIds = options.workSliceIds || recordFrontmatters(WORK_SLICE_RECORD_KIND).map((slice) => slice.id).filter(Boolean);
+  return [
+    ...missingReferenceProblems(record.intentIds || [], existingIntentIds, 'source intent'),
+    ...missingReferenceProblems(record.updatesWorkSliceId ? [record.updatesWorkSliceId] : [], existingSliceIds, 'updated work slice'),
+    ...missingReferenceProblems(record.supersedesWorkSliceIds || [], existingSliceIds, 'superseded work slice'),
+    ...missingReferenceProblems(record.blockedByWorkSliceIds || [], existingSliceIds, 'blocking work slice'),
+    ...externalRefProblems(record.externalRefs || [], 'work slice external reference'),
+  ];
+}
+
+function rejectIntakeWriteProblems(problems = [], commandName = 'record') {
+  if (!problems.length) return;
+  console.error(`${commandName} refused to create append-only intake evidence:`);
+  for (const problem of problems) console.error(`- ${problem}`);
+  process.exit(2);
+}
+
+function workSliceRootId(record, byId, seen = new Set()) {
+  const id = String(record?.id || '');
+  if (!id) return '';
+  if (seen.has(id)) return id;
+  seen.add(id);
+  const parent = String(record?.updatesWorkSliceId || record?.rootWorkSliceId || '');
+  if (!parent || !byId.has(parent)) return parent || id;
+  return workSliceRootId(byId.get(parent), byId, seen);
+}
+
+function workSliceIndex(workSlices = recordFrontmatters(WORK_SLICE_RECORD_KIND)) {
+  const byId = new Map(workSlices.filter((record) => record.id).map((record) => [record.id, record]));
+  const rootById = new Map();
+  for (const record of workSlices) rootById.set(record.id, workSliceRootId(record, byId));
+  const latestByRoot = new Map();
+  for (const record of workSlices) {
+    const root = rootById.get(record.id) || record.id;
+    const existing = latestByRoot.get(root);
+    if (!existing || String(existing.created || '').localeCompare(String(record.created || '')) <= 0) {
+      latestByRoot.set(root, record);
+    }
+  }
+  return { byId, rootById, latestByRoot };
+}
+
+function workSliceRefRoot(ref, index) {
+  const id = String(ref || '');
+  if (!id) return '';
+  return index.rootById.get(id) || (index.byId.has(id) ? id : '');
+}
+
+function recordWorkSliceRoots(record, index) {
+  return argCsv(record, ['workSliceIds'])
+    .map((ref) => workSliceRefRoot(ref, index))
+    .filter(Boolean);
+}
+
+function recordsLinkedToWorkSlice(records = [], rootId, index) {
+  return records.filter((record) => recordWorkSliceRoots(record, index).includes(rootId));
+}
+
+function validEvidenceForWorkSlice(records = [], rootId, index, extra = {}) {
+  return recordsLinkedToWorkSlice(records, rootId, index).filter((record) => {
+    if (extra.verdict && record.verdict !== extra.verdict) return false;
+    if (extra.kind && record.kind !== extra.kind) return false;
+    return true;
+  });
+}
+
+function staleWorkSliceProblem(record, now = Date.now()) {
+  const status = String(record.status || '').toLowerCase();
+  const active = allowedPolicyValues('activeWorkSliceStatuses', ['ready', 'active', 'review']);
+  if (!active.includes(status)) return '';
+  const opened = Date.parse(record.openedAt || record.created || '');
+  if (!Number.isFinite(opened)) return '';
+  const threshold = Number(INTAKE_POLICY.staleActiveWorkSliceDays || 14);
+  const ageDays = Math.floor((now - opened) / 86400000);
+  if (ageDays <= threshold) return '';
+  return `work slice ${record.id || record.name} has status ${status} for ${ageDays} days without blocked/deferred closeout.`;
+}
+
+function patchRequiresWorkSlice(record, options = {}) {
+  if (!INTAKE_POLICY.requireWorkSliceForSubstantivePatches) return false;
+  const files = Array.isArray(record.files) ? record.files : [];
+  if (!substantiveFiles(files).length) return false;
+  const currentHash = options.currentHash || '';
+  const branchHash = options.branch?.hash || '';
+  if (currentHash && record.worktreeHash === currentHash) return true;
+  if (branchHash && record.branchHash === branchHash) return true;
+  return false;
+}
+
+function recordMatchesCurrentEvidence(record, kind, options = {}) {
+  const currentHash = options.currentHash || '';
+  const branchHash = options.branch?.hash || '';
+  if (currentHash && record.worktreeHash === currentHash) return true;
+  if (branchHash && record.branchHash === branchHash) return true;
+  if (kind === 'deployments' && branchHash && record.branchHash === branchHash) return true;
+  return false;
+}
+
+function evidenceRecordRequiresWorkSlice(kind, record, options = {}) {
+  if (kind === 'patches') return patchRequiresWorkSlice(record, options);
+  if (!INTAKE_POLICY.requireWorkSliceForEvidenceRecords) return false;
+  if (!recordMatchesCurrentEvidence(record, kind, options)) return false;
+  if (kind === 'routing') return true;
+  if (kind === 'deployments') return String(record.verdict || '').toLowerCase() === 'pass';
+  if (['reviews', 'tests', 'audits'].includes(kind)) return String(record.verdict || '').toLowerCase() === 'pass';
+  return false;
+}
+
+function workSliceRelevantFiles(rootId, latest, recordsByKind, index) {
+  const files = new Set(Array.isArray(latest.files) ? latest.files : []);
+  for (const patch of recordsLinkedToWorkSlice(recordsByKind.patches || [], rootId, index)) {
+    for (const file of Array.isArray(patch.files) ? patch.files : []) files.add(file);
+  }
+  return [...files];
+}
+
+function intakeProblemsForState(state = {}, options = {}) {
+  if (!INTAKE_ENABLED) return [];
+  const problems = [];
+  const intents = state.intents || [];
+  const workSlices = state.workSlices || state['work-slices'] || [];
+  const recordsByKind = {
+    patches: state.patches || [],
+    routing: state.routing || [],
+    reviews: state.reviews || [],
+    tests: state.tests || [],
+    audits: state.audits || [],
+    deployments: state.deployments || [],
+  };
+  const allowedIntentKinds = allowedPolicyValues('intentKinds', ['initial', 'idea', 'feature', 'bug', 'clarification', 'constraint', 'change-request', 'maintenance', 'research']);
+  const allowedIntentStatuses = allowedPolicyValues('intentStatuses', ['captured', 'needs-clarification', 'accepted', 'converted', 'deferred', 'rejected', 'superseded']);
+  const allowedWorkStatuses = allowedPolicyValues('workSliceStatuses', ['proposed', 'ready', 'active', 'blocked', 'review', 'verified', 'done', 'deferred', 'superseded']);
+  const sourceTypesWithoutIntent = new Set(allowedPolicyValues('sourceTypesWithoutIntent', ['internal-maintenance', 'workflow-maintenance']));
+  const evidenceStatuses = new Set(allowedPolicyValues('evidenceRequiredStatuses', ['review', 'verified', 'done']));
+  const closedStatuses = new Set(allowedPolicyValues('closedWorkSliceStatuses', ['verified', 'done', 'deferred', 'superseded']));
+  const trackerMode = String(INTAKE_POLICY.externalTrackerMode || 'optional').toLowerCase();
+  const intentIds = new Set(intents.map((record) => record.id).filter(Boolean));
+  const index = workSliceIndex(workSlices);
+  if (!['optional', 'required', 'disabled'].includes(trackerMode)) problems.push(`intake externalTrackerMode ${trackerMode} is unsupported; use optional|required|disabled.`);
+
+  for (const intent of intents) {
+    const label = intent.id || intent.name || '(unknown intent)';
+    if (!allowedIntentKinds.includes(String(intent.kind || '').toLowerCase())) problems.push(`${label} has unsupported intent kind ${intent.kind || '(missing)'}.`);
+    if (!allowedIntentStatuses.includes(String(intent.status || '').toLowerCase())) problems.push(`${label} has unsupported intent status ${intent.status || '(missing)'}.`);
+    if (!intent.summary && !intent.publicSummary) problems.push(`${label} has no compact summary/publicSummary.`);
+    for (const parent of csv(intent.parentIntentIds || intent.parents)) {
+      if (!intentIds.has(parent)) problems.push(`${label} references missing parent intent ${parent}.`);
+    }
+    for (const superseded of csv(intent.supersedesIntentIds || intent.supersedes)) {
+      if (!intentIds.has(superseded)) problems.push(`${label} supersedes missing intent ${superseded}.`);
+    }
+    problems.push(...externalRefProblems(intent.externalRefs || [], `${label} externalRef`, { mode: trackerMode }));
+  }
+
+  for (const slice of workSlices) {
+    const label = slice.id || slice.name || '(unknown work slice)';
+    const status = String(slice.status || '').toLowerCase();
+    if (!allowedWorkStatuses.includes(status)) problems.push(`${label} has unsupported work-slice status ${slice.status || '(missing)'}.`);
+    const sourceType = String(slice.sourceType || '').toLowerCase();
+    const sourceIds = csv(slice.intentIds || slice.intents);
+    if (!sourceIds.length && !sourceTypesWithoutIntent.has(sourceType)) {
+      problems.push(`${label} must link to at least one intentId or use an allowed sourceType (${[...sourceTypesWithoutIntent].join(', ')}).`);
+    }
+    for (const intentId of sourceIds) {
+      if (!intentIds.has(intentId)) problems.push(`${label} references missing intent ${intentId}.`);
+    }
+    const updated = slice.updatesWorkSliceId || '';
+    if (updated && !index.byId.has(updated)) problems.push(`${label} updates missing work slice ${updated}.`);
+    if (!slice.acceptance && !['proposed', 'blocked', 'deferred', 'superseded'].includes(status)) {
+      problems.push(`${label} has no acceptance criteria.`);
+    }
+    const stale = staleWorkSliceProblem(slice, options.now);
+    if (stale) problems.push(stale);
+    problems.push(...externalRefProblems(slice.externalRefs || [], `${label} externalRef`, { mode: trackerMode }));
+  }
+
+  for (const [kind, records] of Object.entries(recordsByKind)) {
+    for (const record of records) {
+      for (const ref of csv(record.workSliceIds)) {
+        if (!workSliceRefRoot(ref, index)) problems.push(`${kind} record ${record.id || record.name || '(unknown)'} references missing work slice ${ref}.`);
+      }
+      if (evidenceRecordRequiresWorkSlice(kind, record, options) && !csv(record.workSliceIds).length) {
+        problems.push(`${kind} record ${record.id || record.name || '(unknown)'} is current evidence but has no workSliceIds.`);
+      }
+    }
+  }
+
+  for (const patch of recordsByKind.patches) {
+    if (patchRequiresWorkSlice(patch, options) && !csv(patch.workSliceIds).length) {
+      problems.push(`patch ${patch.id || patch.name || '(unknown)'} touches substantive files but has no workSliceIds.`);
+    }
+  }
+
+  for (const [rootId, latest] of index.latestByRoot.entries()) {
+    const status = String(latest.status || '').toLowerCase();
+    if (!evidenceStatuses.has(status)) continue;
+    const files = workSliceRelevantFiles(rootId, latest, recordsByKind, index);
+    if (!validEvidenceForWorkSlice(recordsByKind.patches, rootId, index).length) problems.push(`work slice ${rootId} is ${status} but has no linked patch record.`);
+    if (!validEvidenceForWorkSlice(recordsByKind.reviews, rootId, index, { verdict: 'pass' }).length) problems.push(`work slice ${rootId} is ${status} but has no linked passing review record.`);
+    if (verificationRelevantFiles(files).length && !validEvidenceForWorkSlice(recordsByKind.tests, rootId, index, { verdict: 'pass' }).length) {
+      problems.push(`work slice ${rootId} changes verification-relevant files but has no linked passing verification record.`);
+    }
+    if (auditRelevantFiles(files).length && !validEvidenceForWorkSlice(recordsByKind.audits, rootId, index, { verdict: 'pass' }).length) {
+      problems.push(`work slice ${rootId} changes audit-relevant files but has no linked passing audit record.`);
+    }
+    if (latest.deploymentRequired && !validEvidenceForWorkSlice(recordsByKind.deployments, rootId, index, { verdict: 'pass' }).length) {
+      problems.push(`work slice ${rootId} requires deployment but has no linked passing deployment record.`);
+    }
+  }
+
+  if (options.branch?.hash && substantiveFiles(options.branch.files || []).length) {
+    const branchRoots = new Set();
+    for (const patch of recordsByKind.patches) {
+      if (patch.branchHash !== options.branch.hash) continue;
+      for (const root of recordWorkSliceRoots(patch, index)) branchRoots.add(root);
+    }
+    for (const rootId of branchRoots) {
+      const latest = index.latestByRoot.get(rootId);
+      const status = String(latest?.status || '').toLowerCase();
+      if (!closedStatuses.has(status)) {
+        problems.push(`work slice ${rootId} is linked to current branch evidence but latest status ${status || '(missing)'} is not closed (${[...closedStatuses].join(', ')}).`);
+      }
+    }
+  }
+
+  return [...new Set(problems)].sort();
+}
+
+function intakeProblems(options = {}) {
+  const branch = options.branch || branchEvidenceInfo();
+  const state = {
+    intents: recordFrontmatters(INTENT_RECORD_KIND),
+    workSlices: recordFrontmatters(WORK_SLICE_RECORD_KIND),
+    patches: recordFrontmatters('patches'),
+    routing: recordFrontmatters('routing'),
+    reviews: recordFrontmatters('reviews'),
+    tests: recordFrontmatters('tests'),
+    audits: recordFrontmatters('audits'),
+    deployments: recordFrontmatters('deployments'),
+  };
+  return intakeProblemsForState(state, {
+    branch,
+    currentHash: options.currentHash || worktreeHash(),
+    now: options.now,
+  });
+}
+
+function commandWorkIntakeCheck({ quiet = false } = {}) {
+  const problems = intakeProblems();
+  if (!quiet) {
+    console.log(`work intake problems: ${problems.length}`);
+    for (const problem of problems) console.log(`- ${problem}`);
+  }
+  return problems.length === 0;
+}
+
 function routeFilesFromArgs(args) {
   return csv(args.files || args.scope || args['write-scope']);
 }
 
 function fileMatchesPattern(file, pattern) {
   return workflowPathMatchesPattern(file, pattern);
+}
+
+function activeRoutingForPatch(files = [], routingState = loadJson(ROUTING_STATE_FILE, {})) {
+  const status = String(routingState.status || '').toLowerCase();
+  if (!routingState.routingId || !['active', 'escalated'].includes(status)) return null;
+  const scope = routingState.files || routingState.writeScope || [];
+  if (scope.length && files.length && !files.every((file) => scope.some((pattern) => fileMatchesPattern(file, pattern)))) return null;
+  return routingState;
 }
 
 function routingScopeProblems(files = substantiveFiles()) {
@@ -1153,7 +1567,7 @@ function slugFromZooRoute(route) {
 function zooVisualEntries() {
   const registryPath = POLICY.design?.registryPath || 'packages/web/src/components/registry.json';
   const zooRoutePath = POLICY.design?.zooRoutePath || 'packages/web/src/routes/__design/Zoo.tsx';
-  const tokenPath = POLICY.design?.tokenSource?.file || 'packages/web/src/platform/theme/tokens.css';
+  const tokenPath = designTokenSourceFile();
   const themeMatrixPath = POLICY.design?.themeMatrixPath || 'packages/web/src/platform/theme/themes.css';
   const registry = loadJson(join(ROOT, registryPath), { primitives: [], patterns: [], tokens: {} });
   const foundations = [
@@ -1304,20 +1718,10 @@ function zooVisualGuideProblems() {
 
   if (existsSync(htmlPath)) {
     const html = readFileSync(htmlPath, 'utf8');
-    if (!html.includes(`name="nexus-guide-version" content="${ZOO_VISUAL_GUIDE_VERSION}"`)) problems.push('visual Zoo/Gym guide version is stale; regenerate zoo/index.html.');
-    if (htmlMetaContent(html, 'nexus-guide-source-hash') !== zooVisualSourceHash()) problems.push('visual Zoo/Gym guide source hash is stale; regenerate zoo/index.html.');
+    if (!html.includes(`name="${guideMetaName('version')}" content="${ZOO_VISUAL_GUIDE_VERSION}"`)) problems.push('visual Zoo/Gym guide version is stale; regenerate zoo/index.html.');
+    if (htmlMetaContent(html, guideMetaName('sourceHash')) !== zooVisualSourceHash()) problems.push('visual Zoo/Gym guide source hash is stale; regenerate zoo/index.html.');
     if (!guideContentHashOk(html)) problems.push('visual Zoo/Gym guide content hash is stale or was edited outside the generator; regenerate zoo/index.html.');
-    for (const required of [
-      'Nexus Design Zoo / Gym',
-      'Visual Demo Surface',
-      'Captured From Real /design Routes',
-      'Visual Contexts',
-      'Token Foundations',
-      'Theme Matrix',
-      'Component Gallery',
-      'packages/web/src/routes/__design/Zoo.tsx',
-      'packages/web/src/components/registry.json',
-    ]) {
+    for (const required of ZOO_VISUAL_REQUIRED_STRINGS) {
       if (!html.includes(required)) problems.push(`visual Zoo/Gym guide is missing required content: ${required}`);
     }
     for (const context of contexts) {
@@ -1451,8 +1855,55 @@ function publicGuideInputFiles() {
     .sort();
 }
 
+function guideDocumentFiles() {
+  const guidePolicy = POLICY.guide || {};
+  const files = new Set(guidePolicy.documentFiles || []);
+  for (const entry of guidePolicy.documentDirectories || []) {
+    const dir = typeof entry === 'string' ? entry : entry.path;
+    const maxDepth = typeof entry === 'string' ? 4 : Number(entry.maxDepth || 4);
+    const limit = typeof entry === 'string' ? 100 : Number(entry.limit || 100);
+    const extensions = new Set(typeof entry === 'string' ? ['.md'] : (entry.extensions || ['.md']));
+    for (const file of listFilesUnder(dir, maxDepth, limit)) {
+      if (!extensions.size || extensions.has(pathExtension(file))) files.add(file);
+    }
+  }
+  return uniqueExisting([...files]).sort();
+}
+
+function requiredGuideSourceFiles() {
+  return POLICY.guide?.requiredSourceFiles || [];
+}
+
 function publicGuideSourceHash() {
   const files = publicGuideInputFiles().map((file) => ({
+    file,
+    hash: createHash('sha256').update(canonicalTextForHash(readFileSync(join(ROOT, file), 'utf8'))).digest('hex'),
+  }));
+  const payload = JSON.stringify({
+    version: PUBLIC_GUIDE_VERSION,
+    branch: gitText(['branch', '--show-current']) || '(detached HEAD)',
+    files,
+  });
+  return createHash('sha256').update(payload).digest('hex').slice(0, 24);
+}
+
+function guideRecordFeedFiles() {
+  const files = new Set([
+    '.codex/workflow/current-state.md',
+    '.codex/workflow/records/risks.md',
+  ]);
+  for (const kind of GUIDE_RECORD_KINDS) {
+    for (const record of listRecords(kind)) {
+      if (record.rel) files.add(record.rel);
+    }
+  }
+  return [...files]
+    .filter((file) => existsSync(join(ROOT, file)) && statSync(join(ROOT, file)).isFile())
+    .sort();
+}
+
+function guideRecordFeedHash() {
+  const files = guideRecordFeedFiles().map((file) => ({
     file,
     hash: createHash('sha256').update(canonicalTextForHash(readFileSync(join(ROOT, file), 'utf8'))).digest('hex'),
   }));
@@ -1472,12 +1923,12 @@ function cssDeclarationValue(block, name) {
 
 function productionGuideTokenCss() {
   const tokenPolicy = POLICY.design?.tokenSource || {};
-  const text = readText(tokenPolicy.file || 'packages/web/src/platform/theme/tokens.css');
+  const text = readText(designTokenSourceFile());
   const block = text.match(/:root\s*{([\s\S]*?)\n}/)?.[1] || '';
   const required = tokenPolicy.publicGuideTokens || [];
   return required.map((name) => {
     const value = cssDeclarationValue(block, name);
-    if (!value) throw new Error(`Missing production token ${name} in ${tokenPolicy.file || 'packages/web/src/platform/theme/tokens.css'}`);
+    if (!value) throw new Error(`Missing production token ${name} in ${designTokenSourceFile()}`);
     return `${name}: ${value};`;
   }).join('\n      ');
 }
@@ -1487,8 +1938,19 @@ function htmlMetaContent(html, name) {
   return (html.match(new RegExp(`<meta\\s+name=["']${escaped}["']\\s+content=["']([^"']+)["']\\s*\\/?>`, 'i'))?.[1] || '').trim();
 }
 
+function guideMetaName(key) {
+  const name = GUIDE_META_NAMES[key];
+  if (!name || typeof name !== 'string') throw new Error(`Workflow guide metaNames.${key} must be configured.`);
+  return name;
+}
+
+function guideMetaTag(key, value) {
+  return `<meta name="${guideMetaName(key)}" content="${escapeHtml(value)}" />`;
+}
+
 function guideContentHash(html) {
-  const canonical = String(html).replace(/(<meta\s+name=["']nexus-guide-content-hash["']\s+content=["'])[^"']*(["']\s*\/?>)/i, '$1$2');
+  const escaped = guideMetaName('contentHash').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const canonical = String(html).replace(new RegExp(`(<meta\\s+name=["']${escaped}["']\\s+content=["'])[^"']*(["']\\s*\\/?>)`, 'i'), '$1$2');
   return createHash('sha256').update(canonical).digest('hex').slice(0, 24);
 }
 
@@ -1502,30 +1964,98 @@ function injectGuideContentHash(html) {
 }
 
 function guideContentHashOk(html) {
-  const recorded = htmlMetaContent(html, 'nexus-guide-content-hash');
+  const recorded = htmlMetaContent(html, guideMetaName('contentHash'));
   return Boolean(recorded) && recorded === guideContentHash(html);
 }
 
-function guideViewContractProblems(html, label = 'guide') {
-  const contract = POLICY.guide?.viewContract || {};
-  const requiredStrings = contract.requiredStrings || [];
+function guideShellFingerprint(name, html) {
+  if (!['index.html', 'public.html'].includes(name)) return null;
+  const version = htmlMetaContent(html, guideMetaName('version'));
+  const sourceHash = htmlMetaContent(html, guideMetaName('sourceHash'));
+  const tokenSource = htmlMetaContent(html, guideMetaName('tokenSource'));
+  if (!version || !sourceHash) return null;
+  return {
+    type: 'guide-shell',
+    version,
+    sourceHash,
+    tokenSource,
+  };
+}
+
+function countHtmlMatches(html, pattern) {
+  return (String(html).match(pattern) || []).length;
+}
+
+function workIntakeGuideContractProblems(html, label = 'guide', model = intakeModel()) {
+  if (!INTAKE_ENABLED) return [];
   const problems = [];
+  const maxTrace = Number(INTAKE_POLICY.guide?.maxTraceItems || 12);
+  const traceRows = workIntakeTraceRows(model, maxTrace);
+  if (traceRows.length && !html.includes('data-work-intake-trace-row=')) {
+    problems.push(`${label} Work Intake trace is missing linked trace rows.`);
+  }
+  for (const row of traceRows) {
+    const rootId = row.rootId;
+    if (!html.includes(`data-work-intake-trace-row="${escapeHtml(rootId)}"`)) {
+      problems.push(`${label} Work Intake trace is missing work slice ${rootId}.`);
+    }
+    for (const [kind, records] of Object.entries(row.evidence)) {
+      for (const record of records.slice(0, Number(INTAKE_POLICY.guide?.maxEvidenceItemsPerSlice || 4))) {
+        const id = recordDisplayId(record);
+        if (id && !html.includes(`data-work-intake-evidence-id="${escapeHtml(id)}"`)) {
+          problems.push(`${label} Work Intake trace is missing linked ${kind} evidence ${id}.`);
+        }
+      }
+    }
+  }
+  const catalog = featureCatalogEntries(model).slice(0, Number(INTAKE_POLICY.guide?.maxFeatureCatalogItems || 12));
+  if (catalog.length && !html.includes('data-work-intake-feature=')) {
+    problems.push(`${label} Feature Catalog is missing intent-centered feature entries.`);
+  }
+  for (const entry of catalog) {
+    const id = recordDisplayId(entry.intent);
+    if (id && !html.includes(`data-work-intake-feature="${escapeHtml(id)}"`)) {
+      problems.push(`${label} Feature Catalog is missing intent ${id}.`);
+    }
+  }
+  if (catalog.length && countHtmlMatches(html, /data-work-intake-feature=/g) === countHtmlMatches(html, /data-work-intake-active-slice=/g)) {
+    const featureIds = [...String(html).matchAll(/data-work-intake-feature="([^"]+)"/g)].map((match) => match[1]).join('|');
+    const activeIds = [...String(html).matchAll(/data-work-intake-active-slice="([^"]+)"/g)].map((match) => match[1]).join('|');
+    if (featureIds === activeIds) problems.push(`${label} Feature Catalog duplicates active work-slice rows instead of intent-centered feature entries.`);
+  }
+  if (!html.includes('data-work-intake-warning-state=')) {
+    problems.push(`${label} Work Intake warnings are not represented with a deterministic warning state.`);
+  }
+  return problems;
+}
+
+function guideViewContractProblems(html, label = 'guide', options = {}) {
+    const contract = POLICY.guide?.viewContract || {};
+    const requiredStrings = contract.requiredStrings || [];
+    const problems = [];
   for (const required of requiredStrings) {
     if (!html.includes(required)) problems.push(`${label} is missing guide view contract item: ${required}`);
   }
   const headings = contract.timelineCategoryHeadings || ['Workflow', 'Validation', 'Knowledge', 'Agent Routing', 'Deployment'];
-  const recordCategoryCount = headings
-    .map((heading) => html.includes(`<h3>${escapeHtml(heading)}</h3>`) ? 1 : 0)
-    .reduce((sum, value) => sum + value, 0);
-  if (recordCategoryCount < Number(contract.minTimelineCategories || 3)) problems.push(`${label} event timeline is missing multiple workflow record categories.`);
-  return problems;
-}
+    const recordCategoryCount = headings
+      .map((heading) => html.includes(`<h3>${escapeHtml(heading)}</h3>`) ? 1 : 0)
+      .reduce((sum, value) => sum + value, 0);
+    if (recordCategoryCount < Number(contract.minTimelineCategories || 3)) problems.push(`${label} event timeline is missing multiple workflow record categories.`);
+    if (options.intakeModel) problems.push(...workIntakeGuideContractProblems(html, label, options.intakeModel));
+    return problems;
+  }
 
 function guideArtifactHash() {
   const payload = {};
   for (const name of POLICY.guide?.artifacts || ['index.html', 'public.html', 'zoo/index.html', 'zoo/manifest.json']) {
     const path = join(DASHBOARD_DIR, name);
-    payload[name] = existsSync(path) ? createHash('sha256').update(readFileSync(path)).digest('hex') : 'missing';
+    if (!existsSync(path)) {
+      payload[name] = 'missing';
+      continue;
+    }
+    const buffer = readFileSync(path);
+    const html = name.endsWith('.html') ? buffer.toString('utf8') : '';
+    payload[name] = guideShellFingerprint(name, html) || createHash('sha256').update(buffer).digest('hex');
   }
   for (const target of zooManifestTargets()) {
     const asset = target.asset || `.codex/dashboard/zoo/assets/${target.slug}.jpg`;
@@ -1681,10 +2211,10 @@ function guideBrowserSummaryProblems(summaryFile) {
   const dashboard = entries.find((entry) => entry.name === 'dashboard-artifact');
   const guide = entries.find((entry) => entry.name === 'workflow-guide-artifact');
   const zoo = entries.filter((entry) => String(entry.name || '').startsWith('workflow-zoo-artifact-'));
-  if (dashboard && dashboard.title !== 'Nexus Workflow Dashboard') problems.push(`dashboard artifact title mismatch: ${dashboard.title}`);
-  if (guide && guide.title !== 'Nexus Workflow Guide') problems.push(`public guide artifact title mismatch: ${guide.title}`);
+  if (dashboard && dashboard.title !== GUIDE_TITLES.dashboard) problems.push(`dashboard artifact title mismatch: ${dashboard.title}`);
+  if (guide && guide.title !== GUIDE_TITLES.public) problems.push(`public guide artifact title mismatch: ${guide.title}`);
   for (const entry of zoo) {
-    if (entry.title !== 'Nexus Design Zoo / Gym') problems.push(`Zoo/Gym artifact title mismatch for ${entry.name}: ${entry.title}`);
+    if (entry.title !== ZOO_VISUAL_GUIDE_TITLE) problems.push(`Zoo/Gym artifact title mismatch for ${entry.name}: ${entry.title}`);
     if (Number(entry.imageCount || 0) < 1) problems.push(`Zoo/Gym artifact has no screenshots in DOM: ${entry.name}`);
   }
   return problems;
@@ -1831,22 +2361,225 @@ function commandGuideBrowserCheck({ quiet = false } = {}) {
   return problems.length === 0;
 }
 
-function graphHtml(title, nodes, edges = []) {
+function graphHtml(title, nodes, edges = [], html = publicHtml) {
   const labels = new Set(nodes.map((node) => node.label));
   const missing = edges.filter(([a, b]) => !labels.has(a) || !labels.has(b));
   if (missing.length) {
     const detail = missing.map(([a, b]) => `${a} -> ${b}`).join(', ');
     throw new Error(`Graph ${title} references missing node labels: ${detail}`);
   }
-  const edgeText = edges.length ? `<p class="meta">${edges.map(([a, b]) => `${publicHtml(a)} -> ${publicHtml(b)}`).join(' · ')}</p>` : '';
+  const edgeText = edges.length ? `<p class="meta">${edges.map(([a, b]) => `${html(a)} -> ${html(b)}`).join(' · ')}</p>` : '';
   return `
     <div class="graph">
-      <h3>${publicHtml(title)}</h3>
+      <h3>${html(title)}</h3>
       <div class="nodes">
-        ${nodes.map((node) => `<div class="node"><strong>${publicHtml(node.label)}</strong><span>${publicHtml(node.detail || '')}</span></div>`).join('\n')}
+        ${nodes.map((node) => `<div class="node" data-graph-node="${html(node.label)}"><strong>${html(node.label)}</strong><span>${html(node.detail || '')}</span></div>`).join('\n')}
       </div>
       ${edgeText}
     </div>
+  `;
+}
+
+function guidePolicyGraph(key) {
+  const graph = POLICY.guide?.viewGraphs?.[key] || {};
+  if (!Array.isArray(graph.nodes) || !graph.nodes.length) {
+    throw new Error(`Workflow guide policy viewGraphs.${key}.nodes must define the guide topology.`);
+  }
+  return {
+    title: graph.title || key,
+    nodes: graph.nodes,
+    edges: Array.isArray(graph.edges) ? graph.edges : [],
+  };
+}
+
+function sortRecordsNewest(records = []) {
+  return [...records].sort((a, b) => String(b.created || '').localeCompare(String(a.created || '')));
+}
+
+function intakeModel() {
+  const intents = sortRecordsNewest(recordFrontmatters(INTENT_RECORD_KIND));
+  const workSlices = sortRecordsNewest(recordFrontmatters(WORK_SLICE_RECORD_KIND));
+  const index = workSliceIndex(workSlices);
+  const latestSlices = sortRecordsNewest([...index.latestByRoot.entries()].map(([rootId, record]) => ({
+    ...record,
+    rootId,
+  })));
+  const inboxStatuses = new Set(['captured', 'needs-clarification', 'accepted']);
+  const activeStatuses = new Set(allowedPolicyValues('activeWorkSliceStatuses', ['ready', 'active', 'review']));
+  const evidence = {
+    patches: recordFrontmatters('patches'),
+    routing: recordFrontmatters('routing'),
+    reviews: recordFrontmatters('reviews'),
+    tests: recordFrontmatters('tests'),
+    audits: recordFrontmatters('audits'),
+    deployments: recordFrontmatters('deployments'),
+  };
+  return {
+    intents,
+    workSlices,
+    latestSlices,
+    intentById: new Map(intents.filter((record) => record.id).map((record) => [record.id, record])),
+    inbox: intents.filter((record) => inboxStatuses.has(String(record.status || '').toLowerCase())),
+    activeSlices: latestSlices.filter((record) => activeStatuses.has(String(record.status || '').toLowerCase())),
+    evidence,
+    index,
+    warnings: intakeProblems(),
+  };
+}
+
+function linkedEvidenceSummary(rootId, model) {
+  return ['patches', 'routing', 'reviews', 'tests', 'audits', 'deployments']
+    .map((kind) => {
+      const count = recordsLinkedToWorkSlice(model.evidence[kind] || [], rootId, model.index).length;
+      return `${kind}:${count}`;
+    })
+    .join(' · ');
+}
+
+function recordDisplayId(record) {
+  return String(record?.id || record?.name || record?.rel || '').trim();
+}
+
+function recordSummary(record) {
+  return record?.publicSummary || record?.summary || record?.title || recordDisplayId(record) || 'Untitled';
+}
+
+function recordKindLabel(kind) {
+  return {
+    patches: 'Patch',
+    routing: 'Routing',
+    reviews: 'Review',
+    tests: 'Verify',
+    audits: 'Audit',
+    deployments: 'Deploy',
+  }[kind] || kind;
+}
+
+function workIntakeEvidenceForSlice(rootId, model) {
+  return Object.fromEntries(['patches', 'routing', 'reviews', 'tests', 'audits', 'deployments'].map((kind) => [
+    kind,
+    recordsLinkedToWorkSlice(model.evidence[kind] || [], rootId, model.index),
+  ]));
+}
+
+function workIntakeTraceRows(model, limit = Number(INTAKE_POLICY.guide?.maxTraceItems || 12)) {
+  return model.latestSlices.slice(0, limit).map((slice) => {
+    const rootId = slice.rootId || slice.id;
+    const intentIds = intentIdsFromArgs(slice);
+    return {
+      slice,
+      rootId,
+      intents: intentIds.map((id) => model.intentById.get(id)).filter(Boolean),
+      evidence: workIntakeEvidenceForSlice(rootId, model),
+    };
+  });
+}
+
+function featureCatalogEntries(model) {
+  const kinds = new Set(INTAKE_POLICY.guide?.featureCatalogIntentKinds || ['initial', 'idea', 'feature', 'bug', 'change-request']);
+  const sliceByIntent = new Map();
+  for (const slice of model.latestSlices) {
+    for (const intentId of intentIdsFromArgs(slice)) {
+      if (!sliceByIntent.has(intentId)) sliceByIntent.set(intentId, []);
+      sliceByIntent.get(intentId).push(slice);
+    }
+  }
+  return model.intents
+    .filter((intent) => kinds.has(String(intent.kind || '').toLowerCase()))
+    .map((intent) => ({
+      intent,
+      slices: sliceByIntent.get(recordDisplayId(intent)) || [],
+    }))
+    .filter((entry) => entry.slices.length || ['captured', 'needs-clarification', 'accepted'].includes(String(entry.intent.status || '').toLowerCase()))
+    .sort((a, b) => String(b.intent.created || '').localeCompare(String(a.intent.created || '')));
+}
+
+function traceGraphForRows(rows, model, html = escapeHtml) {
+  const nodes = [];
+  const edges = [];
+  const seen = new Set();
+  const addNode = (label, detail) => {
+    if (seen.has(label)) return label;
+    seen.add(label);
+    nodes.push({ label, detail });
+    return label;
+  };
+  const maxEvidence = Number(INTAKE_POLICY.guide?.maxEvidenceItemsPerSlice || 4);
+  for (const row of rows) {
+    const sliceLabel = addNode(`Slice ${row.rootId}`, `${row.slice.status || 'unknown'} · ${recordSummary(row.slice)}`);
+    for (const intent of row.intents.length ? row.intents : [{ id: 'unlinked-intent', summary: 'No source intent record linked' }]) {
+      const intentLabel = addNode(`Intent ${recordDisplayId(intent)}`, `${intent.status || 'unknown'} · ${recordSummary(intent)}`);
+      edges.push([intentLabel, sliceLabel]);
+    }
+    for (const [kind, records] of Object.entries(row.evidence)) {
+      for (const record of records.slice(0, maxEvidence)) {
+        const label = addNode(`${recordKindLabel(kind)} ${recordDisplayId(record)}`, recordSummary(record));
+        edges.push([sliceLabel, label]);
+      }
+    }
+  }
+  return nodes.length ? graphHtml('Intent Trace Graph', nodes, edges, html) : graphHtml('Intent Trace Graph', [
+    { label: 'No Work Slice Trace', detail: 'Create intent and work-slice records to populate this view' },
+  ], [], html);
+}
+
+function workIntakeHtml(model, html = escapeHtml) {
+  const maxInbox = Number(INTAKE_POLICY.guide?.maxInboxItems || 8);
+  const maxActive = Number(INTAKE_POLICY.guide?.maxActiveSlices || 8);
+  const maxTrace = Number(INTAKE_POLICY.guide?.maxTraceItems || 12);
+  const maxCatalog = Number(INTAKE_POLICY.guide?.maxFeatureCatalogItems || 12);
+  const maxEvidence = Number(INTAKE_POLICY.guide?.maxEvidenceItemsPerSlice || 4);
+  const inbox = model.inbox.slice(0, maxInbox);
+  const active = model.activeSlices.slice(0, maxActive);
+  const trace = workIntakeTraceRows(model, maxTrace);
+  const catalog = featureCatalogEntries(model).slice(0, maxCatalog);
+  const intentLine = (record) => `<li data-work-intake-intent="${html(recordDisplayId(record))}"><strong>${html(recordDisplayId(record))}</strong> <span class="meta">${html(record.status || 'unknown')} · ${html(record.kind || 'intent')}</span><br>${html(recordSummary(record))}</li>`;
+  const sliceLine = (record, attr = 'data-work-intake-slice') => `<li ${attr}="${html(record.rootId || record.id || record.name)}"><strong>${html(record.rootId || record.id || record.name)}</strong> <span class="meta">${html(record.status || 'unknown')} · ${html(record.owner || 'unknown')}</span><br>${html(recordSummary(record))}<br><span class="meta">${html(linkedEvidenceSummary(record.rootId || record.id, model))}</span></li>`;
+  const evidenceList = (kind, records) => records.length
+    ? records.slice(0, maxEvidence).map((record) => `<span data-work-intake-evidence-kind="${html(kind)}" data-work-intake-evidence-id="${html(recordDisplayId(record))}">${html(recordKindLabel(kind))}: ${html(recordDisplayId(record))}</span>`).join('<br>')
+    : `<span class="muted">No ${html(recordKindLabel(kind).toLowerCase())} evidence linked.</span>`;
+  const traceLine = (row) => `<li data-work-intake-trace-row="${html(row.rootId)}">
+    <strong>${html(row.rootId)}</strong> <span class="meta">${html(row.slice.status || 'unknown')} · ${html(row.slice.owner || 'unknown')}</span><br>
+    ${html(recordSummary(row.slice))}
+    <div class="trace-grid">
+      <span><strong>Intents</strong><br>${row.intents.length ? row.intents.map((intent) => `<span data-work-intake-trace-intent="${html(recordDisplayId(intent))}">${html(recordDisplayId(intent))}: ${html(recordSummary(intent))}</span>`).join('<br>') : '<span class="muted">No source intent record linked.</span>'}</span>
+      ${Object.entries(row.evidence).map(([kind, records]) => `<span><strong>${html(recordKindLabel(kind))}</strong><br>${evidenceList(kind, records)}</span>`).join('\n')}
+    </div>
+  </li>`;
+  const catalogLine = (entry) => {
+    const latest = entry.slices[0];
+    const evidenceCount = entry.slices.reduce((sum, slice) => {
+      const evidence = workIntakeEvidenceForSlice(slice.rootId || slice.id, model);
+      return sum + Object.values(evidence).reduce((inner, records) => inner + records.length, 0);
+    }, 0);
+    return `<li data-work-intake-feature="${html(recordDisplayId(entry.intent))}">
+      <strong>${html(recordSummary(entry.intent))}</strong> <span class="meta">${html(entry.intent.status || 'unknown')} · ${html(entry.intent.kind || 'intent')}</span><br>
+      <span class="meta">linked slices:${entry.slices.length} · latest:${html(latest?.status || 'none')} · evidence:${evidenceCount}</span>
+    </li>`;
+  };
+  return `
+    <section id="work-intake" class="panel">
+      <h2>Work Intake</h2>
+      <p class="meta">Local records are canonical. External trackers are optional references; gates use repo-local intent, work-slice, and evidence records.</p>
+      <div class="grid">
+        <div class="card"><span class="meta">Inbox</span><strong>${model.inbox.length}</strong></div>
+        <div class="card"><span class="meta">Active Work Slices</span><strong>${model.activeSlices.length}</strong></div>
+        <div class="card"><span class="meta">Feature Catalog</span><strong>${catalog.length}</strong></div>
+        <div class="card"><span class="meta">Work Intake Warnings</span><strong>${model.warnings.length}</strong></div>
+      </div>
+      <h3>Work Intake Inbox</h3>
+      ${inbox.length ? `<ul>${inbox.map(intentLine).join('\n')}</ul>` : '<p class="muted">No open user-intent records.</p>'}
+      <h3>Active Work Slices</h3>
+      ${active.length ? `<ul>${active.map((record) => sliceLine(record, 'data-work-intake-active-slice')).join('\n')}</ul>` : '<p class="muted">No active work slices.</p>'}
+      ${traceGraphForRows(trace, model, html)}
+      ${trace.length ? `<ul class="timeline">${trace.map(traceLine).join('\n')}</ul>` : '<p class="muted">No work-slice trace records yet.</p>'}
+      <h3>Feature Catalog</h3>
+      ${catalog.length ? `<ul>${catalog.map(catalogLine).join('\n')}</ul>` : '<p class="muted">No feature/intent catalog records yet.</p>'}
+      <h3>Work Intake Warnings</h3>
+      <div data-work-intake-warning-state="${model.warnings.length ? 'problems' : 'clean'}">
+        ${model.warnings.length ? `<ul>${model.warnings.map((problem) => `<li>${html(problem)}</li>`).join('\n')}</ul>` : '<p class="muted">No deterministic intake problems reported.</p>'}
+      </div>
+    </section>
   `;
 }
 
@@ -1863,7 +2596,9 @@ function commandDashboard(args = {}) {
   const branch = gitText(['branch', '--show-current']) || '(detached HEAD)';
   const generated = nowIso();
   const sourceHash = publicGuideSourceHash();
+  const recordFeedHash = guideRecordFeedHash();
   const tokenRootCss = productionGuideTokenCss();
+  const intake = intakeModel();
   const registry = loadJson(join(ROOT, 'packages', 'web', 'src', 'components', 'registry.json'), {
     primitives: [],
     patterns: [],
@@ -1878,6 +2613,8 @@ function commandDashboard(args = {}) {
   const zooLinked = zooEntries.filter((entry) => entry.zooRoute).length;
   const cards = [
     ['Decisions', records.decisions.length],
+    ['Intents', records[INTENT_RECORD_KIND]?.length || 0],
+    ['Work Slices', records[WORK_SLICE_RECORD_KIND]?.length || 0],
     ['Pattern Proposals', records['pattern-proposals'].length],
     ['Routing', records.routing.length],
     ['Patches', records.patches.length],
@@ -1909,11 +2646,12 @@ function commandDashboard(args = {}) {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="nexus-guide-version" content="${PUBLIC_GUIDE_VERSION}" />
-  <meta name="nexus-guide-source-hash" content="${sourceHash}" />
-  <meta name="nexus-guide-content-hash" content="${PUBLIC_GUIDE_CONTENT_HASH_PLACEHOLDER}" />
-  <meta name="nexus-token-source" content="packages/web/src/platform/theme/tokens.css" />
-  <title>Nexus Workflow Dashboard</title>
+  ${guideMetaTag('version', PUBLIC_GUIDE_VERSION)}
+  ${guideMetaTag('sourceHash', sourceHash)}
+  ${guideMetaTag('recordFeedHash', recordFeedHash)}
+  ${guideMetaTag('contentHash', PUBLIC_GUIDE_CONTENT_HASH_PLACEHOLDER)}
+  ${guideMetaTag('tokenSource', GUIDE_TOKEN_SOURCE_LABEL)}
+  <title>${escapeHtml(GUIDE_TITLES.dashboard)}</title>
   <style>
     :root {
       color-scheme: light;
@@ -1954,6 +2692,7 @@ function commandDashboard(args = {}) {
     .record-top { display:flex; justify-content:space-between; gap:12px; align-items:baseline; }
     .record-top span, .path, .muted { color:var(--guide-muted-text); font-size:12px; }
     .pill { display:inline-block; margin-top:8px; padding:2px 8px; border-radius:var(--radius-chip); background:var(--color-primary-light); color:var(--guide-brand); font-size:12px; }
+    .trace-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; margin-top:8px; padding:8px; border:1px solid var(--guide-line); border-radius:var(--radius-card); background:var(--guide-muted-surface); font-size:12px; }
     .warn { border-left:4px solid var(--guide-accent); }
     .risk { border-left:4px solid var(--guide-risk); }
     .zoo-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:10px; }
@@ -1966,12 +2705,13 @@ function commandDashboard(args = {}) {
 </head>
 <body>
   <header>
-    <h1>Nexus Workflow Dashboard</h1>
+    <h1>${escapeHtml(GUIDE_TITLES.dashboard)}</h1>
     <div class="meta">Generated ${escapeHtml(generated)} · branch ${escapeHtml(branch)}</div>
   </header>
   <div class="layout">
     <nav>
       <a href="#overview">Overview</a>
+      <a href="#work-intake">Work Intake</a>
       <a href="#current">Current State</a>
       <a href="#zoo">Design Zoo/Gym</a>
       <a href="#patterns">Patterns</a>
@@ -1995,6 +2735,7 @@ function commandDashboard(args = {}) {
         </div>
         <p class="meta">This is a generated snapshot for navigation. It intentionally does not embed live git status or mutable gate state. Run <code>npm run workflow:status</code> for the current worktree truth.</p>
       </section>
+      ${workIntakeHtml(intake, escapeHtml)}
       <section id="current" class="panel">${markdownLite(currentState)}</section>
       <section id="zoo" class="panel">
         <h2>Design Zoo / Gym</h2>
@@ -2044,9 +2785,11 @@ function commandPublicGuide(args = {}) {
   const generated = nowIso();
   const branch = gitText(['branch', '--show-current']) || '(detached HEAD)';
   const sourceHash = publicGuideSourceHash();
+  const recordFeedHash = guideRecordFeedHash();
   const tokenRootCss = productionGuideTokenCss();
   const rawRecords = Object.fromEntries(GUIDE_RECORD_KINDS.map((kind) => [kind, listRecords(kind)]));
   const records = displayRecords(rawRecords);
+  const intake = intakeModel();
   const allRecords = Object.entries(records)
     .flatMap(([kind, items]) => items.map((record) => ({ ...record, kind })))
     .sort((a, b) => String(b.created).localeCompare(String(a.created)));
@@ -2062,71 +2805,25 @@ function commandPublicGuide(args = {}) {
   const zooEntries = [...(registry.primitives || []), ...(registry.patterns || [])];
   const zooLinked = zooEntries.filter((entry) => entry.zooRoute).length;
   const themes = registry.tokens?.themes || childDirs('packages/web/src/platform/theme/themes');
-  const routeFiles = listFilesUnder('packages/web/src/routes', 3, 32);
   const agentFiles = listFilesUnder('.codex/agents', 1, 16);
   const skillFiles = listFilesUnder('.agents/skills', 2, 16).filter((file) => file.endsWith('SKILL.md'));
-  const docs = uniqueExisting([
-    'design/reference/v1/nexus-design-system/README.md',
-    'design/reference/v1/nexus-design-system/project/DESIGN-SYSTEM.md',
-    'design/reference/v1/nexus-design-system/project/themes/THEME-GUIDE.md',
-    'design/reference/v1/nexus-design-system/project/ui_kits/customer/README.md',
-    'design/reference/v1/nexus-design-system/project/ui_kits/merchant/README.md',
-    '.codex/knowledge/design-system.md',
-    '.codex/knowledge/patterns.md',
-    '.codex/knowledge/model-routing.md',
-    '.codex/knowledge/hooks.md',
-    '.codex/knowledge/verification.md',
-    '.codex/knowledge/deployment.md',
-    ...listFilesUnder('.codex/workflow/research', 1, 32).filter((file) => file.endsWith('.md')),
-  ]);
-  const projectNodes = [
-    { label: 'packages/api', detail: `${countFilesUnder('packages/api/src')} source files` },
-    { label: 'packages/api/src/modules', detail: childDirs('packages/api/src/modules').join(', ') },
-    { label: 'packages/web', detail: `${countFilesUnder('packages/web/src')} source files` },
-    { label: 'packages/web/src/routes', detail: `${routeFiles.length} indexed route files` },
-    { label: 'packages/web/src/locales', detail: `${countFilesUnder('packages/web/src/locales', 2)} locale files` },
-    { label: 'packages/shared', detail: `${countFilesUnder('packages/shared/src')} source files` },
-    { label: '.codex workflow', detail: `${countFilesUnder('.codex/workflow')} workflow files` },
-    { label: '.codex/workflow/records', detail: `${allRecords.length} indexed records` },
-  ];
-  const webNodes = [
-    { label: 'packages/web/src/routes', detail: `${routeFiles.length} indexed route files` },
-    { label: 'apps/ordering', detail: childDirs('packages/web/src/apps/ordering').join(', ') },
-    { label: 'platform', detail: childDirs('packages/web/src/platform').join(', ') },
-    { label: 'platform/theme', detail: `${themes.length} production themes` },
-    { label: 'platform/registry.ts', detail: 'app registry and module composition' },
-    { label: 'components/ui', detail: `${countFilesUnder('packages/web/src/components/ui', 1)} files` },
-    { label: 'components/patterns', detail: `${countFilesUnder('packages/web/src/components/patterns', 2)} files` },
-    { label: 'components/registry.json', detail: `${zooEntries.length} UI entries` },
-    { label: 'routes/__design', detail: `${countFilesUnder('packages/web/src/routes/__design', 1)} files` },
-  ];
-  const designNodes = [
-    { label: 'design/reference/v1', detail: `${countFilesUnder('design/reference/v1', 4)} files` },
-    { label: 'theme tokens', detail: 'packages/web/src/platform/theme' },
-    { label: 'ThemeProvider', detail: 'body data-theme mirroring and cascade' },
-    { label: 'themed patterns', detail: 'packages/web/src/components/patterns/themed' },
-    { label: 'registry', detail: 'component metadata and Zoo routes' },
-    { label: 'Design Zoo/Gym', detail: `${zooLinked}/${zooEntries.length} registry routes` },
-  ];
-  const workflowNodes = [
-    { label: 'AGENTS.md', detail: 'Codex project instructions' },
-    { label: '.codex/README.md', detail: 'workflow root navigation' },
-    { label: '.codex/knowledge', detail: 'patterns, design, routing, hooks, deployment' },
-    { label: '.codex/agents', detail: `${agentFiles.length} agent config files` },
-    { label: '.agents/skills', detail: `${skillFiles.length} repo skills` },
-    { label: 'nexus-workflow.mjs', detail: 'deterministic gates and records' },
-    { label: '.codex/workflow/records', detail: `${allRecords.length} indexed records` },
-  ];
+  const docs = guideDocumentFiles();
+  const repositoryGraph = guidePolicyGraph('repository');
+  const webAppGraph = guidePolicyGraph('webApp');
+  const designSystemGraph = guidePolicyGraph('designSystem');
+  const designFlowGraph = guidePolicyGraph('designFlow');
+  const workflowGraph = guidePolicyGraph('workflow');
   const html = `<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="nexus-guide-version" content="${PUBLIC_GUIDE_VERSION}" />
-  <meta name="nexus-guide-source-hash" content="${sourceHash}" />
-  <meta name="nexus-guide-content-hash" content="${PUBLIC_GUIDE_CONTENT_HASH_PLACEHOLDER}" />
-  <meta name="nexus-token-source" content="packages/web/src/platform/theme/tokens.css" />
-  <title>Nexus Workflow Guide</title>
+  ${guideMetaTag('version', PUBLIC_GUIDE_VERSION)}
+  ${guideMetaTag('sourceHash', sourceHash)}
+  ${guideMetaTag('recordFeedHash', recordFeedHash)}
+  ${guideMetaTag('contentHash', PUBLIC_GUIDE_CONTENT_HASH_PLACEHOLDER)}
+  ${guideMetaTag('tokenSource', GUIDE_TOKEN_SOURCE_LABEL)}
+  <title>${publicHtml(GUIDE_TITLES.public)}</title>
   <style>
     :root {
       color-scheme: light;
@@ -2156,6 +2853,7 @@ function commandPublicGuide(args = {}) {
     .node strong, .node span { display:block; }
     .node span { color:var(--guide-muted-text); font-size:12px; margin-top:4px; }
     .graph { margin:14px 0; }
+    .trace-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; margin-top:8px; padding:8px; border:1px solid var(--guide-line); border-radius:var(--radius-card); background:var(--guide-panel); font-size:12px; }
     .zoo-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:8px; padding:0; list-style:none; }
     .zoo-list li { min-height:var(--hit-md); border:1px solid var(--guide-line); border-radius:var(--radius-card); padding:10px; background:var(--guide-muted-surface); }
     .meta { color:var(--guide-muted-text); font-size:13px; }
@@ -2168,7 +2866,7 @@ function commandPublicGuide(args = {}) {
 </head>
 <body>
   <header>
-    <h1>Nexus Workflow Guide</h1>
+    <h1>${publicHtml(GUIDE_TITLES.public)}</h1>
     <div class="meta">Generated snapshot ${publicHtml(generated)} · branch ${publicHtml(branch)} · run workflow gates for live state before deploy</div>
   </header>
   <main>
@@ -2188,7 +2886,7 @@ function commandPublicGuide(args = {}) {
     </section>
     <section>
       <h2>Workflow System Nodes</h2>
-      ${graphHtml('Codex Workflow Nodes', workflowNodes, [['AGENTS.md', '.codex/README.md'], ['.codex/knowledge', '.codex/agents'], ['nexus-workflow.mjs', '.codex/workflow/records']])}
+      ${graphHtml(workflowGraph.title, workflowGraph.nodes, workflowGraph.edges)}
       <div class="grid">
         <div class="card"><strong>${records.routing.length}</strong><p>routing records</p></div>
         <div class="card"><strong>${routingScenarios.length}</strong><p>routing scenarios</p></div>
@@ -2196,26 +2894,19 @@ function commandPublicGuide(args = {}) {
         <div class="card"><strong>${skillFiles.length}</strong><p>repo skills</p></div>
       </div>
     </section>
+    ${workIntakeHtml(intake, publicHtml)}
     <section>
       <h2>Project Structure</h2>
-      ${graphHtml('Repository Nodes', projectNodes, [['packages/api', 'packages/shared'], ['packages/web', 'packages/shared'], ['.codex workflow', '.codex/workflow/records']])}
-      ${graphHtml('Web App Nodes', webNodes, [['packages/web/src/routes', 'apps/ordering'], ['apps/ordering', 'platform'], ['components/ui', 'components/patterns']])}
+      ${graphHtml(repositoryGraph.title, repositoryGraph.nodes, repositoryGraph.edges)}
+      ${graphHtml(webAppGraph.title, webAppGraph.nodes, webAppGraph.edges)}
     </section>
     <section>
       <h2>Design System / Zoo / Docs</h2>
       <p class="meta">Design Zoo/Gym source: <code>packages/web/src/routes/__design/Zoo.tsx</code>. Registry source: <code>packages/web/src/components/registry.json</code>.</p>
-      ${graphHtml('Design-System Nodes', designNodes, [['design/reference/v1', 'theme tokens'], ['theme tokens', 'themed patterns'], ['registry', 'Design Zoo/Gym']])}
-      ${graphHtml('Design-System Flow', [
-        { label: 'Reference bundle', detail: 'frozen v1 design source' },
-        { label: 'Production tokens/themes', detail: 'CSS custom properties and data-theme' },
-        { label: 'ThemeProvider', detail: 'runtime theme and body mirroring' },
-        { label: 'Component registry', detail: 'metadata, paths, Zoo routes' },
-        { label: 'Design Zoo/Gym', detail: 'interactive coverage route' },
-        { label: 'validate-design-zoo', detail: 'browser validation script' },
-        { label: 'Visual Zoo/Gym Guide', detail: 'deployed screenshot gallery' },
-      ], [['Reference bundle', 'Production tokens/themes'], ['Production tokens/themes', 'ThemeProvider'], ['ThemeProvider', 'Component registry'], ['Component registry', 'Design Zoo/Gym'], ['Design Zoo/Gym', 'validate-design-zoo'], ['Design Zoo/Gym', 'Visual Zoo/Gym Guide']])}
+      ${graphHtml(designSystemGraph.title, designSystemGraph.nodes, designSystemGraph.edges)}
+      ${graphHtml(designFlowGraph.title, designFlowGraph.nodes, designFlowGraph.edges)}
       <p>Design Zoo/Gym coverage: <strong>${zooLinked}/${zooEntries.length}</strong> registry entries declare a route.</p>
-      <p><a href="zoo/">Open Visual Zoo/Gym Guide</a>. Production <code>/nexus/design</code> remains dev-only; the deployable visual surface is <code>${publicHtml(PUBLIC_ZOO_GUIDE_URL)}</code>.</p>
+      <p><a href="zoo/">Open Visual Zoo/Gym Guide</a>. Production <code>${publicHtml(PRODUCTION_DESIGN_PATH)}</code> remains dev-only; the deployable visual surface is <code>${publicHtml(PUBLIC_ZOO_GUIDE_URL)}</code>.</p>
       <div class="grid">
         <div class="card"><strong>${registry.primitives?.length || 0}</strong><p>primitives</p></div>
         <div class="card"><strong>${registry.patterns?.length || 0}</strong><p>patterns</p></div>
@@ -2241,10 +2932,11 @@ function commandPublicGuide(args = {}) {
       </ul>
       <h3>Branch Closeout</h3>
       <p class="meta">Worktree records are interim evidence. Branches close with branch-scope records tied to the current branch hash.</p>
-      <pre>node .codex/scripts/nexus-workflow.mjs record-patch --scope branch --summary "&lt;branch summary&gt;" --worker codex-lead
-node .codex/scripts/nexus-workflow.mjs record-review --scope branch --kind general --verdict pass --reviewer &lt;name&gt; --notes "&lt;summary&gt;"
-node .codex/scripts/nexus-workflow.mjs record-verify --scope branch --verdict pass --verifier &lt;name&gt; --commands "&lt;timed-command-ids&gt;" --notes "&lt;commands/results&gt;"
-node .codex/scripts/nexus-workflow.mjs record-audit --scope branch --verdict pass --auditor &lt;name&gt; --commands "&lt;timed-command-ids&gt;" --notes "&lt;summary&gt;"</pre>
+      <pre>node .codex/scripts/nexus-workflow.mjs close-work-slice --slice &lt;WORK-SLICE-id&gt; --status done --notes "&lt;evidence complete&gt;"
+node .codex/scripts/nexus-workflow.mjs record-patch --scope branch --summary "&lt;branch summary&gt;" --worker codex-lead --work-slice &lt;WORK-SLICE-id&gt;
+node .codex/scripts/nexus-workflow.mjs record-review --scope branch --kind general --verdict pass --reviewer &lt;name&gt; --work-slice &lt;WORK-SLICE-id&gt; --notes "&lt;summary&gt;"
+node .codex/scripts/nexus-workflow.mjs record-verify --scope branch --verdict pass --verifier &lt;name&gt; --work-slice &lt;WORK-SLICE-id&gt; --commands "&lt;timed-command-ids&gt;" --notes "&lt;commands/results&gt;"
+node .codex/scripts/nexus-workflow.mjs record-audit --scope branch --verdict pass --auditor &lt;name&gt; --work-slice &lt;WORK-SLICE-id&gt; --commands "&lt;timed-command-ids&gt;" --notes "&lt;summary&gt;"</pre>
       <p class="meta">Add focused branch review kinds such as <code>workflow</code>, <code>design</code>, or <code>integrated</code> when the release gate asks for them.</p>
     </section>
     <section>
@@ -2346,10 +3038,10 @@ function commandZooVisualGuide(args = {}) {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="nexus-guide-version" content="${ZOO_VISUAL_GUIDE_VERSION}" />
-  <meta name="nexus-guide-source-hash" content="${sourceHash}" />
-  <meta name="nexus-guide-content-hash" content="${PUBLIC_GUIDE_CONTENT_HASH_PLACEHOLDER}" />
-  <meta name="nexus-token-source" content="packages/web/src/platform/theme/tokens.css" />
+  ${guideMetaTag('version', ZOO_VISUAL_GUIDE_VERSION)}
+  ${guideMetaTag('sourceHash', sourceHash)}
+  ${guideMetaTag('contentHash', PUBLIC_GUIDE_CONTENT_HASH_PLACEHOLDER)}
+  ${guideMetaTag('tokenSource', GUIDE_TOKEN_SOURCE_LABEL)}
   <title>Nexus Design Zoo / Gym</title>
   <style>
     :root {
@@ -2411,7 +3103,7 @@ function commandZooVisualGuide(args = {}) {
       <div class="panel">
         <h2>Captured From Real /design Routes</h2>
         <p>This page is the deployable visual guide for the dev-only component gym. Screenshots are captured from real Nexus components rendered by <code>packages/web/src/routes/__design/Zoo.tsx</code>, and coverage is driven by <code>packages/web/src/components/registry.json</code>.</p>
-        <p>Production <code>/nexus/design</code> is intentionally not mounted. Use this guide at <code>${publicHtml(PUBLIC_ZOO_GUIDE_URL)}</code> for deployed visual inspection, and use local <code>${publicHtml(localDesignUrl())}</code> for live interaction.</p>
+        <p>Production <code>${publicHtml(PRODUCTION_DESIGN_PATH)}</code> is intentionally not mounted. Use this guide at <code>${publicHtml(PUBLIC_ZOO_GUIDE_URL)}</code> for deployed visual inspection, and use local <code>${publicHtml(localDesignUrl())}</code> for live interaction.</p>
         <p><strong>Visual Contexts:</strong> ${publicHtml(contextSummary || 'not captured')}</p>
         <p><a href="../">Back to workflow guide</a></p>
       </div>
@@ -2550,8 +3242,8 @@ function inventoryProblems(options = {}) {
       problems.push(`${file} is a workflow artifact with an unapproved extension.`);
     }
     if (file.startsWith('.codex/workflow/policy/')) {
-      const expected = new Set(DEFAULT_POLICY_NAMES.map((name) => `.codex/workflow/policy/${name}.json`));
-      if (!expected.has(file)) problems.push(`${file} is an unregistered policy file; add it to workflow-engine DEFAULT_POLICY_NAMES or remove it.`);
+      const expected = new Set(['.codex/workflow/policy/manifest.json', ...LOADED_POLICY_NAMES.map((name) => `.codex/workflow/policy/${name}.json`)]);
+      if (!expected.has(file)) problems.push(`${file} is an unregistered policy file; add it to .codex/workflow/policy/manifest.json or remove it.`);
     }
     if (file.startsWith('.codex/workflow/records/')) {
       const parts = file.split('/');
@@ -2604,24 +3296,11 @@ function requiredWorkflowFileProblems(required = requiredWorkflowFiles()) {
 }
 
 function policyClassifierTestCases() {
-  return [
-    { file: '.codex/scripts/nexus-workflow.mjs', substantive: true, verification: true, audit: true, guide: true, zooVisual: false },
-    { file: '.codex/scripts/workflow-engine.mjs', substantive: true, verification: true, audit: true, guide: true, zooVisual: true },
-    { file: '.codex/workflow/policy/files.json', substantive: true, verification: true, audit: true, guide: true, zooVisual: false },
-    { file: '.codex/workflow/templates/project-bootstrap.md', substantive: true, verification: true, audit: true, guide: true, zooVisual: false },
-    { file: '.codex/workflow/state/review-state.json', substantive: false, verification: false, audit: false, guide: false, zooVisual: false },
-    { file: '.codex/workflow/runtime/command-runs.jsonl', substantive: false, verification: false, audit: false, guide: false, zooVisual: false },
-    { file: '.codex/archive/claude-code-2026-05-09/.claude/settings.json', substantive: false, verification: false, audit: false, guide: false, zooVisual: false },
-    { file: '.codex/workflow/records/patches/PATCH-fixture.md', substantive: false, verification: false, audit: false, guide: true, zooVisual: false },
-    { file: '.codex/workflow/records/guide-browser/GUIDE-BROWSER-fixture.md', substantive: false, verification: false, audit: false, guide: false, zooVisual: false },
-    { file: '.codex/workflow/records/deployments/DEPLOYMENT-fixture.md', substantive: false, verification: false, audit: false, guide: false, zooVisual: false },
-    { file: 'packages/web/src/platform/theme/tokens.css', substantive: true, verification: true, audit: true, guide: true, zooVisual: true },
-    { file: 'packages/web/src/components/ui/Button.tsx', substantive: true, verification: true, audit: true, guide: false, zooVisual: true },
-    { file: 'packages/api/src/modules/orders/service.ts', substantive: true, verification: true, audit: true, guide: false, zooVisual: false },
-  ];
+  return POLICY.files?.classifierTestCases || [];
 }
 
 function policyClassifierProblems(cases = policyClassifierTestCases()) {
+  if (!Array.isArray(cases) || !cases.length) return ['.codex/workflow/policy/files.json classifierTestCases must contain policy-owned classifier fixtures.'];
   const checks = {
     substantive: (file) => substantiveFiles([file]).includes(file),
     verification: (file) => verificationRelevantFiles([file]).includes(file),
@@ -2726,21 +3405,31 @@ function configAgentProblems(configText = readText('.codex/config.toml'), requir
 
 function policyProblems() {
   const problems = [];
-  const policyNames = new Set(DEFAULT_POLICY_NAMES);
-  for (const name of DEFAULT_POLICY_NAMES) {
+  const manifestNames = Array.isArray(POLICY.manifest?.policyNames) && POLICY.manifest.policyNames.length
+    ? POLICY.manifest.policyNames.map(String)
+    : LOADED_POLICY_NAMES;
+  const policyNames = new Set(LOADED_POLICY_NAMES);
+  if (POLICY.manifest?.schema !== 'codex-workflow-policy-manifest/v1') problems.push('.codex/workflow/policy/manifest.json must use schema codex-workflow-policy-manifest/v1.');
+  if (!sameStringSet(manifestNames, LOADED_POLICY_NAMES)) problems.push('.codex/workflow/policy/manifest.json policyNames must match the loaded workflow policy names.');
+  for (const name of manifestNames) {
     const path = `.codex/workflow/policy/${name}.json`;
-    if (!existsSync(join(ROOT, path))) problems.push(`missing default policy file: ${path}.`);
+    if (!existsSync(join(ROOT, path))) problems.push(`missing manifest policy file: ${path}.`);
     if (!POLICY[name]?.schema) problems.push(`policy ${name} has no schema field.`);
+  }
+  for (const kind of RECORD_KINDS) {
+    if (!POLICY.records?.schemaByKind?.[kind]) problems.push(`records policy schemaByKind.${kind} is missing.`);
+    if (!POLICY.records?.prefixByKind?.[kind]) problems.push(`records policy prefixByKind.${kind} is missing.`);
   }
   for (const file of listAllFilesUnder('.codex/workflow/policy')) {
     const name = file.match(/\.codex\/workflow\/policy\/(.+)\.json$/)?.[1];
-    if (!name || !policyNames.has(name)) problems.push(`${file} is not loaded by DEFAULT_POLICY_NAMES.`);
+    if (name === 'manifest') continue;
+    if (!name || !policyNames.has(name)) problems.push(`${file} is not loaded by .codex/workflow/policy/manifest.json.`);
   }
   problems.push(...requiredWorkflowFileProblems());
   problems.push(...policyClassifierProblems());
   problems.push(...profileContractProblems());
   const scripts = packageWorkflowScripts();
-  for (const script of [...canonicalLadder(), 'workflow:policy-check', 'workflow:inventory-check', 'workflow:trace-check']) {
+  for (const script of [...canonicalLadder(), 'workflow:policy-check', 'workflow:inventory-check', 'workflow:trace-check', 'workflow:work-intake-check']) {
     if (!scripts[script]) problems.push(`package.json is missing ${script}.`);
   }
   for (const doc of ['AGENTS.md', 'WORKFLOW.md', '.codex/README.md']) {
@@ -2750,29 +3439,36 @@ function policyProblems() {
     }
   }
   const inputs = publicGuideInputFiles();
-  for (const file of [
-    '.codex/scripts/nexus-workflow.mjs',
-    '.codex/scripts/workflow-engine.mjs',
-    '.codex/workflow/templates/project-bootstrap.md',
-    '.codex/workflow/policy/files.json',
-    '.codex/workflow/policy/gates.json',
-    '.codex/workflow/policy/deployment.json',
-  ]) {
+  for (const file of requiredGuideSourceFiles()) {
     if (!inputs.includes(file)) problems.push(`${file} is not part of public guide source hash inputs.`);
   }
+  if (!requiredGuideSourceFiles().length) problems.push('.codex/workflow/policy/guide.json must define requiredSourceFiles.');
+  for (const key of ['version', 'sourceHash', 'recordFeedHash', 'contentHash', 'tokenSource']) {
+    if (!POLICY.guide?.metaNames?.[key]) problems.push(`.codex/workflow/policy/guide.json metaNames.${key} is required.`);
+  }
+  for (const key of ['dashboard', 'public']) {
+    if (!POLICY.guide?.titles?.[key]) problems.push(`.codex/workflow/policy/guide.json titles.${key} is required.`);
+  }
+  for (const key of ['repository', 'webApp', 'designSystem', 'designFlow', 'workflow']) {
+    if (!Array.isArray(POLICY.guide?.viewGraphs?.[key]?.nodes) || !POLICY.guide.viewGraphs[key].nodes.length) {
+      problems.push(`.codex/workflow/policy/guide.json viewGraphs.${key}.nodes is required.`);
+    }
+  }
+  if (!guideDocumentFiles().length) problems.push('.codex/workflow/policy/guide.json documentFiles/documentDirectories did not resolve any project documents.');
   if (!POLICY.deployment?.publicGuideUrl) problems.push('.codex/workflow/policy/deployment.json must define publicGuideUrl.');
   if (!POLICY.deployment?.visualZooGuideUrl) problems.push('.codex/workflow/policy/deployment.json must define visualZooGuideUrl.');
   if (!POLICY.design?.localWebUrl) problems.push('.codex/workflow/policy/design.json must define localWebUrl for generated local Zoo links.');
   if (!POLICY.design?.designRoute) problems.push('.codex/workflow/policy/design.json must define designRoute for generated local Zoo links.');
+  if (!POLICY.design?.productionDesignPath) problems.push('.codex/workflow/policy/design.json must define productionDesignPath for generated deployed-Zoo guidance.');
   const allowedGuideUrls = new Set([PUBLIC_GUIDE_URL, PUBLIC_ZOO_GUIDE_URL]);
   for (const doc of ['WORKFLOW.md', '.codex/README.md', '.codex/knowledge/deployment.md']) {
     const text = readText(doc);
-    const urls = [...text.matchAll(/https:\/\/[^\s`)]+\/nexus\/workflow\/(?:zoo\/)?/g)].map((match) => match[0]);
+    const urls = [...text.matchAll(/https:\/\/[^\s`)]+\/[^\s`)]*workflow\/(?:zoo\/)?/g)].map((match) => match[0]);
     for (const url of urls) {
       if (!allowedGuideUrls.has(url)) problems.push(`${doc} contains workflow guide URL ${url}, which does not match deployment policy.`);
     }
   }
-  if (!sameStringSet(canonicalLadder(), DEFAULT_CANONICAL_LADDER)) problems.push('canonical ladder should stay status -> health -> release-gate -> deployed-gate unless the workflow contract is intentionally redesigned.');
+  if (!sameStringSet(canonicalLadder(), POLICY.gates?.canonicalLadder || [])) problems.push('canonical ladder must come from .codex/workflow/policy/gates.json.');
   return [...new Set(problems)].sort();
 }
 
@@ -3156,7 +3852,7 @@ function printHealthDetails() {
     for (const [label, file] of [['public guide', 'public.html'], ['dashboard', 'index.html']]) {
       const path = join(DASHBOARD_DIR, file);
       if (!existsSync(path)) problems.push(`${label} artifact is missing.`);
-      else if (htmlMetaContent(readFileSync(path, 'utf8'), 'nexus-guide-source-hash') !== expectedHash) problems.push(`${label} source hash is stale; regenerate with npm run workflow:dashboard and npm run workflow:public-guide.`);
+      else if (htmlMetaContent(readFileSync(path, 'utf8'), guideMetaName('sourceHash')) !== expectedHash) problems.push(`${label} source hash is stale; regenerate with npm run workflow:dashboard and npm run workflow:public-guide.`);
     }
     printed = printProblemDetails('guide', problems.length ? problems : ['run npm run workflow:guide-check for details']) || printed;
   }
@@ -3167,6 +3863,7 @@ function printHealthDetails() {
   printed = printProblemDetails('workflow policy', policyProblems()) || printed;
   printed = printProblemDetails('command trace', commandTraceProblems()) || printed;
   printed = printProblemDetails('hook config', hookConfigProblems()) || printed;
+  printed = printProblemDetails('work intake', intakeProblems()) || printed;
   printed = printProblemDetails('branch evidence', branchEvidenceProblems()) || printed;
   if (!commandDependencyAuditCheck({ quiet: true })) printed = printProblemDetails('dependency audit', ['run npm run audit:deps for the npm advisory/baseline breakdown']) || printed;
   if (!commandProductionZooBundleCheck({ quiet: true })) printed = printProblemDetails('production zoo bundle', ['run npm run workflow:prod-zoo-bundle-check for bundle evidence details']) || printed;
@@ -3193,6 +3890,7 @@ function commandStatus({ health = false } = {}) {
   const traceOk = health ? commandTraceCheck({ quiet: true }) : null;
   const hookConfigOk = health ? commandHookConfigCheck({ quiet: true }) : null;
   const hookRuntimeOk = commandHookRuntimeCheck({ quiet: true });
+  const intakeOk = health ? commandWorkIntakeCheck({ quiet: true }) : null;
   const depAuditOk = health ? commandDependencyAuditCheck({ quiet: true }) : null;
   const prodZooOk = health ? commandProductionZooBundleCheck({ quiet: true }) : null;
   const branchEvidenceOk = health ? commandBranchEvidenceCheck({ quiet: true }) : null;
@@ -3227,6 +3925,7 @@ function commandStatus({ health = false } = {}) {
     console.log(`workflow policy: ${policyOk ? 'ok' : 'needs attention'}`);
     console.log(`command trace: ${traceOk ? 'ok' : 'needs attention'}`);
     console.log(`hook config: ${hookConfigOk ? 'ok' : 'needs attention'}`);
+    console.log(`work intake: ${intakeOk ? 'ok' : 'needs attention'}`);
   }
   console.log(`hook runtime: ${hookRuntimeOk ? 'seen' : 'not seen'}`);
   if (health) {
@@ -3253,6 +3952,197 @@ function commandHealth() {
   printHealthDetails();
 }
 
+function argFlag(value) {
+  if (value === true) return true;
+  return /^(1|true|yes|y)$/i.test(String(value || ''));
+}
+
+function commandRecordIntent(args) {
+  const summary = args.summary || args.intent || '';
+  if (!summary) {
+    console.error('record-intent requires --summary with a compact user-intent slice.');
+    process.exit(2);
+  }
+  const kind = String(args.kind || 'idea').toLowerCase();
+  const status = String(args.status || 'captured').toLowerCase();
+  const allowedKinds = allowedPolicyValues('intentKinds', ['initial', 'idea', 'feature', 'bug', 'clarification', 'constraint', 'change-request', 'maintenance', 'research']);
+  const allowedStatuses = allowedPolicyValues('intentStatuses', ['captured', 'needs-clarification', 'accepted', 'converted', 'deferred', 'rejected', 'superseded']);
+  if (!allowedKinds.includes(kind)) {
+    console.error(`record-intent requires --kind ${allowedKinds.join('|')}`);
+    process.exit(2);
+  }
+  if (!allowedStatuses.includes(status)) {
+    console.error(`record-intent requires --status ${allowedStatuses.join('|')}`);
+    process.exit(2);
+  }
+  const parentIntentIds = argCsv(args, ['parents', 'parent-intents', 'parent-intent-ids']);
+  const supersedesIntentIds = argCsv(args, ['supersedes', 'supersedes-intents', 'supersedes-intent-ids']);
+  const externalRefs = argCsv(args, ['external-refs', 'external']);
+  const tags = argCsv(args, ['tags']);
+  rejectIntakeWriteProblems(intakeIntentWriteProblems({
+    parentIntentIds,
+    supersedesIntentIds,
+    externalRefs,
+  }), 'record-intent');
+  const publicSummary = args['public-summary'] || args.publicSummary || summary;
+  const body = [
+    `Kind: ${kind}`,
+    `Status: ${status}`,
+    `Source: ${args.source || 'user'}`,
+    args['source-ref'] ? `Source ref: ${args['source-ref']}` : '',
+    parentIntentIds.length ? `Parent intents: ${parentIntentIds.join(', ')}` : '',
+    supersedesIntentIds.length ? `Supersedes intents: ${supersedesIntentIds.join(', ')}` : '',
+    externalRefs.length ? `External refs: ${externalRefs.join(', ')}` : '',
+    tags.length ? `Tags: ${tags.join(', ')}` : '',
+    '',
+    `Summary: ${summary}`,
+    '',
+    args.normalized ? `Normalized intent: ${args.normalized}` : 'Normalized intent: n/a',
+    '',
+    args.constraints ? `Constraints: ${args.constraints}` : 'Constraints: n/a',
+    '',
+    args.acceptance ? `Acceptance signals: ${args.acceptance}` : 'Acceptance signals: n/a',
+    '',
+    args.notes ? `Notes: ${args.notes}` : 'Notes: n/a',
+  ].filter((line) => line !== '').join('\n');
+  const rec = writeRecord(INTENT_RECORD_KIND, `Intent ${kind} ${summary}`, body, {
+    kind,
+    status,
+    source: args.source || 'user',
+    sourceRef: args['source-ref'] || '',
+    summary,
+    publicSummary,
+    confidence: args.confidence || '',
+    parentIntentIds,
+    supersedesIntentIds,
+    externalRefs,
+    tags,
+  });
+  console.log(`Recorded intent ${rec.id}`);
+  console.log(relative(ROOT, rec.path));
+}
+
+function commandRecordWorkSlice(args) {
+  const summary = args.summary || args.slice || '';
+  if (!summary) {
+    console.error('record-work-slice requires --summary with the lead-interpreted work slice.');
+    process.exit(2);
+  }
+  const status = String(args.status || 'active').toLowerCase();
+  const allowedStatuses = allowedPolicyValues('workSliceStatuses', ['proposed', 'ready', 'active', 'blocked', 'review', 'verified', 'done', 'deferred', 'superseded']);
+  if (!allowedStatuses.includes(status)) {
+    console.error(`record-work-slice requires --status ${allowedStatuses.join('|')}`);
+    process.exit(2);
+  }
+  const intentIds = intentIdsFromArgs(args);
+  const sourceType = String(args['source-type'] || args.sourceType || 'user-intent').toLowerCase();
+  const sourceTypesWithoutIntent = new Set(allowedPolicyValues('sourceTypesWithoutIntent', ['internal-maintenance', 'workflow-maintenance']));
+  if (!intentIds.length && !sourceTypesWithoutIntent.has(sourceType)) {
+    console.error(`record-work-slice requires --intent/--intent-ids unless --source-type is one of ${[...sourceTypesWithoutIntent].join('|')}`);
+    process.exit(2);
+  }
+  const needsAcceptance = !['proposed', 'blocked', 'deferred', 'superseded'].includes(status);
+  const acceptance = args.acceptance || '';
+  if (needsAcceptance && !acceptance) {
+    console.error('record-work-slice requires --acceptance unless status is proposed, blocked, deferred, or superseded.');
+    process.exit(2);
+  }
+  const files = args.files ? csv(args.files) : [];
+  const externalRefs = argCsv(args, ['external-refs', 'external']);
+  const tags = argCsv(args, ['tags']);
+  const updatesWorkSliceId = args.updates || args['updates-work-slice'] || '';
+  const supersedesWorkSliceIds = argCsv(args, ['supersedes', 'supersedes-work-slices']);
+  const blockedByWorkSliceIds = argCsv(args, ['blocked-by', 'blocked-by-work-slices']);
+  rejectIntakeWriteProblems(intakeWorkSliceWriteProblems({
+    intentIds,
+    updatesWorkSliceId,
+    supersedesWorkSliceIds,
+    blockedByWorkSliceIds,
+    externalRefs,
+  }), 'record-work-slice');
+  const publicSummary = args['public-summary'] || args.publicSummary || summary;
+  const deploymentRequired = argFlag(args['deployment-required'] || args.deploymentRequired);
+  const body = [
+    `Status: ${status}`,
+    `Source type: ${sourceType}`,
+    `Owner: ${args.owner || 'codex-lead'}`,
+    intentIds.length ? `Intent IDs: ${intentIds.join(', ')}` : 'Intent IDs: n/a',
+    updatesWorkSliceId ? `Updates work slice: ${updatesWorkSliceId}` : '',
+    supersedesWorkSliceIds.length ? `Supersedes work slices: ${supersedesWorkSliceIds.join(', ')}` : '',
+    blockedByWorkSliceIds.length ? `Blocked by work slices: ${blockedByWorkSliceIds.join(', ')}` : '',
+    externalRefs.length ? `External refs: ${externalRefs.join(', ')}` : '',
+    tags.length ? `Tags: ${tags.join(', ')}` : '',
+    '',
+    `Lead understanding: ${summary}`,
+    '',
+    acceptance ? `Acceptance criteria: ${acceptance}` : 'Acceptance criteria: n/a',
+    '',
+    args['non-goals'] || args.nonGoals ? `Non-goals: ${args['non-goals'] || args.nonGoals}` : 'Non-goals: n/a',
+    '',
+    args.verification ? `Verification plan: ${args.verification}` : 'Verification plan: n/a',
+    '',
+    files.length ? ['Files / scope hints:', ...files.map((file) => `- ${file}`)].join('\n') : 'Files / scope hints: n/a',
+    '',
+    args.notes ? `Notes: ${args.notes}` : 'Notes: n/a',
+  ].filter((line) => line !== '').join('\n');
+  const rec = writeRecord(WORK_SLICE_RECORD_KIND, `Work slice ${status} ${summary}`, body, {
+    status,
+    sourceType,
+    owner: args.owner || 'codex-lead',
+    intentIds,
+    summary,
+    publicSummary,
+    area: args.area || '',
+    priority: args.priority || '',
+    acceptance,
+    verification: args.verification || '',
+    files,
+    externalRefs,
+    tags,
+    updatesWorkSliceId,
+    supersedesWorkSliceIds,
+    blockedByWorkSliceIds,
+    deploymentRequired,
+    openedAt: args['opened-at'] || nowIso(),
+  });
+  console.log(`Recorded work slice ${rec.id}`);
+  console.log(relative(ROOT, rec.path));
+}
+
+function commandCloseWorkSlice(args) {
+  const sliceId = args.slice || args['work-slice'] || args['work-slice-id'] || '';
+  if (!sliceId) {
+    console.error('close-work-slice requires --slice <WORK-SLICE-id>.');
+    process.exit(2);
+  }
+  const prior = recordFrontmatter(WORK_SLICE_RECORD_KIND, sliceId);
+  if (!prior?.id) {
+    console.error(`close-work-slice could not find work slice ${sliceId}.`);
+    process.exit(2);
+  }
+  const status = String(args.status || 'done').toLowerCase();
+  const closedStatuses = allowedPolicyValues('closedWorkSliceStatuses', ['verified', 'done', 'deferred', 'superseded']);
+  if (!closedStatuses.includes(status)) {
+    console.error(`close-work-slice requires --status ${closedStatuses.join('|')}.`);
+    process.exit(2);
+  }
+  const next = {
+    ...args,
+    status,
+    summary: args.summary || prior.summary || prior.publicSummary || `Close ${sliceId}`,
+    intent: args.intent || csv(prior.intentIds || prior.intents).join(','),
+    'source-type': args['source-type'] || prior.sourceType || 'user-intent',
+    owner: args.owner || prior.owner || 'codex-lead',
+    acceptance: args.acceptance || prior.acceptance || args.notes || 'Closed by workflow evidence.',
+    verification: args.verification || prior.verification || '',
+    files: args.files || csv(prior.files).join(','),
+    tags: args.tags || csv(prior.tags).join(','),
+    'deployment-required': args['deployment-required'] ?? prior.deploymentRequired,
+    updates: sliceId,
+  };
+  commandRecordWorkSlice(next);
+}
+
 function commandRecordPatch(args, hookPayload = null) {
   const hash = worktreeHash();
   const branch = branchEvidenceInfo();
@@ -3260,13 +4150,17 @@ function commandRecordPatch(args, hookPayload = null) {
   const files = args.files ? csv(args.files) : (scope === 'branch' ? branch.files : substantiveFiles());
   const title = args.summary || hookPayload?.tool_name || 'Patch';
   const routingState = loadJson(ROUTING_STATE_FILE, {});
-  const routingId = args.routing || args['routing-id'] || (routingState.worktreeHash === hash ? routingState.routingId : '') || '';
-  const agent = args.worker || args.agent || 'codex-lead';
+  const activeRouting = activeRoutingForPatch(files, routingState);
+  const routingId = args.routing || args['routing-id'] || activeRouting?.routingId || (routingState.worktreeHash === hash ? routingState.routingId : '') || '';
+  const agent = args.worker || args.agent || activeRouting?.worker || 'codex-lead';
+  const explicitWorkSliceIds = workSliceIdsFromArgs(args);
+  const workSliceIds = explicitWorkSliceIds.length ? explicitWorkSliceIds : csv(activeRouting?.workSliceIds);
   const body = [
     `Summary: ${title}`,
     `Scope: ${scope}`,
     `Agent: ${agent}`,
     `Routing: ${routingId || 'n/a'}`,
+    `Work slices: ${workSliceIds.join(', ') || 'n/a'}`,
     scope === 'branch' && branch.hash ? `Branch evidence hash: ${branch.hash}` : '',
     '',
     `Files:`,
@@ -3280,6 +4174,7 @@ function commandRecordPatch(args, hookPayload = null) {
     agent,
     worktreeHash: hash,
     routingId,
+    workSliceIds,
     routingRequired: !isLeadWorker(agent),
     ...branchScopedFrontmatter(scope, branch),
   });
@@ -3314,6 +4209,7 @@ function commandRecordReview(args) {
   const patchState = loadJson(PATCH_STATE_FILE, {});
   const files = args.files ? csv(args.files) : (scope === 'branch' ? branch.files : substantiveFiles());
   const patchId = args.patch || args['patch-id'] || (patchState.worktreeHash === hash ? patchState.patchId : null);
+  const workSliceIds = inferredWorkSliceIds(args, { scope, hash, branch, patchId });
   if (substantiveFiles().length && !patchId) {
     console.error('record-review requires a patch record for substantive changes. Run record-patch first or pass --patch <PATCH-id>.');
     process.exit(2);
@@ -3325,6 +4221,7 @@ function commandRecordReview(args) {
     `Verdict: ${verdict}`,
     `Reviewer: ${args.reviewer || 'unknown'}`,
     `Patch: ${patchId || 'n/a'}`,
+    `Work slices: ${workSliceIds.join(', ') || 'n/a'}`,
     `Worktree hash: ${hash}`,
     scope === 'branch' && branch.hash ? `Branch evidence hash: ${branch.hash}` : '',
     '',
@@ -3339,6 +4236,7 @@ function commandRecordReview(args) {
     worktreeHash: hash,
     kind,
     patchId: patchId || '',
+    workSliceIds,
     files,
     ...branchScopedFrontmatter(scope, branch),
   });
@@ -3397,6 +4295,7 @@ function commandRecordVerification(args) {
   const files = args.files ? csv(args.files) : (scope === 'branch' ? branch.files : []);
   const commandIds = csv(args.commands || args['command-ids']);
   const artifacts = csv(args.artifacts || args.evidence || args['summary-files']);
+  const workSliceIds = inferredWorkSliceIds(args, { scope, hash, branch });
   if (verdict === 'pass' && !commandIds.length && !artifacts.length) {
     console.error('record-verify pass requires --commands/--command-ids or --artifacts/--evidence so execution evidence is reference-based.');
     process.exit(2);
@@ -3414,6 +4313,7 @@ function commandRecordVerification(args) {
     `Verifier: ${args.verifier || 'unknown'}`,
     `Worktree hash: ${hash}`,
     scope === 'branch' && branch.hash ? `Branch evidence hash: ${branch.hash}` : '',
+    workSliceIds.length ? `Work slices: ${workSliceIds.join(', ')}` : '',
     commandIds.length ? `Command run ids: ${commandIds.join(', ')}` : '',
     artifacts.length ? `Artifacts: ${artifacts.join(', ')}` : '',
     files.length ? `Files: ${files.join(', ')}` : '',
@@ -3427,6 +4327,7 @@ function commandRecordVerification(args) {
     verifier: args.verifier || 'unknown',
     worktreeHash: hash,
     files,
+    workSliceIds,
     commandIds,
     commandEvidence: commandEvidence.evidence,
     artifacts,
@@ -3466,6 +4367,7 @@ function commandRecordDeployment(args) {
   const commandIds = csv(args.commands || args['command-ids']);
   const checks = csv(args.checks);
   const artifacts = csv(args.artifacts || args.evidence || args['summary-files']);
+  const workSliceIds = inferredWorkSliceIds(args, { scope: 'branch', branch });
   if (!args.summary || !target || !args.notes) {
     console.error('record-deployment requires --summary, --target, and --notes.');
     process.exit(2);
@@ -3485,6 +4387,7 @@ function commandRecordDeployment(args) {
     `Verdict: ${verdict}`,
     `Operator: ${args.operator || args.deployer || 'unknown'}`,
     branch.hash ? `Branch evidence hash: ${branch.hash}` : '',
+    workSliceIds.length ? `Work slices: ${workSliceIds.join(', ')}` : '',
     commandIds.length ? `Command run ids: ${commandIds.join(', ')}` : '',
     checks.length ? `Checks: ${checks.join(', ')}` : '',
     artifacts.length ? `Artifacts: ${artifacts.join(', ')}` : '',
@@ -3496,6 +4399,7 @@ function commandRecordDeployment(args) {
     target,
     verdict,
     operator: args.operator || args.deployer || 'unknown',
+    workSliceIds,
     commandIds,
     commandEvidence: commandEvidence.evidence,
     checks,
@@ -3518,6 +4422,7 @@ function commandRecordAudit(args) {
   const files = args.files ? csv(args.files) : (scope === 'branch' ? branch.files : []);
   const commandIds = csv(args.commands || args['command-ids']);
   const artifacts = csv(args.artifacts || args.evidence || args['summary-files']);
+  const workSliceIds = inferredWorkSliceIds(args, { scope, hash, branch });
   if (verdict === 'pass' && !commandIds.length && !artifacts.length) {
     console.error('record-audit pass requires --commands/--command-ids or --artifacts/--evidence so audit evidence is reference-based.');
     process.exit(2);
@@ -3535,6 +4440,7 @@ function commandRecordAudit(args) {
     `Auditor: ${args.auditor || 'unknown'}`,
     `Worktree hash: ${hash}`,
     scope === 'branch' && branch.hash ? `Branch evidence hash: ${branch.hash}` : '',
+    workSliceIds.length ? `Work slices: ${workSliceIds.join(', ')}` : '',
     commandIds.length ? `Command run ids: ${commandIds.join(', ')}` : '',
     artifacts.length ? `Artifacts: ${artifacts.join(', ')}` : '',
     files.length ? `Files: ${files.join(', ')}` : '',
@@ -3548,6 +4454,7 @@ function commandRecordAudit(args) {
     auditor: args.auditor || 'unknown',
     worktreeHash: hash,
     files,
+    workSliceIds,
     commandIds,
     commandEvidence: commandEvidence.evidence,
     artifacts,
@@ -3628,6 +4535,7 @@ function commandRecordRouting(args) {
   const verification = args.verification || args.tests || '';
   const worker = args.worker || args.agent || route;
   const hash = worktreeHash();
+  const workSliceIds = inferredWorkSliceIds(args, { hash });
   if (!args.summary || !worker || !verification) {
     console.error('record-routing requires --summary, --worker, and --verification.');
     process.exit(2);
@@ -3648,6 +4556,7 @@ function commandRecordRouting(args) {
     `Worker: ${worker}`,
     `Rejected routes: ${rejectedRoutes.join(', ') || 'n/a'}`,
     `Write scope: ${files.join(', ') || 'n/a'}`,
+    `Work slices: ${workSliceIds.join(', ') || 'n/a'}`,
     `Verification: ${verification}`,
     `Fallback trigger: ${fallbackTrigger || 'n/a'}`,
     `Fallback target: ${fallbackTarget || 'n/a'}`,
@@ -3661,6 +4570,7 @@ function commandRecordRouting(args) {
     worker,
     rejectedRoutes,
     files,
+    workSliceIds,
     verification,
     fallbackTrigger,
     fallbackTarget,
@@ -3675,6 +4585,7 @@ function commandRecordRouting(args) {
     rejectedRoutes,
     files,
     writeScope: files,
+    workSliceIds,
     verification,
     fallbackTrigger,
     fallbackTarget,
@@ -3706,6 +4617,7 @@ function commandCompleteRouting(args) {
     `Completed routing: ${routingId}`,
     `Worker: ${routingRecord.worker || routingState.worker || 'unknown'}`,
     `Route: ${routingRecord.route || routingState.route || 'unknown'}`,
+    `Work slices: ${csv(routingRecord.workSliceIds || routingState.workSliceIds).join(', ') || 'n/a'}`,
     `Worktree hash at completion: ${hash}`,
     '',
     args.notes ? `Notes: ${args.notes}` : 'Notes: n/a',
@@ -3716,6 +4628,7 @@ function commandCompleteRouting(args) {
     route: routingRecord.route || routingState.route || '',
     worker: routingRecord.worker || routingState.worker || '',
     files: routingRecord.files || routingState.files || [],
+    workSliceIds: csv(routingRecord.workSliceIds || routingState.workSliceIds),
     worktreeHash: hash,
   });
   saveJson(ROUTING_STATE_FILE, {
@@ -3817,7 +4730,7 @@ function branchRecordMatches(record, branch, extra = {}) {
 
 function branchEvidenceProblemsForState(branch, recordsByKind) {
   const problems = [];
-  if (!branch.base) return ['branch evidence check could not find a base ref. Set NEXUS_BRANCH_BASE or fetch origin/main.'];
+  if (!branch.base) return [`branch evidence check could not find a base ref. Set ${BRANCH_BASE_ENV} or fetch origin/main.`];
   if (!branch.mergeBase) return [`branch evidence check could not compute merge-base for ${branch.base}.`];
   if (!branch.files.length) return problems;
 
@@ -3925,18 +4838,21 @@ function commandZooCheck({ quiet = false } = {}) {
 function commandGuideCheck({ quiet = false } = {}) {
   const problems = [];
   const expectedHash = publicGuideSourceHash();
+  const expectedRecordFeedHash = guideRecordFeedHash();
+  const intake = intakeModel();
   const publicPath = join(DASHBOARD_DIR, 'public.html');
   const dashboardPath = join(DASHBOARD_DIR, 'index.html');
   if (!existsSync(publicPath)) {
     problems.push('.codex/dashboard/public.html is missing; run npm run workflow:public-guide.');
   } else {
     const html = readFileSync(publicPath, 'utf8');
-    if (!html.includes(`name="nexus-guide-version" content="${PUBLIC_GUIDE_VERSION}"`)) problems.push('public guide version is stale; regenerate public.html.');
-    if (htmlMetaContent(html, 'nexus-guide-source-hash') !== expectedHash) problems.push('public guide source hash is stale; regenerate public.html.');
+    if (!html.includes(`name="${guideMetaName('version')}" content="${PUBLIC_GUIDE_VERSION}"`)) problems.push('public guide version is stale; regenerate public.html.');
+    if (htmlMetaContent(html, guideMetaName('sourceHash')) !== expectedHash) problems.push('public guide source hash is stale; regenerate public.html.');
+    if (htmlMetaContent(html, guideMetaName('recordFeedHash')) !== expectedRecordFeedHash) problems.push('public guide record feed hash is stale; regenerate public.html.');
     if (!guideContentHashOk(html)) problems.push('public guide content hash is stale or was edited outside the generator; regenerate public.html.');
-    if (htmlMetaContent(html, 'nexus-token-source') !== 'packages/web/src/platform/theme/tokens.css') problems.push('public guide does not declare production token source.');
-    problems.push(...guideViewContractProblems(html, 'public guide'));
-    for (const forbidden of [ROOT, ROOT.replaceAll('\\', '/'), '/root/monoWeb/nexus', '/root/monoWeb/deploy-backups', '~/.ssh/', 'DIOkii', 'root@', '134.199.148.87']) {
+    if (htmlMetaContent(html, guideMetaName('tokenSource')) !== GUIDE_TOKEN_SOURCE_LABEL) problems.push('public guide does not declare production token source.');
+      problems.push(...guideViewContractProblems(html, 'public guide', { intakeModel: intake }));
+    for (const forbidden of publicGuideForbiddenStrings()) {
       if (forbidden && html.includes(forbidden)) problems.push(`public guide contains unsanitized private string: ${forbidden}`);
     }
   }
@@ -3944,11 +4860,13 @@ function commandGuideCheck({ quiet = false } = {}) {
     problems.push('.codex/dashboard/index.html is missing; run npm run workflow:dashboard.');
   } else {
     const html = readFileSync(dashboardPath, 'utf8');
-    if (!html.includes(`name="nexus-guide-version" content="${PUBLIC_GUIDE_VERSION}"`)) problems.push('dashboard guide version is stale; regenerate index.html.');
-    if (htmlMetaContent(html, 'nexus-guide-source-hash') !== expectedHash) problems.push('dashboard source hash is stale; regenerate index.html.');
+    if (!html.includes(`name="${guideMetaName('version')}" content="${PUBLIC_GUIDE_VERSION}"`)) problems.push('dashboard guide version is stale; regenerate index.html.');
+    if (htmlMetaContent(html, guideMetaName('sourceHash')) !== expectedHash) problems.push('dashboard source hash is stale; regenerate index.html.');
+    if (htmlMetaContent(html, guideMetaName('recordFeedHash')) !== expectedRecordFeedHash) problems.push('dashboard record feed hash is stale; regenerate index.html.');
     if (!guideContentHashOk(html)) problems.push('dashboard content hash is stale or was edited outside the generator; regenerate index.html.');
-    if (htmlMetaContent(html, 'nexus-token-source') !== 'packages/web/src/platform/theme/tokens.css') problems.push('dashboard does not declare production token source.');
-  }
+    if (htmlMetaContent(html, guideMetaName('tokenSource')) !== GUIDE_TOKEN_SOURCE_LABEL) problems.push('dashboard does not declare production token source.');
+      problems.push(...workIntakeGuideContractProblems(html, 'dashboard', intake));
+    }
   if (!quiet) {
     console.log(`guide problems: ${problems.length}`);
     for (const problem of problems) console.log(`- ${problem}`);
@@ -4113,10 +5031,10 @@ function workflowSelfTestChecks() {
   add('handover accepts stable branch-head wording', handoverProblems('## Next Required Work\n\nNo mandatory migration step remains.\n\n## Server\n\nPost-deployment workflow-record commits were pulled on the server after runtime validation. Check branch HEAD for the exact latest commit.\n').length === 0);
   add('handover CLI fixture rejects stale finalization', fixtureHandoverCheck('bad-handover', '## Deployment\n\n- Final handover commit: `abc1234`\n', false));
   add('handover CLI fixture accepts stable current state', fixtureHandoverCheck('good-handover', '## Next Required Work\n\nNo mandatory migration step remains.\n\n## Server\n\nCheck branch HEAD for the exact latest commit.\n', true));
-  add('record schema maps patches correctly', recordSchema('patches') === 'nexus-patch/v1');
-  add('record schema maps routing correctly', recordSchema('routing') === 'nexus-routing/v1');
-  add('record schema maps audits correctly', recordSchema('audits') === 'nexus-audit/v1');
-  add('record schema maps guide browser correctly', recordSchema('guide-browser') === 'nexus-guide-browser/v1');
+  add('record schemas are policy-driven for every record kind', RECORD_KINDS.every((kind) => recordSchema(kind) === POLICY.records?.schemaByKind?.[kind]));
+  add('record prefixes are policy-driven for every record kind', RECORD_KINDS.every((kind) => recordPrefix(kind) === POLICY.records?.prefixByKind?.[kind]));
+  add('work intake records are protected evidence', EVIDENCE_RECORD_KINDS.includes(INTENT_RECORD_KIND) && EVIDENCE_RECORD_KINDS.includes(WORK_SLICE_RECORD_KIND));
+  add('work intake records are visible in generated guide records', GUIDE_RECORD_KINDS.includes(INTENT_RECORD_KIND) && GUIDE_RECORD_KINDS.includes(WORK_SLICE_RECORD_KIND));
   add('pattern proposals are protected evidence', EVIDENCE_RECORD_KINDS.includes('pattern-proposals'));
   add('guide browser validation is protected evidence', EVIDENCE_RECORD_KINDS.includes('guide-browser'));
   add('state cache evidence rejects missing durable record', evidenceRecordProblems('reviews', 'REVIEW-DOES-NOT-EXIST', { verdict: 'pass' }, 'fixture review state').length > 0);
@@ -4125,17 +5043,27 @@ function workflowSelfTestChecks() {
   add('visual zoo guide artifacts are non-substantive but trigger visual gates', substantiveFiles(['.codex/dashboard/zoo/index.html', '.codex/dashboard/zoo/assets/button.jpg']).length === 0
     && zooVisualRelevantFiles(['.codex/dashboard/zoo/index.html', '.codex/dashboard/zoo/assets/button.jpg']).length === 2);
   add('guide source hash is content based', /^[a-f0-9]{24}$/.test(publicGuideSourceHash()));
-  add('verification knowledge participates in public guide source hash', publicGuideInputFiles().includes('.codex/knowledge/verification.md'));
+  add('required guide source hash inputs come from policy', requiredGuideSourceFiles().length > 0 && requiredGuideSourceFiles().every((file) => publicGuideInputFiles().includes(file)));
   add('verification knowledge is required workflow manifest', requiredWorkflowFiles().includes('.codex/knowledge/verification.md'));
+  add('policy manifest is required workflow manifest', requiredWorkflowFiles().includes('.codex/workflow/policy/manifest.json'));
+  add('work intake policy is required workflow manifest', requiredWorkflowFiles().includes('.codex/workflow/policy/intake.json'));
+  add('work intake templates are required workflow manifest', requiredWorkflowFiles().includes('.codex/workflow/templates/intent.md') && requiredWorkflowFiles().includes('.codex/workflow/templates/work-slice.md'));
   add('workflow profile is required workflow manifest', requiredWorkflowFiles().includes('.codex/workflow/profile.json'));
   add('workflow engine is required workflow manifest', requiredWorkflowFiles().includes('.codex/scripts/workflow-engine.mjs'));
   add('workflow kernel is required workflow manifest', requiredWorkflowFiles().includes('.codex/scripts/nexus-workflow.mjs'));
   add('workflow bootstrap template is required workflow manifest', requiredWorkflowFiles().includes('.codex/workflow/templates/project-bootstrap.md'));
-  add('workflow policy files participate in public guide source hash', publicGuideInputFiles().includes('.codex/workflow/policy/guide.json'));
+  add('guide policy declares every required public-guide source input', requiredGuideSourceFiles().every((file) => POLICY.guide?.sourceFiles?.includes(file) || publicGuideInputFiles().includes(file)));
   add('workflow policy files are substantive changes', substantiveFiles(['.codex/workflow/policy/files.json']).length === 1);
   add('review kind policy classifies workflow policy changes', requiredReviewKinds(['.codex/workflow/policy/files.json']).includes('workflow'));
-  add('review kind policy classifies design source changes', requiredReviewKinds(['packages/web/src/platform/theme/tokens.css']).includes('design'));
+  add('review kind policy classifies design source changes', requiredReviewKinds([designTokenSourceFile()]).includes('design'));
   add('review kind policy classifies design policy changes', requiredReviewKinds(['.codex/workflow/policy/design.json']).includes('design'));
+  add('review kind policy classifies pattern-sensitive changes', requiredReviewKinds(['.codex/knowledge/patterns.md']).includes('pattern'));
+  add('review kind policy classifies workflow policy contract changes as pattern-sensitive', [
+    '.codex/workflow/policy/manifest.json',
+    '.codex/workflow/policy/guide.json',
+    '.codex/workflow/policy/records.json',
+  ].every((file) => requiredReviewKinds([file]).includes('pattern')));
+  add('branch review policy classifies pattern-sensitive changes', requiredBranchReviewKinds(['packages/api/src/modules/orders/service.ts']).includes('pattern'));
   add('workflow research reports participate in public guide source hash', publicGuideInputFiles().some((file) => file.startsWith('.codex/workflow/research/') && file.endsWith('.md')));
   add('workflow policy check passes current policy pack', policyProblems().length === 0);
   add('codex inventory check passes current workflow tree', inventoryProblems().length === 0);
@@ -4149,6 +5077,132 @@ function workflowSelfTestChecks() {
   add('public guide uses deployment policy visual zoo URL', PUBLIC_ZOO_GUIDE_URL === POLICY.deployment?.visualZooGuideUrl);
   add('deployment records do not self-stale public guide source hash', !publicGuideInputFiles().some((file) => file.startsWith('.codex/workflow/records/deployments/')));
   add('deployment records remain displayable guide records', GUIDE_RECORD_KINDS.includes('deployments'));
+  add('work intake rejects invalid intent status', intakeProblemsForState({
+    intents: [{ id: 'INTENT-test', kind: 'feature', status: 'mystery', summary: 'bad' }],
+  }).some((problem) => problem.includes('unsupported intent status')));
+  add('work intake rejects work slice without source intent', intakeProblemsForState({
+    workSlices: [{ id: 'WORK-SLICE-test', status: 'active', summary: 'orphan', acceptance: 'done', sourceType: 'user-intent' }],
+  }).some((problem) => problem.includes('must link to at least one intentId')));
+  add('work intake accepts maintenance source without user intent', intakeProblemsForState({
+    workSlices: [{ id: 'WORK-SLICE-maint', status: 'active', summary: 'maintenance', acceptance: 'done', sourceType: 'workflow-maintenance', created: nowIso() }],
+  }).length === 0);
+  add('work intake rejects patch without work slice for current substantive hash', intakeProblemsForState({
+    patches: [{ id: 'PATCH-test', worktreeHash: 'hash', files: ['packages/web/src/components/ui/Button.tsx'] }],
+  }, { currentHash: 'hash' }).some((problem) => problem.includes('has no workSliceIds')));
+  add('work intake accepts linked patch for current substantive hash', intakeProblemsForState({
+    intents: [{ id: 'INTENT-ok', kind: 'feature', status: 'accepted', summary: 'ok' }],
+    workSlices: [{ id: 'WORK-SLICE-ok', status: 'active', intentIds: ['INTENT-ok'], summary: 'slice', acceptance: 'done', created: nowIso() }],
+    patches: [{ id: 'PATCH-ok', worktreeHash: 'hash', files: ['packages/web/src/components/ui/Button.tsx'], workSliceIds: ['WORK-SLICE-ok'] }],
+  }, { currentHash: 'hash' }).length === 0);
+  add('work intake rejects current verification evidence without work slice', intakeProblemsForState({
+    tests: [{ id: 'TEST-unlinked', verdict: 'pass', worktreeHash: 'hash' }],
+  }, { currentHash: 'hash' }).some((problem) => problem.includes('tests record TEST-unlinked') && problem.includes('no workSliceIds')));
+  add('work intake rejects current audit evidence without work slice', intakeProblemsForState({
+    audits: [{ id: 'AUDIT-unlinked', verdict: 'pass', worktreeHash: 'hash' }],
+  }, { currentHash: 'hash' }).some((problem) => problem.includes('audits record AUDIT-unlinked') && problem.includes('no workSliceIds')));
+  add('work intake rejects branch deployment evidence without work slice', intakeProblemsForState({
+    deployments: [{ id: 'DEPLOY-unlinked', verdict: 'pass', branchHash: 'branch-hash' }],
+  }, { branch: { hash: 'branch-hash', files: ['packages/web/src/App.tsx'] } }).some((problem) => problem.includes('deployments record DEPLOY-unlinked') && problem.includes('no workSliceIds')));
+  add('work intake rejects done slice without evidence', intakeProblemsForState({
+    intents: [{ id: 'INTENT-done', kind: 'feature', status: 'accepted', summary: 'done' }],
+    workSlices: [{ id: 'WORK-SLICE-done', status: 'done', intentIds: ['INTENT-done'], summary: 'done slice', acceptance: 'done', files: ['packages/web/src/components/ui/Button.tsx'], created: nowIso() }],
+  }).filter((problem) => problem.includes('WORK-SLICE-done')).length >= 3);
+  add('work intake derives verification relevance from linked patch files', intakeProblemsForState({
+    intents: [{ id: 'INTENT-derived', kind: 'feature', status: 'accepted', summary: 'derived' }],
+    workSlices: [{ id: 'WORK-SLICE-derived', status: 'done', intentIds: ['INTENT-derived'], summary: 'derived slice', acceptance: 'done', files: [], created: nowIso() }],
+    patches: [{ id: 'PATCH-derived', files: ['packages/web/src/components/ui/Button.tsx'], workSliceIds: ['WORK-SLICE-derived'] }],
+    reviews: [{ id: 'REVIEW-derived', verdict: 'pass', workSliceIds: ['WORK-SLICE-derived'] }],
+    audits: [{ id: 'AUDIT-derived', verdict: 'pass', workSliceIds: ['WORK-SLICE-derived'] }],
+  }).some((problem) => problem.includes('WORK-SLICE-derived changes verification-relevant files')));
+  add('work intake accepts done slice with linked evidence', intakeProblemsForState({
+    intents: [{ id: 'INTENT-done-ok', kind: 'feature', status: 'accepted', summary: 'done ok' }],
+    workSlices: [{ id: 'WORK-SLICE-done-ok', status: 'done', intentIds: ['INTENT-done-ok'], summary: 'done slice', acceptance: 'done', files: ['packages/web/src/components/ui/Button.tsx'], created: nowIso() }],
+    patches: [{ id: 'PATCH-done-ok', files: ['packages/web/src/components/ui/Button.tsx'], workSliceIds: ['WORK-SLICE-done-ok'] }],
+    reviews: [{ id: 'REVIEW-done-ok', verdict: 'pass', workSliceIds: ['WORK-SLICE-done-ok'] }],
+    tests: [{ id: 'TEST-done-ok', verdict: 'pass', workSliceIds: ['WORK-SLICE-done-ok'] }],
+    audits: [{ id: 'AUDIT-done-ok', verdict: 'pass', workSliceIds: ['WORK-SLICE-done-ok'] }],
+  }).length === 0);
+  add('work intake rejects branch release with active linked slice', intakeProblemsForState({
+    intents: [{ id: 'INTENT-branch', kind: 'feature', status: 'accepted', summary: 'branch' }],
+    workSlices: [{ id: 'WORK-SLICE-branch', status: 'active', intentIds: ['INTENT-branch'], summary: 'branch slice', acceptance: 'done', created: nowIso() }],
+    patches: [{ id: 'PATCH-branch', branchHash: 'branch-hash', files: ['packages/web/src/App.tsx'], workSliceIds: ['WORK-SLICE-branch'] }],
+  }, { branch: { hash: 'branch-hash', files: ['packages/web/src/App.tsx'] } }).some((problem) => problem.includes('is not closed')));
+  add('work intake accepts branch release with closed linked slice and proof', intakeProblemsForState({
+    intents: [{ id: 'INTENT-branch-ok', kind: 'feature', status: 'accepted', summary: 'branch ok' }],
+    workSlices: [{ id: 'WORK-SLICE-branch-ok', status: 'done', intentIds: ['INTENT-branch-ok'], summary: 'branch slice', acceptance: 'done', created: nowIso() }],
+    patches: [{ id: 'PATCH-branch-ok', branchHash: 'branch-hash', files: ['packages/web/src/App.tsx'], workSliceIds: ['WORK-SLICE-branch-ok'] }],
+    reviews: [{ id: 'REVIEW-branch-ok', verdict: 'pass', branchHash: 'branch-hash', workSliceIds: ['WORK-SLICE-branch-ok'] }],
+    tests: [{ id: 'TEST-branch-ok', verdict: 'pass', branchHash: 'branch-hash', workSliceIds: ['WORK-SLICE-branch-ok'] }],
+    audits: [{ id: 'AUDIT-branch-ok', verdict: 'pass', branchHash: 'branch-hash', workSliceIds: ['WORK-SLICE-branch-ok'] }],
+  }, { branch: { hash: 'branch-hash', files: ['packages/web/src/App.tsx'] } }).length === 0);
+  add('work intake rejects stale active slices', intakeProblemsForState({
+    intents: [{ id: 'INTENT-stale', kind: 'feature', status: 'accepted', summary: 'stale' }],
+    workSlices: [{ id: 'WORK-SLICE-stale', status: 'active', intentIds: ['INTENT-stale'], summary: 'stale slice', acceptance: 'done', created: '2020-01-01T00:00:00.000Z' }],
+  }, { now: Date.parse('2020-02-01T00:00:00.000Z') }).some((problem) => problem.includes('31 days')));
+  add('work intake rejects invalid external refs', intakeProblemsForState({
+    intents: [{ id: 'INTENT-ext', kind: 'feature', status: 'accepted', summary: 'external', externalRefs: ['slack:123'] }],
+  }).some((problem) => problem.includes('allowed prefix')));
+  add('work intake write preflight rejects missing parent intents', intakeIntentWriteProblems({
+    parentIntentIds: ['INTENT-missing'],
+  }, { intentIds: ['INTENT-existing'] }).some((problem) => problem.includes('INTENT-missing')));
+  add('work intake write preflight rejects missing source intents', intakeWorkSliceWriteProblems({
+    intentIds: ['INTENT-missing'],
+  }, { intentIds: ['INTENT-existing'], workSliceIds: ['WORK-SLICE-existing'] }).some((problem) => problem.includes('INTENT-missing')));
+  add('work intake write preflight rejects missing related work slices', intakeWorkSliceWriteProblems({
+    intentIds: ['INTENT-existing'],
+    updatesWorkSliceId: 'WORK-SLICE-missing',
+    supersedesWorkSliceIds: ['WORK-SLICE-old-missing'],
+    blockedByWorkSliceIds: ['WORK-SLICE-blocker-missing'],
+  }, { intentIds: ['INTENT-existing'], workSliceIds: ['WORK-SLICE-existing'] }).length === 3);
+  add('work intake write preflight rejects invalid external refs', intakeWorkSliceWriteProblems({
+    intentIds: ['INTENT-existing'],
+    externalRefs: ['slack:123'],
+  }, { intentIds: ['INTENT-existing'], workSliceIds: [] }).some((problem) => problem.includes('allowed prefix')));
+  add('work intake guide renders linked trace and feature catalog semantics', (() => {
+    const intents = [{ id: 'INTENT-guide', kind: 'feature', status: 'accepted', summary: 'Guide feature' }];
+    const workSlices = [{ id: 'WORK-SLICE-guide', rootId: 'WORK-SLICE-guide', status: 'done', intentIds: ['INTENT-guide'], summary: 'Guide slice', acceptance: 'done', owner: 'codex-lead', created: nowIso() }];
+    const index = workSliceIndex(workSlices);
+    const model = {
+      intents,
+      workSlices,
+      latestSlices: workSlices,
+      intentById: new Map(intents.map((record) => [record.id, record])),
+      inbox: intents,
+      activeSlices: [],
+      index,
+      warnings: [],
+      evidence: {
+        patches: [{ id: 'PATCH-guide', workSliceIds: ['WORK-SLICE-guide'], summary: 'patch' }],
+        routing: [],
+        reviews: [{ id: 'REVIEW-guide', workSliceIds: ['WORK-SLICE-guide'], verdict: 'pass', summary: 'review' }],
+        tests: [{ id: 'TEST-guide', workSliceIds: ['WORK-SLICE-guide'], verdict: 'pass', summary: 'verify' }],
+        audits: [],
+        deployments: [],
+      },
+    };
+    const html = workIntakeHtml(model, escapeHtml);
+    return html.includes('data-work-intake-trace-row="WORK-SLICE-guide"')
+      && html.includes('data-work-intake-trace-intent="INTENT-guide"')
+      && html.includes('data-work-intake-evidence-id="PATCH-guide"')
+      && html.includes('data-work-intake-feature="INTENT-guide"')
+      && workIntakeGuideContractProblems(html, 'fixture', model).length === 0;
+  })());
+  add('work intake guide contract rejects label-only trace surface', (() => {
+    const intents = [{ id: 'INTENT-label', kind: 'feature', status: 'accepted', summary: 'Label only' }];
+    const workSlices = [{ id: 'WORK-SLICE-label', rootId: 'WORK-SLICE-label', status: 'active', intentIds: ['INTENT-label'], summary: 'Label slice', acceptance: 'done', owner: 'codex-lead', created: nowIso() }];
+    const model = {
+      intents,
+      workSlices,
+      latestSlices: workSlices,
+      intentById: new Map(intents.map((record) => [record.id, record])),
+      inbox: intents,
+      activeSlices: workSlices,
+      index: workSliceIndex(workSlices),
+      warnings: [],
+      evidence: { patches: [], routing: [], reviews: [], tests: [], audits: [], deployments: [] },
+    };
+    return workIntakeGuideContractProblems('Work Intake Work Intake Inbox Active Work Slices Intent Trace Graph Feature Catalog Work Intake Warnings', 'fixture', model).length > 0;
+  })());
   add('cheap status gates use cached state instead of full evidence scan', cachedGatePass({ worktreeHash: 'h', verdict: 'pass' }, 'h', ['x'])
     && !cachedGatePass({ worktreeHash: 'old', verdict: 'pass' }, 'h', ['x'])
     && cachedRoutingOk({ routingId: 'ROUTING-test', status: 'completed', worktreeHash: 'old' }, 'h')
@@ -4206,12 +5260,21 @@ function workflowSelfTestChecks() {
   add('guide source hash canonicalizes line endings', createHash('sha256').update(canonicalTextForHash('a\r\nb\r\n')).digest('hex') === createHash('sha256').update(canonicalTextForHash('a\nb\n')).digest('hex'));
   add('worktree-scope records do not receive branch frontmatter', Object.keys(branchScopedFrontmatter('worktree', { hash: 'branch-hash', base: 'base', mergeBase: 'merge', files: ['a'] })).length === 0);
   add('branch-scope records receive branch frontmatter', branchScopedFrontmatter('branch', { hash: 'branch-hash', base: 'base', mergeBase: 'merge', files: ['a'] }).branchHash === 'branch-hash');
-  add('guide source hash includes records but not mutable state cache', (() => {
+  add('guide source hash excludes record feed and mutable state cache', (() => {
     const inputs = publicGuideInputFiles();
     return !inputs.some((file) => file.startsWith('.codex/workflow/state/'))
       && !inputs.some((file) => file.startsWith('.codex/workflow/runtime/'))
-      && inputs.some((file) => file.startsWith('.codex/workflow/records/patches/'));
+      && !inputs.some((file) => file.startsWith('.codex/workflow/records/'))
+      && !inputs.includes('.codex/workflow/current-state.md');
   })());
+  add('guide record feed hash includes handover and records', guideRecordFeedFiles().includes('.codex/workflow/current-state.md')
+    && guideRecordFeedFiles().some((file) => file.startsWith('.codex/workflow/records/patches/')));
+  add('guide shell fingerprint ignores record feed content', (() => {
+    const a = `${guideMetaTag('version', 'v')}${guideMetaTag('sourceHash', 'shell')}${guideMetaTag('tokenSource', 'tokens')}<section>record A</section>`;
+    const b = `${guideMetaTag('version', 'v')}${guideMetaTag('sourceHash', 'shell')}${guideMetaTag('tokenSource', 'tokens')}<section>record B</section>`;
+    return JSON.stringify(guideShellFingerprint('public.html', a)) === JSON.stringify(guideShellFingerprint('public.html', b));
+  })());
+  add('guide project topology graph comes from policy', guidePolicyGraph('repository').nodes[0]?.label === POLICY.guide?.viewGraphs?.repository?.nodes?.[0]?.label);
   add('branch evidence check requires durable records for branch diff', (() => {
     const branch = { base: 'base', mergeBase: 'merge-base', hash: 'branch-hash', files: ['.codex/scripts/nexus-workflow.mjs'] };
     return branchEvidenceProblemsForState(branch, {
@@ -4367,36 +5430,14 @@ function workflowSelfTestChecks() {
     }).length === 0;
   })());
   add('guide content hash validates generated html', (() => {
-    const html = injectGuideContentHash(`<meta name="nexus-guide-content-hash" content="${PUBLIC_GUIDE_CONTENT_HASH_PLACEHOLDER}" />\n<section>ok</section>`);
+    const html = injectGuideContentHash(`${guideMetaTag('contentHash', PUBLIC_GUIDE_CONTENT_HASH_PLACEHOLDER)}\n<section>ok</section>`);
     return guideContentHashOk(html) && !guideContentHashOk(html.replace('ok', 'edited'));
   })());
   add('generated guide normalizer strips trailing whitespace', !normalizeGeneratedHtml('a  \n  \n').match(/[ \t]+$/m));
   add('guide view contract rejects heading-only public guide', guideViewContractProblems('Workflow System Nodes Project Structure Design System / Zoo / Docs Model Routing Examples Workflow Event Timeline', 'fixture').length > 0);
   add('guide view contract accepts required graph, docs, zoo, routing, and timeline views', guideViewContractProblems([
-    'Workflow System Nodes',
-    'Codex Workflow Nodes',
-    '.codex/workflow/records',
-    'Project Structure',
-    'Repository Nodes',
-    'Web App Nodes',
-    'Design System / Zoo / Docs',
-    'Design-System Nodes',
-    'Design-System Flow',
-    'Design Zoo/Gym coverage',
-    'Visual Zoo/Gym Guide',
-    'Design And Workflow Documents',
-    'packages/web/src/components/registry.json',
-    'packages/web/src/routes/__design/Zoo.tsx',
-    'How Future Sessions Resume',
-    'Custom (config.toml)',
-    'workflow:hook-runtime-check',
-    'project-bootstrap.md',
-    'Model Routing Examples',
-    'spark-narrow-toast-warning',
-    'strong-theme-cascade-body-portal',
-    'escalate-spark-timebox-stalled',
-    'Workflow Event Timeline',
-    '<h3>Workflow</h3><h3>Agent Routing</h3><h3>Validation</h3>',
+    ...(POLICY.guide?.viewContract?.requiredStrings || []),
+    ...(POLICY.guide?.viewContract?.timelineCategoryHeadings || []).map((heading) => `<h3>${escapeHtml(heading)}</h3>`),
   ].join('\n'), 'fixture').length === 0);
   add('guide browser state rejects stale artifact hash', (() => {
     const state = { guideArtifactHash: 'stale', verdict: 'pass', screenshots: ['a.png'] };
@@ -4408,10 +5449,10 @@ function workflowSelfTestChecks() {
     const summaryPath = join(dir, 'summary.json');
     const rel = relative(ROOT, summaryPath).replaceAll('\\', '/');
     writeFileSync(summaryPath, JSON.stringify([
-      { name: 'dashboard-artifact', target: 'file:///dashboard', viewport: { width: 1, height: 1 }, title: 'Nexus Workflow Dashboard', imageCount: 0, brokenImages: 0 },
-      { name: 'workflow-guide-artifact', target: 'file:///public', viewport: { width: 1, height: 1 }, title: 'Nexus Workflow Guide', imageCount: 0, brokenImages: 0 },
-      { name: 'workflow-zoo-artifact-desktop', target: 'file:///zoo', viewport: { width: 1, height: 1 }, title: 'Nexus Design Zoo / Gym', imageCount: 1, brokenImages: 0 },
-      { name: 'workflow-zoo-artifact-mobile', target: 'file:///zoo', viewport: { width: 1, height: 1 }, title: 'Nexus Design Zoo / Gym', imageCount: 1, brokenImages: 0 },
+      { name: 'dashboard-artifact', target: 'file:///dashboard', viewport: { width: 1, height: 1 }, title: GUIDE_TITLES.dashboard, imageCount: 0, brokenImages: 0 },
+      { name: 'workflow-guide-artifact', target: 'file:///public', viewport: { width: 1, height: 1 }, title: GUIDE_TITLES.public, imageCount: 0, brokenImages: 0 },
+      { name: 'workflow-zoo-artifact-desktop', target: 'file:///zoo', viewport: { width: 1, height: 1 }, title: ZOO_VISUAL_GUIDE_TITLE, imageCount: 1, brokenImages: 0 },
+      { name: 'workflow-zoo-artifact-mobile', target: 'file:///zoo', viewport: { width: 1, height: 1 }, title: ZOO_VISUAL_GUIDE_TITLE, imageCount: 1, brokenImages: 0 },
     ]));
     const ok = guideBrowserSummaryProblems(rel).length === 0;
     rmSync(dir, { recursive: true, force: true });
@@ -4422,7 +5463,7 @@ function workflowSelfTestChecks() {
     const summaryPath = join(dir, 'summary.json');
     const rel = relative(ROOT, summaryPath).replaceAll('\\', '/');
     writeFileSync(summaryPath, JSON.stringify([
-      { name: 'workflow-guide-artifact', target: 'file:///public', viewport: { width: 1, height: 1 }, title: 'Nexus Workflow Guide', imageCount: 0, brokenImages: 0 },
+      { name: 'workflow-guide-artifact', target: 'file:///public', viewport: { width: 1, height: 1 }, title: GUIDE_TITLES.public, imageCount: 0, brokenImages: 0 },
     ]));
     const ok = guideBrowserSummaryProblems(rel).some((problem) => problem.includes('dashboard-artifact'));
     rmSync(dir, { recursive: true, force: true });
@@ -4514,6 +5555,22 @@ function workflowSelfTestChecks() {
     worktreeHash: worktreeHash(),
     workers: ['codex-lead'],
   }).length === 0);
+  add('active routing supplies patch worker attribution', (() => {
+    const routing = activeRoutingForPatch(['packages/web/src/components/ui/Toast.tsx'], {
+      routingId: 'ROUTING-fixture',
+      status: 'active',
+      worker: 'nexus_spark_worker',
+      files: ['packages/web/src/components/ui/Toast.tsx'],
+      workSliceIds: ['WORK-SLICE-fixture'],
+    });
+    return routing?.worker === 'nexus_spark_worker' && csv(routing.workSliceIds)[0] === 'WORK-SLICE-fixture';
+  })());
+  add('active routing does not attribute out-of-scope patch', !activeRoutingForPatch(['packages/web/src/components/registry.json'], {
+    routingId: 'ROUTING-fixture',
+    status: 'active',
+    worker: 'nexus_spark_worker',
+    files: ['packages/web/src/components/ui/Toast.tsx'],
+  }));
   add('routing check rejects retroactive delegated routing', routingScopeProblemsForState({
     routingId: 'routing-test',
     route: 'spark',
@@ -4617,7 +5674,7 @@ function workflowSelfTestChecks() {
   add('self-test temp fixtures stay out of repo workflow tree', !existsSync(join(ROOT, '.codex-self-test-tmp')));
   add('guide token subset avoids display tracking tokens', !productionGuideTokenCss().match(/tracking|-0\.01em/));
   add('guide token subset includes hit targets', ['--hit-sm', '--hit-md', '--hit-lg'].every((token) => productionGuideTokenCss().includes(`${token}:`)));
-  add('guide stale hash would be rejected', htmlMetaContent('<meta name="nexus-guide-source-hash" content="stale" />', 'nexus-guide-source-hash') !== publicGuideSourceHash());
+  add('guide stale hash would be rejected', htmlMetaContent(guideMetaTag('sourceHash', 'stale'), guideMetaName('sourceHash')) !== publicGuideSourceHash());
   add('graph renderer rejects missing edge nodes', (() => {
     try {
       graphHtml('bad', [{ label: 'A', detail: '' }], [['A', 'B']]);
@@ -4660,6 +5717,46 @@ function workflowSelfTestChecks() {
     const loaded = loadCodexWorkflow(dir, { policyNames: ['gates'] });
     rmSync(dir, { recursive: true, force: true });
     return loaded.profile.project === 'fixture' && loaded.policy.gates.canonicalLadder[0] === 'workflow:status' && !loaded.policy.files;
+  })());
+  add('workflow engine loads policy names from manifest', (() => {
+    const dir = mkdtempSync(join(tmpdir(), 'nexus-engine-manifest-'));
+    ensureDir(join(dir, '.codex', 'workflow', 'policy'));
+    writeFileSync(join(dir, '.codex', 'workflow', 'profile.json'), '{"project":"fixture"}\n');
+    writeFileSync(join(dir, '.codex', 'workflow', 'policy', 'manifest.json'), '{"schema":"codex-workflow-policy-manifest/v1","policyNames":["gates"]}\n');
+    writeFileSync(join(dir, '.codex', 'workflow', 'policy', 'gates.json'), '{"schema":"fixture-gates","canonicalLadder":["workflow:status"]}\n');
+    const loaded = loadCodexWorkflow(dir);
+    rmSync(dir, { recursive: true, force: true });
+    return loaded.policy.manifest.schema === 'codex-workflow-policy-manifest/v1'
+      && loaded.policyNames.length === 1
+      && loaded.policy.gates.canonicalLadder[0] === 'workflow:status'
+      && !loaded.policy.files;
+  })());
+  add('workflow engine rejects missing policy manifest by default', (() => {
+    const dir = mkdtempSync(join(tmpdir(), 'nexus-engine-missing-manifest-'));
+    ensureDir(join(dir, '.codex', 'workflow', 'policy'));
+    writeFileSync(join(dir, '.codex', 'workflow', 'profile.json'), '{"project":"fixture"}\n');
+    let threw = false;
+    try {
+      loadCodexWorkflow(dir);
+    } catch (error) {
+      threw = String(error.message || '').includes('manifest.json');
+    }
+    rmSync(dir, { recursive: true, force: true });
+    return threw;
+  })());
+  add('workflow engine rejects missing manifest policy files by default', (() => {
+    const dir = mkdtempSync(join(tmpdir(), 'nexus-engine-missing-policy-'));
+    ensureDir(join(dir, '.codex', 'workflow', 'policy'));
+    writeFileSync(join(dir, '.codex', 'workflow', 'profile.json'), '{"project":"fixture"}\n');
+    writeFileSync(join(dir, '.codex', 'workflow', 'policy', 'manifest.json'), '{"schema":"codex-workflow-policy-manifest/v1","policyNames":["missing"]}\n');
+    let threw = false;
+    try {
+      loadCodexWorkflow(dir);
+    } catch (error) {
+      threw = String(error.message || '').includes('missing.json');
+    }
+    rmSync(dir, { recursive: true, force: true });
+    return threw;
   })());
   add('workflow engine rejects malformed json', (() => {
     const dir = mkdtempSync(join(tmpdir(), 'nexus-engine-json-'));
@@ -4705,7 +5802,11 @@ function workflowSelfTestChecks() {
   ];
   for (const command of denied) add(`hook detects ${command}`, commandInvokesGitCommit(command));
   for (const command of allowed) add(`hook allows ${command}`, !commandInvokesGitCommit(command));
-  add('public sanitizer redacts private strings', !publicSafe(`${ROOT} /root/monoWeb/nexus /root/monoWeb/deploy-backups/nexus/x.diff root@134.199.148.87 ~/.ssh/DIOkii token=abc`).match(/C:\\Users|\/root\/monoWeb\/nexus|\/root\/monoWeb\/deploy-backups|root@|134\.199\.148\.87|~\/\.ssh\/DIOkii|DIOkii|token=abc/));
+  add('public sanitizer redacts private strings', (() => {
+    const sanitized = publicSafe(`${ROOT} /root/monoWeb/nexus /root/monoWeb/deploy-backups/nexus/x.diff root@134.199.148.87 ~/.ssh/DIOkii token=abc`);
+    return !publicGuideForbiddenStrings().some((forbidden) => forbidden && sanitized.includes(forbidden))
+      && !sanitized.includes('token=abc');
+  })());
   add('timed command telemetry records successful command duration', (() => {
     const dir = mkdtempSync(join(tmpdir(), 'nexus-command-run-'));
     const telemetryFile = join(dir, 'runs.jsonl');
@@ -4879,11 +5980,12 @@ function commandValidate(args) {
     const policyOk = commandPolicyCheck({ quiet: true });
     const traceOk = commandTraceCheck({ quiet: true });
     const hookConfigOk = commandHookConfigCheck({ quiet: true });
+    const intakeOk = commandWorkIntakeCheck({ quiet: true });
     const depAuditOk = commandDependencyAuditCheck({ quiet: true });
     const prodZooOk = commandProductionZooBundleCheck({ quiet: true });
     const selfTestFailures = workflowSelfTestChecks().filter((check) => !check.ok);
     const deploymentOk = !args['deployed-gate'] || commandDeploymentCheck({ quiet: true });
-    if (!reviewOk || !verifyOk || !auditOk || !handoverOk || !recordsOk || !routingOk || !guideOk || !guideBrowserOk || !zooOk || !zooVisualOk || !inventoryOk || !policyOk || !traceOk || !hookConfigOk || !branchEvidenceOk || !depAuditOk || !prodZooOk || !deploymentOk || selfTestFailures.length) {
+    if (!reviewOk || !verifyOk || !auditOk || !handoverOk || !recordsOk || !routingOk || !guideOk || !guideBrowserOk || !zooOk || !zooVisualOk || !inventoryOk || !policyOk || !traceOk || !hookConfigOk || !intakeOk || !branchEvidenceOk || !depAuditOk || !prodZooOk || !deploymentOk || selfTestFailures.length) {
       if (!reviewOk) console.error('Release gate failed: missing passing review record.');
       if (!verifyOk) console.error('Release gate failed: missing passing verification record.');
       if (!auditOk) console.error('Release gate failed: missing passing audit record.');
@@ -4923,6 +6025,10 @@ function commandValidate(args) {
       if (!hookConfigOk) {
         console.error('Release gate failed: hook/config enforcement is not pinned.');
         for (const problem of hookConfigProblems()) console.error(`- ${problem}`);
+      }
+      if (!intakeOk) {
+        console.error('Release gate failed: Work Intake traceability is incomplete.');
+        for (const problem of intakeProblems()) console.error(`- ${problem}`);
       }
       if (!branchEvidenceOk) {
         console.error('Release gate failed: branch diff evidence is missing or stale.');
@@ -5207,6 +6313,9 @@ else if (command === 'health') commandHealth();
 else if (command === 'dashboard') commandDashboard(args);
 else if (command === 'public-guide') commandPublicGuide(args);
 else if (command === 'zoo-visual-guide') commandZooVisualGuide(args);
+else if (command === 'record-intent') commandRecordIntent(args);
+else if (command === 'record-work-slice' || command === 'record-slice') commandRecordWorkSlice(args);
+else if (command === 'close-work-slice' || command === 'close-slice') commandCloseWorkSlice(args);
 else if (command === 'record-patch') commandRecordPatch(args);
 else if (command === 'record-review') commandRecordReview(args);
 else if (command === 'record-verify') commandRecordVerification(args);
@@ -5237,6 +6346,9 @@ else if (command === 'verify-check') {
   process.exit(ok ? 0 : 1);
 } else if (command === 'routing-check') {
   const ok = commandRoutingCheck(args);
+  process.exit(ok ? 0 : 1);
+} else if (command === 'work-intake-check' || command === 'intake-check') {
+  const ok = commandWorkIntakeCheck(args);
   process.exit(ok ? 0 : 1);
 } else if (command === 'records-check') {
   const ok = commandRecordsCheck(args);

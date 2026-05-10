@@ -50,9 +50,9 @@ Confirm:
 After meaningful validation:
 
 ```bash
-node .codex/scripts/nexus-workflow.mjs record-verify --scope worktree --verdict pass --verifier <name> --notes "<commands and results>"
+node .codex/scripts/nexus-workflow.mjs record-verify --scope worktree --verdict pass --verifier <name> --work-slice <WORK-SLICE-id> --commands "<timed-command-ids>" --notes "<commands and results>"
 node .codex/scripts/nexus-workflow.mjs record-test --summary "<gate>" --notes "<commands and results>"
-node .codex/scripts/nexus-workflow.mjs record-deployment --summary "<deploy>" --notes "<server evidence>"
+node .codex/scripts/nexus-workflow.mjs record-deployment --summary "<deploy>" --work-slice <WORK-SLICE-id> --notes "<server evidence>"
 npm run workflow:guide-browser-finalize
 ```
 

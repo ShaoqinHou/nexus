@@ -6,6 +6,8 @@ Command Or Scenario:
 
 Command Run IDs:
 
+Work Slices:
+
 Embedded Command Evidence:
 
 Artifacts Or Summaries:

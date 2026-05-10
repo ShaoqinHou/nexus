@@ -45,11 +45,22 @@ Nexus is a multi-tenant mini-app platform. The first module is restaurant orderi
 
 - Use repo skills in `.agents/skills` for workflow, review, verification, and audits.
 - Record durable state under `.codex/workflow/records` instead of relying on the chat transcript.
+- Capture durable solo-dev user intent and lead work slices with Work Intake records instead of creating one-off planning docs:
+  ```bash
+  node .codex/scripts/nexus-workflow.mjs record-intent --kind <feature|bug|idea|clarification|constraint|change-request> --status captured --summary "<compact user intent>"
+  node .codex/scripts/nexus-workflow.mjs record-work-slice --intent <INTENT-id> --status active --summary "<lead interpretation>" --acceptance "<done signals>" --verification "<checks>"
+  ```
+- Link substantive routing, patch, review, verification, audit, and deployment records to the relevant work slice with `--work-slice <WORK-SLICE-id>`.
+- Close each current work slice with `close-work-slice` before branch release. The release gate rejects branch evidence linked to an open slice:
+  ```bash
+  node .codex/scripts/nexus-workflow.mjs close-work-slice --slice <WORK-SLICE-id> --status done --notes "<evidence complete>"
+  ```
 - Keep mutable cache under `.codex/workflow/state` and runtime telemetry under `.codex/workflow/runtime`; neither is durable evidence.
 - Workflow truth is append-only records plus git/worktree/branch state. Caches and generated guide pages must be delete-safe aids, not required human memory.
 - Treat `.codex/scripts/nexus-workflow.mjs` as the Nexus deterministic workflow wrapper and `.codex/scripts/workflow-engine.mjs` as the reusable profile/policy loader. Hooks, package scripts, server checks, and future CI should call the wrapper; LLM judgment should be recorded as review/verify/audit/routing/pattern evidence for the kernel to validate.
 - Put project-specific workflow facts in `.codex/workflow/profile.json` and `.codex/workflow/policy/*.json` before hardcoding them in scripts. The policy pack owns file classifiers, review-kind classifiers, required files, record schemas, guide contracts, design-system inputs, hook expectations, and deployment URLs.
 - The workflow system self-checks are `npm run workflow:inventory-check`, `npm run workflow:policy-check`, and `npm run workflow:trace-check`. They are part of the release gate and should be used directly only to diagnose `.codex` file placement, policy consumption, or command execution telemetry.
+- The Work Intake self-check is `npm run workflow:work-intake-check`. It is part of health/release validation and should be used directly to diagnose orphan patches, missing intent/work-slice links, stale active slices, or invalid external references.
 - Treat committed pattern proposal, routing, patch, review, test, audit, and deployment records as append-only evidence. If evidence is wrong, create a correction record instead of editing the old one.
 - Treat hooks as thin triggers only. They can invalidate gates or block common unsafe commit forms, but review/verify/audit judgment must be done by the lead or a focused agent and recorded explicitly. See `.codex/knowledge/hooks.md` for examples and limits.
 - Project `.codex/config.toml` and `.codex/hooks.json` are active only in trusted Codex sessions. Always keep explicit script gates as the reliable source of enforcement.
@@ -76,26 +87,26 @@ Nexus is a multi-tenant mini-app platform. The first module is restaurant orderi
   ```
 - Branches require branch-diff evidence before release, even when the checkout is clean. Use a branch-scope patch record for the whole branch diff, not only small worktree patch records:
   ```bash
-  node .codex/scripts/nexus-workflow.mjs record-patch --scope branch --summary "<branch summary>" --worker codex-lead
+  node .codex/scripts/nexus-workflow.mjs record-patch --scope branch --summary "<branch summary>" --worker codex-lead --work-slice <WORK-SLICE-id>
   node .codex/scripts/nexus-workflow.mjs branch-evidence-check
   ```
 - Worktree-scope patch/review/verify/audit records should not carry branch hashes. Branch hashes belong to branch-scope closing records.
 - Worktree-scope records are interim evidence while coding. Before release on a branch with substantive diff, close the branch with branch-scope records tied to the current branch hash:
   ```bash
-  node .codex/scripts/nexus-workflow.mjs record-patch --scope branch --summary "<branch summary>" --worker codex-lead
-  node .codex/scripts/nexus-workflow.mjs record-review --scope branch --kind general --verdict pass --reviewer <name> --notes "<summary>"
-  node .codex/scripts/nexus-workflow.mjs record-verify --scope branch --verdict pass --verifier <name> --commands "<timed-command-ids>" --notes "<commands/results>"
-  node .codex/scripts/nexus-workflow.mjs record-audit --scope branch --verdict pass --auditor <name> --commands "<timed-command-ids>" --notes "<summary>"
+  node .codex/scripts/nexus-workflow.mjs record-patch --scope branch --summary "<branch summary>" --worker codex-lead --work-slice <WORK-SLICE-id>
+  node .codex/scripts/nexus-workflow.mjs record-review --scope branch --kind general --verdict pass --reviewer <name> --work-slice <WORK-SLICE-id> --notes "<summary>"
+  node .codex/scripts/nexus-workflow.mjs record-verify --scope branch --verdict pass --verifier <name> --work-slice <WORK-SLICE-id> --commands "<timed-command-ids>" --notes "<commands/results>"
+  node .codex/scripts/nexus-workflow.mjs record-audit --scope branch --verdict pass --auditor <name> --work-slice <WORK-SLICE-id> --commands "<timed-command-ids>" --notes "<summary>"
   ```
 - Add the required focused branch review kinds for the actual diff, such as `workflow`, `design`, `pattern`, or `integrated`. The release gate prints the missing kind when one is required.
 - For interim worktree review passes, record it:
   ```bash
-  node .codex/scripts/nexus-workflow.mjs record-review --scope worktree --kind <general|pattern|design|workflow|integrated> --verdict pass --reviewer <name> --notes "<summary>"
+  node .codex/scripts/nexus-workflow.mjs record-review --scope worktree --kind <general|pattern|design|workflow|integrated> --verdict pass --reviewer <name> --work-slice <WORK-SLICE-id> --notes "<summary>"
   ```
 - For interim worktree verification and audit evidence:
   ```bash
-  node .codex/scripts/nexus-workflow.mjs record-verify --scope worktree --verdict pass --verifier <name> --commands "<timed-command-ids>" --notes "<commands/results>"
-  node .codex/scripts/nexus-workflow.mjs record-audit --scope worktree --verdict pass --auditor <name> --commands "<timed-command-ids>" --notes "<summary>"
+  node .codex/scripts/nexus-workflow.mjs record-verify --scope worktree --verdict pass --verifier <name> --work-slice <WORK-SLICE-id> --commands "<timed-command-ids>" --notes "<commands/results>"
+  node .codex/scripts/nexus-workflow.mjs record-audit --scope worktree --verdict pass --auditor <name> --work-slice <WORK-SLICE-id> --commands "<timed-command-ids>" --notes "<summary>"
   ```
 - Passing verify/audit/deployment records that cite command IDs must be created after running those commands through `npm run workflow:run`; the kernel embeds compact command summaries in the durable record and gates reject missing, failed, or timed-out command evidence.
 - Before commit or final local handover, run the canonical release gate:

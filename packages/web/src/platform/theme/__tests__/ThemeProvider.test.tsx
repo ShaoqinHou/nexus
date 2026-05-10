@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { ThemeProvider, useTheme } from '@web/platform/theme/ThemeProvider';
 import type { ReactNode } from 'react';
 
@@ -184,7 +184,7 @@ describe('ThemeProvider — live preview ping-pong regression', () => {
     expect(getByTestId('active').dataset.themeId).toBe('classic');
 
     // Simulate the live-preview interaction.
-    getByText('Pick sichuan').click();
+    fireEvent.click(getByText('Pick sichuan'));
 
     // After local setThemeId, the wrapper should reflect the new theme
     // and STAY there. Before the fix, the sync-from-prop effect reverted

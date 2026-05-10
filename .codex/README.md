@@ -31,6 +31,7 @@ Other workflow commands are helpers for creating evidence records or diagnosing 
 - `workflow/templates/project-bootstrap.md` is the portable bootstrap checklist for creating `.codex/config.toml`, hooks, profile, and policy in a second project.
 - `knowledge/patterns.md` captures durable project patterns and traps.
 - `knowledge/design-system.md` captures the design-system source of truth and invariants.
+- `knowledge/work-intake.md` captures solo-dev user-intent and lead work-slice traceability.
 - `knowledge/model-routing.md` captures lead/worker routing, Spark limits, strong-worker usage, and fallback rules.
 - `knowledge/hooks.md` captures what hooks do, what they cannot catch, and how deterministic gates cover the gaps.
 - `knowledge/verification.md` captures evidence policy for tests, browser checks, screenshots, and deployment validation.
@@ -51,6 +52,7 @@ Other workflow commands are helpers for creating evidence records or diagnosing 
 - `workflow/runtime/` stores operational telemetry, hook heartbeats, PIDs, and local logs. It is not durable evidence.
 - `npm run workflow:status`, `npm run workflow:health`, `npm run workflow:release-gate`, and `npm run workflow:deployed-gate` are the public workflow ladder.
 - `npm run workflow:inventory-check`, `npm run workflow:policy-check`, and `npm run workflow:trace-check` are deterministic checks for workflow file placement, policy consumption, and command execution telemetry.
+- `npm run workflow:work-intake-check` validates user-intent/work-slice traceability, orphan patch coverage, stale active slices, and optional external tracker references.
 - `npm run workflow:guide-browser-finalize` is the deterministic final guide-evidence step when guide artifacts are in scope. Run it after review, verification, and audit records are in place; it regenerates guide artifacts, captures browser evidence, and records the hash-bound guide-browser pass.
 
 ## Workflow Kernel
@@ -68,6 +70,7 @@ The center of the system is the deterministic kernel exposed through `scripts/ne
 - branch evidence checks compare the current branch diff against its base and require hash-bound branch-scope patch, review, verification, and audit records even on a clean checkout.
 - Worktree-scope records should not carry branch hashes. Branch hashes belong to final branch-scope records. Delegated worker patch records introduced on the branch remain branch evidence through routing id plus integrated review, even if later lead edits change the final branch hash.
 - `.codex/` inventory, policy consumption, and command trace telemetry are first-class release-gate inputs. This keeps workflow self-checks centralized in the kernel instead of relying on scattered handover reminders.
+- Work Intake records connect user prompts to lead work slices and then to implementation evidence. Substantive records should carry `workSliceIds` so generated guide views and release gates can detect drift.
 
 When the kernel needs LLM judgment, it should fail with a specific missing-record message rather than hide judgment inside a hook. Add new workflow rules to the kernel and records first; keep skills and docs as concise usage guidance around that shared system.
 
@@ -89,6 +92,8 @@ Hooks must not contain project judgment, LLM review prompts, long checklists, or
 Core handover context stays small. Detailed records live below:
 
 - `workflow/records/decisions/`
+- `workflow/records/intents/`
+- `workflow/records/work-slices/`
 - `workflow/records/pattern-proposals/`
 - `workflow/records/routing/`
 - `workflow/records/patches/`
@@ -100,6 +105,14 @@ Core handover context stays small. Detailed records live below:
 - `workflow/records/risks.md`
 
 Do not put mutable cache JSON in `workflow/records/`. Do not paste long transcripts into `current-state.md`. Link to records instead.
+
+## Work Intake
+
+Work Intake is the solo-dev traceability layer:
+
+`user intent -> lead work slice -> patch -> review -> verify -> audit -> deployment`
+
+Use `record-intent` for compact user meaning and `record-work-slice` for the lead's implementable interpretation. External trackers can be referenced with `externalRefs`, but local records stay canonical unless a future project policy explicitly changes that. Generated guide pages show the inbox, active slices, trace graph, feature catalog, and deterministic warnings.
 
 ## Handover Policy
 
@@ -137,13 +150,14 @@ npm run workflow:guide-browser-finalize
 When closing a branch, record the whole branch diff explicitly instead of relying on a small worktree patch record:
 
 ```bash
-node .codex/scripts/nexus-workflow.mjs record-patch --scope branch --summary "<branch summary>" --worker codex-lead
-node .codex/scripts/nexus-workflow.mjs record-review --scope branch --kind general --verdict pass --reviewer <name> --notes "<summary>"
-node .codex/scripts/nexus-workflow.mjs record-verify --scope branch --verdict pass --verifier <name> --commands "<timed-command-ids>" --notes "<commands/results>"
-node .codex/scripts/nexus-workflow.mjs record-audit --scope branch --verdict pass --auditor <name> --commands "<timed-command-ids>" --notes "<summary>"
+node .codex/scripts/nexus-workflow.mjs close-work-slice --slice <WORK-SLICE-id> --status done --notes "<evidence complete>"
+node .codex/scripts/nexus-workflow.mjs record-patch --scope branch --summary "<branch summary>" --worker codex-lead --work-slice <WORK-SLICE-id>
+node .codex/scripts/nexus-workflow.mjs record-review --scope branch --kind general --verdict pass --reviewer <name> --work-slice <WORK-SLICE-id> --notes "<summary>"
+node .codex/scripts/nexus-workflow.mjs record-verify --scope branch --verdict pass --verifier <name> --work-slice <WORK-SLICE-id> --commands "<timed-command-ids>" --notes "<commands/results>"
+node .codex/scripts/nexus-workflow.mjs record-audit --scope branch --verdict pass --auditor <name> --work-slice <WORK-SLICE-id> --commands "<timed-command-ids>" --notes "<summary>"
 ```
 
-If the branch touches workflow or design-system files, record the matching `workflow` or `design` branch review too. If the branch includes delegated worker patch evidence, record an `integrated` branch review as well. The release gate prints the missing branch-scope kind when a focused review is required.
+If the branch touches workflow or design-system files, record the matching `workflow` or `design` branch review too. If the branch includes delegated worker patch evidence, record an `integrated` branch review as well. The release gate prints the missing branch-scope kind when a focused review is required. Branch release also requires each work slice linked to the branch patch to be closed with a latest status of `verified`, `done`, `deferred`, or `superseded`.
 
 ## Pattern Discovery
 
