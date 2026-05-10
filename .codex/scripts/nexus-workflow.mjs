@@ -3642,6 +3642,8 @@ function workflowSelfTestChecks() {
   add('review kind policy classifies design source changes', requiredReviewKinds(['packages/web/src/platform/theme/tokens.css']).includes('design'));
   add('review kind policy classifies design policy changes', requiredReviewKinds(['.codex/workflow/policy/design.json']).includes('design'));
   add('workflow research reports participate in public guide source hash', publicGuideInputFiles().some((file) => file.startsWith('.codex/workflow/research/') && file.endsWith('.md')));
+  add('deployment records do not self-stale public guide source hash', !publicGuideInputFiles().some((file) => file.startsWith('.codex/workflow/records/deployments/')));
+  add('deployment records remain displayable guide records', GUIDE_RECORD_KINDS.includes('deployments'));
   add('cheap status gates use cached state instead of full evidence scan', cachedGatePass({ worktreeHash: 'h', verdict: 'pass' }, 'h', ['x'])
     && !cachedGatePass({ worktreeHash: 'old', verdict: 'pass' }, 'h', ['x'])
     && cachedRoutingOk({ routingId: 'ROUTING-test', status: 'completed', worktreeHash: 'old' }, 'h')

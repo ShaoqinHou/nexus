@@ -53,6 +53,16 @@ After extraction:
 - `npm run workflow:guide-check`: passed after regenerating guide artifacts.
 - `npm run workflow:zoo-visual-guide-check`: passed after regenerating visual guide artifacts.
 
+## Self-Reference Fix
+
+During deployment validation, the workflow exposed a self-referential guide-staleness loop: a deployment record proves the public guide was deployed, but if deployment records are part of the public-guide source hash, recording that proof immediately makes the guide stale.
+
+The fix is policy-level, not a one-off workaround:
+
+- deployment records are excluded from public-guide source-hash inputs in `policy/guide.json`;
+- deployment records remain in `guideKinds`, so regenerated dashboards/guides can still display deployment history;
+- the self-test asserts both sides of that contract.
+
 ## Portability Notes
 
 For the second project, start by replacing policy/profile files, not by editing the engine:

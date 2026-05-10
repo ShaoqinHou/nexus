@@ -112,7 +112,7 @@ If it fails, run `npm run workflow:health` for the diagnostic breakdown. The rel
 
 Pattern proposal, routing, patch, review, test, audit, guide-browser, and deployment records are append-only once committed. If a record is wrong, create a correction record rather than editing committed evidence. `NEXUS_RECORD_BASE=<ref>` can be used to force the base ref for append-only history checks; otherwise the kernel uses `origin/main` or `main` when present.
 
-`.codex/dashboard/index.html` and `.codex/dashboard/public.html` are generated guide artifacts and user-facing workflow surfaces. They are snapshots, not live truth. Live worktree truth comes from `npm run workflow:status`. Generated guide artifacts are governed by the dedicated guide freshness/content-hash gate and recorded browser validation; their generator, source docs, records, and workflow rules remain part of the substantive review surface.
+`.codex/dashboard/index.html` and `.codex/dashboard/public.html` are generated guide artifacts and user-facing workflow surfaces. They are snapshots, not live truth. Live worktree truth comes from `npm run workflow:status`. Generated guide artifacts are governed by the dedicated guide freshness/content-hash gate and recorded browser validation; their generator, source docs, records, and workflow rules remain part of the substantive review surface. Deployment records are displayable guide records but are not public-guide source-hash inputs, because the record proving a guide deployment would otherwise make that same guide stale.
 
 If final deployment or records create more commits after the runtime build, describe that as "branch HEAD" or link to the deployment record instead of hardcoding a final commit that the next bookkeeping commit can invalidate.
 

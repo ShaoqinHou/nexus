@@ -95,6 +95,7 @@
   ],
   "excludeSourcePatterns": [
     ".codex/workflow/records/guide-browser/",
+    ".codex/workflow/records/deployments/",
     ".codex/workflow/state/",
     ".codex/workflow/runtime/"
   ],
