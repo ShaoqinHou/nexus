@@ -4,8 +4,12 @@
     "sandbox_mode": "danger-full-access",
     "approval_policy": "never",
     "features": {
-      "codex_hooks": true,
+      "hooks": true,
       "multi_agent": true
+    },
+    "deprecatedFeatures": {
+      "codex_hooks": "hooks",
+      "enable_experimental_windows_sandbox": "experimental_windows_sandbox"
     }
   },
   "hooks": {

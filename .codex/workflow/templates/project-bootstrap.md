@@ -13,7 +13,7 @@ sandbox_mode = "danger-full-access"
 approval_policy = "never"
 
 [features]
-codex_hooks = true
+hooks = true
 multi_agent = true
 ```
 

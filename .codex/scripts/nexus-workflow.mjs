@@ -12,6 +12,9 @@ import {
   pathMatchesPattern as workflowPathMatchesPattern,
   pathMatchesPolicy,
   readJsonFile,
+  tomlBooleanInSection,
+  tomlHasKeyInSection,
+  tomlValueInSection,
 } from './workflow-engine.mjs';
 
 const START = process.cwd();
@@ -2831,16 +2834,19 @@ function commandTraceCheck(args = {}) {
   return problems.length === 0;
 }
 
-function hookConfigProblems() {
+function hookConfigProblems(configText = readText('.codex/config.toml')) {
   const problems = [];
-  const config = readText('.codex/config.toml');
+  const config = configText;
   const hooks = loadJson(join(CODEX, 'hooks.json'), {});
   const hookPolicy = POLICY.hooks || {};
   const expectedConfig = hookPolicy.config || {};
-  if (expectedConfig.sandbox_mode && !new RegExp(`^\\s*sandbox_mode\\s*=\\s*"${expectedConfig.sandbox_mode}"\\s*$`, 'm').test(config)) problems.push(`.codex/config.toml should set sandbox_mode = "${expectedConfig.sandbox_mode}" for the project Custom profile.`);
-  if (expectedConfig.approval_policy && !new RegExp(`^\\s*approval_policy\\s*=\\s*"${expectedConfig.approval_policy}"\\s*$`, 'm').test(config)) problems.push(`.codex/config.toml should set approval_policy = "${expectedConfig.approval_policy}" so Custom(config.toml) does not prompt for shell approvals.`);
+  if (expectedConfig.sandbox_mode && tomlValueInSection(config, '', 'sandbox_mode') !== `"${expectedConfig.sandbox_mode}"`) problems.push(`.codex/config.toml should set sandbox_mode = "${expectedConfig.sandbox_mode}" for the project Custom profile.`);
+  if (expectedConfig.approval_policy && tomlValueInSection(config, '', 'approval_policy') !== `"${expectedConfig.approval_policy}"`) problems.push(`.codex/config.toml should set approval_policy = "${expectedConfig.approval_policy}" so Custom(config.toml) does not prompt for shell approvals.`);
+  for (const [deprecated, replacement] of Object.entries(expectedConfig.deprecatedFeatures || {})) {
+    if (tomlHasKeyInSection(config, 'features', deprecated)) problems.push(`.codex/config.toml uses deprecated features.${deprecated}; use features.${replacement} instead.`);
+  }
   for (const [feature, expected] of Object.entries(expectedConfig.features || {})) {
-    if (expected && !new RegExp(`^\\s*${feature}\\s*=\\s*true\\s*$`, 'm').test(config)) problems.push(`.codex/config.toml should enable features.${feature} = true.`);
+    if (expected && tomlBooleanInSection(config, 'features', feature) !== true) problems.push(`.codex/config.toml should enable features.${feature} = true.`);
   }
   problems.push(...configAgentProblems(config));
   const hookMap = hooks.hooks || {};
@@ -4149,6 +4155,9 @@ function workflowSelfTestChecks() {
     && !cachedRoutingOk({ routingId: 'ROUTING-test', status: 'active', worktreeHash: 'old' }, 'h'));
   add('visual zoo source hash is content based', /^[a-f0-9]{24}$/.test(zooVisualSourceHash()));
   add('hook config pins no-prompt custom permission mode', hookConfigProblems().filter((problem) => problem.includes('approval_policy') || problem.includes('sandbox_mode')).length === 0);
+  add('hook config uses current hooks feature key', hookConfigProblems().filter((problem) => problem.includes('features.hooks')).length === 0);
+  add('hook config rejects deprecated codex_hooks feature key', hookConfigProblems(readText('.codex/config.toml').replace('hooks = true', 'codex_hooks = true')).some((problem) => problem.includes('features.codex_hooks')));
+  add('hook config rejects deprecated windows sandbox feature key', hookConfigProblems(readText('.codex/config.toml').replace('hooks = true', 'hooks = true\nenable_experimental_windows_sandbox = true')).some((problem) => problem.includes('features.enable_experimental_windows_sandbox')));
   add('hook config keeps hooks as workflow-kernel triggers', hookConfigProblems().filter((problem) => problem.includes('nexus-workflow.mjs')).length === 0);
   add('hook config validates agent config wiring', configAgentProblems().length === 0);
   add('hook config rejects missing agent config files', configAgentProblems(readText('.codex/config.toml').replace('config_file = "agents/nexus-researcher.toml"', 'config_file = "agents/missing.toml"')).some((problem) => problem.includes('missing.toml')));
@@ -4665,6 +4674,9 @@ function workflowSelfTestChecks() {
     rmSync(dir, { recursive: true, force: true });
     return threw;
   })());
+  add('workflow engine reads top-level toml values by section', tomlValueInSection('sandbox_mode = "danger-full-access"\n[features]\nhooks = true\n', '', 'sandbox_mode') === '"danger-full-access"');
+  add('workflow engine reads feature booleans by section', tomlBooleanInSection('[features]\nhooks = true\n[other]\nhooks = false\n', 'features', 'hooks') === true);
+  add('workflow engine toml key lookup is section scoped', !tomlHasKeyInSection('[other]\ncodex_hooks = true\n', 'features', 'codex_hooks'));
   add('workflow wrapper resolves repository root from workspace subdirectory', (() => {
     const script = process.argv[1] ? resolve(process.argv[1]) : join(CODEX, 'scripts', 'nexus-workflow.mjs');
     const cwd = join(ROOT, 'packages', 'web');

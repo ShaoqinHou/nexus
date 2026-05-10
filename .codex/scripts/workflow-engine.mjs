@@ -87,6 +87,42 @@ export function pathMatchesPolicy(file, policy = {}) {
   return pathMatchesAny(file, policy.include || policy.includes || []);
 }
 
+export function tomlSectionLines(text, section = '') {
+  const target = String(section || '');
+  let current = '';
+  const lines = [];
+  for (const line of String(text || '').split(/\r?\n/)) {
+    const match = line.match(/^\s*\[([^\]]+)\]\s*$/);
+    if (match) {
+      current = match[1];
+      continue;
+    }
+    if (current === target) lines.push(line);
+  }
+  return lines;
+}
+
+export function tomlValueInSection(text, section, key) {
+  const escaped = String(key || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const pattern = new RegExp(`^\\s*${escaped}\\s*=\\s*(.+?)\\s*(?:#.*)?$`);
+  for (const line of tomlSectionLines(text, section)) {
+    const match = line.match(pattern);
+    if (match) return match[1].trim();
+  }
+  return undefined;
+}
+
+export function tomlHasKeyInSection(text, section, key) {
+  return tomlValueInSection(text, section, key) !== undefined;
+}
+
+export function tomlBooleanInSection(text, section, key) {
+  const value = tomlValueInSection(text, section, key);
+  if (value === 'true') return true;
+  if (value === 'false') return false;
+  return undefined;
+}
+
 function relativeProjectPath(root, path) {
   return path.replace(root, '').replace(/^[/\\]/, '').replaceAll('\\', '/');
 }

@@ -4,7 +4,7 @@ Hooks are guardrails, not the workflow brain. They must stay small and understan
 
 ## Current Hook Setup
 
-- `.codex/config.toml` enables `features.codex_hooks = true`.
+- `.codex/config.toml` enables `features.hooks = true`.
 - `.codex/config.toml` also pins `sandbox_mode = "danger-full-access"` and `approval_policy = "never"` so choosing `Custom (config.toml)` keeps the same no-prompt shell posture as Full access while adding project config.
 - `.codex/hooks.json` wires lifecycle events to `.codex/scripts/nexus-workflow.mjs`.
 - `workflow:hook-config-check` verifies exact hook commands and matchers, so a hook cannot silently stop firing by changing `Bash`, `apply_patch`, `Edit`, `Write`, or session match patterns.
@@ -29,7 +29,7 @@ Current Codex behavior checked on 2026-05-09:
 - User config lives in `~/.codex/config.toml`.
 - Project-scoped overrides can live in `<repo>/.codex/config.toml`.
 - Codex loads project-scoped config and project-local hooks only when the project is trusted.
-- Hooks need `features.codex_hooks = true`.
+- Hooks need `features.hooks = true`. `features.codex_hooks` is a deprecated alias and `workflow:hook-config-check` rejects it so the project config stays current with Codex.
 - Runtime permission mode such as Full access controls what this session may do; it does not prove future sessions will trust project hooks.
 
 `Full access` is the simplest no-prompt mode, but it can bypass project config if the app is not using the repo config. `Custom (config.toml)` should also avoid permission prompts in this project because the repo config sets `sandbox_mode = "danger-full-access"` and `approval_policy = "never"`. Custom is the better Nexus default when the project is trusted because it combines no-prompt execution with project hooks, agents, and feature toggles.

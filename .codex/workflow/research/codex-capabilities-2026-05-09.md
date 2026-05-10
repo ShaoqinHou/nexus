@@ -24,7 +24,7 @@ Sources:
 - Subagents inherit current sandbox/approval runtime overrides, so agent config is guidance plus defaults rather than an absolute security boundary.
 - Repo skills live under `.agents/skills`; skills use progressive disclosure and are a good fit for reusable workflows.
 - Hooks can run on `SessionStart`, `PreToolUse`, `PostToolUse`, `UserPromptSubmit`, and `Stop`.
-- Codex hooks are behind `features.codex_hooks = true`.
+- Codex hooks were initially checked behind `features.codex_hooks = true`. On 2026-05-10 the Codex app warned that this key is deprecated; Nexus now uses `features.hooks = true` and rejects the deprecated alias in `workflow:hook-config-check`.
 - Hooks can inject context, warn, deny some tool use, or continue a stopped turn.
 - Hook interception is useful but incomplete and should be treated as a guardrail, not the only enforcement boundary.
 - `/review` exists in Codex CLI, but project-specific review still needs standards-aware prompts, agents, and record keeping.
