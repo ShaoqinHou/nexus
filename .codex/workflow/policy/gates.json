@@ -1,0 +1,9 @@
+{
+  "schema": "codex-workflow-gates-policy/v1",
+  "canonicalLadder": [
+    "workflow:status",
+    "workflow:health",
+    "workflow:release-gate",
+    "workflow:deployed-gate"
+  ]
+}

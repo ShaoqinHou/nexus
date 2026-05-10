@@ -1,0 +1,60 @@
+{
+  "schema": "codex-workflow-records-policy/v1",
+  "kinds": [
+    "decisions",
+    "pattern-proposals",
+    "routing",
+    "patches",
+    "reviews",
+    "tests",
+    "audits",
+    "guide-browser",
+    "deployments"
+  ],
+  "evidenceKinds": [
+    "pattern-proposals",
+    "routing",
+    "patches",
+    "reviews",
+    "tests",
+    "audits",
+    "guide-browser",
+    "deployments"
+  ],
+  "guideKinds": [
+    "decisions",
+    "pattern-proposals",
+    "routing",
+    "patches",
+    "reviews",
+    "tests",
+    "audits",
+    "deployments"
+  ],
+  "schemaByKind": {
+    "decisions": "nexus-decision/v1",
+    "deployments": "nexus-deployment/v1",
+    "guide-browser": "nexus-guide-browser/v1",
+    "patches": "nexus-patch/v1",
+    "pattern-proposals": "nexus-pattern-proposal/v1",
+    "routing": "nexus-routing/v1",
+    "reviews": "nexus-review/v1",
+    "tests": "nexus-test/v1",
+    "audits": "nexus-audit/v1"
+  },
+  "legacySchemaByKind": {
+    "patches": [
+      "nexus-patche/v1"
+    ]
+  },
+  "legacySchemaRecords": [
+    ".codex/workflow/records/patches/PATCH-20260508T170713Z-design-system-toast-semantic-parity.md",
+    ".codex/workflow/records/patches/PATCH-20260508T174121Z-codex-native-workflow-migration-claude-workflow-.md",
+    ".codex/workflow/records/patches/PATCH-20260508T174348Z-refresh-compact-workflow-state-and-dashboard-aft.md",
+    ".codex/workflow/records/patches/PATCH-20260508T175045Z-record-deployment-evidence-and-update-workflow-h.md",
+    ".codex/workflow/records/patches/PATCH-20260509T013840Z-correct-final-handover-state-after-server-pull.md",
+    ".codex/workflow/records/patches/PATCH-20260509T014004Z-make-final-server-head-handover-wording-stable.md",
+    ".codex/workflow/records/patches/PATCH-20260509T020234Z-harden-handover-workflow-model-routing-hooks-gui.md",
+    ".codex/workflow/records/patches/PATCH-20260509T020903Z-record-public-guide-deployment-evidence.md"
+  ]
+}

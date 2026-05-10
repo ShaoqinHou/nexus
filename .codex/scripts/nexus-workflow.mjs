@@ -5,10 +5,14 @@ import { dirname, join, resolve, relative } from 'node:path';
 import { platform, tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
+import { loadCodexWorkflow, pathMatchesPattern as workflowPathMatchesPattern, pathMatchesPolicy } from './workflow-engine.mjs';
 
 const START = process.cwd();
 const ROOT = findRoot(START);
 const CODEX = join(ROOT, '.codex');
+const WORKFLOW = loadCodexWorkflow(ROOT);
+const PROFILE = WORKFLOW.profile || {};
+const POLICY = WORKFLOW.policy || {};
 const RECORDS = join(CODEX, 'workflow', 'records');
 const STATE_DIR = join(CODEX, 'workflow', 'state');
 const RUNTIME_DIR = join(CODEX, 'workflow', 'runtime');
@@ -17,43 +21,22 @@ const VERIFY_STATE_FILE = join(STATE_DIR, 'verify-state.json');
 const AUDIT_STATE_FILE = join(STATE_DIR, 'audit-state.json');
 const PATCH_STATE_FILE = join(STATE_DIR, 'patch-state.json');
 const GUIDE_BROWSER_STATE_FILE = join(STATE_DIR, 'guide-browser-state.json');
-const DASHBOARD_DIR = join(CODEX, 'dashboard');
-const ZOO_GUIDE_DIR = join(DASHBOARD_DIR, 'zoo');
-const ZOO_GUIDE_MANIFEST = join(ZOO_GUIDE_DIR, 'manifest.json');
-const ROUTING_SCENARIOS_FILE = join(CODEX, 'workflow', 'scenarios', 'model-routing.json');
+const DASHBOARD_DIR = resolveProjectPath(PROFILE.paths?.dashboardDir || '.codex/dashboard');
+const ZOO_GUIDE_DIR = resolveProjectPath(PROFILE.paths?.zooGuideDir || '.codex/dashboard/zoo');
+const ZOO_GUIDE_MANIFEST = resolveProjectPath(PROFILE.paths?.zooGuideManifest || '.codex/dashboard/zoo/manifest.json');
+const ROUTING_SCENARIOS_FILE = resolveProjectPath(POLICY.routing?.scenarioFile || PROFILE.paths?.routingScenarios || '.codex/workflow/scenarios/model-routing.json');
 const ROUTING_STATE_FILE = join(STATE_DIR, 'routing-state.json');
 const COMMAND_RUNS_FILE = join(RUNTIME_DIR, 'command-runs.jsonl');
-const PUBLIC_GUIDE_URL = 'https://cv.rehou.games/nexus/workflow/';
-const PUBLIC_GUIDE_VERSION = 'nexus-public-workflow-guide/v2';
-const ZOO_VISUAL_GUIDE_VERSION = 'nexus-design-zoo-visual-guide/v1';
-const PUBLIC_GUIDE_CONTENT_HASH_PLACEHOLDER = '__NEXUS_GUIDE_CONTENT_HASH__';
-const RECORD_KINDS = ['decisions', 'pattern-proposals', 'routing', 'patches', 'reviews', 'tests', 'audits', 'guide-browser', 'deployments'];
-const EVIDENCE_RECORD_KINDS = ['pattern-proposals', 'routing', 'patches', 'reviews', 'tests', 'audits', 'guide-browser', 'deployments'];
-const GUIDE_RECORD_KINDS = RECORD_KINDS.filter((kind) => kind !== 'guide-browser');
-const SCHEMA_BY_KIND = {
-  decisions: 'nexus-decision/v1',
-  deployments: 'nexus-deployment/v1',
-  'guide-browser': 'nexus-guide-browser/v1',
-  patches: 'nexus-patch/v1',
-  'pattern-proposals': 'nexus-pattern-proposal/v1',
-  routing: 'nexus-routing/v1',
-  reviews: 'nexus-review/v1',
-  tests: 'nexus-test/v1',
-  audits: 'nexus-audit/v1',
-};
-const LEGACY_SCHEMA_BY_KIND = {
-  patches: ['nexus-patche/v1'],
-};
-const LEGACY_SCHEMA_RECORDS = new Set([
-  '.codex/workflow/records/patches/PATCH-20260508T170713Z-design-system-toast-semantic-parity.md',
-  '.codex/workflow/records/patches/PATCH-20260508T174121Z-codex-native-workflow-migration-claude-workflow-.md',
-  '.codex/workflow/records/patches/PATCH-20260508T174348Z-refresh-compact-workflow-state-and-dashboard-aft.md',
-  '.codex/workflow/records/patches/PATCH-20260508T175045Z-record-deployment-evidence-and-update-workflow-h.md',
-  '.codex/workflow/records/patches/PATCH-20260509T013840Z-correct-final-handover-state-after-server-pull.md',
-  '.codex/workflow/records/patches/PATCH-20260509T014004Z-make-final-server-head-handover-wording-stable.md',
-  '.codex/workflow/records/patches/PATCH-20260509T020234Z-harden-handover-workflow-model-routing-hooks-gui.md',
-  '.codex/workflow/records/patches/PATCH-20260509T020903Z-record-public-guide-deployment-evidence.md',
-]);
+const PUBLIC_GUIDE_URL = POLICY.deployment?.publicGuideUrl || 'https://cv.rehou.games/nexus/workflow/';
+const PUBLIC_GUIDE_VERSION = POLICY.guide?.version || 'nexus-public-workflow-guide/v2';
+const ZOO_VISUAL_GUIDE_VERSION = POLICY.design?.zooVisualGuideVersion || 'nexus-design-zoo-visual-guide/v1';
+const PUBLIC_GUIDE_CONTENT_HASH_PLACEHOLDER = POLICY.guide?.contentHashPlaceholder || '__NEXUS_GUIDE_CONTENT_HASH__';
+const RECORD_KINDS = POLICY.records?.kinds || ['decisions', 'pattern-proposals', 'routing', 'patches', 'reviews', 'tests', 'audits', 'guide-browser', 'deployments'];
+const EVIDENCE_RECORD_KINDS = POLICY.records?.evidenceKinds || RECORD_KINDS.filter((kind) => kind !== 'decisions');
+const GUIDE_RECORD_KINDS = POLICY.records?.guideKinds || RECORD_KINDS.filter((kind) => kind !== 'guide-browser');
+const SCHEMA_BY_KIND = POLICY.records?.schemaByKind || {};
+const LEGACY_SCHEMA_BY_KIND = POLICY.records?.legacySchemaByKind || {};
+const LEGACY_SCHEMA_RECORDS = new Set(POLICY.records?.legacySchemaRecords || []);
 
 function findRoot(start) {
   let dir = resolve(start);
@@ -66,6 +49,10 @@ function findRoot(start) {
 
 function ensureDir(path) {
   mkdirSync(path, { recursive: true });
+}
+
+function resolveProjectPath(path) {
+  return resolve(ROOT, path || '.');
 }
 
 function readStdin() {
@@ -146,119 +133,35 @@ function substantiveFiles(files = changedFiles()) {
   return files.filter((file) => {
     const f = file.replaceAll('\\', '/');
     if (RECORD_KINDS.some((kind) => f.startsWith(`.codex/workflow/records/${kind}/`)) && f !== '.codex/workflow/records/risks.md') return false;
-    if (f.startsWith('.codex/archive/')) return false;
-    return (
-      f.startsWith('packages/') ||
-      f.startsWith('scripts/') ||
-      f === 'package.json' ||
-      f === 'package-lock.json' ||
-      f === 'tsconfig.json' ||
-      f === 'AGENTS.md' ||
-      f === 'WORKFLOW.md' ||
-      f === '.codex/README.md' ||
-      f === '.codex/config.toml' ||
-      f.startsWith('.github/workflows/') ||
-      f.startsWith('.agents/skills/') ||
-      f.startsWith('.codex/agents/') ||
-      f.startsWith('.codex/hooks') ||
-      f.startsWith('.codex/scripts/') ||
-      f.startsWith('.codex/knowledge/') ||
-      f.startsWith('.codex/workflow/current-state.md') ||
-      f === '.codex/workflow/state/.gitignore' ||
-      f === '.codex/workflow/runtime/.gitignore' ||
-      f === '.codex/workflow/dependency-audit-baseline.json' ||
-      f.startsWith('.codex/workflow/scenarios/') ||
-      f.startsWith('.codex/workflow/templates/') ||
-      f.startsWith('.codex/workflow/research/')
-    );
+    return pathMatchesPolicy(f, POLICY.files?.classifiers?.substantive || []);
   });
 }
 
 function verificationRelevantFiles(files = changedFiles()) {
   return substantiveFiles(files).filter((file) => {
     const f = file.replaceAll('\\', '/');
-    return (
-      f.startsWith('packages/web/src/') ||
-      f.startsWith('packages/api/src/') ||
-      f.startsWith('packages/web/tests/') ||
-      f.startsWith('packages/api/src/modules/') ||
-      f.startsWith('design/reference/') ||
-      f.startsWith('.agents/skills/') ||
-      f.startsWith('.codex/agents/') ||
-      f.startsWith('.codex/hooks') ||
-      f.startsWith('.codex/scripts/') ||
-      f.startsWith('.codex/knowledge/') ||
-      f.startsWith('.codex/workflow/current-state.md') ||
-      f === '.codex/workflow/dependency-audit-baseline.json' ||
-      f.startsWith('.codex/workflow/scenarios/') ||
-      f.startsWith('.codex/workflow/templates/') ||
-      f.startsWith('.codex/workflow/research/') ||
-      f === 'AGENTS.md' ||
-      f === 'WORKFLOW.md' ||
-      f === '.codex/README.md' ||
-      f === '.codex/config.toml' ||
-      f.startsWith('.github/workflows/') ||
-      f === 'package.json' ||
-      f === 'package-lock.json'
-    );
+    return pathMatchesPolicy(f, POLICY.files?.classifiers?.verification || []);
   });
 }
 
 function auditRelevantFiles(files = changedFiles()) {
   return substantiveFiles(files).filter((file) => {
     const f = file.replaceAll('\\', '/');
-    return (
-      f.startsWith('packages/api/src/modules/') ||
-      f.startsWith('packages/web/src/apps/') ||
-      f.startsWith('packages/web/src/components/') ||
-      f.startsWith('packages/web/src/platform/') ||
-      f.startsWith('packages/web/src/routes/') ||
-      f.startsWith('.codex/') ||
-      f.startsWith('.agents/') ||
-      f.startsWith('.github/workflows/') ||
-      f.startsWith('scripts/') ||
-      f === 'AGENTS.md' ||
-      f === 'WORKFLOW.md' ||
-      f === 'package.json' ||
-      f === 'package-lock.json'
-    );
+    return pathMatchesPolicy(f, POLICY.files?.classifiers?.audit || []);
   });
 }
 
 function guideRelevantFiles(files = changedFiles()) {
   return files.filter((file) => {
     const f = file.replaceAll('\\', '/');
-    if (f.startsWith('.codex/workflow/state/') || f.startsWith('.codex/workflow/runtime/')) return false;
-    if (f.startsWith('.codex/workflow/records/guide-browser/')) return false;
-    return (
-      f === 'AGENTS.md' ||
-      f === 'WORKFLOW.md' ||
-      f === 'package.json' ||
-      f.startsWith('.agents/skills/') ||
-      f.startsWith('.codex/dashboard/') ||
-      f.startsWith('.codex/') ||
-      f.startsWith('.github/workflows/')
-    );
+    return pathMatchesPolicy(f, POLICY.files?.classifiers?.guide || []);
   });
 }
 
 function zooVisualRelevantFiles(files = changedFiles()) {
   return files.filter((file) => {
     const f = file.replaceAll('\\', '/');
-    if (f.startsWith('.codex/workflow/state/') || f.startsWith('.codex/workflow/runtime/')) return false;
-    return (
-      f.startsWith('packages/web/src/components/') ||
-      f.startsWith('packages/web/src/platform/theme/') ||
-      f.startsWith('packages/web/src/routes/__design/') ||
-      f === 'packages/web/src/routeTree.tsx' ||
-      f === 'packages/web/src/components/registry.json' ||
-      f.startsWith('design/') ||
-      f === '.codex/knowledge/design-system.md' ||
-      f.startsWith('.codex/dashboard/zoo/') ||
-      f === '.codex/scripts/capture-design-zoo-visuals.mjs' ||
-      f === '.codex/scripts/validate-design-zoo.mjs' ||
-      f === '.codex/scripts/check-production-zoo-bundle.mjs'
-    );
+    return pathMatchesPolicy(f, POLICY.files?.classifiers?.zooVisual || []);
   });
 }
 
@@ -858,13 +761,7 @@ function routeFilesFromArgs(args) {
 }
 
 function fileMatchesPattern(file, pattern) {
-  const f = file.replaceAll('\\', '/');
-  const p = String(pattern || '').replaceAll('\\', '/');
-  if (!p) return false;
-  if (p.endsWith('/')) return f.startsWith(p);
-  if (!p.includes('*')) return f === p || f.startsWith(`${p}/`);
-  const escaped = p.replace(/[.+^${}()|[\]\\]/g, '\\$&').replaceAll('**', '.*').replaceAll('*', '[^/]*');
-  return new RegExp(`^${escaped}$`).test(f);
+  return workflowPathMatchesPattern(file, pattern);
 }
 
 function routingScopeProblems(files = substantiveFiles()) {
@@ -875,7 +772,8 @@ function routingScopeProblems(files = substantiveFiles()) {
 
 function isLeadWorker(worker) {
   const value = String(worker || '').trim().toLowerCase();
-  return !value || ['codex', 'codex-lead', 'lead', 'workflow', 'codex-hook'].includes(value);
+  const leadAliases = POLICY.routing?.leadAliases || ['codex', 'codex-lead', 'lead', 'workflow', 'codex-hook'];
+  return !value || leadAliases.includes(value);
 }
 
 function canonicalWorker(worker) {
@@ -1104,34 +1002,12 @@ function commandRoutingCheck({ quiet = false } = {}) {
 
 function requiredReviewKinds(files = substantiveFiles(), options = {}) {
   const kinds = new Set();
-  if (files.length) kinds.add('general');
-  const designRelevant = files.some((file) => {
-    const f = file.replaceAll('\\', '/');
-    return f.startsWith('packages/web/src/components/')
-      || f.startsWith('packages/web/src/platform/theme/')
-      || f.startsWith('packages/web/src/routes/__design/')
-      || f === 'packages/web/src/routeTree.tsx'
-      || f === 'packages/web/src/components/registry.json'
-      || f.startsWith('design/')
-      || f.startsWith('.codex/dashboard/')
-      || f === '.codex/knowledge/design-system.md'
-      || f === '.codex/scripts/capture-design-zoo-visuals.mjs'
-      || f === '.codex/scripts/validate-design-zoo.mjs'
-      || f === '.codex/scripts/check-production-zoo-bundle.mjs';
-  });
-  if (designRelevant) kinds.add('design');
-  const workflowRelevant = files.some((file) => {
-    const f = file.replaceAll('\\', '/');
-    return f === 'AGENTS.md'
-      || f === 'WORKFLOW.md'
-      || f === 'package.json'
-      || f === 'package-lock.json'
-      || f.startsWith('scripts/')
-      || f.startsWith('.github/workflows/')
-      || f.startsWith('.codex/')
-      || f.startsWith('.agents/skills/');
-  });
-  if (workflowRelevant) kinds.add('workflow');
+  const reviewPolicy = POLICY.files?.reviewKinds || {};
+  if (files.length && reviewPolicy.general?.whenSubstantive !== false) kinds.add('general');
+  for (const [kind, policy] of Object.entries(reviewPolicy)) {
+    if (kind === 'general') continue;
+    if (files.some((file) => pathMatchesPolicy(file.replaceAll('\\', '/'), policy))) kinds.add(kind);
+  }
   const patchState = options.patchState === undefined ? loadJson(PATCH_STATE_FILE, {}) : options.patchState;
   if (options.integrated !== false && requiresIntegratedReview(patchState)) kinds.add('integrated');
   return [...kinds];
@@ -1222,9 +1098,11 @@ function recordHasAuditPass(hash) {
 }
 
 function zooRegistryProblems() {
-  const registry = loadJson(join(ROOT, 'packages', 'web', 'src', 'components', 'registry.json'), { primitives: [], patterns: [] });
+  const registryPath = POLICY.design?.registryPath || 'packages/web/src/components/registry.json';
+  const zooRoutePath = POLICY.design?.zooRoutePath || 'packages/web/src/routes/__design/Zoo.tsx';
+  const registry = loadJson(join(ROOT, registryPath), { primitives: [], patterns: [] });
   const entries = [...(registry.primitives || []), ...(registry.patterns || [])];
-  const zooText = readText('packages/web/src/routes/__design/Zoo.tsx');
+  const zooText = readText(zooRoutePath);
   const problems = [];
   for (const entry of entries) {
     if (!entry.path || !existsSync(join(ROOT, entry.path))) problems.push(`Registry entry ${entry.name || '(unnamed)'} points to missing file ${entry.path || '(missing path)'}.`);
@@ -1247,14 +1125,18 @@ function slugFromZooRoute(route) {
 }
 
 function zooVisualEntries() {
-  const registry = loadJson(join(ROOT, 'packages', 'web', 'src', 'components', 'registry.json'), { primitives: [], patterns: [], tokens: {} });
+  const registryPath = POLICY.design?.registryPath || 'packages/web/src/components/registry.json';
+  const zooRoutePath = POLICY.design?.zooRoutePath || 'packages/web/src/routes/__design/Zoo.tsx';
+  const tokenPath = POLICY.design?.tokenSource?.file || 'packages/web/src/platform/theme/tokens.css';
+  const themeMatrixPath = POLICY.design?.themeMatrixPath || 'packages/web/src/platform/theme/themes.css';
+  const registry = loadJson(join(ROOT, registryPath), { primitives: [], patterns: [], tokens: {} });
   const foundations = [
     {
       slug: 'index',
       title: 'Zoo Index',
       kind: 'foundation',
       route: '/design',
-      path: 'packages/web/src/routes/__design/Zoo.tsx',
+      path: zooRoutePath,
       purpose: 'Entry page for the live component catalog.',
     },
     {
@@ -1262,7 +1144,7 @@ function zooVisualEntries() {
       title: 'Token Foundations',
       kind: 'foundation',
       route: '/design/tokens',
-      path: 'packages/web/src/platform/theme/tokens.css',
+      path: tokenPath,
       purpose: 'Production token swatches for colors, radii, shadows, and hit targets.',
     },
     {
@@ -1270,7 +1152,7 @@ function zooVisualEntries() {
       title: 'Theme Matrix',
       kind: 'foundation',
       route: '/design/themes',
-      path: 'packages/web/src/platform/theme/themes.css',
+      path: themeMatrixPath,
       purpose: 'All cuisine themes rendered side by side from real components.',
     },
   ];
@@ -1294,17 +1176,18 @@ function zooVisualEntries() {
 function zooVisualInputFiles() {
   const entries = zooVisualEntries();
   const registrySourceFiles = entries.flatMap((entry) => [entry.path, entry.spriteAsset]).filter(Boolean);
+  const designPolicy = POLICY.design || {};
+  const policyFiles = [...(designPolicy.visualSourceFiles || []), ...registrySourceFiles];
+  const policyDirFiles = (designPolicy.visualSourceDirectories || [])
+    .flatMap((entry) => {
+      const dir = typeof entry === 'string' ? entry : entry.path;
+      const maxDepth = typeof entry === 'string' ? 8 : Number(entry.maxDepth || 8);
+      const limit = typeof entry === 'string' ? 600 : Number(entry.limit || 600);
+      return listFilesUnder(dir, maxDepth, limit);
+    });
   return uniqueExisting([
-    '.codex/scripts/nexus-workflow.mjs',
-    '.codex/scripts/capture-design-zoo-visuals.mjs',
-    '.codex/knowledge/design-system.md',
-    'packages/web/src/components/registry.json',
-    ...registrySourceFiles,
-    ...listFilesUnder('packages/web/src/components', 8, 300),
-    'packages/web/src/routes/__design/Zoo.tsx',
-    'packages/web/src/platform/theme/tokens.css',
-    'packages/web/src/platform/theme/themes.css',
-    ...listFilesUnder('packages/web/src/platform/theme/themes', 2, 64),
+    ...policyFiles,
+    ...policyDirFiles,
   ]);
 }
 
@@ -1502,46 +1385,16 @@ function listFilesUnder(relPath, maxDepth = 2, limit = 20) {
 }
 
 function publicGuideInputFiles() {
-  const files = new Set([
-    'AGENTS.md',
-    'WORKFLOW.md',
-    'package.json',
-    '.codex/README.md',
-    '.codex/config.toml',
-    '.codex/workflow/dependency-audit-baseline.json',
-    '.codex/scripts/audit-deps.mjs',
-    '.codex/scripts/check-public-guide-images.mjs',
-    '.codex/scripts/check-production-zoo-bundle.mjs',
-    '.codex/scripts/nexus-workflow.mjs',
-    '.codex/scripts/capture-design-zoo-visuals.mjs',
-    '.codex/knowledge/design-system.md',
-    '.codex/knowledge/deployment.md',
-    '.codex/knowledge/hooks.md',
-    '.codex/knowledge/model-routing.md',
-    '.codex/knowledge/patterns.md',
-    '.codex/knowledge/verification.md',
-    '.codex/workflow/current-state.md',
-    '.codex/workflow/records/risks.md',
-    'packages/web/src/components/registry.json',
-    'packages/web/src/routes/__design/Zoo.tsx',
-  ]);
-  for (const dir of [
-    '.agents/skills',
-    '.codex/agents',
-    '.codex/workflow/research',
-    '.codex/workflow/records',
-    '.codex/workflow/scenarios',
-    '.codex/workflow/templates',
-    '.github/workflows',
-    'packages/web/src/platform/theme',
-    'packages/web/src/routes',
-  ]) {
-    for (const file of listFilesUnder(dir, 8, 600)) files.add(file);
+  const guidePolicy = POLICY.guide || {};
+  const files = new Set(guidePolicy.sourceFiles || []);
+  for (const entry of guidePolicy.sourceDirectories || []) {
+    const dir = typeof entry === 'string' ? entry : entry.path;
+    const maxDepth = typeof entry === 'string' ? 8 : Number(entry.maxDepth || 8);
+    const limit = typeof entry === 'string' ? 600 : Number(entry.limit || 600);
+    for (const file of listFilesUnder(dir, maxDepth, limit)) files.add(file);
   }
   for (const file of [...files]) {
-    if (file.startsWith('.codex/workflow/records/guide-browser/')) files.delete(file);
-    if (file.startsWith('.codex/workflow/state/')) files.delete(file);
-    if (file.startsWith('.codex/workflow/runtime/')) files.delete(file);
+    if ((guidePolicy.excludeSourcePatterns || []).some((pattern) => workflowPathMatchesPattern(file, pattern))) files.delete(file);
   }
   return [...files]
     .filter((file) => existsSync(join(ROOT, file)) && statSync(join(ROOT, file)).isFile())
@@ -1568,34 +1421,13 @@ function cssDeclarationValue(block, name) {
 }
 
 function productionGuideTokenCss() {
-  const text = readText('packages/web/src/platform/theme/tokens.css');
+  const tokenPolicy = POLICY.design?.tokenSource || {};
+  const text = readText(tokenPolicy.file || 'packages/web/src/platform/theme/tokens.css');
   const block = text.match(/:root\s*{([\s\S]*?)\n}/)?.[1] || '';
-  const required = [
-    '--color-bg-surface',
-    '--color-bg-muted',
-    '--color-bg-elevated',
-    '--color-bg-strong',
-    '--color-text',
-    '--color-text-secondary',
-    '--color-text-inverse',
-    '--color-border',
-    '--color-primary',
-    '--color-primary-light',
-    '--color-danger',
-    '--color-accent',
-    '--radius-md',
-    '--radius-lg',
-    '--radius-full',
-    '--radius-card',
-    '--radius-btn',
-    '--radius-chip',
-    '--hit-sm',
-    '--hit-md',
-    '--hit-lg',
-  ];
+  const required = tokenPolicy.publicGuideTokens || [];
   return required.map((name) => {
     const value = cssDeclarationValue(block, name);
-    if (!value) throw new Error(`Missing production token ${name} in packages/web/src/platform/theme/tokens.css`);
+    if (!value) throw new Error(`Missing production token ${name} in ${tokenPolicy.file || 'packages/web/src/platform/theme/tokens.css'}`);
     return `${name}: ${value};`;
   }).join('\n      ');
 }
@@ -1625,40 +1457,23 @@ function guideContentHashOk(html) {
 }
 
 function guideViewContractProblems(html, label = 'guide') {
-  const requiredStrings = [
-    'Workflow System Nodes',
-    'Codex Workflow Nodes',
-    '.codex/workflow/records',
-    'Project Structure',
-    'Repository Nodes',
-    'Web App Nodes',
-    'Design System / Zoo / Docs',
-    'Design-System Nodes',
-    'Design-System Flow',
-    'Design Zoo/Gym coverage',
-    'Visual Zoo/Gym Guide',
-    'Design And Workflow Documents',
-    'packages/web/src/components/registry.json',
-    'packages/web/src/routes/__design/Zoo.tsx',
-    'How Future Sessions Resume',
-    'Model Routing Examples',
-    'spark-narrow-toast-warning',
-    'strong-theme-cascade-body-portal',
-    'escalate-spark-timebox-stalled',
-    'Workflow Event Timeline',
-  ];
+  const contract = POLICY.guide?.viewContract || {};
+  const requiredStrings = contract.requiredStrings || [];
   const problems = [];
   for (const required of requiredStrings) {
     if (!html.includes(required)) problems.push(`${label} is missing guide view contract item: ${required}`);
   }
-  const recordCategoryCount = (html.match(/<h3>(Workflow|Validation|Knowledge|Agent Routing|Deployment)<\/h3>/g) || []).length;
-  if (recordCategoryCount < 3) problems.push(`${label} event timeline is missing multiple workflow record categories.`);
+  const headings = contract.timelineCategoryHeadings || ['Workflow', 'Validation', 'Knowledge', 'Agent Routing', 'Deployment'];
+  const recordCategoryCount = headings
+    .map((heading) => html.includes(`<h3>${escapeHtml(heading)}</h3>`) ? 1 : 0)
+    .reduce((sum, value) => sum + value, 0);
+  if (recordCategoryCount < Number(contract.minTimelineCategories || 3)) problems.push(`${label} event timeline is missing multiple workflow record categories.`);
   return problems;
 }
 
 function guideArtifactHash() {
   const payload = {};
-  for (const name of ['index.html', 'public.html', 'zoo/index.html', 'zoo/manifest.json']) {
+  for (const name of POLICY.guide?.artifacts || ['index.html', 'public.html', 'zoo/index.html', 'zoo/manifest.json']) {
     const path = join(DASHBOARD_DIR, name);
     payload[name] = existsSync(path) ? createHash('sha256').update(readFileSync(path)).digest('hex') : 'missing';
   }
@@ -2584,27 +2399,21 @@ function hookConfigProblems() {
   const problems = [];
   const config = readText('.codex/config.toml');
   const hooks = loadJson(join(CODEX, 'hooks.json'), {});
-  if (!/^\s*sandbox_mode\s*=\s*"danger-full-access"\s*$/m.test(config)) problems.push('.codex/config.toml should set sandbox_mode = "danger-full-access" for the project Custom profile.');
-  if (!/^\s*approval_policy\s*=\s*"never"\s*$/m.test(config)) problems.push('.codex/config.toml should set approval_policy = "never" so Custom(config.toml) does not prompt for shell approvals.');
-  if (!/^\s*codex_hooks\s*=\s*true\s*$/m.test(config)) problems.push('.codex/config.toml should enable features.codex_hooks = true.');
-  if (!/^\s*multi_agent\s*=\s*true\s*$/m.test(config)) problems.push('.codex/config.toml should enable features.multi_agent = true.');
+  const hookPolicy = POLICY.hooks || {};
+  const expectedConfig = hookPolicy.config || {};
+  if (expectedConfig.sandbox_mode && !new RegExp(`^\\s*sandbox_mode\\s*=\\s*"${expectedConfig.sandbox_mode}"\\s*$`, 'm').test(config)) problems.push(`.codex/config.toml should set sandbox_mode = "${expectedConfig.sandbox_mode}" for the project Custom profile.`);
+  if (expectedConfig.approval_policy && !new RegExp(`^\\s*approval_policy\\s*=\\s*"${expectedConfig.approval_policy}"\\s*$`, 'm').test(config)) problems.push(`.codex/config.toml should set approval_policy = "${expectedConfig.approval_policy}" so Custom(config.toml) does not prompt for shell approvals.`);
+  for (const [feature, expected] of Object.entries(expectedConfig.features || {})) {
+    if (expected && !new RegExp(`^\\s*${feature}\\s*=\\s*true\\s*$`, 'm').test(config)) problems.push(`.codex/config.toml should enable features.${feature} = true.`);
+  }
   const hookMap = hooks.hooks || {};
-  const expectedCommands = {
-    SessionStart: 'node .codex/scripts/run-hook.mjs session-start',
-    PreToolUse: 'node .codex/scripts/run-hook.mjs pre-tool-use',
-    PostToolUse: 'node .codex/scripts/run-hook.mjs post-tool-use',
-    Stop: 'node .codex/scripts/run-hook.mjs stop',
-  };
-  const expectedMatchers = {
-    SessionStart: 'startup|resume',
-    PreToolUse: 'Bash',
-    PostToolUse: 'Bash|apply_patch|Edit|Write',
-  };
-  for (const event of Object.keys(expectedCommands)) {
+  const expectedHooks = hookPolicy.hooks || {};
+  for (const event of Object.keys(expectedHooks)) {
+    const expected = expectedHooks[event] || {};
     if (!Array.isArray(hookMap[event]) || hookMap[event].length === 0) problems.push(`.codex/hooks.json is missing ${event} hook entries.`);
     for (const entry of hookMap[event] || []) {
-      if (Object.hasOwn(expectedMatchers, event) && entry.matcher !== expectedMatchers[event]) {
-        problems.push(`${event} matcher must be exactly "${expectedMatchers[event]}".`);
+      if (Object.hasOwn(expected, 'matcher') && entry.matcher !== expected.matcher) {
+        problems.push(`${event} matcher must be exactly "${expected.matcher}".`);
       }
       if (event === 'Stop' && Object.hasOwn(entry, 'matcher')) problems.push('Stop hook should not define a matcher.');
     }
@@ -2612,9 +2421,9 @@ function hookConfigProblems() {
     if (eventHooks.length !== 1) problems.push(`${event} should have exactly one thin command hook.`);
     for (const hook of eventHooks) {
       if (hook.type !== 'command') problems.push(`${event} hook must be type=command.`);
-      if (hook.command !== expectedCommands[event]) problems.push(`${event} hook command must be exactly "${expectedCommands[event]}".`);
+      if (hook.command !== expected.command) problems.push(`${event} hook command must be exactly "${expected.command}".`);
       if (String(hook.command || '').includes('-e') || /[;&|]/.test(String(hook.command || ''))) problems.push(`${event} hook command contains inline shell logic; use run-hook.mjs only.`);
-      if (Number(hook.timeout || 0) > 30) problems.push(`${event} hook timeout should stay at or below 30 seconds.`);
+      if (Number(hook.timeout || 0) > Number(expected.timeoutMaxSeconds || 30)) problems.push(`${event} hook timeout should stay at or below ${expected.timeoutMaxSeconds || 30} seconds.`);
     }
   }
   return problems;
@@ -2909,7 +2718,7 @@ function commandStatus({ health = false } = {}) {
     worktreeHash: currentHash,
     branch,
   });
-  console.log(`Nexus Codex workflow ${health ? 'health' : 'status'}`);
+  console.log(`${PROFILE.displayName || 'Codex'} workflow ${health ? 'health' : 'status'}`);
   console.log(`root: ${ROOT}`);
   console.log(`branch: ${branch}`);
   console.log(`changed files: ${files.length}`);
@@ -3825,6 +3634,13 @@ function workflowSelfTestChecks() {
   add('guide source hash is content based', /^[a-f0-9]{24}$/.test(publicGuideSourceHash()));
   add('verification knowledge participates in public guide source hash', publicGuideInputFiles().includes('.codex/knowledge/verification.md'));
   add('verification knowledge is required workflow manifest', requiredWorkflowFiles().includes('.codex/knowledge/verification.md'));
+  add('workflow profile is required workflow manifest', requiredWorkflowFiles().includes('.codex/workflow/profile.json'));
+  add('workflow engine is required workflow manifest', requiredWorkflowFiles().includes('.codex/scripts/workflow-engine.mjs'));
+  add('workflow policy files participate in public guide source hash', publicGuideInputFiles().includes('.codex/workflow/policy/guide.json'));
+  add('workflow policy files are substantive changes', substantiveFiles(['.codex/workflow/policy/files.json']).length === 1);
+  add('review kind policy classifies workflow policy changes', requiredReviewKinds(['.codex/workflow/policy/files.json']).includes('workflow'));
+  add('review kind policy classifies design source changes', requiredReviewKinds(['packages/web/src/platform/theme/tokens.css']).includes('design'));
+  add('review kind policy classifies design policy changes', requiredReviewKinds(['.codex/workflow/policy/design.json']).includes('design'));
   add('workflow research reports participate in public guide source hash', publicGuideInputFiles().some((file) => file.startsWith('.codex/workflow/research/') && file.endsWith('.md')));
   add('cheap status gates use cached state instead of full evidence scan', cachedGatePass({ worktreeHash: 'h', verdict: 'pass' }, 'h', ['x'])
     && !cachedGatePass({ worktreeHash: 'old', verdict: 'pass' }, 'h', ['x'])
@@ -4390,50 +4206,7 @@ function commandSelfTest(args = {}) {
 }
 
 function requiredWorkflowFiles() {
-  return [
-    'AGENTS.md',
-    'WORKFLOW.md',
-    '.codex/README.md',
-    '.codex/config.toml',
-    '.codex/hooks.json',
-    '.codex/workflow/current-state.md',
-    '.codex/workflow/state/.gitignore',
-    '.codex/workflow/runtime/.gitignore',
-    '.codex/workflow/dependency-audit-baseline.json',
-    '.codex/scripts/audit-deps.mjs',
-    '.codex/scripts/check-public-guide-images.mjs',
-    '.codex/scripts/check-production-zoo-bundle.mjs',
-    '.codex/scripts/run-hook.mjs',
-    '.codex/scripts/capture-design-zoo-visuals.mjs',
-    '.codex/knowledge/patterns.md',
-    '.codex/knowledge/design-system.md',
-    '.codex/knowledge/model-routing.md',
-    '.codex/knowledge/hooks.md',
-    '.codex/knowledge/deployment.md',
-    '.codex/knowledge/verification.md',
-    '.codex/workflow/scenarios/model-routing.json',
-    '.codex/workflow/templates/README.md',
-    '.codex/workflow/templates/audit.md',
-    '.codex/workflow/templates/current-state.md',
-    '.codex/workflow/templates/deployment.md',
-    '.codex/workflow/templates/guide-browser.md',
-    '.codex/workflow/templates/patch.md',
-    '.codex/workflow/templates/pattern-proposal.md',
-    '.codex/workflow/templates/review.md',
-    '.codex/workflow/templates/routing.md',
-    '.codex/workflow/templates/test.md',
-    '.codex/agents/nexus-auditor.toml',
-    '.codex/agents/nexus-design-reviewer.toml',
-    '.codex/agents/nexus-pattern-reviewer.toml',
-    '.codex/agents/nexus-researcher.toml',
-    '.codex/agents/nexus-spark-worker.toml',
-    '.codex/agents/nexus-strong-worker.toml',
-    '.codex/agents/nexus-verifier.toml',
-    '.agents/skills/nexus-workflow/SKILL.md',
-    '.agents/skills/nexus-review/SKILL.md',
-    '.agents/skills/nexus-verify/SKILL.md',
-    '.agents/skills/nexus-audit/SKILL.md',
-  ];
+  return POLICY.files?.requiredWorkflowFiles || [];
 }
 
 function commandValidate(args) {

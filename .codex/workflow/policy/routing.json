@@ -1,0 +1,11 @@
+{
+  "schema": "nexus-routing-workflow-policy/v1",
+  "leadAliases": [
+    "codex",
+    "codex-lead",
+    "lead",
+    "workflow",
+    "codex-hook"
+  ],
+  "scenarioFile": ".codex/workflow/scenarios/model-routing.json"
+}

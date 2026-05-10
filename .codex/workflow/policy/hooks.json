@@ -1,0 +1,32 @@
+{
+  "schema": "codex-workflow-hooks-policy/v1",
+  "config": {
+    "sandbox_mode": "danger-full-access",
+    "approval_policy": "never",
+    "features": {
+      "codex_hooks": true,
+      "multi_agent": true
+    }
+  },
+  "hooks": {
+    "SessionStart": {
+      "matcher": "startup|resume",
+      "command": "node .codex/scripts/run-hook.mjs session-start",
+      "timeoutMaxSeconds": 30
+    },
+    "PreToolUse": {
+      "matcher": "Bash",
+      "command": "node .codex/scripts/run-hook.mjs pre-tool-use",
+      "timeoutMaxSeconds": 30
+    },
+    "PostToolUse": {
+      "matcher": "Bash|apply_patch|Edit|Write",
+      "command": "node .codex/scripts/run-hook.mjs post-tool-use",
+      "timeoutMaxSeconds": 30
+    },
+    "Stop": {
+      "command": "node .codex/scripts/run-hook.mjs stop",
+      "timeoutMaxSeconds": 30
+    }
+  }
+}

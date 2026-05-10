@@ -1,6 +1,8 @@
 #!/usr/bin/env node
+import { findWorkflowRoot, loadCodexWorkflow } from './workflow-engine.mjs';
 
-const DEFAULT_WORKFLOW_URL = 'https://cv.rehou.games/nexus/workflow/';
+const WORKFLOW = loadCodexWorkflow(findWorkflowRoot(process.cwd()));
+const DEFAULT_WORKFLOW_URL = WORKFLOW.policy.deployment?.publicGuideUrl || 'https://cv.rehou.games/nexus/workflow/';
 
 function absoluteUrl(src, base) {
   return new URL(src, base).href;
@@ -19,6 +21,11 @@ async function fetchText(url, label) {
 }
 
 async function main() {
+  if (process.argv.includes('--help') || process.argv.includes('-h')) {
+    console.log('Usage: node .codex/scripts/check-public-guide-images.mjs [workflow-guide-url]');
+    console.log(`Default URL comes from .codex/workflow/policy/deployment.json: ${DEFAULT_WORKFLOW_URL}`);
+    return;
+  }
   const workflowUrl = process.env.NEXUS_PUBLIC_WORKFLOW_URL || process.argv[2] || DEFAULT_WORKFLOW_URL;
   const baseUrl = workflowUrl.endsWith('/') ? workflowUrl : `${workflowUrl}/`;
   const zooUrl = new URL('zoo/', baseUrl).href;

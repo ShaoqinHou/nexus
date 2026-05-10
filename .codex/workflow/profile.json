@@ -1,0 +1,15 @@
+{
+  "schema": "codex-workflow-profile/v1",
+  "projectId": "nexus",
+  "displayName": "Nexus Codex",
+  "codexRoot": ".codex",
+  "paths": {
+    "dashboardDir": ".codex/dashboard",
+    "zooGuideDir": ".codex/dashboard/zoo",
+    "zooGuideManifest": ".codex/dashboard/zoo/manifest.json",
+    "routingScenarios": ".codex/workflow/scenarios/model-routing.json",
+    "records": ".codex/workflow/records",
+    "state": ".codex/workflow/state",
+    "runtime": ".codex/workflow/runtime"
+  }
+}

@@ -24,7 +24,10 @@ Other workflow commands are helpers for creating evidence records or diagnosing 
 
 - `workflow/briefs/2026-05-09-original-user-brief.md` preserves the original migration request.
 - `workflow/current-state.md` is the compact resumable state.
+- `workflow/profile.json` declares reusable workflow roots, generated surfaces, and project identity.
+- `workflow/policy/*.json` is the project-specific policy pack consumed by the workflow engine.
 - `workflow/research/codex-capabilities-2026-05-09.md` records the Codex behavior research.
+- `workflow/research/workflow-engine-profile-extraction-2026-05-10.md` records the first reusable engine/profile extraction boundary.
 - `knowledge/patterns.md` captures durable project patterns and traps.
 - `knowledge/design-system.md` captures the design-system source of truth and invariants.
 - `knowledge/model-routing.md` captures lead/worker routing, Spark limits, strong-worker usage, and fallback rules.
@@ -32,7 +35,8 @@ Other workflow commands are helpers for creating evidence records or diagnosing 
 - `knowledge/verification.md` captures evidence policy for tests, browser checks, screenshots, and deployment validation.
 - `knowledge/deployment.md` captures server and deployment conventions.
 - `agents/*.toml` defines project-scoped Codex subagents.
-- `scripts/nexus-workflow.mjs` is the deterministic workflow helper.
+- `scripts/workflow-engine.mjs` is the reusable loader/path-policy layer for Codex workflow profiles.
+- `scripts/nexus-workflow.mjs` is the Nexus wrapper and deterministic workflow helper.
 - `scripts/audit-deps.mjs` runs `npm audit` with an explicit expiring baseline for known dev-only advisories.
 - `scripts/check-public-guide-images.mjs` validates the deployed public workflow guide and Zoo/Gym screenshot image responses.
 - `scripts/check-production-zoo-bundle.mjs` checks production build output does not ship the interactive dev-only Zoo route/chunk.
@@ -49,12 +53,13 @@ Other workflow commands are helpers for creating evidence records or diagnosing 
 
 ## Workflow Kernel
 
-The center of the system is `scripts/nexus-workflow.mjs`. Treat it as the deterministic workflow kernel:
+The center of the system is the deterministic kernel exposed through `scripts/nexus-workflow.mjs`, with reusable profile loading and path policy helpers in `scripts/workflow-engine.mjs`. Nexus-specific facts live in `workflow/profile.json` and `workflow/policy/*.json`.
 
 - records are its durable state,
 - hooks, package scripts, local/server validation, and future CI should call it instead of duplicating logic,
 - LLMs supply judgment by creating review, verification, audit, routing, and pattern-proposal records,
 - the kernel decides whether required records exist, hashes match, guide artifacts are current, and release gates can pass.
+- file classifiers, review-kind classifiers, required files, record schemas, hook expectations, guide contracts, deployment URLs, and design-system source inputs should be changed in the policy pack before changing kernel code.
 - passing verification, audit, and deployment records embed compact command-run summaries from the timed runner, so gates validate durable command evidence instead of trusting mutable runtime telemetry.
 - state JSON files under `workflow/state/` are caches only; gates cross-check them against append-only markdown records before trusting a pass.
 - record integrity also checks committed evidence-record history against the configured base branch when available, so old records must be corrected by adding a new record instead of rewriting the old one.

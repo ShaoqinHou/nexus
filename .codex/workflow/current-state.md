@@ -52,6 +52,7 @@ Workflow simplification and boundary hardening are implemented and should be jud
 - regenerated the dashboard/public guide/Zoo guide from the current workflow and design-system records,
 - completed an additional high-level workflow audit with parallel reviewers and captured the portability/generalization assessment in `.codex/workflow/research/workflow-portability-audit-2026-05-10.md`,
 - fixed the final audit findings by adding `.codex/knowledge/verification.md` to deterministic guide-hash and required-file inputs, including workflow research reports in guide freshness, keeping `workflow:status` cheap while moving record-history validation to `workflow:health` and release gates, and adding a checked-in deployed Zoo/Gym image-load validation command.
+- started the reusable extraction needed for a second project by adding `.codex/scripts/workflow-engine.mjs`, `.codex/workflow/profile.json`, and `.codex/workflow/policy/*.json`; Nexus-specific facts now live in policy data for records, file classifiers, review-kind classifiers, guide contracts, design inputs, hook expectations, and deployment URLs.
 
 ## How To Resume
 
@@ -79,12 +80,13 @@ Use the generated guide and append-only records instead of this compact handover
 - visual Zoo/Gym guide: `https://cv.rehou.games/nexus/workflow/zoo/`
 - local generated dashboard: `.codex/dashboard/index.html`
 - final workflow portability audit: `.codex/workflow/research/workflow-portability-audit-2026-05-10.md`
+- engine/profile extraction note: `.codex/workflow/research/workflow-engine-profile-extraction-2026-05-10.md`
 - records: `.codex/workflow/records/`
 - risks: `.codex/workflow/records/risks.md`
 
 ## Open Risks
 
 - Hooks are configured but this checkout may still show `hook runtime: not seen`; explicit workflow gates remain the enforcement source when Codex project hooks are not loaded in a session.
-- The workflow is reusable as a pattern, but a future extraction should split the generic kernel from the Nexus policy pack before applying it to another project unchanged.
+- The first engine/profile split is in place, but it is still a conservative extraction: future projects should copy the profile/policy shape and then decide whether more of `nexus-workflow.mjs` should move into the generic engine after a second implementation proves the boundary.
 - Recheck dependency audit baseline before 2026-06-09.
 - Clean the non-failing React `act(...)` warning in `ThemeProvider.test.tsx`.

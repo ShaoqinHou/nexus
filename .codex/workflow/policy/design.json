@@ -1,0 +1,61 @@
+{
+  "schema": "nexus-design-workflow-policy/v1",
+  "zooVisualGuideVersion": "nexus-design-zoo-visual-guide/v1",
+  "registryPath": "packages/web/src/components/registry.json",
+  "zooRoutePath": "packages/web/src/routes/__design/Zoo.tsx",
+  "themeMatrixPath": "packages/web/src/platform/theme/themes.css",
+  "tokenSource": {
+    "file": "packages/web/src/platform/theme/tokens.css",
+    "publicGuideTokens": [
+      "--color-bg-surface",
+      "--color-bg-muted",
+      "--color-bg-elevated",
+      "--color-bg-strong",
+      "--color-text",
+      "--color-text-secondary",
+      "--color-text-inverse",
+      "--color-border",
+      "--color-primary",
+      "--color-primary-light",
+      "--color-danger",
+      "--color-accent",
+      "--radius-md",
+      "--radius-lg",
+      "--radius-full",
+      "--radius-card",
+      "--radius-btn",
+      "--radius-chip",
+      "--hit-sm",
+      "--hit-md",
+      "--hit-lg"
+    ]
+  },
+  "visualSourceFiles": [
+    ".codex/scripts/workflow-engine.mjs",
+    ".codex/scripts/nexus-workflow.mjs",
+    ".codex/scripts/capture-design-zoo-visuals.mjs",
+    ".codex/knowledge/design-system.md",
+    ".codex/workflow/policy/design.json",
+    "packages/web/src/components/registry.json",
+    "packages/web/src/routes/__design/Zoo.tsx",
+    "packages/web/src/platform/theme/tokens.css",
+    "packages/web/src/platform/theme/themes.css"
+  ],
+  "visualSourceDirectories": [
+    {
+      "path": "packages/web/src/components/patterns",
+      "maxDepth": 8,
+      "limit": 600
+    },
+    {
+      "path": "packages/web/src/components/ui",
+      "maxDepth": 8,
+      "limit": 600
+    },
+    {
+      "path": "packages/web/src/platform/theme/themes",
+      "maxDepth": 2,
+      "limit": 64
+    }
+  ]
+}
