@@ -1,6 +1,6 @@
 {
   "$schema": "nexus-dependency-audit-baseline/v1",
-  "updatedAt": "2026-05-09",
+  "updatedAt": "2026-05-10",
   "expiresAt": "2026-06-09",
   "policy": "High and critical advisories fail. Moderate advisories may be temporarily baselined only with a reason, expiry, and follow-up.",
   "allowed": [

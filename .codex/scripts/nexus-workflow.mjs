@@ -2447,6 +2447,17 @@ function inventoryPolicy() {
   return POLICY.files?.inventory || {};
 }
 
+function pathExtension(file) {
+  const name = String(file || '').replaceAll('\\', '/').split('/').pop() || '';
+  const index = name.lastIndexOf('.');
+  return index > 0 ? name.slice(index).toLowerCase() : '';
+}
+
+function pathHasExtension(file, extensions = []) {
+  const allowed = new Set((extensions || []).map((ext) => String(ext).toLowerCase()));
+  return allowed.has(pathExtension(file));
+}
+
 function inventoryDurableFiles() {
   const inventory = inventoryPolicy();
   const runtimeDirs = inventory.runtimeDirectories || ['.codex/workflow/state/', '.codex/workflow/runtime/'];
@@ -2473,6 +2484,30 @@ function inventoryProblems(options = {}) {
     '.codex/workflow/artifacts/screenshots/server-final/',
     '.codex/workflow/artifacts/screenshots/visual-zoo-guide/',
   ];
+  const allowedArtifactExtensions = inventory.allowedArtifactExtensions || ['.jpg', '.jpeg', '.png', '.json'];
+  const workflowRootFiles = inventory.workflowRootFiles || [
+    '.codex/workflow/current-state.md',
+    '.codex/workflow/dependency-audit-baseline.json',
+    '.codex/workflow/profile.json',
+  ];
+  const workflowRootDirectories = inventory.workflowRootDirectories || [
+    '.codex/workflow/artifacts/',
+    '.codex/workflow/briefs/',
+    '.codex/workflow/policy/',
+    '.codex/workflow/records/',
+    '.codex/workflow/research/',
+    '.codex/workflow/runtime/',
+    '.codex/workflow/scenarios/',
+    '.codex/workflow/state/',
+    '.codex/workflow/templates/',
+  ];
+  const scriptExtensions = inventory.scriptExtensions || ['.mjs'];
+  const agentExtensions = inventory.agentExtensions || ['.toml'];
+  const knowledgeExtensions = inventory.knowledgeExtensions || ['.md'];
+  const templateExtensions = inventory.templateExtensions || ['.md'];
+  const researchExtensions = inventory.researchExtensions || ['.md'];
+  const briefExtensions = inventory.briefExtensions || ['.md'];
+  const scenarioFiles = new Set(inventory.scenarioFiles || ['.codex/workflow/scenarios/model-routing.json']);
   const files = options.files || inventoryDurableFiles();
   const tracked = options.tracked || gitTrackedFiles('.codex');
   const checked = sortedStringSet([...files, ...tracked.filter((file) => file.startsWith('.codex/'))]);
@@ -2486,8 +2521,30 @@ function inventoryProblems(options = {}) {
     if (inRuntime && !runtimeAllow.has(file)) problems.push(`${file} is mutable runtime/state data and must not be durable workflow inventory.`);
     if (file.includes('/.claude/') && !file.startsWith('.codex/archive/')) problems.push(`${file} contains active Claude Code material outside the archive.`);
     if (file.endsWith('/CLAUDE.md') && !file.startsWith('.codex/archive/')) problems.push(`${file} is an active Claude instruction file; Codex guidance belongs in AGENTS.md/.codex.`);
+    if (file.startsWith('.codex/scripts/')) {
+      if (!pathHasExtension(file, scriptExtensions)) problems.push(`${file} is under .codex/scripts but does not use an approved workflow script extension.`);
+      if (!requiredSet.has(file)) problems.push(`${file} is a workflow script but is missing from requiredWorkflowFiles.`);
+    }
+    if (file.startsWith('.codex/agents/')) {
+      if (!pathHasExtension(file, agentExtensions)) problems.push(`${file} is under .codex/agents but does not use an approved agent config extension.`);
+      if (!requiredSet.has(file)) problems.push(`${file} is a Codex agent config but is missing from requiredWorkflowFiles.`);
+    }
+    if (file.startsWith('.codex/knowledge/')) {
+      if (!pathHasExtension(file, knowledgeExtensions)) problems.push(`${file} is under .codex/knowledge but does not use an approved knowledge extension.`);
+      if (!requiredSet.has(file)) problems.push(`${file} is workflow knowledge but is missing from requiredWorkflowFiles.`);
+    }
+    if (file.startsWith('.codex/workflow/')) {
+      const isWorkflowRootFile = !file.slice('.codex/workflow/'.length).includes('/');
+      if (isWorkflowRootFile && !workflowRootFiles.includes(file)) problems.push(`${file} is an unmanaged .codex/workflow root file.`);
+      if (!isWorkflowRootFile && !workflowRootDirectories.some((dir) => workflowPathMatchesPattern(file, dir))) {
+        problems.push(`${file} is under .codex/workflow but outside approved workflow subdirectories.`);
+      }
+    }
     if (file.startsWith('.codex/workflow/artifacts/') && !allowedArtifactDirectories.some((dir) => workflowPathMatchesPattern(file, dir))) {
       problems.push(`${file} is an unmanaged workflow artifact; move it under a policy-approved evidence directory or remove it.`);
+    }
+    if (file.startsWith('.codex/workflow/artifacts/') && !pathHasExtension(file, allowedArtifactExtensions)) {
+      problems.push(`${file} is a workflow artifact with an unapproved extension.`);
     }
     if (file.startsWith('.codex/workflow/policy/')) {
       const expected = new Set(DEFAULT_POLICY_NAMES.map((name) => `.codex/workflow/policy/${name}.json`));
@@ -2499,10 +2556,13 @@ function inventoryProblems(options = {}) {
       if (file !== '.codex/workflow/records/risks.md' && !RECORD_KINDS.includes(kind)) problems.push(`${file} is under an unknown record kind.`);
       if (file !== '.codex/workflow/records/risks.md' && !file.endsWith('.md') && !file.endsWith('/.gitkeep')) problems.push(`${file} is a record file but is not markdown.`);
     }
-    if (file.startsWith('.codex/scripts/') && file.endsWith('.mjs') && !requiredSet.has(file)) problems.push(`${file} is a workflow script but is missing from requiredWorkflowFiles.`);
-    if (file.startsWith('.codex/knowledge/') && file.endsWith('.md') && !requiredSet.has(file)) problems.push(`${file} is workflow knowledge but is missing from requiredWorkflowFiles.`);
-    if (file.startsWith('.codex/workflow/templates/') && file.endsWith('.md') && !requiredSet.has(file)) problems.push(`${file} is a workflow template but is missing from requiredWorkflowFiles.`);
-    if (file.startsWith('.codex/agents/') && file.endsWith('.toml') && !requiredSet.has(file)) problems.push(`${file} is a Codex agent config but is missing from requiredWorkflowFiles.`);
+    if (file.startsWith('.codex/workflow/templates/')) {
+      if (!pathHasExtension(file, templateExtensions)) problems.push(`${file} is under .codex/workflow/templates but does not use an approved template extension.`);
+      if (!requiredSet.has(file)) problems.push(`${file} is a workflow template but is missing from requiredWorkflowFiles.`);
+    }
+    if (file.startsWith('.codex/workflow/research/') && !pathHasExtension(file, researchExtensions)) problems.push(`${file} is under .codex/workflow/research but does not use an approved research extension.`);
+    if (file.startsWith('.codex/workflow/briefs/') && !pathHasExtension(file, briefExtensions)) problems.push(`${file} is under .codex/workflow/briefs but does not use an approved brief extension.`);
+    if (file.startsWith('.codex/workflow/scenarios/') && !scenarioFiles.has(file)) problems.push(`${file} is an unregistered workflow scenario file.`);
     if (file === '.codex/dashboard/README.md' && !requiredSet.has(file)) problems.push(`${file} is durable folder guidance but is missing from requiredWorkflowFiles.`);
   }
   for (const file of tracked) {
@@ -2577,6 +2637,90 @@ function policyClassifierProblems(cases = policyClassifierTestCases()) {
   return problems;
 }
 
+function profileContractProblems(profile = PROFILE) {
+  const problems = [];
+  if (profile.schema !== 'codex-workflow-profile/v1') problems.push('.codex/workflow/profile.json must use schema codex-workflow-profile/v1.');
+  if (!profile.projectId || typeof profile.projectId !== 'string') problems.push('.codex/workflow/profile.json must define projectId.');
+  if (!profile.displayName || typeof profile.displayName !== 'string') problems.push('.codex/workflow/profile.json must define displayName.');
+  if (profile.codexRoot !== '.codex') problems.push('.codex/workflow/profile.json must set codexRoot to .codex.');
+  const paths = profile.paths || {};
+  const requiredPaths = [
+    'dashboardDir',
+    'zooGuideDir',
+    'zooGuideManifest',
+    'routingScenarios',
+    'records',
+    'state',
+    'runtime',
+  ];
+  for (const key of requiredPaths) {
+    const value = paths[key];
+    if (!value || typeof value !== 'string') {
+      problems.push(`.codex/workflow/profile.json paths.${key} must be a string.`);
+      continue;
+    }
+    const normalized = value.replaceAll('\\', '/');
+    if (!normalized.startsWith('.codex/')) problems.push(`.codex/workflow/profile.json paths.${key} must stay under .codex/.`);
+    if (normalized.includes('../') || normalized.includes('/..')) problems.push(`.codex/workflow/profile.json paths.${key} must not escape the project root.`);
+  }
+  for (const key of ['dashboardDir', 'zooGuideDir', 'records', 'state', 'runtime']) {
+    const value = paths[key];
+    if (value && !existsSync(resolveProjectPath(value))) problems.push(`.codex/workflow/profile.json paths.${key} points to a missing directory: ${value}.`);
+  }
+  for (const key of ['zooGuideManifest', 'routingScenarios']) {
+    const value = paths[key];
+    if (value && !existsSync(resolveProjectPath(value))) problems.push(`.codex/workflow/profile.json paths.${key} points to a missing file: ${value}.`);
+  }
+  return problems;
+}
+
+function configAgentBlocks(configText = readText('.codex/config.toml')) {
+  const agents = [];
+  let current = null;
+  for (const line of configText.split(/\r?\n/)) {
+    const section = line.match(/^\s*\[([^\]]+)\]\s*$/);
+    if (section) {
+      current = null;
+      const agent = section[1].match(/^agents\.([A-Za-z0-9_-]+)$/);
+      if (agent) {
+        current = { name: agent[1], configFile: '' };
+        agents.push(current);
+      }
+      continue;
+    }
+    if (!current) continue;
+    const configFile = line.match(/^\s*config_file\s*=\s*"([^"]+)"\s*$/);
+    if (configFile) current.configFile = configFile[1];
+  }
+  return agents;
+}
+
+function configAgentProblems(configText = readText('.codex/config.toml'), required = requiredWorkflowFiles()) {
+  const problems = [];
+  const requiredSet = new Set(required);
+  const requiredAgentConfigs = required.filter((file) => file.startsWith('.codex/agents/') && file.endsWith('.toml'));
+  const declared = new Set();
+  const agents = configAgentBlocks(configText);
+  if (!agents.length) problems.push('.codex/config.toml has no [agents.<name>] config_file entries.');
+  for (const agent of agents) {
+    if (!agent.configFile) {
+      problems.push(`.codex/config.toml agent ${agent.name} has no config_file.`);
+      continue;
+    }
+    const normalized = agent.configFile.replaceAll('\\', '/');
+    if (!normalized.startsWith('agents/')) problems.push(`.codex/config.toml agent ${agent.name} config_file must be relative to .codex/agents/.`);
+    if (normalized.includes('../') || normalized.includes('/..')) problems.push(`.codex/config.toml agent ${agent.name} config_file must not escape .codex/.`);
+    const full = `.codex/${normalized}`;
+    declared.add(full);
+    if (!existsSync(join(CODEX, normalized))) problems.push(`.codex/config.toml agent ${agent.name} points to missing ${full}.`);
+    if (!requiredSet.has(full)) problems.push(`.codex/config.toml agent ${agent.name} points to ${full}, which is missing from requiredWorkflowFiles.`);
+  }
+  for (const file of requiredAgentConfigs) {
+    if (!declared.has(file)) problems.push(`${file} is required but not referenced by .codex/config.toml agents.`);
+  }
+  return problems;
+}
+
 function policyProblems() {
   const problems = [];
   const policyNames = new Set(DEFAULT_POLICY_NAMES);
@@ -2591,6 +2735,7 @@ function policyProblems() {
   }
   problems.push(...requiredWorkflowFileProblems());
   problems.push(...policyClassifierProblems());
+  problems.push(...profileContractProblems());
   const scripts = packageWorkflowScripts();
   for (const script of [...canonicalLadder(), 'workflow:policy-check', 'workflow:inventory-check', 'workflow:trace-check']) {
     if (!scripts[script]) problems.push(`package.json is missing ${script}.`);
@@ -2697,6 +2842,7 @@ function hookConfigProblems() {
   for (const [feature, expected] of Object.entries(expectedConfig.features || {})) {
     if (expected && !new RegExp(`^\\s*${feature}\\s*=\\s*true\\s*$`, 'm').test(config)) problems.push(`.codex/config.toml should enable features.${feature} = true.`);
   }
+  problems.push(...configAgentProblems(config));
   const hookMap = hooks.hooks || {};
   const expectedHooks = hookPolicy.hooks || {};
   for (const event of Object.keys(expectedHooks)) {
@@ -3987,7 +4133,11 @@ function workflowSelfTestChecks() {
   add('workflow research reports participate in public guide source hash', publicGuideInputFiles().some((file) => file.startsWith('.codex/workflow/research/') && file.endsWith('.md')));
   add('workflow policy check passes current policy pack', policyProblems().length === 0);
   add('codex inventory check passes current workflow tree', inventoryProblems().length === 0);
+  add('codex inventory rejects stray legacy script extensions', inventoryProblems({ files: ['.codex/scripts/old-hook.sh'], tracked: [] }).some((problem) => problem.includes('old-hook.sh')));
+  add('codex inventory rejects unmanaged workflow root files', inventoryProblems({ files: ['.codex/workflow/legacy-profile.json'], tracked: [] }).some((problem) => problem.includes('legacy-profile.json')));
   add('workflow trace check passes current telemetry shape', commandTraceProblems().length === 0);
+  add('workflow profile contract passes current profile', profileContractProblems().length === 0);
+  add('workflow profile contract rejects empty profile', profileContractProblems({}).length > 0);
   add('canonical ladder comes from gates policy', sameStringSet(canonicalLadder(POLICY), POLICY.gates?.canonicalLadder || []));
   add('canonical ladder package scripts exist', canonicalLadder().every((script) => Object.hasOwn(packageWorkflowScripts(), script)));
   add('public guide uses deployment policy visual zoo URL', PUBLIC_ZOO_GUIDE_URL === POLICY.deployment?.visualZooGuideUrl);
@@ -4000,6 +4150,8 @@ function workflowSelfTestChecks() {
   add('visual zoo source hash is content based', /^[a-f0-9]{24}$/.test(zooVisualSourceHash()));
   add('hook config pins no-prompt custom permission mode', hookConfigProblems().filter((problem) => problem.includes('approval_policy') || problem.includes('sandbox_mode')).length === 0);
   add('hook config keeps hooks as workflow-kernel triggers', hookConfigProblems().filter((problem) => problem.includes('nexus-workflow.mjs')).length === 0);
+  add('hook config validates agent config wiring', configAgentProblems().length === 0);
+  add('hook config rejects missing agent config files', configAgentProblems(readText('.codex/config.toml').replace('config_file = "agents/nexus-researcher.toml"', 'config_file = "agents/missing.toml"')).some((problem) => problem.includes('missing.toml')));
   add('hook config rejects inline command logic', (() => {
     const original = readText('.codex/hooks.json');
     return original.includes('run-hook.mjs') && !original.includes('node -e');

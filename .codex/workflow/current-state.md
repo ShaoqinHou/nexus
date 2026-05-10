@@ -100,5 +100,5 @@ Use the generated guide and append-only records instead of this compact handover
 
 - Hooks are configured but this checkout may still show `hook runtime: not seen`; explicit workflow gates remain the enforcement source when Codex project hooks are not loaded in a session. Use trusted `Custom (config.toml)` when hook loading matters. Full access grants permissions but does not prove project config or hooks loaded.
 - The first engine/profile split is in place, but it is still a conservative extraction: future projects should copy the profile/policy shape and then decide whether more of `nexus-workflow.mjs` should move into the generic engine after a second implementation proves the boundary.
-- Recheck dependency audit baseline before 2026-06-09.
+- Dependency audit baseline was rechecked on 2026-05-10 and still matches current npm audit output; recheck again by the 2026-06-09 expiry or sooner if `drizzle-kit` releases a fix. Evidence: `TEST-20260510T073945Z-dependency-audit-baseline-recheck`.
 - Clean the non-failing React `act(...)` warning in `ThemeProvider.test.tsx`.

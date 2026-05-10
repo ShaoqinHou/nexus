@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="nexus-guide-version" content="nexus-public-workflow-guide/v2" />
-  <meta name="nexus-guide-source-hash" content="f254838318d0ce9b3d11cc6d" />
-  <meta name="nexus-guide-content-hash" content="0f13b239c8fd9584f5b141ee" />
+  <meta name="nexus-guide-source-hash" content="7dd370342eff4c33b4cbe326" />
+  <meta name="nexus-guide-content-hash" content="e5591c9b897a467552af8711" />
   <meta name="nexus-token-source" content="packages/web/src/platform/theme/tokens.css" />
   <title>Nexus Workflow Guide</title>
   <style>
@@ -70,7 +70,7 @@
 <body>
   <header>
     <h1>Nexus Workflow Guide</h1>
-    <div class="meta">Generated snapshot 2026-05-10T06:45:20.205Z · branch codex/native-workflow · run workflow gates for live state before deploy</div>
+    <div class="meta">Generated snapshot 2026-05-10T07:56:46.435Z · branch codex/native-workflow · run workflow gates for live state before deploy</div>
   </header>
   <main>
     <section>
@@ -99,7 +99,7 @@
 <div class="node"><strong>.codex/agents</strong><span>7 agent config files</span></div>
 <div class="node"><strong>.agents/skills</strong><span>4 repo skills</span></div>
 <div class="node"><strong>nexus-workflow.mjs</strong><span>deterministic gates and records</span></div>
-<div class="node"><strong>.codex/workflow/records</strong><span>243 indexed records</span></div>
+<div class="node"><strong>.codex/workflow/records</strong><span>252 indexed records</span></div>
       </div>
       <p class="meta">AGENTS.md -> .codex/README.md · .codex/knowledge -> .codex/agents · nexus-workflow.mjs -> .codex/workflow/records</p>
     </div>
@@ -123,8 +123,8 @@
 <div class="node"><strong>packages/web/src/routes</strong><span>1 indexed route files</span></div>
 <div class="node"><strong>packages/web/src/locales</strong><span>5 locale files</span></div>
 <div class="node"><strong>packages/shared</strong><span>2 source files</span></div>
-<div class="node"><strong>.codex workflow</strong><span>333 workflow files</span></div>
-<div class="node"><strong>.codex/workflow/records</strong><span>243 indexed records</span></div>
+<div class="node"><strong>.codex workflow</strong><span>344 workflow files</span></div>
+<div class="node"><strong>.codex/workflow/records</strong><span>252 indexed records</span></div>
       </div>
       <p class="meta">packages/api -> packages/shared · packages/web -> packages/shared · .codex workflow -> .codex/workflow/records</p>
     </div>
@@ -274,13 +274,13 @@ node .codex/scripts/nexus-workflow.mjs record-audit --scope branch --verdict pas
     <section>
       <h2>Current Counts</h2>
       <div class="grid">
-        <div class="card"><strong>6</strong><p>decisions</p></div>
+        <div class="card"><strong>7</strong><p>decisions</p></div>
 <div class="card"><strong>12</strong><p>pattern-proposals</p></div>
 <div class="card"><strong>24</strong><p>routing</p></div>
-<div class="card"><strong>41</strong><p>patches</p></div>
-<div class="card"><strong>69</strong><p>reviews</p></div>
-<div class="card"><strong>51</strong><p>tests</p></div>
-<div class="card"><strong>31</strong><p>audits (first-class + legacy)</p></div>
+<div class="card"><strong>42</strong><p>patches</p></div>
+<div class="card"><strong>73</strong><p>reviews</p></div>
+<div class="card"><strong>53</strong><p>tests</p></div>
+<div class="card"><strong>32</strong><p>audits (first-class + legacy)</p></div>
 <div class="card"><strong>9</strong><p>deployments</p></div>
       </div>
       <p class="meta">Guide-browser evidence is tracked separately by hash-bound records and omitted from this generated guide to avoid self-referential guide freshness loops.</p>
@@ -289,44 +289,18 @@ node .codex/scripts/nexus-workflow.mjs record-audit --scope branch --verdict pas
       <h2>Workflow Event Timeline</h2>
       <p class="meta">All indexed workflow records are listed here by title. The repo-local dashboard contains detailed excerpts and internal paths.</p>
 
-        <h3>Deployment</h3>
-        <ul class="timeline">
-          <li><strong>deployments:</strong> Deploy workflow hardening guide and validate server <span class="meta">2026-05-10T06:44:07.247Z</span></li>
-<li><strong>deployments:</strong> Deploy workflow guide after self-reference fix <span class="meta">2026-05-10T05:50:31.566Z</span></li>
-<li><strong>patches:</strong> Fix deployment record guide self-staleness loop <span class="meta">2026-05-10T05:45:58.442Z</span></li>
-<li><strong>deployments:</strong> Deploy workflow profile extraction guide <span class="meta">2026-05-10T05:42:31.915Z</span></li>
-<li><strong>deployments:</strong> final workflow audit guide deployment with image-load proof <span class="meta">2026-05-09T17:27:29.498Z</span></li>
-<li><strong>patches:</strong> add reusable deployed guide image validation to final workflow <span class="meta">2026-05-09T17:22:41.624Z</span></li>
-<li><strong>patches:</strong> add reusable public guide deployed image check <span class="meta">2026-05-09T17:21:04.055Z</span></li>
-<li><strong>deployments:</strong> workflow guide and server validation for Codex workflow hardening <span class="meta">2026-05-09T16:44:06.372Z</span></li>
-<li><strong>patches:</strong> final deployment evidence, screenshot policy, guide finalizer, staged-record gate fix, and content hash stabilization <span class="meta">2026-05-09T12:30:53.012Z</span></li>
-<li><strong>routing:</strong> final deployment evidence, screenshot policy, guide finalizer, staged-record gate fix, and content hash stabilization <span class="meta">2026-05-09T12:30:41.927Z</span></li>
-<li><strong>deployments:</strong> final visual Zoo guide server deployment validation <span class="meta">2026-05-09T11:36:43.985Z</span></li>
-<li><strong>patches:</strong> Final deployment evidence and compact handover refresh <span class="meta">2026-05-09T08:35:42.248Z</span></li>
-<li><strong>routing:</strong> Final deployment evidence and compact handover refresh <span class="meta">2026-05-09T08:35:32.745Z</span></li>
-<li><strong>deployments:</strong> Second hardening server validation after clean release-gate fix <span class="meta">2026-05-09T08:34:58.776Z</span></li>
-<li><strong>audits:</strong> Audit pass public-guide-deployment-evidence <span class="meta">2026-05-09T02:09:05.553Z</span></li>
-<li><strong>tests:</strong> Verification pass public-guide-deployment-evidence <span class="meta">2026-05-09T02:09:05.179Z</span></li>
-<li><strong>reviews:</strong> Review pass public-guide-deployment-evidence <span class="meta">2026-05-09T02:09:04.421Z</span></li>
-<li><strong>patches:</strong> Record public guide deployment evidence <span class="meta">2026-05-09T02:09:03.683Z</span></li>
-<li><strong>deployments:</strong> Public workflow guide deployed <span class="meta">2026-05-09T02:08:48.861Z</span></li>
-<li><strong>patches:</strong> Make final server-head handover wording stable <span class="meta">2026-05-09T01:40:04.418Z</span></li>
-<li><strong>patches:</strong> Correct final handover state after server pull <span class="meta">2026-05-09T01:38:40.475Z</span></li>
-<li><strong>audits:</strong> Audit pass staged-deployment-evidence <span class="meta">2026-05-08T17:51:40.088Z</span></li>
-<li><strong>tests:</strong> Verification pass staged-deployment-evidence <span class="meta">2026-05-08T17:51:39.710Z</span></li>
-<li><strong>reviews:</strong> Review pass staged-deployment-evidence <span class="meta">2026-05-08T17:51:39.339Z</span></li>
-<li><strong>audits:</strong> Audit pass deployment-evidence <span class="meta">2026-05-08T17:50:47.296Z</span></li>
-<li><strong>tests:</strong> Verification pass deployment-evidence <span class="meta">2026-05-08T17:50:46.934Z</span></li>
-<li><strong>reviews:</strong> Review pass deployment-evidence <span class="meta">2026-05-08T17:50:46.542Z</span></li>
-<li><strong>patches:</strong> Record deployment evidence and update workflow handover <span class="meta">2026-05-08T17:50:45.855Z</span></li>
-<li><strong>deployments:</strong> Server deployment validation for Codex-native workflow <span class="meta">2026-05-08T17:50:20.520Z</span></li>
-<li><strong>tests:</strong> Server pre-deploy validation <span class="meta">2026-05-08T17:18:20.443Z</span></li>
-        </ul>
-
-
         <h3>Validation</h3>
         <ul class="timeline">
-          <li><strong>audits:</strong> Audit pass branch <span class="meta">2026-05-10T06:35:19.242Z</span></li>
+          <li><strong>reviews:</strong> Review integrated pass branch <span class="meta">2026-05-10T07:56:35.407Z</span></li>
+<li><strong>reviews:</strong> Review design pass branch <span class="meta">2026-05-10T07:56:21.085Z</span></li>
+<li><strong>audits:</strong> Audit pass branch <span class="meta">2026-05-10T07:54:04.003Z</span></li>
+<li><strong>tests:</strong> Verification pass branch <span class="meta">2026-05-10T07:53:51.042Z</span></li>
+<li><strong>reviews:</strong> Review workflow pass branch <span class="meta">2026-05-10T07:53:36.324Z</span></li>
+<li><strong>reviews:</strong> Review general pass branch <span class="meta">2026-05-10T07:53:24.622Z</span></li>
+<li><strong>patches:</strong> Recheck dependency audit baseline and harden .codex inventory gates <span class="meta">2026-05-10T07:53:12.829Z</span></li>
+<li><strong>decisions:</strong> Keep historical audit-in-review records as legacy evidence <span class="meta">2026-05-10T07:50:53.286Z</span></li>
+<li><strong>tests:</strong> Dependency audit baseline recheck <span class="meta">2026-05-10T07:39:45.419Z</span></li>
+<li><strong>audits:</strong> Audit pass branch <span class="meta">2026-05-10T06:35:19.242Z</span></li>
 <li><strong>tests:</strong> Verification pass branch <span class="meta">2026-05-10T06:35:18.631Z</span></li>
 <li><strong>reviews:</strong> Review integrated pass branch <span class="meta">2026-05-10T06:35:07.561Z</span></li>
 <li><strong>reviews:</strong> Review design pass branch <span class="meta">2026-05-10T06:35:06.716Z</span></li>
@@ -486,6 +460,41 @@ node .codex/scripts/nexus-workflow.mjs record-audit --scope branch --verdict pas
         </ul>
 
 
+        <h3>Deployment</h3>
+        <ul class="timeline">
+          <li><strong>deployments:</strong> Deploy workflow hardening guide and validate server <span class="meta">2026-05-10T06:44:07.247Z</span></li>
+<li><strong>deployments:</strong> Deploy workflow guide after self-reference fix <span class="meta">2026-05-10T05:50:31.566Z</span></li>
+<li><strong>patches:</strong> Fix deployment record guide self-staleness loop <span class="meta">2026-05-10T05:45:58.442Z</span></li>
+<li><strong>deployments:</strong> Deploy workflow profile extraction guide <span class="meta">2026-05-10T05:42:31.915Z</span></li>
+<li><strong>deployments:</strong> final workflow audit guide deployment with image-load proof <span class="meta">2026-05-09T17:27:29.498Z</span></li>
+<li><strong>patches:</strong> add reusable deployed guide image validation to final workflow <span class="meta">2026-05-09T17:22:41.624Z</span></li>
+<li><strong>patches:</strong> add reusable public guide deployed image check <span class="meta">2026-05-09T17:21:04.055Z</span></li>
+<li><strong>deployments:</strong> workflow guide and server validation for Codex workflow hardening <span class="meta">2026-05-09T16:44:06.372Z</span></li>
+<li><strong>patches:</strong> final deployment evidence, screenshot policy, guide finalizer, staged-record gate fix, and content hash stabilization <span class="meta">2026-05-09T12:30:53.012Z</span></li>
+<li><strong>routing:</strong> final deployment evidence, screenshot policy, guide finalizer, staged-record gate fix, and content hash stabilization <span class="meta">2026-05-09T12:30:41.927Z</span></li>
+<li><strong>deployments:</strong> final visual Zoo guide server deployment validation <span class="meta">2026-05-09T11:36:43.985Z</span></li>
+<li><strong>patches:</strong> Final deployment evidence and compact handover refresh <span class="meta">2026-05-09T08:35:42.248Z</span></li>
+<li><strong>routing:</strong> Final deployment evidence and compact handover refresh <span class="meta">2026-05-09T08:35:32.745Z</span></li>
+<li><strong>deployments:</strong> Second hardening server validation after clean release-gate fix <span class="meta">2026-05-09T08:34:58.776Z</span></li>
+<li><strong>audits:</strong> Audit pass public-guide-deployment-evidence <span class="meta">2026-05-09T02:09:05.553Z</span></li>
+<li><strong>tests:</strong> Verification pass public-guide-deployment-evidence <span class="meta">2026-05-09T02:09:05.179Z</span></li>
+<li><strong>reviews:</strong> Review pass public-guide-deployment-evidence <span class="meta">2026-05-09T02:09:04.421Z</span></li>
+<li><strong>patches:</strong> Record public guide deployment evidence <span class="meta">2026-05-09T02:09:03.683Z</span></li>
+<li><strong>deployments:</strong> Public workflow guide deployed <span class="meta">2026-05-09T02:08:48.861Z</span></li>
+<li><strong>patches:</strong> Make final server-head handover wording stable <span class="meta">2026-05-09T01:40:04.418Z</span></li>
+<li><strong>patches:</strong> Correct final handover state after server pull <span class="meta">2026-05-09T01:38:40.475Z</span></li>
+<li><strong>audits:</strong> Audit pass staged-deployment-evidence <span class="meta">2026-05-08T17:51:40.088Z</span></li>
+<li><strong>tests:</strong> Verification pass staged-deployment-evidence <span class="meta">2026-05-08T17:51:39.710Z</span></li>
+<li><strong>reviews:</strong> Review pass staged-deployment-evidence <span class="meta">2026-05-08T17:51:39.339Z</span></li>
+<li><strong>audits:</strong> Audit pass deployment-evidence <span class="meta">2026-05-08T17:50:47.296Z</span></li>
+<li><strong>tests:</strong> Verification pass deployment-evidence <span class="meta">2026-05-08T17:50:46.934Z</span></li>
+<li><strong>reviews:</strong> Review pass deployment-evidence <span class="meta">2026-05-08T17:50:46.542Z</span></li>
+<li><strong>patches:</strong> Record deployment evidence and update workflow handover <span class="meta">2026-05-08T17:50:45.855Z</span></li>
+<li><strong>deployments:</strong> Server deployment validation for Codex-native workflow <span class="meta">2026-05-08T17:50:20.520Z</span></li>
+<li><strong>tests:</strong> Server pre-deploy validation <span class="meta">2026-05-08T17:18:20.443Z</span></li>
+        </ul>
+
+
         <h3>Workflow</h3>
         <ul class="timeline">
           <li><strong>patches:</strong> Workflow kernel self-check hardening <span class="meta">2026-05-10T06:35:04.091Z</span></li>
@@ -564,7 +573,7 @@ node .codex/scripts/nexus-workflow.mjs record-audit --scope branch --verdict pas
 <li>Hook interception is incomplete; examples and fallback instructions are in `.codex/knowledge/hooks.md`. Deterministic scripts and lead review discipline remain necessary.</li>
 <li>Server repo `server repo` had a pre-existing `package-lock.json` modification on 2026-05-09. Deployment must preserve or deliberately resolve that dirty state.</li>
 <li>`ThemeProvider.test.tsx` currently passes but emits a React `act(...)` warning in the live-preview ping-pong regression test.</li>
-<li>Dependency audit now passes through `npm run audit:deps`, but four moderate dev-only Drizzle CLI advisories are temporarily baselined until 2026-06-09 because latest `drizzle-kit` still depends on vulnerable `@esbuild-kit/esm-loader`/`esbuild`. Recheck monthly and remove `.codex/workflow/dependency-audit-baseline.json` entries when upstream fixes.</li>
+<li>Dependency audit was rechecked on 2026-05-10 and still passes through `npm run audit:deps`, with four moderate dev-only Drizzle CLI advisories temporarily baselined until 2026-06-09. Latest `drizzle-kit` is still 0.31.10 and still depends on vulnerable `@esbuild-kit/esm-loader`/`esbuild`. Recheck by the baseline expiry, and remove `.codex/workflow/dependency-audit-baseline.json` entries when upstream fixes. Evidence: `TEST-20260510T073945Z-dependency-audit-baseline-recheck`.</li>
 </ul>
     </section>
   </main>

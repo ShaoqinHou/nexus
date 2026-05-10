@@ -87,6 +87,49 @@
       ".codex/workflow/artifacts/screenshots/guide-browser-final/",
       ".codex/workflow/artifacts/screenshots/server-final/",
       ".codex/workflow/artifacts/screenshots/visual-zoo-guide/"
+    ],
+    "allowedArtifactExtensions": [
+      ".jpg",
+      ".jpeg",
+      ".png",
+      ".json"
+    ],
+    "workflowRootFiles": [
+      ".codex/workflow/current-state.md",
+      ".codex/workflow/dependency-audit-baseline.json",
+      ".codex/workflow/profile.json"
+    ],
+    "workflowRootDirectories": [
+      ".codex/workflow/artifacts/",
+      ".codex/workflow/briefs/",
+      ".codex/workflow/policy/",
+      ".codex/workflow/records/",
+      ".codex/workflow/research/",
+      ".codex/workflow/runtime/",
+      ".codex/workflow/scenarios/",
+      ".codex/workflow/state/",
+      ".codex/workflow/templates/"
+    ],
+    "scriptExtensions": [
+      ".mjs"
+    ],
+    "agentExtensions": [
+      ".toml"
+    ],
+    "knowledgeExtensions": [
+      ".md"
+    ],
+    "templateExtensions": [
+      ".md"
+    ],
+    "researchExtensions": [
+      ".md"
+    ],
+    "briefExtensions": [
+      ".md"
+    ],
+    "scenarioFiles": [
+      ".codex/workflow/scenarios/model-routing.json"
     ]
   },
   "reviewKinds": {
