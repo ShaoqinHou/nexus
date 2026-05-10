@@ -92,6 +92,12 @@ Workflow simplification, Work Intake, guide/Zoo surfaces, and the first engine/p
   - public-guide sanitizer logic is shared from the workflow engine and consumes guide policy data,
   - dashboard knowledge sections, session-start guidance, resume docs, hook-permission guidance, and branch-closeout command examples are policy-owned guide contracts,
   - fresh evidence includes `final14b-self-test-20260511` with 233 checks passing, `final14-design-zoo-20260511`, `final14-zoo-visual-capture-20260511`, and `final14b-zoo-visual-guide-check-20260511`.
+- fixed the deployment-guide self-reference loop discovered during deployed-gate validation: deployment records remain first-class gate evidence, while the Work Intake guide trace omits self-referential deployment proof through policy-owned `selfReferentialEvidenceKinds` and `traceEvidenceKinds`; self-test and guide-check integration fixtures cover the regression.
+- final reviewer follow-up tightened that fix again:
+  - `guideTraceEvidenceKinds()` now fails closed by excluding self-referential evidence even when `traceEvidenceKinds` is empty,
+  - display-only record labeling is generic instead of deployment-specific,
+  - generated Work Intake feature counts say `trace evidence` so intentionally omitted deployment proof is not mistaken for canonical evidence totals,
+  - fresh local command evidence includes `final22-self-test-20260511` with 238 checks passing, `final22-guide-check-20260511`, `final22-zoo-visual-guide-check-20260511`, `final21-unit-tests-20260511`, and `final21-build-20260511`.
 
 The reusable boundary is intentionally conservative: `.codex/scripts/workflow-engine.mjs` is portable loader/matcher infrastructure, while `.codex/scripts/nexus-workflow.mjs` remains the Nexus deterministic wrapper until a second project proves which larger pieces should be extracted.
 

@@ -59,4 +59,6 @@ Use `npm run workflow:guide-browser-finalize` instead of manually sequencing gui
 
 Deployment is a separate proof from local release readiness. Use `record-deployment --verdict pass --target <server/url> --commands <ids> --checks <health/log/asset checks>` after server validation, then run `npm run workflow:deployed-gate` when the task requires hosted validation. A passing deployment record needs command evidence or durable artifact evidence; `--checks` documents what was inspected but is not proof by itself. Guide deployments also embed the current generated guide artifact hash and file metadata so the deployment gate can reject records that validated an older guide.
 
+Deployment records are self-referential for generated guide artifacts: the record proves which public guide files were deployed, so the Work Intake guide trace uses policy-owned self-reference exclusions and intentionally omits current deployment proof while gates and records keep deployment proof first-class. Do not fix a missing deployment trace by forcing deployment records into the guide artifact that the same record validates; that creates an impossible stale-proof loop.
+
 If evidence files become large or repetitive, keep the record and summary in git and move bulky raw artifacts to a deliberate artifact store. Do not let screenshot folders become an unbounded transcript substitute.

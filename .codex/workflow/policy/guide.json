@@ -134,6 +134,10 @@
   "recordFeedExcludeKinds": [
     "deployments"
   ],
+  "displayOnlyRecordKinds": [
+    "deployments"
+  ],
+  "displayOnlyRecordNotice": "Deployment records are display-only in generated guide artifacts. Append-only deployment records plus workflow:deployed-gate are the authoritative deployment proof.",
   "publicTimeline": {
     "excludeKinds": [
       "deployments"

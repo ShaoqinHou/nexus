@@ -62,6 +62,14 @@
     "internal-maintenance",
     "workflow-maintenance"
   ],
+  "evidenceKinds": [
+    "patches",
+    "routing",
+    "reviews",
+    "tests",
+    "audits",
+    "deployments"
+  ],
   "staleActiveWorkSliceDays": 14,
   "requireWorkSliceForSubstantivePatches": true,
   "requireWorkSliceForEvidenceRecords": true,
@@ -78,6 +86,16 @@
     "maxTraceItems": 12,
     "maxEvidenceItemsPerSlice": 4,
     "maxFeatureCatalogItems": 12,
+    "selfReferentialEvidenceKinds": [
+      "deployments"
+    ],
+    "traceEvidenceKinds": [
+      "patches",
+      "routing",
+      "reviews",
+      "tests",
+      "audits"
+    ],
     "featureCatalogIntentKinds": [
       "initial",
       "idea",

@@ -148,3 +148,22 @@ Fresh behavior evidence after these fixes:
 - `final14-design-zoo-20260511`: live Playwright Zoo validation passed against `http://localhost:5173`, including warning toast, dark Sichuan theme/body mirroring, dialog portal contrast `14.24`, and tour portal contrast `14.24`.
 - `final14-zoo-visual-capture-20260511`: recaptured the full visual Zoo/Gym from live `/design` routes after the capture script was made fail-closed.
 - `final14b-zoo-visual-guide-check-20260511`: regenerated visual guide passed freshness/content checks.
+
+## Deployment-Gate Self-Reference Follow-Up
+
+During final hosted validation, the first successful deployment record exposed an architecture bug: `workflow:deployed-gate` failed because the generated guide Work Intake trace expected to show the deployment record that itself embeds deployed guide artifact metadata. Regenerating the guide after that record would change the artifact the record claims to prove, creating a self-staling loop.
+
+Resolution:
+
+- Work Intake still records and validates deployment evidence as first-class gate truth.
+- `.codex/workflow/policy/intake.json` now owns `evidenceKinds`, guide-specific `selfReferentialEvidenceKinds`, and `traceEvidenceKinds`.
+- The guide trace omits deployment proof through policy; deployment proof remains in append-only deployment records and `workflow:deployed-gate`, and deployment counts are labeled as display-only guide data.
+- `.codex/README.md` and `.codex/knowledge/verification.md` document that future agents must not force current deployment records into the guide artifact being validated.
+- Fresh self-test evidence includes the helper-level omission check and an integration-style guide-check fixture that simulates adding a deployment record after guide generation without self-staling the guide contract.
+
+Final reviewer follow-up:
+
+- `guideTraceEvidenceKinds()` now excludes `guide.selfReferentialEvidenceKinds` even when `guide.traceEvidenceKinds` is missing or empty, so policy drift fails closed instead of reintroducing deployments into guide traces.
+- Display-only record labeling is handled through a generic helper, not a deployment-specific dashboard branch.
+- Work Intake feature rows now label partial counts as `trace evidence` because deployment proof is intentionally omitted from guide traces.
+- `final22-self-test-20260511` passed `238` checks after these changes.

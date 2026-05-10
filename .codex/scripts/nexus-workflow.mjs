@@ -80,6 +80,7 @@ const INTAKE_POLICY = requiredPolicySection('intake');
 const INTAKE_ENABLED = INTAKE_POLICY.enabled !== false;
 const INTENT_RECORD_KIND = requiredPolicyNestedString('intake', 'recordKinds.intents');
 const WORK_SLICE_RECORD_KIND = requiredPolicyNestedString('intake', 'recordKinds.workSlices');
+const WORK_INTAKE_EVIDENCE_KINDS = requiredPolicyArray('intake', 'evidenceKinds').map(String);
 
 function ensureDir(path) {
   mkdirSync(path, { recursive: true });
@@ -2227,11 +2228,30 @@ function countHtmlMatches(html, pattern) {
   return (String(html).match(pattern) || []).length;
 }
 
+function selfReferentialEvidenceKinds() {
+  const configured = INTAKE_POLICY.guide?.selfReferentialEvidenceKinds || [];
+  if (!Array.isArray(configured)) return new Set();
+  const allowed = new Set(WORK_INTAKE_EVIDENCE_KINDS);
+  return new Set(configured.map(String).filter((kind) => allowed.has(kind)));
+}
+
+function guideTraceEvidenceKinds() {
+  const configured = INTAKE_POLICY.guide?.traceEvidenceKinds;
+  const allowed = new Set(WORK_INTAKE_EVIDENCE_KINDS);
+  const excluded = selfReferentialEvidenceKinds();
+  if (!Array.isArray(configured) || !configured.length) return [...allowed].filter((kind) => !excluded.has(kind));
+  return configured.map(String).filter((kind) => allowed.has(kind) && !excluded.has(kind));
+}
+
+function displayOnlyRecordLabel(kind, label = kind) {
+  return (POLICY.guide?.displayOnlyRecordKinds || []).includes(kind) ? `${label} (display-only)` : label;
+}
+
 function workIntakeGuideContractProblems(html, label = 'guide', model = intakeModel()) {
   if (!INTAKE_ENABLED) return [];
   const problems = [];
   const maxTrace = Number(INTAKE_POLICY.guide?.maxTraceItems || 12);
-  const traceRows = workIntakeTraceRows(model, maxTrace);
+  const traceRows = workIntakeTraceRows(model, maxTrace, { evidenceKinds: guideTraceEvidenceKinds() });
   if (traceRows.length && !html.includes('data-work-intake-trace-row=')) {
     problems.push(`${label} Work Intake trace is missing linked trace rows.`);
   }
@@ -2771,14 +2791,7 @@ function intakeModel() {
   const inboxStatuses = new Set(['captured', 'needs-clarification', 'accepted']);
   const activeStatuses = new Set(allowedPolicyValues('activeWorkSliceStatuses', ['ready', 'active', 'review']));
   const intentIdsWithSlices = new Set(workSlices.flatMap((slice) => csv(slice.intentIds || slice.intentId || slice.intents)));
-  const evidence = {
-    patches: recordFrontmatters('patches'),
-    routing: recordFrontmatters('routing'),
-    reviews: recordFrontmatters('reviews'),
-    tests: recordFrontmatters('tests'),
-    audits: recordFrontmatters('audits'),
-    deployments: recordFrontmatters('deployments'),
-  };
+  const evidence = Object.fromEntries(WORK_INTAKE_EVIDENCE_KINDS.map((kind) => [kind, recordFrontmatters(kind)]));
   return {
     intents,
     workSlices,
@@ -2792,8 +2805,8 @@ function intakeModel() {
   };
 }
 
-function linkedEvidenceSummary(rootId, model) {
-  return ['patches', 'routing', 'reviews', 'tests', 'audits', 'deployments']
+function linkedEvidenceSummary(rootId, model, evidenceKinds = WORK_INTAKE_EVIDENCE_KINDS) {
+  return evidenceKinds
     .map((kind) => {
       const count = recordsLinkedToWorkSlice(model.evidence[kind] || [], rootId, model.index).length;
       return `${kind}:${count}`;
@@ -2821,21 +2834,25 @@ function recordKindLabel(kind) {
 }
 
 function workIntakeEvidenceForSlice(rootId, model) {
-  return Object.fromEntries(['patches', 'routing', 'reviews', 'tests', 'audits', 'deployments'].map((kind) => [
+  return Object.fromEntries(WORK_INTAKE_EVIDENCE_KINDS.map((kind) => [
     kind,
     recordsLinkedToWorkSlice(model.evidence[kind] || [], rootId, model.index),
   ]));
 }
 
-function workIntakeTraceRows(model, limit = Number(INTAKE_POLICY.guide?.maxTraceItems || 12)) {
+function workIntakeTraceRows(model, limit = Number(INTAKE_POLICY.guide?.maxTraceItems || 12), options = {}) {
+  const evidenceKinds = Array.isArray(options.evidenceKinds) && options.evidenceKinds.length
+    ? options.evidenceKinds.map(String).filter((kind) => WORK_INTAKE_EVIDENCE_KINDS.includes(kind))
+    : WORK_INTAKE_EVIDENCE_KINDS;
   return model.latestSlices.slice(0, limit).map((slice) => {
     const rootId = slice.rootId || slice.id;
     const intentIds = intentIdsFromArgs(slice);
+    const evidence = workIntakeEvidenceForSlice(rootId, model);
     return {
       slice,
       rootId,
       intents: intentIds.map((id) => model.intentById.get(id)).filter(Boolean),
-      evidence: workIntakeEvidenceForSlice(rootId, model),
+      evidence: Object.fromEntries(evidenceKinds.map((kind) => [kind, evidence[kind] || []])),
     };
   });
 }
@@ -2894,12 +2911,15 @@ function workIntakeHtml(model, html = escapeHtml) {
   const maxTrace = Number(INTAKE_POLICY.guide?.maxTraceItems || 12);
   const maxCatalog = Number(INTAKE_POLICY.guide?.maxFeatureCatalogItems || 12);
   const maxEvidence = Number(INTAKE_POLICY.guide?.maxEvidenceItemsPerSlice || 4);
+  const traceKinds = guideTraceEvidenceKinds();
+  const selfReferentialKinds = selfReferentialEvidenceKinds();
+  const hiddenTraceKinds = WORK_INTAKE_EVIDENCE_KINDS.filter((kind) => selfReferentialKinds.has(kind) && !traceKinds.includes(kind));
   const inbox = model.inbox.slice(0, maxInbox);
   const active = model.activeSlices.slice(0, maxActive);
-  const trace = workIntakeTraceRows(model, maxTrace);
+  const trace = workIntakeTraceRows(model, maxTrace, { evidenceKinds: traceKinds });
   const catalog = featureCatalogEntries(model).slice(0, maxCatalog);
   const intentLine = (record) => `<li data-work-intake-intent="${html(recordDisplayId(record))}"><strong>${html(recordDisplayId(record))}</strong> <span class="meta">${html(record.status || 'unknown')} · ${html(record.kind || 'intent')}</span><br>${html(recordSummary(record))}</li>`;
-  const sliceLine = (record, attr = 'data-work-intake-slice') => `<li ${attr}="${html(record.rootId || record.id || record.name)}"><strong>${html(record.rootId || record.id || record.name)}</strong> <span class="meta">${html(record.status || 'unknown')} · ${html(record.owner || 'unknown')}</span><br>${html(recordSummary(record))}<br><span class="meta">${html(linkedEvidenceSummary(record.rootId || record.id, model))}</span></li>`;
+  const sliceLine = (record, attr = 'data-work-intake-slice') => `<li ${attr}="${html(record.rootId || record.id || record.name)}"><strong>${html(record.rootId || record.id || record.name)}</strong> <span class="meta">${html(record.status || 'unknown')} · ${html(record.owner || 'unknown')}</span><br>${html(recordSummary(record))}<br><span class="meta">${html(linkedEvidenceSummary(record.rootId || record.id, model, traceKinds))}</span></li>`;
   const evidenceList = (kind, records) => records.length
     ? records.slice(0, maxEvidence).map((record) => `<span data-work-intake-evidence-kind="${html(kind)}" data-work-intake-evidence-id="${html(recordDisplayId(record))}">${html(recordKindLabel(kind))}: ${html(recordDisplayId(record))}</span>`).join('<br>')
     : `<span class="muted">No ${html(recordKindLabel(kind).toLowerCase())} evidence linked.</span>`;
@@ -2915,17 +2935,18 @@ function workIntakeHtml(model, html = escapeHtml) {
     const latest = entry.slices[0];
     const evidenceCount = entry.slices.reduce((sum, slice) => {
       const evidence = workIntakeEvidenceForSlice(slice.rootId || slice.id, model);
-      return sum + Object.values(evidence).reduce((inner, records) => inner + records.length, 0);
+      return sum + traceKinds.reduce((inner, kind) => inner + (evidence[kind] || []).length, 0);
     }, 0);
     return `<li data-work-intake-feature="${html(recordDisplayId(entry.intent))}">
       <strong>${html(recordSummary(entry.intent))}</strong> <span class="meta">${html(entry.intent.status || 'unknown')} · ${html(entry.intent.kind || 'intent')}</span><br>
-      <span class="meta">linked slices:${entry.slices.length} · latest:${html(latest?.status || 'none')} · evidence:${evidenceCount}</span>
+      <span class="meta">linked slices:${entry.slices.length} · latest:${html(latest?.status || 'none')} · trace evidence:${evidenceCount}</span>
     </li>`;
   };
   return `
     <section id="work-intake" class="panel">
       <h2>Work Intake</h2>
       <p class="meta">Local records are canonical. External trackers are optional references; gates use repo-local intent, work-slice, and evidence records.</p>
+      ${hiddenTraceKinds.length ? `<p class="meta">Self-referential evidence kinds are omitted from this guide trace and remain validated by gates: ${hiddenTraceKinds.map((kind) => `<code>${html(kind)}</code>`).join(', ')}.</p>` : ''}
       <div class="grid">
         <div class="card"><span class="meta">Inbox</span><strong>${model.inbox.length}</strong></div>
         <div class="card"><span class="meta">Active Work Slices</span><strong>${model.activeSlices.length}</strong></div>
@@ -2951,6 +2972,8 @@ function workIntakeHtml(model, html = escapeHtml) {
 function commandDashboard(args = {}) {
   ensureDir(DASHBOARD_DIR);
   const recordKinds = GUIDE_RECORD_KINDS;
+  const displayOnlyRecordKinds = new Set(POLICY.guide?.displayOnlyRecordKinds || []);
+  const displayOnlyRecordNotice = String(POLICY.guide?.displayOnlyRecordNotice || '').trim();
   const rawRecords = Object.fromEntries(recordKinds.map((kind) => [kind, listRecords(kind)]));
   const records = displayRecords(rawRecords);
   const currentState = readText(profileProjectRel('currentState'));
@@ -2984,7 +3007,7 @@ function commandDashboard(args = {}) {
     ['Reviews', records.reviews.length],
     ['Tests', records.tests.length],
     ['Audits', records.audits.length],
-    ['Deployments', records.deployments.length],
+    [displayOnlyRecordLabel('deployments', 'Deployments'), records.deployments.length],
     ['Zoo Pages', `${zooLinked}/${zooEntries.length}`],
   ];
   const recordHtml = recordKinds.map((kind) => `
@@ -3095,6 +3118,7 @@ function commandDashboard(args = {}) {
         <div class="grid">
           ${cards.map(([label, count]) => `<div class="card"><span class="meta">${label}</span><strong>${count}</strong></div>`).join('\n')}
         </div>
+        ${displayOnlyRecordNotice ? `<p class="meta">${escapeHtml(displayOnlyRecordNotice)}</p>` : ''}
         <p class="meta">This is a generated snapshot for navigation. It intentionally does not embed live git status or mutable gate state. Run <code>npm run workflow:status</code> for the current worktree truth.</p>
       </section>
       ${workIntakeHtml(intake, escapeHtml)}
@@ -3144,6 +3168,8 @@ function commandPublicGuide(args = {}) {
   ensureDir(DASHBOARD_DIR);
   const generated = nowIso();
   const branch = gitText(['branch', '--show-current']) || '(detached HEAD)';
+  const displayOnlyRecordKinds = new Set(POLICY.guide?.displayOnlyRecordKinds || []);
+  const displayOnlyRecordNotice = String(POLICY.guide?.displayOnlyRecordNotice || '').trim();
   const sourceHash = publicGuideSourceHash();
   const recordFeedHash = guideRecordFeedHash();
   const tokenRootCss = productionGuideTokenCss();
@@ -3306,11 +3332,13 @@ function commandPublicGuide(args = {}) {
     </section>
     <section>
       <h2>Current Counts</h2>
+      ${displayOnlyRecordNotice ? `<p class="meta">${publicHtml(displayOnlyRecordNotice)}</p>` : ''}
       <div class="grid">
         ${GUIDE_RECORD_KINDS.map((kind) => {
           const items = records[kind] || [];
           const label = kind === 'audits' ? 'audits (first-class + legacy)' : kind;
-          return `<div class="card"><strong>${items.length}</strong><p>${publicHtml(label)}</p></div>`;
+          const displayLabel = displayOnlyRecordKinds.has(kind) ? `${label} (display-only)` : label;
+          return `<div class="card"><strong>${items.length}</strong><p>${publicHtml(displayLabel)}</p></div>`;
         }).join('\n')}
       </div>
       <p class="meta">Guide-browser evidence is tracked separately by hash-bound records and omitted from this generated guide to avoid self-referential guide freshness loops.</p>
@@ -3942,6 +3970,35 @@ function policyProblems() {
     if (!POLICY.routing?.defaultWorkers?.[route]) problems.push(`.codex/workflow/policy/routing.json defaultWorkers.${route} is required.`);
   }
   if (!Array.isArray(INTAKE_POLICY.sourceTypes) || !INTAKE_POLICY.sourceTypes.length) problems.push('.codex/workflow/policy/intake.json sourceTypes must be a non-empty array.');
+  if (!Array.isArray(INTAKE_POLICY.evidenceKinds) || !INTAKE_POLICY.evidenceKinds.length) problems.push('.codex/workflow/policy/intake.json evidenceKinds must be a non-empty array.');
+  const unknownTraceEvidenceKinds = (INTAKE_POLICY.guide?.traceEvidenceKinds || []).filter((kind) => !WORK_INTAKE_EVIDENCE_KINDS.includes(String(kind)));
+  for (const kind of unknownTraceEvidenceKinds) problems.push(`.codex/workflow/policy/intake.json guide.traceEvidenceKinds contains unknown evidence kind ${kind}.`);
+  if (!Array.isArray(INTAKE_POLICY.guide?.selfReferentialEvidenceKinds) || !INTAKE_POLICY.guide.selfReferentialEvidenceKinds.length) {
+    problems.push('.codex/workflow/policy/intake.json guide.selfReferentialEvidenceKinds must be a non-empty array.');
+  }
+  const selfReferentialKinds = [...selfReferentialEvidenceKinds()];
+  for (const kind of (INTAKE_POLICY.guide?.selfReferentialEvidenceKinds || [])) {
+    if (!WORK_INTAKE_EVIDENCE_KINDS.includes(String(kind))) problems.push(`.codex/workflow/policy/intake.json guide.selfReferentialEvidenceKinds contains unknown evidence kind ${kind}.`);
+  }
+  const traceKinds = new Set((INTAKE_POLICY.guide?.traceEvidenceKinds || []).map(String));
+  for (const kind of selfReferentialKinds) {
+    if (traceKinds.has(kind)) {
+      problems.push(`.codex/workflow/policy/intake.json guide.traceEvidenceKinds must not include self-referential evidence kind ${kind}.`);
+    }
+  }
+  const excludedFeedKinds = (POLICY.guide?.recordFeedExcludeKinds || []).filter((kind) => WORK_INTAKE_EVIDENCE_KINDS.includes(String(kind)));
+  for (const kind of excludedFeedKinds) {
+    if (!selfReferentialKinds.includes(String(kind))) {
+      problems.push(`.codex/workflow/policy/guide.json excludes ${kind} from the guide record feed, so intake policy must list it under guide.selfReferentialEvidenceKinds.`);
+    }
+  }
+  if (!Array.isArray(POLICY.guide?.displayOnlyRecordKinds)) problems.push('.codex/workflow/policy/guide.json displayOnlyRecordKinds must be an array.');
+  for (const kind of POLICY.guide?.displayOnlyRecordKinds || []) {
+    if (!GUIDE_RECORD_KINDS.includes(String(kind))) problems.push(`.codex/workflow/policy/guide.json displayOnlyRecordKinds contains unknown guide record kind ${kind}.`);
+  }
+  if ((POLICY.guide?.displayOnlyRecordKinds || []).length && !POLICY.guide?.displayOnlyRecordNotice) {
+    problems.push('.codex/workflow/policy/guide.json displayOnlyRecordNotice is required when displayOnlyRecordKinds is non-empty.');
+  }
   const evidencePolicy = POLICY.gates?.evidence || {};
   const commandClasses = evidencePolicy.commandClasses || {};
   if (!Object.keys(commandClasses).length) problems.push('.codex/workflow/policy/gates.json evidence.commandClasses must define command classes.');
@@ -5987,6 +6044,8 @@ function workflowSelfTestChecks() {
   add('public guide uses deployment policy visual zoo URL', PUBLIC_ZOO_GUIDE_URL === POLICY.deployment?.visualZooGuideUrl);
   add('deployment records do not self-stale public guide source hash', !publicGuideInputFiles().some((file) => file.startsWith('.codex/workflow/records/deployments/')));
   add('deployment records remain displayable guide records', GUIDE_RECORD_KINDS.includes('deployments'));
+  add('self-referential guide evidence exclusions are policy-owned', selfReferentialEvidenceKinds().has('deployments') && !guideTraceEvidenceKinds().includes('deployments'));
+  add('display-only guide record kinds have a public notice', (POLICY.guide?.displayOnlyRecordKinds || []).includes('deployments') && Boolean(POLICY.guide?.displayOnlyRecordNotice));
   add('deployment guide artifact metadata rejects per-file drift', (() => {
     const meta = deploymentGuideArtifactMeta();
     const altered = {
@@ -6113,6 +6172,67 @@ function workflowSelfTestChecks() {
       && html.includes('data-work-intake-evidence-id="PATCH-guide"')
       && html.includes('data-work-intake-feature="INTENT-guide"')
       && workIntakeGuideContractProblems(html, 'fixture', model).length === 0;
+  })());
+  add('work intake guide trace omits self-referential deployment proof', (() => {
+    const intents = [{ id: 'INTENT-deploy-guide', kind: 'feature', status: 'accepted', summary: 'Deploy guide' }];
+    const workSlices = [{ id: 'WORK-SLICE-deploy-guide', rootId: 'WORK-SLICE-deploy-guide', status: 'done', intentIds: ['INTENT-deploy-guide'], summary: 'Deploy slice', acceptance: 'done', owner: 'codex-lead', created: nowIso() }];
+    const model = {
+      intents,
+      workSlices,
+      latestSlices: workSlices,
+      intentById: new Map(intents.map((record) => [record.id, record])),
+      inbox: [],
+      activeSlices: [],
+      index: workSliceIndex(workSlices),
+      warnings: [],
+      evidence: Object.fromEntries(WORK_INTAKE_EVIDENCE_KINDS.map((kind) => [kind, []])),
+    };
+    model.evidence.deployments = [{ id: 'DEPLOYMENT-guide-self', workSliceIds: ['WORK-SLICE-deploy-guide'], verdict: 'pass', summary: 'deployment' }];
+    const html = workIntakeHtml(model, escapeHtml);
+    return !guideTraceEvidenceKinds().includes('deployments')
+      && !html.includes('data-work-intake-evidence-id="DEPLOYMENT-guide-self"')
+      && html.includes('Self-referential evidence kinds are omitted')
+      && html.includes('trace evidence:0')
+      && workIntakeGuideContractProblems(html, 'fixture', model).length === 0;
+  })());
+  add('work intake guide fallback omits self-referential proof when trace list is empty', (() => {
+    const original = INTAKE_POLICY.guide.traceEvidenceKinds;
+    try {
+      INTAKE_POLICY.guide.traceEvidenceKinds = [];
+      return !guideTraceEvidenceKinds().includes('deployments');
+    } finally {
+      INTAKE_POLICY.guide.traceEvidenceKinds = original;
+    }
+  })());
+  add('guide check survives self-referential deployment record after guide generation', (() => {
+    if (!commandGuideCheck({ quiet: true })) return false;
+    const currentModel = intakeModel();
+    const rootId = currentModel.latestSlices[0]?.rootId || currentModel.latestSlices[0]?.id;
+    if (!rootId) return false;
+    const id = `DEPLOYMENT-SELF-TEST-${process.pid}`;
+    const path = join(RECORDS, 'deployments', `${id}.md`);
+    const text = [
+      '---',
+      'schema: "nexus-deployment/v1"',
+      `id: "${id}"`,
+      `created: "${nowIso()}"`,
+      `target: "${PUBLIC_GUIDE_URL}"`,
+      'verdict: "pass"',
+      'operator: "self-test"',
+      `workSliceIds: ["${rootId}"]`,
+      '---',
+      '',
+      '# Self-test deployment record',
+      '',
+      'Temporary fixture proving guide checks do not require the current deployment record inside the guide trace.',
+      '',
+    ].join('\n');
+    try {
+      writeFileSync(path, text, { flag: 'wx' });
+      return commandGuideCheck({ quiet: true });
+    } finally {
+      rmSync(path, { force: true });
+    }
   })());
   add('work intake guide contract rejects label-only trace surface', (() => {
     const intents = [{ id: 'INTENT-label', kind: 'feature', status: 'accepted', summary: 'Label only' }];
