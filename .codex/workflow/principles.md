@@ -10,7 +10,7 @@ The workflow exists to help a solo developer use LLM agents for long-running pro
 
 It is not a project-management ceremony. It is a small deterministic system that gives non-deterministic LLM work a reliable execution path:
 
-`user intent -> lead work slice -> patch -> focused review -> verification -> audit -> deployment when needed`
+`user intent -> lead work slice -> activity when needed -> patch -> focused review -> verification -> audit -> deployment when needed`
 
 The LLM supplies judgment. The workflow records that judgment and checks that required evidence exists.
 
@@ -37,19 +37,22 @@ The LLM supplies judgment. The workflow records that judgment and checks that re
 7. Work Intake protects user intent.
    User prompts are captured as compact intent records, then converted into lead-owned work slices. Later bug reports, vague feature ideas, and corrections should update or supersede work slices instead of creating random one-off notes.
 
-8. Review, verify, and audit are automatic workflow obligations.
+8. Long lead phases are explainable without a watcher.
+   Timed command telemetry proves command runtime, not LLM reasoning, editing, or waiting for audits. Activity records are compact, policy-owned intervals linked to work slices. The deterministic activity check rejects future unexplained gaps without running a background timer or making generated views canonical.
+
+9. Review, verify, and audit are automatic workflow obligations.
    They are not only actions taken when the user asks. Substantive changes need focused review records, command or artifact-backed verification records, and audit records when policy requires them.
 
-9. Pattern guidance is evidence-based.
+10. Pattern guidance is evidence-based.
    If an agent finds a repeated mistake, undocumented invariant, deprecated approach, or useful convention, it creates a pattern proposal first. Durable guidance changes only after the source code, tests, history, or reference docs support it.
 
-10. Model routing is explicit.
+11. Model routing is explicit.
    Fast workers are allowed only for narrow, heavily guided work with clear scope and tests. Ambiguous debugging, architecture, visual/design judgment, deployment, and cross-cutting changes stay with a strong model or the lead.
 
-11. Portability means copying the system and replacing project data.
+12. Portability means copying the system and replacing project data.
    The reusable system layer can be copied. Nexus app paths, design-system details, deployment URLs, tenant rules, package scripts, adapter sources, knowledge, generated guides, and historical records must be rewritten, regenerated, or discarded for the target project. The executable proof is `npm run workflow:portability-check`, which role-plays a fresh empty project with disabled/stubbed optional capabilities.
 
-12. Fixed-path integration is an adapter problem.
+13. Fixed-path integration is an adapter problem.
    Some tools require files outside the workflow root, such as `AGENTS.md`, `.codex/config.toml`, repo skills, CI workflow files, and package scripts. `.codex/workflow/policy/adapters.json` declares every target and its source owner. Exact-file outputs are sourced from `.codex/workflow/project/adapters/`; package workflow scripts are sourced from `.codex/workflow/policy/gates.json` `gates.packageScripts`.
    Exact-file script adapter sources are target-path payloads, not standalone runnable scripts from the adapter directory. Install or check them through the adapter commands.
 
@@ -97,7 +100,7 @@ Use these groups when deciding what to open, edit, copy, or discard:
 | Project policy/profile data | `.codex/workflow/profile.json`, `.codex/workflow/policy/*.json`, dependency audit baseline | Machine-consumed. Prefer compact JSON facts, enums, path lists, and gate contracts over prose duplication. |
 | Workflow design/reference docs | `principles.md`, `capabilities.md`, `templates/*` | Explain intent and usage. These are useful but stale-prone, so they should point at policy owners instead of repeating enums or path lists. |
 | Managed handover | `current-state.md` | Compact resume state only. It must not become a changelog or transcript. |
-| Append-only evidence | `records/*` | One event per file. Preserve frontmatter for gates; keep the body concise and link to artifacts or command ids for detail. |
+| Append-only evidence | `records/*` | One event per file. Preserve frontmatter for gates; keep the body concise and link to artifacts or command ids for detail. Use activity records for long lead phases that are not represented by commands or patches. |
 | Historical analysis | `research/*`, `briefs/*` | Open by title when needed. Do not bulk-load as current truth. |
 | Generated views/artifacts | `.codex/dashboard/*`, `workflow/artifacts/*` | Human inspection aids and evidence attachments. Regenerate or validate; do not edit as canonical memory. |
 | Mutable telemetry/cache | `state/*`, `runtime/*` | Delete-safe diagnostics only. Passing records can embed compact summaries from telemetry, but telemetry itself is not durable proof. |
@@ -169,6 +172,7 @@ Do not create one-off planning documents at the repo root or random `.codex/` pa
 
 - User intent belongs in `records/intents/`.
 - Lead implementation scope belongs in `records/work-slices/`.
+- Long lead phases, waiting spans, or reasoning/editing intervals belong in `records/activities/`.
 - Decisions belong in `records/decisions/`.
 - Patch, review, verification, audit, routing, guide-browser, and deployment evidence belongs in the matching record directory.
 - Durable project guidance belongs in `.codex/knowledge/`.

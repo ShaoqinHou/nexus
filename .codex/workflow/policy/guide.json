@@ -166,6 +166,14 @@
   "recordEmbedExcludedCountLabels": {
     "deployments": "gate"
   },
+  "recordEmbedLimits": {
+    "default": 12,
+    "work-slices": 16,
+    "intents": 16,
+    "reviews": 16,
+    "tests": 16,
+    "audits": 16
+  },
   "selfReferentialWarningFilters": [
     {
       "kind": "deployments",

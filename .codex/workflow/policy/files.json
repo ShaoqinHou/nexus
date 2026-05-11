@@ -54,6 +54,7 @@
     ".codex/knowledge/verification.md",
     ".codex/workflow/scenarios/model-routing.json",
     ".codex/workflow/templates/README.md",
+    ".codex/workflow/templates/activity.md",
     ".codex/workflow/templates/audit.md",
     ".codex/workflow/templates/current-state.md",
     ".codex/workflow/templates/deployment.md",
@@ -269,7 +270,7 @@
       {
         "path": ".codex/workflow/records/",
         "role": "append-only-evidence",
-        "truth": "event-level durable evidence for intent, work slices, patches, reviews, tests, audits, deployments, and decisions",
+        "truth": "event-level durable evidence for intent, work slices, activities, patches, reviews, tests, audits, deployments, and decisions",
         "llmLoadPolicy": "read index/current state first, then open only referenced records needed for the task",
         "stalenessRisk": "low",
         "portingRule": "start fresh; do not copy Nexus records as target-project evidence"

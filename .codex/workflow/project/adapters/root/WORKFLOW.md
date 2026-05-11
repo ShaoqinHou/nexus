@@ -29,10 +29,17 @@ node .codex/scripts/nexus-workflow.mjs record-intent --kind feature --status cap
 node .codex/scripts/nexus-workflow.mjs record-work-slice --intent <INTENT-id> --status active --summary "<lead interpretation>" --acceptance "<done signals>"
 ```
 
+When a long lead phase is real work but not visible in timed commands or patches, add a compact activity record:
+
+```bash
+node .codex/scripts/nexus-workflow.mjs record-activity --work-slice <WORK-SLICE-id> --kind implementation --status completed --summary "<phase summary>" --started-at "<iso>" --ended-at "<iso>"
+```
+
 Link substantive evidence records with `--work-slice <WORK-SLICE-id>` and diagnose trace gaps with:
 
 ```bash
 npm run workflow:work-intake-check
+npm run workflow:activity-check
 ```
 
 Before branch release, close each current slice with a new append-only record:
@@ -62,3 +69,4 @@ Diagnostics for the workflow system itself:
 - `npm run workflow:adapter-check` verifies fixed-path workflow outputs still match their canonical sources.
 - `npm run workflow:policy-check` verifies the policy pack is loaded and consumed by scripts, docs, file classifiers, and package commands.
 - `npm run workflow:trace-check` verifies command-run telemetry is well formed so execution time, warnings, failures, and timeouts remain auditable.
+- `npm run workflow:activity-check` verifies long lead phases are explained by compact activity records rather than hidden in chat history.

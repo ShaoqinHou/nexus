@@ -32,6 +32,7 @@
     ".codex/workflow/system/scripts/run-hook.mjs",
     ".codex/workflow/project/README.md",
     ".codex/workflow/templates/project-bootstrap.md",
+    ".codex/workflow/templates/activity.md",
     ".codex/workflow/templates/intent.md",
     ".codex/workflow/templates/work-slice.md",
     ".codex/workflow/scenarios/model-routing.json",

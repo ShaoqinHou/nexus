@@ -19,6 +19,7 @@
     "workflow:model-routing-check": "node .codex/scripts/nexus-workflow.mjs model-routing-check",
     "workflow:routing-check": "node .codex/scripts/nexus-workflow.mjs routing-check",
     "workflow:work-intake-check": "node .codex/scripts/nexus-workflow.mjs work-intake-check",
+    "workflow:activity-check": "node .codex/scripts/nexus-workflow.mjs activity-check",
     "workflow:complete-routing": "node .codex/scripts/nexus-workflow.mjs complete-routing",
     "workflow:records-check": "node .codex/scripts/nexus-workflow.mjs records-check",
     "workflow:guide-check": "node .codex/scripts/nexus-workflow.mjs guide-check",
@@ -79,6 +80,9 @@
       "workflow-trace": {
         "npmScripts": ["workflow:trace-check"]
       },
+      "workflow-activity": {
+        "npmScripts": ["workflow:activity-check"]
+      },
       "model-routing": {
         "npmScripts": ["workflow:model-routing-check"]
       },
@@ -120,7 +124,7 @@
       {
         "name": "workflow-system",
         "include": ["AGENTS.md", "WORKFLOW.md", ".codex/", ".agents/skills/", ".github/workflows/", "package.json", "package-lock.json"],
-        "classes": ["workflow-policy", "workflow-adapter", "workflow-self-test", "workflow-portability"]
+        "classes": ["workflow-policy", "workflow-adapter", "workflow-self-test", "workflow-activity", "workflow-portability"]
       },
       {
         "name": "routing",
@@ -152,7 +156,7 @@
       {
         "name": "workflow-audit",
         "include": ["AGENTS.md", "WORKFLOW.md", ".codex/", ".agents/skills/", ".github/workflows/", "package.json", "package-lock.json"],
-        "classes": ["workflow-policy", "workflow-adapter", "workflow-self-test", "workflow-trace", "workflow-portability"]
+        "classes": ["workflow-policy", "workflow-adapter", "workflow-self-test", "workflow-trace", "workflow-activity", "workflow-portability"]
       },
       {
         "name": "routing-audit",

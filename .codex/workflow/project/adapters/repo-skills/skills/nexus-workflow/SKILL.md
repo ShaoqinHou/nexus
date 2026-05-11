@@ -30,6 +30,7 @@ The release gate includes `.codex` inventory, adapter-drift, policy-consumption,
 - Record durable decisions with `node .codex/scripts/nexus-workflow.mjs record-decision --summary "<summary>" --notes "<notes>"`.
 - Record durable user intent slices with `node .codex/scripts/nexus-workflow.mjs record-intent --kind <kind> --status captured --summary "<compact user intent>"`.
 - Record lead-interpreted work slices with `node .codex/scripts/nexus-workflow.mjs record-work-slice --intent <INTENT-id> --status active --summary "<lead interpretation>" --acceptance "<done signals>" --verification "<checks>"`.
+- Record long lead phases or waits with `node .codex/scripts/nexus-workflow.mjs record-activity --work-slice <WORK-SLICE-id> --kind <policy-phase-kind> --status completed --summary "<phase>" --started-at "<iso>" --ended-at "<iso>"`; the valid phase kinds are owned by `.codex/workflow/policy/intake.json`.
 - Link substantive routing, patch, review, verification, audit, and deployment records with `--work-slice <WORK-SLICE-id>`.
 - Close each completed slice with `node .codex/scripts/nexus-workflow.mjs close-work-slice --slice <WORK-SLICE-id> --status done --notes "<evidence complete>"` before branch release.
 - Record discovered pattern candidates with `node .codex/scripts/nexus-workflow.mjs record-pattern --summary "<finding>" --evidence "<files/tests/reviews>" --guidance "<candidate rule>"`.
@@ -47,12 +48,13 @@ The release gate includes `.codex` inventory, adapter-drift, policy-consumption,
 1. Run targeted tests.
 2. Run `node .codex/scripts/nexus-workflow.mjs review-check`.
 3. Run `node .codex/scripts/nexus-workflow.mjs work-intake-check` when the work includes user-facing, workflow, design, or product intent traceability.
-4. Use `nexus-review` if a focused review is needed.
+4. Use `node .codex/scripts/nexus-workflow.mjs activity-check` only to diagnose activity-trace failures reported by health/release gates.
+5. Use `nexus-review` if a focused review is needed.
 5. Record interim worktree review when useful:
    `node .codex/scripts/nexus-workflow.mjs record-review --scope worktree --kind <general|pattern|design|workflow|integrated> --verdict pass --reviewer <name> --notes "<summary>"`
-5. Close branch diffs with branch-scope records before release:
+6. Close branch diffs with branch-scope records before release:
    `close-work-slice`, `record-patch --scope branch --work-slice`, branch-scope review records for every required kind, branch-scope `record-verify --work-slice`, and branch-scope `record-audit --work-slice`.
-6. Run `npm run workflow:release-gate`.
+7. Run `npm run workflow:release-gate`.
 
 ## Before Final Handover Or Release
 

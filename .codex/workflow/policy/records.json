@@ -4,6 +4,7 @@
     "decisions",
     "intents",
     "work-slices",
+    "activities",
     "pattern-proposals",
     "routing",
     "patches",
@@ -17,6 +18,7 @@
     "decisions",
     "intents",
     "work-slices",
+    "activities",
     "pattern-proposals",
     "routing",
     "patches",
@@ -30,6 +32,7 @@
     "decisions",
     "intents",
     "work-slices",
+    "activities",
     "pattern-proposals",
     "routing",
     "patches",
@@ -39,6 +42,7 @@
     "deployments"
   ],
   "prefixByKind": {
+    "activities": "ACTIVITY",
     "decisions": "DECISION",
     "deployments": "DEPLOYMENT",
     "guide-browser": "GUIDE-BROWSER",
@@ -56,6 +60,7 @@
     "branch": "NEXUS_BRANCH_BASE"
   },
   "schemaByKind": {
+    "activities": "nexus-activity/v1",
     "decisions": "nexus-decision/v1",
     "deployments": "nexus-deployment/v1",
     "guide-browser": "nexus-guide-browser/v1",

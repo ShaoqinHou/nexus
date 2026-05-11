@@ -4,6 +4,7 @@
     "decisions",
     "intents",
     "work-slices",
+    "activities",
     "pattern-proposals",
     "routing",
     "patches",
@@ -17,6 +18,7 @@
     "decisions",
     "intents",
     "work-slices",
+    "activities",
     "pattern-proposals",
     "routing",
     "patches",
@@ -30,6 +32,7 @@
     "decisions",
     "intents",
     "work-slices",
+    "activities",
     "pattern-proposals",
     "routing",
     "patches",
@@ -40,6 +43,7 @@
     "deployments"
   ],
   "schemaByKind": {
+    "activities": "codex-activities/v1",
     "decisions": "codex-decisions/v1",
     "intents": "codex-intents/v1",
     "work-slices": "codex-work-slices/v1",
@@ -53,6 +57,7 @@
     "deployments": "codex-deployments/v1"
   },
   "prefixByKind": {
+    "activities": "ACTIVITY",
     "decisions": "DECISION",
     "intents": "INTENT",
     "work-slices": "WORK-SLICE",

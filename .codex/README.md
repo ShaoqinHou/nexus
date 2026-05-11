@@ -7,7 +7,7 @@ This is the project-local workflow root for Codex sessions.
 1. Read `workflow/current-state.md`.
 2. Run `npm run workflow:status`.
 3. Load only the relevant knowledge file from `knowledge/`.
-4. Record decisions, patches, reviews, tests, and deployments under `workflow/records/`.
+4. Record decisions, activities, patches, reviews, tests, and deployments under `workflow/records/`.
 
 ## Workflow Ladder
 
@@ -68,6 +68,7 @@ For workflow migration, architecture changes, or second-project setup, read `wor
 - `npm run workflow:inventory-check`, `npm run workflow:adapter-check`, `npm run workflow:policy-check`, and `npm run workflow:trace-check` are deterministic checks for workflow file placement, fixed adapter drift, policy consumption, and command execution telemetry.
 - `npm run workflow:portability-check` builds a temporary empty-project installation from the reusable system layer plus fresh project policy/profile stubs. It proves optional design/deployment capabilities can wait for content without carrying Nexus app facts into system code.
 - `npm run workflow:work-intake-check` validates user-intent/work-slice traceability, orphan patch coverage, stale active slices, and optional external tracker references.
+- `npm run workflow:activity-check` validates lightweight activity records for long lead phases that timed commands or patch/review evidence do not explain.
 - `npm run workflow:guide-browser-finalize` is the deterministic final guide-evidence step when guide artifacts are in scope. Run it after review, verification, and audit records are in place; it regenerates guide artifacts, captures browser evidence, and records the hash-bound guide-browser pass.
 
 ## Workflow Kernel
@@ -85,7 +86,7 @@ The center of the system is the deterministic kernel in `workflow/system/scripts
 - branch evidence checks compare the current branch diff against its base and require hash-bound branch-scope patch, review, verification, and audit records even on a clean checkout.
 - Worktree-scope records should not carry branch hashes. Branch hashes belong to final branch-scope records. Delegated worker patch records introduced on the branch remain branch evidence through routing id plus integrated review, even if later lead edits change the final branch hash.
 - `.codex/` inventory, policy consumption, and command trace telemetry are first-class release-gate inputs. This keeps workflow self-checks centralized in the kernel instead of relying on scattered handover reminders.
-- Work Intake records connect user prompts to lead work slices and then to implementation evidence. Substantive records should carry `workSliceIds` so generated guide views and release gates can detect drift.
+- Work Intake records connect user prompts to lead work slices, lightweight activity traces, and then implementation evidence. Substantive records should carry `workSliceIds` so generated guide views and release gates can detect drift.
 - `.codex/workflow/policy/files.json` `inventory.roleTaxonomy` owns the file/directory role map. Use it to distinguish system code, policy/profile data, workflow docs, append-only records, generated artifacts, mutable cache, and historical research before copying or editing workflow files.
 - Records should preserve enough structured frontmatter for gates while keeping bodies compact for humans and LLMs. Branch patch records own the complete branch file list; branch review, verification, audit, and deployment records should reference the branch hash and linked patch instead of repeating the full file inventory.
 
@@ -111,6 +112,7 @@ Core handover context stays small. Detailed records live below:
 - `workflow/records/decisions/`
 - `workflow/records/intents/`
 - `workflow/records/work-slices/`
+- `workflow/records/activities/`
 - `workflow/records/pattern-proposals/`
 - `workflow/records/routing/`
 - `workflow/records/patches/`
@@ -127,9 +129,17 @@ Do not put mutable cache JSON in `workflow/records/`. Do not paste long transcri
 
 Work Intake is the solo-dev traceability layer:
 
-`user intent -> lead work slice -> patch -> review -> verify -> audit -> deployment`
+`user intent -> lead work slice -> activity when needed -> patch -> review -> verify -> audit -> deployment`
 
 Use `record-intent` for compact user meaning and `record-work-slice` for the lead's implementable interpretation. External trackers can be referenced with `externalRefs`, but local records stay canonical unless a future project policy explicitly changes that. Generated guide pages show the inbox, active slices, trace graph, feature catalog, and deterministic warnings.
+
+Use `record-activity` for long research, design, implementation, wait, validation, or handover phases that are real work but would otherwise leave a large blank span between timed commands and evidence records:
+
+```bash
+node .codex/scripts/nexus-workflow.mjs record-activity --work-slice <WORK-SLICE-id> --kind implementation --status completed --summary "<phase summary>" --started-at "<iso>" --ended-at "<iso>"
+```
+
+Activity tracing is policy-owned in `workflow/policy/intake.json`. It is not a background timer and it should not contain transcript dumps; it is a compact explanation of otherwise-unexplained lead time.
 
 ## Handover Policy
 
@@ -141,7 +151,7 @@ Before final local handover, run the canonical gate:
 npm run workflow:release-gate
 ```
 
-If it fails, run `npm run workflow:health` for the diagnostic breakdown. The release gate covers records, routing, generated guides, guide-browser evidence, Zoo/Gym evidence, `.codex` inventory, workflow policy, empty-project portability, command trace telemetry, hook config, branch evidence, dependency-audit baseline, production Zoo bundling, handover hygiene, and workflow self-tests.
+If it fails, run `npm run workflow:health` for the diagnostic breakdown. The release gate covers records, routing, generated guides, guide-browser evidence, Zoo/Gym evidence, `.codex` inventory, workflow policy, empty-project portability, command trace telemetry, activity traceability, hook config, branch evidence, dependency-audit baseline, production Zoo bundling, handover hygiene, and workflow self-tests.
 
 Pattern proposal, routing, patch, review, test, audit, guide-browser, and deployment records are append-only once committed. If a record is wrong, create a correction record rather than editing committed evidence. `NEXUS_RECORD_BASE=<ref>` can be used to force the base ref for append-only history checks; otherwise the kernel uses `origin/main` or `main` when present.
 

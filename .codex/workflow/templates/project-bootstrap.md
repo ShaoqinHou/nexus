@@ -66,6 +66,7 @@ Ask the lead agent to:
    - `workflow:portability-check`
    - `workflow:inventory-check`
    - `workflow:trace-check`
+   - `workflow:activity-check`
 6. Copy/adapt project agents and repo skills if the target project will use subagents or specialized review/verify/audit behavior:
    - `.codex/agents/*.toml`
    - `.agents/skills/*/SKILL.md`
@@ -83,9 +84,9 @@ Ask the lead agent to:
    Then run `workflow:adapter-sync` to install them and `workflow:adapter-check` to prove they still match. Create non-adapter canonical files directly: `.codex/README.md`, `.codex/workflow/principles.md`, `.codex/workflow/capabilities.md`, `.codex/workflow/current-state.md`, `.codex/workflow/profile.json`, `.codex/workflow/policy/manifest.json`, and the manifest-listed `.codex/workflow/policy/*.json`. Create `current-state.md` from `.codex/workflow/templates/current-state.md`, not from Nexus live state.
 9. Keep workflow mechanics in scripts and policy, not in bulky hook bodies.
 10. Add a work-intake policy and knowledge file if the project will be driven by user prompts, vague feature ideas, or solo-dev AI sessions:
-   - `.codex/workflow/policy/intake.json` defines record kinds, statuses, stale-slice limits, external tracker policy, and guide presentation limits.
-   - `.codex/knowledge/work-intake.md` explains how to capture compact user intent, lead-interpreted work slices, evidence links, and external tracker references.
-   - `.codex/workflow/templates/intent.md` and `.codex/workflow/templates/work-slice.md` define the durable record shapes.
+   - `.codex/workflow/policy/intake.json` defines record kinds, statuses, stale-slice limits, activity phase/gap policy, external tracker policy, and guide presentation limits.
+   - `.codex/knowledge/work-intake.md` explains how to capture compact user intent, lead-interpreted work slices, activity intervals, evidence links, and external tracker references.
+   - `.codex/workflow/templates/intent.md`, `.codex/workflow/templates/work-slice.md`, and `.codex/workflow/templates/activity.md` define the durable record shapes.
 11. Use `.codex/workflow/capabilities.md` and `npm run workflow:capability-check` to decide which capabilities are active. If the target project has no design Zoo/Gym yet, make that an explicit capability decision instead of leaving dead Nexus checks in place:
    - set `design-system-zoo-gym` to `disabled-stub` or `unsupported` in portability policy,
    - omit `design` from the policy manifest unless a real design policy exists,
@@ -102,6 +103,7 @@ npm run workflow:portability-check
 npm run workflow:policy-check
 npm run workflow:inventory-check
 npm run workflow:trace-check
+npm run workflow:activity-check
 npm run workflow:self-test
 npm run workflow:release-gate
 ```
@@ -140,7 +142,7 @@ Current extraction boundary:
 - `.codex/workflow/policy/adapters.json` is the fixed-path integration boundary. It maps exact-file targets to `.codex/workflow/project/adapters/` and package workflow scripts to `.codex/workflow/policy/gates.json` `gates.packageScripts`.
 - The reusable engine has a small core policy fallback only for bootstrap safety. Project domains such as design-system and deployment must be listed in the target project's policy manifest before scripts depend on them.
 - Optional capabilities such as design-system/Zoo/Gym and deployment validation are capability-gated. They should be disabled/stubbed in empty projects until real target data exists.
-- `workflow:portability-check` is the executable empty-project role-play. It creates a temporary target project from the inspectable `workflow/system/fixtures/portable-empty/` fixture plus current system scripts, then proves `status`, `capability-check`, `policy-check`, `inventory-check`, `adapter-check`, `work-intake-check`, `trace-check`, guide generation, `guide-check`, and `self-test` run without carrying source-project app literals.
+- `workflow:portability-check` is the executable empty-project role-play. It creates a temporary target project from the inspectable `workflow/system/fixtures/portable-empty/` fixture plus current system scripts, then proves `status`, `capability-check`, `policy-check`, `inventory-check`, `adapter-check`, `work-intake-check`, `activity-check`, `trace-check`, guide generation, `guide-check`, and `self-test` run without carrying source-project app literals.
 
 Project-specific policy:
 

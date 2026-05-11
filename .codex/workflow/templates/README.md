@@ -7,6 +7,7 @@ Do not treat a hand-written template body as a valid gate record unless the fron
 - `patch.md`: meaningful implementation slice.
 - `intent.md`: compact user-intent slice captured from a durable prompt meaning.
 - `work-slice.md`: lead-interpreted implementable slice linked to intents and evidence.
+- `activity.md`: compact long-phase progress or wait interval linked to a work slice.
 - `review.md`: focused code/design/pattern review.
 - `test.md`: command, browser, server, or historical-case verification.
 - `guide-browser.md`: generated guide visual/browser validation.

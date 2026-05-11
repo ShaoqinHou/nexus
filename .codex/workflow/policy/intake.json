@@ -3,7 +3,8 @@
   "enabled": true,
   "recordKinds": {
     "intents": "intents",
-    "workSlices": "work-slices"
+    "workSlices": "work-slices",
+    "activities": "activities"
   },
   "intentKinds": [
     "initial",
@@ -63,6 +64,7 @@
     "workflow-maintenance"
   ],
   "evidenceKinds": [
+    "activities",
     "patches",
     "routing",
     "reviews",
@@ -80,6 +82,41 @@
     "jira:",
     "url:"
   ],
+  "activity": {
+    "enabled": true,
+    "phaseKinds": [
+      "research",
+      "design",
+      "implementation",
+      "review-wait",
+      "audit-wait",
+      "fix",
+      "validation",
+      "deployment",
+      "handover",
+      "blocked"
+    ],
+    "statuses": [
+      "started",
+      "update",
+      "completed",
+      "blocked"
+    ],
+    "openStatuses": [
+      "started",
+      "update",
+      "blocked"
+    ],
+    "gapCheckStatuses": [
+      "active",
+      "review",
+      "verified",
+      "done"
+    ],
+    "maxUnexplainedMinutes": 45,
+    "maxOpenActivityMinutes": 180,
+    "enforcementStartedAt": "2026-05-11T14:00:00.000Z"
+  },
   "guide": {
     "maxInboxItems": 8,
     "maxActiveSlices": 8,
@@ -90,6 +127,7 @@
       "deployments"
     ],
     "traceEvidenceKinds": [
+      "activities",
       "patches",
       "routing",
       "reviews",

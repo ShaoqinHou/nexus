@@ -1,6 +1,6 @@
 # Current State
 
-Updated: 2026-05-11
+Updated: 2026-05-12
 
 ## Original Request
 
@@ -29,6 +29,11 @@ Latest completed workflow architecture slices:
 - `WORK-SLICE-20260511T092322Z-work-slice-done-implement-behavior-preserving-wo`
 - `WORK-SLICE-20260511T124359Z-work-slice-done-research-design-implement-and-te`
 - `WORK-SLICE-20260511T124842Z-work-slice-verified-research-design-implement-an`
+- `WORK-SLICE-20260511T143903Z-work-slice-done-add-policy-owned-activity-tracin`
+- `WORK-SLICE-20260511T144607Z-work-slice-done-resolve-activity-trace-audit-fin`
+- `WORK-SLICE-20260511T145509Z-work-slice-done-bound-generated-guide-record-emb`
+
+The latest slices add policy-owned activity records for long lead phases that are not explained by command telemetry, plus bounded generated-guide record embeds so the dashboard stays compact while full records remain canonical.
 
 Use detailed records and research notes for history. This file is only the compact handover.
 
@@ -68,17 +73,7 @@ Recent completed closeout before the current slice:
 - audit: `AUDIT-20260511T040503Z-audit-pass-branch`
 - deployment: `DEPLOYMENT-20260511T040826Z-deploy-workflow-portability-onboarding-guide-upd`
 
-Current data-shape audit closeout:
-
-- patch: `PATCH-20260511T053900Z-finalize-workflow-data-shape-taxonomy-compatibil`
-- verification: `TEST-20260511T054049Z-verification-pass-worktree`
-- audit: `AUDIT-20260511T054102Z-audit-pass-worktree`
-
-Current performance audit closeout:
-
-- patch: `PATCH-20260511T061346Z-instrument-and-speed-up-guide-browser-evidence-f`
-- verification: `TEST-20260511T061518Z-verification-pass-worktree`
-- audit: `AUDIT-20260511T061531Z-audit-pass-worktree`
+Earlier data-shape and performance-audit closeouts are preserved in `workflow/records/`; keep this handover focused on active resume facts and current architecture closeouts.
 
 Current adapter-backed workflow refactor closeout:
 
@@ -89,6 +84,14 @@ Current adapter-backed workflow refactor closeout:
 - audit: `AUDIT-20260511T092206Z-audit-pass-worktree`
 
 The refactor centralizes fixed-path workflow files through `.codex/workflow/policy/adapters.json`. Exact-file adapter sources live in `.codex/workflow/project/adapters/`; package workflow scripts are owned by `.codex/workflow/policy/gates.json` `gates.packageScripts`. A routing-cache bug found during closeout was fixed in `.codex/scripts/nexus-workflow.mjs` and regression-tested in `workflow:self-test`.
+
+Current activity-trace closeout:
+
+- intent: `INTENT-20260511T140607Z-intent-maintenance-improve-portable-workflow-tra`
+- work slices: `WORK-SLICE-20260511T143903Z-work-slice-done-add-policy-owned-activity-tracin`, `WORK-SLICE-20260511T144607Z-work-slice-done-resolve-activity-trace-audit-fin`, `WORK-SLICE-20260511T145509Z-work-slice-done-bound-generated-guide-record-emb`
+- activities: `ACTIVITY-20260511T142255Z-activity-implementation-designed-and-implemented`, `ACTIVITY-20260511T143324Z-activity-validation-validated-activity-trace-arc`, `ACTIVITY-20260511T144411Z-activity-fix-resolved-reviewer-findings-for-acti`, `ACTIVITY-20260511T145323Z-activity-fix-added-policy-owned-generated-guide-`
+
+Activity tracing is owned by `.codex/workflow/policy/intake.json`, rendered through generated guide views, and enforced by `npm run workflow:activity-check` inside health/release gates. Generated guide record embeds are bounded by `.codex/workflow/policy/guide.json`. Open activity statuses are bounded by policy so a stale `started` record cannot hide days of missing work.
 
 Current system/project extraction closeout:
 

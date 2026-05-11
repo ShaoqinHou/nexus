@@ -57,9 +57,11 @@
   ],
   "recordKinds": {
     "intents": "intents",
-    "workSlices": "work-slices"
+    "workSlices": "work-slices",
+    "activities": "activities"
   },
   "evidenceKinds": [
+    "activities",
     "patches",
     "routing",
     "reviews",
@@ -77,6 +79,41 @@
   "staleActiveWorkSliceDays": 14,
   "requireWorkSliceForSubstantivePatches": true,
   "requireWorkSliceForEvidenceRecords": true,
+  "activity": {
+    "enabled": true,
+    "phaseKinds": [
+      "research",
+      "design",
+      "implementation",
+      "review-wait",
+      "audit-wait",
+      "fix",
+      "validation",
+      "deployment",
+      "handover",
+      "blocked"
+    ],
+    "statuses": [
+      "started",
+      "update",
+      "completed",
+      "blocked"
+    ],
+    "openStatuses": [
+      "started",
+      "update",
+      "blocked"
+    ],
+    "gapCheckStatuses": [
+      "active",
+      "review",
+      "verified",
+      "done"
+    ],
+    "maxUnexplainedMinutes": 45,
+    "maxOpenActivityMinutes": 180,
+    "enforcementStartedAt": ""
+  },
   "guide": {
     "maxTraceItems": 8,
     "maxEvidenceItemsPerSlice": 3,
@@ -91,6 +128,7 @@
       "change-request"
     ],
     "traceEvidenceKinds": [
+      "activities",
       "patches",
       "routing",
       "reviews",

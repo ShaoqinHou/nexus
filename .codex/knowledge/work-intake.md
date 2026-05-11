@@ -4,7 +4,7 @@ Work Intake is the lightweight traceability layer for solo-dev Codex work.
 
 It records the chain:
 
-`user intent -> lead work slice -> patch -> review -> verify -> audit -> deployment`
+`user intent -> lead work slice -> activity when needed -> patch -> review -> verify -> audit -> deployment`
 
 The goal is not enterprise requirements documentation. The goal is to keep enough durable context for future agents and humans to know why work exists, what Codex understood, what acceptance criteria were used, and what evidence proved completion.
 
@@ -43,6 +43,14 @@ node .codex/scripts/nexus-workflow.mjs close-work-slice --slice <WORK-SLICE-id> 
 
 Use `verified` when validation is complete but deployment is still separate, `done` when local/deployed evidence is complete, `deferred` when intentionally postponed, and `superseded` when another slice replaces it.
 
+Use an activity record when a work slice has real lead work that command telemetry or patch/review evidence will not explain, such as long research, design, implementation, audit-wait, validation, deployment, or handover phases:
+
+```bash
+node .codex/scripts/nexus-workflow.mjs record-activity --work-slice <WORK-SLICE-id> --kind implementation --status completed --summary "<phase summary>" --started-at "<iso>" --ended-at "<iso>"
+```
+
+Activity records are not a transcript. They are compact intervals or progress points that let release/health gates reject future unexplained gaps without adding a background watcher or slow runtime scan. Open activity statuses can cover current active work only until the policy-owned expiry; closed work should use completed intervals.
+
 ## Detail Level
 
 Intent records should be small:
@@ -68,7 +76,7 @@ Do not paste full chat transcripts into intake records.
 
 ## Evidence Links
 
-Substantive patch, routing, review, verification, audit, and deployment records should pass `--work-slice <WORK-SLICE-id>` so the guide can show traceability and the release gate can reject orphan work. The record commands inherit work-slice IDs from the current patch when possible, but explicit `--work-slice` is preferred because it leaves no ambiguity.
+Substantive activity, patch, routing, review, verification, audit, and deployment records should pass `--work-slice <WORK-SLICE-id>` so the guide can show traceability and the release gate can reject orphan work. The record commands inherit work-slice IDs from the current patch when possible, but explicit `--work-slice` is preferred because it leaves no ambiguity.
 
 The intake gate centrally checks:
 
@@ -78,11 +86,17 @@ The intake gate centrally checks:
 - branch release cannot close while linked work slices remain `active`, `ready`, `review`, or `blocked`,
 - external refs follow `externalTrackerMode` and allowed prefixes.
 
-Before handover or commit, run:
+Before handover or commit, run the canonical release gate. Use the direct Work Intake and activity checks only to diagnose a failing health/release gate:
+
+```bash
+npm run workflow:release-gate
+```
+
+When the gate reports Work Intake or activity-trace problems, diagnose with:
 
 ```bash
 npm run workflow:work-intake-check
-npm run workflow:release-gate
+npm run workflow:activity-check
 ```
 
 ## Presentation

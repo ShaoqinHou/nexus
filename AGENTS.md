@@ -52,6 +52,10 @@ Nexus is a multi-tenant mini-app platform. The first module is restaurant orderi
   node .codex/scripts/nexus-workflow.mjs record-intent --kind <policy-kind> --status captured --summary "<compact user intent>"
   node .codex/scripts/nexus-workflow.mjs record-work-slice --intent <INTENT-id> --status active --summary "<lead interpretation>" --acceptance "<done signals>" --verification "<checks>"
   ```
+- Record long lead phases, wait states, or non-command reasoning/editing intervals with activity records when timed commands and patch evidence would otherwise leave an unexplained gap:
+  ```bash
+  node .codex/scripts/nexus-workflow.mjs record-activity --work-slice <WORK-SLICE-id> --kind <policy-phase-kind> --status completed --summary "<phase summary>" --started-at "<iso>" --ended-at "<iso>"
+  ```
 - Link substantive routing, patch, review, verification, audit, and deployment records to the relevant work slice with `--work-slice <WORK-SLICE-id>`.
 - Close each current work slice with `close-work-slice` before branch release. The release gate rejects branch evidence linked to an open slice:
   ```bash
@@ -65,6 +69,7 @@ Nexus is a multi-tenant mini-app platform. The first module is restaurant orderi
 - Fixed-path workflow outputs are adapters. Change the owner declared in `.codex/workflow/policy/adapters.json`, then run `npm run workflow:adapter-check` or `npm run workflow:adapter-sync`; do not let `AGENTS.md`, `WORKFLOW.md`, `.codex/config.toml`, `.codex/hooks.json`, `.codex/agents`, `.agents/skills`, CI workflow files, or package workflow scripts drift as loose one-offs.
 - The workflow system self-checks are `npm run workflow:inventory-check`, `npm run workflow:adapter-check`, `npm run workflow:capability-check`, `npm run workflow:portability-check`, `npm run workflow:policy-check`, and `npm run workflow:trace-check`. They are part of the release gate and should be used directly only to diagnose `.codex` file placement, fixed adapter drift, capability state, empty-project portability, policy consumption, or command execution telemetry.
 - The Work Intake self-check is `npm run workflow:work-intake-check`. It is part of health/release validation and should be used directly to diagnose orphan patches, missing intent/work-slice links, stale active slices, or invalid external references.
+- The activity self-check is `npm run workflow:activity-check`. It is part of health/release validation and should be used directly to diagnose unsupported phase kinds, missing activity work-slice links, or future unexplained long lead gaps.
 - Treat committed pattern proposal, routing, patch, review, test, audit, and deployment records as append-only evidence. If evidence is wrong, create a correction record instead of editing the old one.
 - Treat hooks as thin triggers only. They can invalidate gates or block common unsafe commit forms, but review/verify/audit judgment must be done by the lead or a focused agent and recorded explicitly. See `.codex/knowledge/hooks.md` for examples and limits.
 - Project `.codex/config.toml` and `.codex/hooks.json` are active only in trusted Codex sessions. Always keep explicit script gates as the reliable source of enforcement.

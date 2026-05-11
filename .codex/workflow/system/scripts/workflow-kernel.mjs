@@ -88,7 +88,11 @@ const INTAKE_POLICY = requiredPolicySection('intake');
 const INTAKE_ENABLED = INTAKE_POLICY.enabled !== false;
 const INTENT_RECORD_KIND = requiredPolicyNestedString('intake', 'recordKinds.intents');
 const WORK_SLICE_RECORD_KIND = requiredPolicyNestedString('intake', 'recordKinds.workSlices');
+const ACTIVITY_RECORD_KIND = String(INTAKE_POLICY.recordKinds?.activities || 'activities');
 const WORK_INTAKE_EVIDENCE_KINDS = requiredPolicyArray('intake', 'evidenceKinds').map(String);
+const ACTIVITY_POLICY = INTAKE_POLICY.activity && typeof INTAKE_POLICY.activity === 'object'
+  ? INTAKE_POLICY.activity
+  : {};
 
 function ensureDir(path) {
   mkdirSync(path, { recursive: true });
@@ -282,6 +286,7 @@ function helpTextForCommand(commandName = '') {
     'record-intent': `${script} record-intent --kind <kind> --status captured --summary "<user intent>"`,
     'record-work-slice': `${script} record-work-slice --intent <INTENT-id> --status active --summary "<lead interpretation>" --acceptance "<done signals>" --verification "<checks>"`,
     'close-work-slice': `${script} close-work-slice --slice <WORK-SLICE-id> --status done --notes "<evidence complete>"`,
+    'record-activity': `${script} record-activity --work-slice <WORK-SLICE-id> --kind implementation --summary "<phase>" [--started-at <iso>] [--ended-at <iso>]`,
     'record-patch': `${script} record-patch --summary "<summary>" --files "a,b" [--scope worktree|branch] [--worker <agent>] [--work-slice <id>]`,
     'record-review': `${script} record-review --scope worktree|branch --kind general|pattern|design|workflow|integrated --verdict pass|fail|needs-work --reviewer <name> --notes "<summary>"`,
     'record-verify': `${script} record-verify --scope worktree|branch --verdict pass|fail|partial|blocked --verifier <name> --commands "<timed-command-ids>" --notes "<summary>"`,
@@ -782,7 +787,7 @@ function recordCategory(kind, title = '') {
   const text = `${kind} ${title}`.toLowerCase();
   if (kind === 'deployments' || text.includes('server') || text.includes('deploy')) return 'Deployment';
   if (kind === 'tests' || kind === 'reviews' || kind === 'guide-browser' || text.includes('audit') || text.includes('verify')) return 'Validation';
-  if (kind === INTENT_RECORD_KIND || kind === WORK_SLICE_RECORD_KIND || text.includes('intent') || text.includes('work slice')) return 'Work Intake';
+  if (kind === INTENT_RECORD_KIND || kind === WORK_SLICE_RECORD_KIND || kind === ACTIVITY_RECORD_KIND || text.includes('intent') || text.includes('work slice')) return 'Work Intake';
   if (kind === 'pattern-proposals' || text.includes('pattern')) return 'Knowledge';
   if (kind === 'routing' || text.includes('routing') || text.includes('spark') || text.includes('worker')) return 'Agent Routing';
   return 'Workflow';
@@ -1306,6 +1311,204 @@ function staleWorkSliceProblem(record, now = Date.now()) {
   return `work slice ${record.id || record.name} has status ${status} for ${ageDays} days without blocked/deferred closeout.`;
 }
 
+function activityPolicyValues(policy, key, fallback = []) {
+  const value = policy?.[key];
+  return Array.isArray(value) && value.length ? value.map(String) : fallback;
+}
+
+function parseTimeMs(value) {
+  if (value === undefined || value === null || value === '') return NaN;
+  const parsed = Date.parse(String(value));
+  return Number.isFinite(parsed) ? parsed : NaN;
+}
+
+function isoFromMs(ms) {
+  return Number.isFinite(ms) ? new Date(ms).toISOString() : '(unknown)';
+}
+
+function activityOpenStatuses(policy = ACTIVITY_POLICY) {
+  return new Set(activityPolicyValues(policy, 'openStatuses', ['started', 'update', 'blocked']).map((value) => value.toLowerCase()));
+}
+
+function activitySpan(record = {}, options = {}) {
+  const policy = options.policy || ACTIVITY_POLICY;
+  const openStatuses = options.openStatuses || activityOpenStatuses(policy);
+  const status = String(record.status || '').toLowerCase();
+  const createdMs = parseTimeMs(record.created);
+  const rawEndMs = parseTimeMs(record.endedAt || record['ended-at']);
+  const hasExplicitEnd = Number.isFinite(rawEndMs);
+  const nowMs = Number.isFinite(Number(options.now)) ? Number(options.now) : parseTimeMs(options.now);
+  const isOpen = openStatuses.has(status) && !hasExplicitEnd;
+  const endMs = hasExplicitEnd
+    ? rawEndMs
+    : (isOpen && Number.isFinite(nowMs) ? nowMs : createdMs);
+  const durationMinutes = Number(record.durationMinutes || record['duration-minutes'] || 0);
+  const rawStartMs = parseTimeMs(record.startedAt || record['started-at']);
+  let startMs = Number.isFinite(rawStartMs) ? rawStartMs : NaN;
+  if (!Number.isFinite(startMs) && Number.isFinite(endMs) && Number.isFinite(durationMinutes) && durationMinutes > 0) {
+    startMs = endMs - (durationMinutes * 60000);
+  }
+  if (!Number.isFinite(startMs)) startMs = endMs;
+  return { startMs, endMs, isOpen, hasExplicitEnd };
+}
+
+function activityRecordWriteProblems(record = {}, options = {}) {
+  const workSlices = options.workSlices || recordFrontmatters(WORK_SLICE_RECORD_KIND);
+  const existingSliceIds = workSlices.map((slice) => slice.id).filter(Boolean);
+  const workSliceIds = csv(record.workSliceIds);
+  return [
+    ...(workSliceIds.length ? [] : ['activity record must link to at least one work slice.']),
+    ...missingReferenceProblems(workSliceIds, existingSliceIds, 'activity work slice'),
+  ];
+}
+
+function unexplainedActivityGap(startMs, endMs, anchors = [], intervals = [], maxGapMs = 0) {
+  if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs <= startMs || maxGapMs <= 0) return null;
+  const normalizedAnchors = [...new Set(anchors
+    .filter((value) => Number.isFinite(value) && value > startMs && value < endMs)
+    .concat(endMs))]
+    .sort((a, b) => a - b);
+  const normalizedIntervals = intervals
+    .filter((item) => Number.isFinite(item.startMs) && Number.isFinite(item.endMs) && item.endMs > startMs && item.startMs < endMs)
+    .map((item) => ({
+      startMs: Math.max(item.startMs, startMs),
+      endMs: Math.min(item.endMs, endMs),
+      label: item.label || '',
+    }))
+    .sort((a, b) => a.startMs - b.startMs || b.endMs - a.endMs);
+  let cursor = startMs;
+  let anchorIndex = 0;
+  while (cursor < endMs) {
+    while (anchorIndex < normalizedAnchors.length && normalizedAnchors[anchorIndex] <= cursor) anchorIndex++;
+    const nextAnchor = normalizedAnchors[anchorIndex] ?? endMs;
+    if (nextAnchor - cursor <= maxGapMs) {
+      cursor = nextAnchor;
+      continue;
+    }
+    let bestInterval = null;
+    for (const interval of normalizedIntervals) {
+      if (interval.endMs <= cursor) continue;
+      if (interval.startMs > cursor + maxGapMs) break;
+      if (!bestInterval || interval.endMs > bestInterval.endMs) bestInterval = interval;
+    }
+    if (bestInterval && bestInterval.endMs > cursor) {
+      cursor = bestInterval.endMs;
+      continue;
+    }
+    const nextIntervalStart = normalizedIntervals.find((interval) => interval.endMs > cursor)?.startMs;
+    const nextKnown = Math.min(nextAnchor, Number.isFinite(nextIntervalStart) ? nextIntervalStart : endMs);
+    return {
+      fromMs: cursor,
+      toMs: nextKnown > cursor ? nextKnown : Math.min(cursor + maxGapMs + 1, endMs),
+    };
+  }
+  return null;
+}
+
+function activityTraceProblemsForRoot(rootId, latest, state, index, policy, options = {}) {
+  const problems = [];
+  const gapStatuses = new Set(activityPolicyValues(policy, 'gapCheckStatuses', ['active', 'review', 'verified', 'done']));
+  const status = String(latest?.status || '').toLowerCase();
+  if (!gapStatuses.has(status)) return problems;
+  const root = index.byId.get(rootId) || latest;
+  const openedMs = parseTimeMs(root?.openedAt || root?.created);
+  if (!Number.isFinite(openedMs)) return problems;
+  const enforcementStartedMs = parseTimeMs(policy.enforcementStartedAt || options.enforcementStartedAt || '');
+  if (Number.isFinite(enforcementStartedMs) && openedMs < enforcementStartedMs) return problems;
+  const maxGapMinutes = Number(policy.maxUnexplainedMinutes || policy.maxGapMinutes || 0);
+  if (!Number.isFinite(maxGapMinutes) || maxGapMinutes <= 0) return problems;
+  const activeStatuses = new Set(allowedPolicyValues('activeWorkSliceStatuses', ['ready', 'active', 'review', 'blocked']));
+  const nowMs = Number.isFinite(Number(options.now)) ? Number(options.now) : parseTimeMs(options.now);
+  const latestMs = activeStatuses.has(status)
+    ? (Number.isFinite(nowMs) ? nowMs : Date.now())
+    : parseTimeMs(latest?.created);
+  const endMs = Number.isFinite(latestMs) ? latestMs : parseTimeMs(latest?.created);
+  if (!Number.isFinite(endMs) || endMs <= openedMs) return problems;
+
+  const anchors = [];
+  for (const slice of state.workSlices || state['work-slices'] || []) {
+    if (workSliceRefRoot(slice.id, index) === rootId) {
+      const createdMs = parseTimeMs(slice.created);
+      if (Number.isFinite(createdMs)) anchors.push(createdMs);
+    }
+  }
+  for (const kind of WORK_INTAKE_EVIDENCE_KINDS) {
+    if (kind === ACTIVITY_RECORD_KIND) continue;
+    for (const record of recordsLinkedToWorkSlice(state[kind] || [], rootId, index)) {
+      const createdMs = parseTimeMs(record.created);
+      if (Number.isFinite(createdMs)) anchors.push(createdMs);
+    }
+  }
+  const intervals = recordsLinkedToWorkSlice(state[ACTIVITY_RECORD_KIND] || [], rootId, index)
+    .map((record) => {
+      const span = activitySpan(record, { policy, now: endMs });
+      return {
+        ...span,
+        label: record.id || record.name || 'activity',
+      };
+    })
+    .filter((span) => Number.isFinite(span.startMs) && Number.isFinite(span.endMs) && span.endMs >= span.startMs);
+  const gap = unexplainedActivityGap(openedMs, endMs, anchors, intervals, maxGapMinutes * 60000);
+  if (gap) {
+    problems.push(`work slice ${rootId} has an unexplained activity gap longer than ${maxGapMinutes} minutes from ${isoFromMs(gap.fromMs)} to ${isoFromMs(gap.toMs)}; record an activity interval or split the work slice.`);
+  }
+  return problems;
+}
+
+function activityProblemsForState(state = {}, options = {}) {
+  const policy = options.activityPolicy || ACTIVITY_POLICY;
+  if (policy.enabled === false) return [];
+  const problems = [];
+  if (!RECORD_KINDS.includes(ACTIVITY_RECORD_KIND)) {
+    problems.push(`intake activity record kind ${ACTIVITY_RECORD_KIND} is not declared in records.kinds.`);
+    return problems;
+  }
+  const workSlices = state.workSlices || state['work-slices'] || [];
+  const activities = state[ACTIVITY_RECORD_KIND] || [];
+  const index = options.index || workSliceIndex(workSlices);
+  const phaseKinds = activityPolicyValues(policy, 'phaseKinds', ['research', 'design', 'implementation', 'review-wait', 'audit-wait', 'fix', 'validation', 'deployment', 'handover', 'blocked']);
+  const statuses = activityPolicyValues(policy, 'statuses', ['started', 'update', 'completed', 'blocked']);
+  const openStatuses = activityOpenStatuses(policy);
+  const activeStatuses = new Set(allowedPolicyValues('activeWorkSliceStatuses', ['ready', 'active', 'review', 'blocked']));
+  const maxOpenMinutes = Number(policy.maxOpenActivityMinutes || policy.maxOpenMinutes || 0);
+  const nowMs = Number.isFinite(Number(options.now)) ? Number(options.now) : parseTimeMs(options.now);
+  const effectiveNowMs = Number.isFinite(nowMs) ? nowMs : Date.now();
+  for (const activity of activities) {
+    const label = activity.id || activity.name || '(unknown activity)';
+    const phaseKind = String(activity.kind || '').toLowerCase();
+    const status = String(activity.status || '').toLowerCase();
+    if (!phaseKinds.includes(phaseKind)) problems.push(`${label} has unsupported activity kind ${activity.kind || '(missing)'}.`);
+    if (!statuses.includes(status)) problems.push(`${label} has unsupported activity status ${activity.status || '(missing)'}.`);
+    if (!activity.summary && !activity.publicSummary) problems.push(`${label} has no compact summary/publicSummary.`);
+    problems.push(...activityRecordWriteProblems(activity, { workSlices }).map((problem) => `${label}: ${problem}`));
+    const span = activitySpan(activity, { policy, openStatuses, now: effectiveNowMs });
+    if (Number.isFinite(span.startMs) && Number.isFinite(span.endMs) && span.endMs < span.startMs) {
+      problems.push(`${label} has endedAt before startedAt.`);
+    }
+    if (span.isOpen && !span.hasExplicitEnd) {
+      const linkedRoots = csv(activity.workSliceIds).map((id) => workSliceRefRoot(id, index)).filter(Boolean);
+      for (const rootId of linkedRoots) {
+        const latest = index.latestByRoot.get(rootId);
+        const latestStatus = String(latest?.status || '').toLowerCase();
+        if (latestStatus && !activeStatuses.has(latestStatus)) {
+          problems.push(`${label} is an open activity linked to closed work slice ${rootId}; add endedAt or record a completed activity.`);
+        }
+      }
+      if (Number.isFinite(maxOpenMinutes) && maxOpenMinutes > 0 && Number.isFinite(span.startMs) && effectiveNowMs - span.startMs > maxOpenMinutes * 60000) {
+        problems.push(`${label} is open longer than activity.maxOpenActivityMinutes (${maxOpenMinutes}); record an update/completed activity or close/split the work slice.`);
+      }
+    }
+  }
+  for (const [rootId, latest] of index.latestByRoot.entries()) {
+    problems.push(...activityTraceProblemsForRoot(rootId, latest, {
+      ...state,
+      workSlices,
+      [ACTIVITY_RECORD_KIND]: activities,
+    }, index, policy, options));
+  }
+  return [...new Set(problems)].sort();
+}
+
 function patchRequiresWorkSlice(record, options = {}) {
   if (!INTAKE_POLICY.requireWorkSliceForSubstantivePatches) return false;
   const files = Array.isArray(record.files) ? record.files : [];
@@ -1349,14 +1552,7 @@ function intakeProblemsForState(state = {}, options = {}) {
   const problems = [];
   const intents = state.intents || [];
   const workSlices = state.workSlices || state['work-slices'] || [];
-  const recordsByKind = {
-    patches: state.patches || [],
-    routing: state.routing || [],
-    reviews: state.reviews || [],
-    tests: state.tests || [],
-    audits: state.audits || [],
-    deployments: state.deployments || [],
-  };
+  const recordsByKind = Object.fromEntries(WORK_INTAKE_EVIDENCE_KINDS.map((kind) => [kind, state[kind] || []]));
   const allowedIntentKinds = allowedPolicyValues('intentKinds', ['initial', 'idea', 'feature', 'bug', 'clarification', 'constraint', 'change-request', 'maintenance', 'research']);
   const allowedIntentStatuses = allowedPolicyValues('intentStatuses', ['captured', 'needs-clarification', 'accepted', 'converted', 'deferred', 'rejected', 'superseded']);
   const allowedWorkStatuses = allowedPolicyValues('workSliceStatuses', ['proposed', 'ready', 'active', 'blocked', 'review', 'verified', 'done', 'deferred', 'superseded']);
@@ -1460,16 +1656,11 @@ function intakeProblemsForState(state = {}, options = {}) {
 
 function intakeProblems(options = {}) {
   const branch = options.branch || branchEvidenceInfo();
-  const state = {
+  const state = Object.fromEntries(WORK_INTAKE_EVIDENCE_KINDS.map((kind) => [kind, recordFrontmatters(kind)]));
+  Object.assign(state, {
     intents: recordFrontmatters(INTENT_RECORD_KIND),
     workSlices: recordFrontmatters(WORK_SLICE_RECORD_KIND),
-    patches: recordFrontmatters('patches'),
-    routing: recordFrontmatters('routing'),
-    reviews: recordFrontmatters('reviews'),
-    tests: recordFrontmatters('tests'),
-    audits: recordFrontmatters('audits'),
-    deployments: recordFrontmatters('deployments'),
-  };
+  });
   return intakeProblemsForState(state, {
     branch,
     currentHash: options.currentHash || worktreeHash(),
@@ -1481,6 +1672,26 @@ function commandWorkIntakeCheck({ quiet = false } = {}) {
   const problems = intakeProblems();
   if (!quiet) {
     console.log(`work intake problems: ${problems.length}`);
+    for (const problem of problems) console.log(`- ${problem}`);
+  }
+  return problems.length === 0;
+}
+
+function activityProblems(options = {}) {
+  const state = Object.fromEntries(WORK_INTAKE_EVIDENCE_KINDS.map((kind) => [kind, recordFrontmatters(kind)]));
+  Object.assign(state, {
+    intents: recordFrontmatters(INTENT_RECORD_KIND),
+    workSlices: recordFrontmatters(WORK_SLICE_RECORD_KIND),
+  });
+  return activityProblemsForState(state, {
+    now: options.now,
+  });
+}
+
+function commandActivityCheck({ quiet = false } = {}) {
+  const problems = activityProblems();
+  if (!quiet) {
+    console.log(`activity trace problems: ${problems.length}`);
     for (const problem of problems) console.log(`- ${problem}`);
   }
   return problems.length === 0;
@@ -2427,6 +2638,13 @@ function guideRecordEmbedExcludeKinds() {
   return new Set(Array.isArray(configured) ? configured.map(String) : []);
 }
 
+function guideRecordEmbedLimit(kind) {
+  const limits = POLICY.guide?.recordEmbedLimits || {};
+  const raw = Object.hasOwn(limits, kind) ? limits[kind] : limits.default;
+  const n = Number(raw ?? 24);
+  return Number.isFinite(n) && n >= 0 ? Math.floor(n) : 24;
+}
+
 function guideRecordDisplayValue(kind, count) {
   const excluded = guideRecordEmbedExcludeKinds();
   if (!excluded.has(kind)) return count;
@@ -3066,6 +3284,7 @@ function recordSummary(record) {
 function recordKindLabel(kind) {
   return {
     patches: 'Patch',
+    activities: 'Activity',
     routing: 'Routing',
     reviews: 'Review',
     tests: 'Verify',
@@ -3298,12 +3517,17 @@ function commandDashboard(args = {}) {
     [displayOnlyRecordLabel('deployments', 'Deployments'), guideRecordDisplayValue('deployments', records.deployments.length)],
     [designActive ? 'Zoo Pages' : 'Design Capability', designActive ? `${zooLinked}/${zooEntries.length}` : capabilityState('design-system-zoo-gym')],
   ];
-  const recordHtml = recordKinds.map((kind) => `
+  const recordHtml = recordKinds.map((kind) => {
+    const visibleRecords = records[kind].slice(0, guideRecordEmbedLimit(kind));
+    const hiddenCount = Math.max(0, records[kind].length - visibleRecords.length);
+    return `
     <section id="${kind}" class="panel">
       <h2>${kind[0].toUpperCase() + kind.slice(1)}</h2>
       ${recordEmbedExcludeKinds.has(kind)
     ? `<p class="muted">${escapeHtml(displayOnlyRecordNotice || `${kind} records are omitted from generated guide artifacts and validated by gates.`)}</p>`
-    : records[kind].length ? records[kind].map((record) => `
+    : visibleRecords.length ? `
+      ${hiddenCount ? `<p class="meta">Showing newest ${visibleRecords.length} of ${records[kind].length}; full records remain under <code>${escapeHtml(recordKindDirRel(kind))}</code>.</p>` : ''}
+      ${visibleRecords.map((record) => `
         <article class="record">
           <div class="record-top">
             <strong>${escapeHtml(record.title)}</strong>
@@ -3313,9 +3537,10 @@ function commandDashboard(args = {}) {
           <p class="path">${escapeHtml(record.rel)}</p>
           <pre>${escapeHtml(record.excerpt)}</pre>
         </article>
-      `).join('\n') : '<p class="muted">No records yet.</p>'}
+      `).join('\n')}` : '<p class="muted">No records yet.</p>'}
     </section>
-  `).join('\n');
+  `;
+  }).join('\n');
 
   const html = `<!doctype html>
 <html lang="en">
@@ -4649,6 +4874,9 @@ function policyProblems() {
     if (!POLICY.records?.schemaByKind?.[kind]) problems.push(`records policy schemaByKind.${kind} is missing.`);
     if (!POLICY.records?.prefixByKind?.[kind]) problems.push(`records policy prefixByKind.${kind} is missing.`);
   }
+  for (const kind of WORK_INTAKE_EVIDENCE_KINDS) {
+    if (!RECORD_KINDS.includes(kind)) problems.push(`.codex/workflow/policy/intake.json evidenceKinds contains unknown record kind ${kind}.`);
+  }
   for (const file of listAllFilesUnder('.codex/workflow/policy')) {
     const name = file.match(/\.codex\/workflow\/policy\/(.+)\.json$/)?.[1];
     if (name === 'manifest') continue;
@@ -4665,7 +4893,7 @@ function policyProblems() {
   problems.push(...packageScriptContractProblems());
   problems.push(...ciWorkflowContractProblems());
   const scripts = packageWorkflowScripts();
-  for (const script of [...canonicalLadder(), 'workflow:policy-check', 'workflow:capability-check', 'workflow:portability-check', 'workflow:inventory-check', 'workflow:adapter-check', 'workflow:trace-check', 'workflow:work-intake-check']) {
+  for (const script of [...canonicalLadder(), 'workflow:policy-check', 'workflow:capability-check', 'workflow:portability-check', 'workflow:inventory-check', 'workflow:adapter-check', 'workflow:trace-check', 'workflow:work-intake-check', 'workflow:activity-check']) {
     if (!scripts[script]) problems.push(`package.json is missing ${script}.`);
   }
   const ladderMentionFiles = POLICY.guide?.ladderMentionFiles || [];
@@ -4771,6 +4999,26 @@ function policyProblems() {
   }
   if (!Array.isArray(INTAKE_POLICY.sourceTypes) || !INTAKE_POLICY.sourceTypes.length) problems.push('.codex/workflow/policy/intake.json sourceTypes must be a non-empty array.');
   if (!Array.isArray(INTAKE_POLICY.evidenceKinds) || !INTAKE_POLICY.evidenceKinds.length) problems.push('.codex/workflow/policy/intake.json evidenceKinds must be a non-empty array.');
+  if (ACTIVITY_POLICY.enabled !== false) {
+    if (INTAKE_POLICY.recordKinds?.activities !== ACTIVITY_RECORD_KIND) problems.push('.codex/workflow/policy/intake.json recordKinds.activities must name the activity record kind.');
+    if (!WORK_INTAKE_EVIDENCE_KINDS.includes(ACTIVITY_RECORD_KIND)) problems.push(`.codex/workflow/policy/intake.json evidenceKinds must include ${ACTIVITY_RECORD_KIND} when activity tracing is enabled.`);
+    if (!Array.isArray(ACTIVITY_POLICY.phaseKinds) || !ACTIVITY_POLICY.phaseKinds.length) problems.push('.codex/workflow/policy/intake.json activity.phaseKinds must be a non-empty array.');
+    if (!Array.isArray(ACTIVITY_POLICY.statuses) || !ACTIVITY_POLICY.statuses.length) problems.push('.codex/workflow/policy/intake.json activity.statuses must be a non-empty array.');
+    if (!Array.isArray(ACTIVITY_POLICY.openStatuses) || !ACTIVITY_POLICY.openStatuses.length) {
+      problems.push('.codex/workflow/policy/intake.json activity.openStatuses must be a non-empty array.');
+    } else {
+      for (const status of ACTIVITY_POLICY.openStatuses) {
+        if (!ACTIVITY_POLICY.statuses.includes(status)) problems.push(`.codex/workflow/policy/intake.json activity.openStatuses contains unsupported status ${status}.`);
+      }
+    }
+    const maxGap = Number(ACTIVITY_POLICY.maxUnexplainedMinutes || ACTIVITY_POLICY.maxGapMinutes || 0);
+    if (!Number.isFinite(maxGap) || maxGap <= 0) problems.push('.codex/workflow/policy/intake.json activity.maxUnexplainedMinutes must be a positive number.');
+    const maxOpen = Number(ACTIVITY_POLICY.maxOpenActivityMinutes || ACTIVITY_POLICY.maxOpenMinutes || 0);
+    if (!Number.isFinite(maxOpen) || maxOpen <= 0) problems.push('.codex/workflow/policy/intake.json activity.maxOpenActivityMinutes must be a positive number.');
+    if (ACTIVITY_POLICY.enforcementStartedAt && !Number.isFinite(parseTimeMs(ACTIVITY_POLICY.enforcementStartedAt))) {
+      problems.push('.codex/workflow/policy/intake.json activity.enforcementStartedAt must be an ISO timestamp when set.');
+    }
+  }
   const unknownTraceEvidenceKinds = (INTAKE_POLICY.guide?.traceEvidenceKinds || []).filter((kind) => !WORK_INTAKE_EVIDENCE_KINDS.includes(String(kind)));
   for (const kind of unknownTraceEvidenceKinds) problems.push(`.codex/workflow/policy/intake.json guide.traceEvidenceKinds contains unknown evidence kind ${kind}.`);
   if (!Array.isArray(INTAKE_POLICY.guide?.selfReferentialEvidenceKinds) || !INTAKE_POLICY.guide.selfReferentialEvidenceKinds.length) {
@@ -4798,6 +5046,16 @@ function policyProblems() {
   }
   if ((POLICY.guide?.displayOnlyRecordKinds || []).length && !POLICY.guide?.displayOnlyRecordNotice) {
     problems.push('.codex/workflow/policy/guide.json displayOnlyRecordNotice is required when displayOnlyRecordKinds is non-empty.');
+  }
+  const recordEmbedLimits = POLICY.guide?.recordEmbedLimits || {};
+  if (!recordEmbedLimits || typeof recordEmbedLimits !== 'object' || Array.isArray(recordEmbedLimits)) {
+    problems.push('.codex/workflow/policy/guide.json recordEmbedLimits must be an object.');
+  } else {
+    for (const [kind, limit] of Object.entries(recordEmbedLimits)) {
+      if (kind !== 'default' && !GUIDE_RECORD_KINDS.includes(kind)) problems.push(`.codex/workflow/policy/guide.json recordEmbedLimits contains unknown record kind ${kind}.`);
+      const n = Number(limit);
+      if (!Number.isFinite(n) || n < 0) problems.push(`.codex/workflow/policy/guide.json recordEmbedLimits.${kind} must be a non-negative number.`);
+    }
   }
   const evidencePolicy = POLICY.gates?.evidence || {};
   const commandClasses = evidencePolicy.commandClasses || {};
@@ -4979,6 +5237,7 @@ function commandPortabilityCheck(args = {}) {
     { label: 'inventory-check', args: ['inventory-check'] },
     { label: 'adapter-check', args: ['adapter-check'] },
     { label: 'work-intake-check', args: ['work-intake-check'] },
+    { label: 'activity-check', args: ['activity-check'] },
     { label: 'trace-check', args: ['trace-check'] },
     { label: 'dashboard', args: ['dashboard'] },
     { label: 'public-guide', args: ['public-guide'] },
@@ -5563,6 +5822,7 @@ function printHealthDetails() {
   }
   printed = printProblemDetails('hook config', hookConfigProblems()) || printed;
   printed = printProblemDetails('work intake', intakeProblems()) || printed;
+  printed = printProblemDetails('activity trace', activityProblems()) || printed;
   printed = printProblemDetails('branch evidence', branchEvidenceProblems()) || printed;
   if (dependencyAuditCapabilityActive() && !commandDependencyAuditCheck({ quiet: true })) printed = printProblemDetails('dependency audit', ['run npm run audit:deps for the npm advisory/baseline breakdown']) || printed;
   if (designCapabilityActive() && !commandProductionZooBundleCheck({ quiet: true })) printed = printProblemDetails('production zoo bundle', ['run npm run workflow:prod-zoo-bundle-check for bundle evidence details']) || printed;
@@ -5592,6 +5852,7 @@ function commandStatus({ health = false } = {}) {
   const hookRuntimeHealthValue = hookRuntimeHealth();
   const hookRuntimeOk = hookRuntimeHealthValue.problems.length === 0;
   const intakeOk = health ? commandWorkIntakeCheck({ quiet: true }) : null;
+  const activityOk = health ? commandActivityCheck({ quiet: true }) : null;
   const depAuditOk = health ? (!dependencyAuditCapabilityActive() || commandDependencyAuditCheck({ quiet: true })) : null;
   const prodZooOk = health ? (!designCapabilityActive() || commandProductionZooBundleCheck({ quiet: true })) : null;
   const branchEvidenceOk = health ? commandBranchEvidenceCheck({ quiet: true }) : null;
@@ -5632,6 +5893,7 @@ function commandStatus({ health = false } = {}) {
     console.log(`command trace: ${traceOk ? 'ok' : 'needs attention'}${traceCounts}`);
     console.log(`hook config: ${hookConfigOk ? 'ok' : 'needs attention'}`);
     console.log(`work intake: ${intakeOk ? 'ok' : 'needs attention'}`);
+    console.log(`activity trace: ${activityOk ? 'ok' : 'needs attention'}`);
   }
   console.log(`hook runtime: ${hookRuntimeStatusLabel(hookRuntimeHealthValue)}`);
   if (health) {
@@ -5852,6 +6114,76 @@ function commandCloseWorkSlice(args) {
     updates: sliceId,
   };
   commandRecordWorkSlice(next);
+}
+
+function commandRecordActivity(args) {
+  const summary = args.summary || args.activity || '';
+  if (!summary) {
+    console.error('record-activity requires --summary with the lead phase or wait state.');
+    process.exit(2);
+  }
+  const phaseKind = String(args.kind || args.phase || 'implementation').toLowerCase();
+  const status = String(args.status || 'completed').toLowerCase();
+  const phaseKinds = activityPolicyValues(ACTIVITY_POLICY, 'phaseKinds', ['research', 'design', 'implementation', 'review-wait', 'audit-wait', 'fix', 'validation', 'deployment', 'handover', 'blocked']);
+  const statuses = activityPolicyValues(ACTIVITY_POLICY, 'statuses', ['started', 'update', 'completed', 'blocked']);
+  if (!phaseKinds.includes(phaseKind)) {
+    console.error(`record-activity requires --kind ${phaseKinds.join('|')}`);
+    process.exit(2);
+  }
+  if (!statuses.includes(status)) {
+    console.error(`record-activity requires --status ${statuses.join('|')}`);
+    process.exit(2);
+  }
+  const workSliceIds = workSliceIdsFromArgs(args);
+  const files = argCsv(args, ['files']);
+  const tags = argCsv(args, ['tags']);
+  const durationMinutes = Number(args['duration-minutes'] || args.durationMinutes || 0);
+  const defaultEnd = nowIso();
+  const endedAt = args['ended-at'] || args.endedAt || (durationMinutes > 0 || status === 'completed' ? defaultEnd : '');
+  let startedAt = args['started-at'] || args.startedAt || '';
+  if (!startedAt && durationMinutes > 0 && endedAt) {
+    const endMs = parseTimeMs(endedAt);
+    if (Number.isFinite(endMs)) startedAt = new Date(endMs - durationMinutes * 60000).toISOString();
+  }
+  if (!startedAt) startedAt = nowIso();
+  const span = activitySpan({ startedAt, endedAt, created: defaultEnd, durationMinutes });
+  if (Number.isFinite(span.startMs) && Number.isFinite(span.endMs) && span.endMs < span.startMs) {
+    console.error('record-activity requires endedAt to be after startedAt.');
+    process.exit(2);
+  }
+  rejectIntakeWriteProblems(activityRecordWriteProblems({ workSliceIds }), 'record-activity');
+  const publicSummary = args['public-summary'] || args.publicSummary || summary;
+  const body = [
+    `Kind: ${phaseKind}`,
+    `Status: ${status}`,
+    `Actor: ${args.actor || leadWorkerId()}`,
+    `Work slices: ${workSliceIds.join(', ') || 'n/a'}`,
+    `Started at: ${startedAt}`,
+    endedAt ? `Ended at: ${endedAt}` : 'Ended at: n/a',
+    durationMinutes > 0 ? `Duration minutes: ${durationMinutes}` : '',
+    tags.length ? `Tags: ${tags.join(', ')}` : '',
+    '',
+    `Summary: ${summary}`,
+    '',
+    args.notes ? `Notes: ${args.notes}` : 'Notes: n/a',
+    '',
+    files.length ? ['Files / scope hints:', ...files.map((file) => `- ${file}`)].join('\n') : 'Files / scope hints: n/a',
+  ].filter((line) => line !== '').join('\n');
+  const rec = writeRecord(ACTIVITY_RECORD_KIND, `Activity ${phaseKind} ${summary}`, body, {
+    kind: phaseKind,
+    status,
+    actor: args.actor || leadWorkerId(),
+    summary,
+    publicSummary,
+    workSliceIds,
+    startedAt,
+    endedAt,
+    durationMinutes: Number.isFinite(durationMinutes) && durationMinutes > 0 ? durationMinutes : '',
+    files,
+    tags,
+  });
+  console.log(`Recorded activity ${rec.id}`);
+  console.log(relative(ROOT, rec.path));
 }
 
 function commandRecordPatch(args, hookPayload = null) {
@@ -7048,6 +7380,7 @@ function workflowSelfTestChecks() {
       'workflow:policy-check',
       'workflow:adapter-check',
       'workflow:self-test',
+      'workflow:activity-check',
       'workflow:portability-check',
       audit ? 'workflow:trace-check' : '',
       'workflow:guide-check',
@@ -7143,6 +7476,7 @@ function workflowSelfTestChecks() {
   add('record prefixes are policy-driven for every record kind', RECORD_KINDS.every((kind) => recordPrefix(kind) === POLICY.records?.prefixByKind?.[kind]));
   add('work intake records are protected evidence', EVIDENCE_RECORD_KINDS.includes(INTENT_RECORD_KIND) && EVIDENCE_RECORD_KINDS.includes(WORK_SLICE_RECORD_KIND));
   add('work intake records are visible in generated guide records', GUIDE_RECORD_KINDS.includes(INTENT_RECORD_KIND) && GUIDE_RECORD_KINDS.includes(WORK_SLICE_RECORD_KIND));
+  add('activity records are protected evidence', EVIDENCE_RECORD_KINDS.includes(ACTIVITY_RECORD_KIND) && WORK_INTAKE_EVIDENCE_KINDS.includes(ACTIVITY_RECORD_KIND));
   add('decision records are protected evidence', EVIDENCE_RECORD_KINDS.includes('decisions'));
   add('pattern proposals are protected evidence', EVIDENCE_RECORD_KINDS.includes('pattern-proposals'));
   add('guide browser validation is protected evidence', EVIDENCE_RECORD_KINDS.includes('guide-browser'));
@@ -7492,6 +7826,107 @@ function workflowSelfTestChecks() {
     workSlices: [{ id: 'WORK-SLICE-ok', status: 'active', intentIds: ['INTENT-ok'], summary: 'slice', acceptance: 'done', created: nowIso() }],
     patches: [{ id: 'PATCH-ok', worktreeHash: 'hash', files: [substantiveFixture], workSliceIds: ['WORK-SLICE-ok'] }],
   }, { currentHash: 'hash' }).length === 0);
+  add('activity trace rejects unsupported phase kind', activityProblemsForState({
+    workSlices: [{ id: 'WORK-SLICE-activity-kind', status: 'active', summary: 'slice', acceptance: 'done', created: '2026-05-11T00:00:00.000Z' }],
+    [ACTIVITY_RECORD_KIND]: [{ id: 'ACTIVITY-bad-kind', kind: 'mystery', status: 'completed', summary: 'bad', workSliceIds: ['WORK-SLICE-activity-kind'], created: '2026-05-11T00:10:00.000Z' }],
+  }, {
+    now: Date.parse('2026-05-11T00:20:00.000Z'),
+    activityPolicy: { ...ACTIVITY_POLICY, enforcementStartedAt: '2026-05-11T00:00:00.000Z' },
+  }).some((problem) => problem.includes('unsupported activity kind')));
+  add('activity trace rejects missing work-slice link', activityProblemsForState({
+    workSlices: [],
+    [ACTIVITY_RECORD_KIND]: [{ id: 'ACTIVITY-orphan', kind: 'implementation', status: 'completed', summary: 'orphan', created: '2026-05-11T00:10:00.000Z' }],
+  }, {
+    activityPolicy: { ...ACTIVITY_POLICY, enforcementStartedAt: '2026-05-11T00:00:00.000Z' },
+  }).some((problem) => problem.includes('must link to at least one work slice')));
+  add('activity trace rejects unexplained long lead gap', activityProblemsForState({
+    workSlices: [
+      { id: 'WORK-SLICE-gap', status: 'active', summary: 'gap', acceptance: 'done', created: '2026-05-11T00:00:00.000Z', openedAt: '2026-05-11T00:00:00.000Z' },
+      { id: 'WORK-SLICE-gap-close', status: 'done', summary: 'gap close', acceptance: 'done', updatesWorkSliceId: 'WORK-SLICE-gap', created: '2026-05-11T02:00:00.000Z' },
+    ],
+    [ACTIVITY_RECORD_KIND]: [],
+  }, {
+    activityPolicy: { ...ACTIVITY_POLICY, maxUnexplainedMinutes: 45, enforcementStartedAt: '2026-05-11T00:00:00.000Z' },
+  }).some((problem) => problem.includes('unexplained activity gap longer than 45 minutes')));
+  add('activity trace accepts interval covering long lead phase', activityProblemsForState({
+    workSlices: [
+      { id: 'WORK-SLICE-covered', status: 'active', summary: 'covered', acceptance: 'done', created: '2026-05-11T00:00:00.000Z', openedAt: '2026-05-11T00:00:00.000Z' },
+      { id: 'WORK-SLICE-covered-close', status: 'done', summary: 'covered close', acceptance: 'done', updatesWorkSliceId: 'WORK-SLICE-covered', created: '2026-05-11T02:00:00.000Z' },
+    ],
+    [ACTIVITY_RECORD_KIND]: [{
+      id: 'ACTIVITY-covered',
+      kind: 'implementation',
+      status: 'completed',
+      summary: 'covered phase',
+      workSliceIds: ['WORK-SLICE-covered'],
+      startedAt: '2026-05-11T00:05:00.000Z',
+      endedAt: '2026-05-11T01:50:00.000Z',
+      created: '2026-05-11T01:50:00.000Z',
+    }],
+  }, {
+    activityPolicy: { ...ACTIVITY_POLICY, maxUnexplainedMinutes: 45, enforcementStartedAt: '2026-05-11T00:00:00.000Z' },
+  }).length === 0);
+  add('activity trace accepts recent open activity for active work slice', activityProblemsForState({
+    workSlices: [
+      { id: 'WORK-SLICE-open-current', status: 'active', summary: 'open current', acceptance: 'done', created: '2026-05-11T00:00:00.000Z', openedAt: '2026-05-11T00:00:00.000Z' },
+    ],
+    [ACTIVITY_RECORD_KIND]: [{
+      id: 'ACTIVITY-open-current',
+      kind: 'implementation',
+      status: 'started',
+      summary: 'current phase',
+      workSliceIds: ['WORK-SLICE-open-current'],
+      startedAt: '2026-05-11T00:05:00.000Z',
+      created: '2026-05-11T00:05:00.000Z',
+    }],
+  }, {
+    now: Date.parse('2026-05-11T01:30:00.000Z'),
+    activityPolicy: { ...ACTIVITY_POLICY, maxUnexplainedMinutes: 45, maxOpenActivityMinutes: 180, enforcementStartedAt: '2026-05-11T00:00:00.000Z' },
+  }).length === 0);
+  add('activity trace rejects stale open activity', activityProblemsForState({
+    workSlices: [
+      { id: 'WORK-SLICE-stale-open', status: 'active', summary: 'stale open', acceptance: 'done', created: '2026-05-11T00:00:00.000Z', openedAt: '2026-05-11T00:00:00.000Z' },
+    ],
+    [ACTIVITY_RECORD_KIND]: [{
+      id: 'ACTIVITY-stale-open',
+      kind: 'implementation',
+      status: 'started',
+      summary: 'stale phase',
+      workSliceIds: ['WORK-SLICE-stale-open'],
+      startedAt: '2026-05-11T00:00:00.000Z',
+      created: '2026-05-11T00:00:00.000Z',
+    }],
+  }, {
+    now: Date.parse('2026-05-11T04:00:00.000Z'),
+    activityPolicy: { ...ACTIVITY_POLICY, maxUnexplainedMinutes: 45, maxOpenActivityMinutes: 180, enforcementStartedAt: '2026-05-11T00:00:00.000Z' },
+  }).some((problem) => problem.includes('open longer than activity.maxOpenActivityMinutes')));
+  add('activity trace rejects open activity on closed work slice', activityProblemsForState({
+    workSlices: [
+      { id: 'WORK-SLICE-closed-open', status: 'active', summary: 'closed open', acceptance: 'done', created: '2026-05-11T00:00:00.000Z', openedAt: '2026-05-11T00:00:00.000Z' },
+      { id: 'WORK-SLICE-closed-open-close', status: 'done', summary: 'closed open close', acceptance: 'done', updatesWorkSliceId: 'WORK-SLICE-closed-open', created: '2026-05-11T01:00:00.000Z' },
+    ],
+    [ACTIVITY_RECORD_KIND]: [{
+      id: 'ACTIVITY-closed-open',
+      kind: 'implementation',
+      status: 'started',
+      summary: 'left open',
+      workSliceIds: ['WORK-SLICE-closed-open'],
+      startedAt: '2026-05-11T00:05:00.000Z',
+      created: '2026-05-11T00:05:00.000Z',
+    }],
+  }, {
+    now: Date.parse('2026-05-11T01:10:00.000Z'),
+    activityPolicy: { ...ACTIVITY_POLICY, maxUnexplainedMinutes: 45, maxOpenActivityMinutes: 180, enforcementStartedAt: '2026-05-11T00:00:00.000Z' },
+  }).some((problem) => problem.includes('open activity linked to closed work slice')));
+  add('activity trace skips slices before enforcement cutoff', activityProblemsForState({
+    workSlices: [
+      { id: 'WORK-SLICE-old-gap', status: 'active', summary: 'old', acceptance: 'done', created: '2026-05-10T00:00:00.000Z', openedAt: '2026-05-10T00:00:00.000Z' },
+      { id: 'WORK-SLICE-old-gap-close', status: 'done', summary: 'old close', acceptance: 'done', updatesWorkSliceId: 'WORK-SLICE-old-gap', created: '2026-05-10T02:00:00.000Z' },
+    ],
+    [ACTIVITY_RECORD_KIND]: [],
+  }, {
+    activityPolicy: { ...ACTIVITY_POLICY, maxUnexplainedMinutes: 45, enforcementStartedAt: '2026-05-11T00:00:00.000Z' },
+  }).length === 0);
   add('work intake rejects current verification evidence without work slice', intakeProblemsForState({
     tests: [{ id: 'TEST-unlinked', verdict: 'pass', worktreeHash: 'hash' }],
   }, { currentHash: 'hash' }).some((problem) => problem.includes('tests record TEST-unlinked') && problem.includes('no workSliceIds')));
@@ -8421,6 +8856,7 @@ function workflowSelfTestChecks() {
       { id: 'policy', command: ['npm', 'run', 'workflow:policy-check'], exitCode: 0, timedOut: false },
       { id: 'adapter', command: ['npm', 'run', 'workflow:adapter-check'], exitCode: 0, timedOut: false },
       { id: 'self-test', command: ['npm', 'run', 'workflow:self-test'], exitCode: 0, timedOut: false },
+      { id: 'activity', command: ['npm', 'run', 'workflow:activity-check'], exitCode: 0, timedOut: false },
       { id: 'portability', command: ['npm', 'run', 'workflow:portability-check'], exitCode: 0, timedOut: false },
       { id: 'guide', command: ['npm', 'run', 'workflow:guide-check'], exitCode: 0, timedOut: false },
       { id: 'guide-browser', command: ['npm', 'run', 'workflow:guide-browser-check'], exitCode: 0, timedOut: false },
@@ -8816,11 +9252,12 @@ function commandValidate(args) {
     const traceOk = commandTraceCheck({ quiet: true });
     const hookConfigOk = commandHookConfigCheck({ quiet: true });
     const intakeOk = commandWorkIntakeCheck({ quiet: true });
+    const activityOk = commandActivityCheck({ quiet: true });
     const depAuditOk = !dependencyAuditActive || commandDependencyAuditCheck({ quiet: true });
     const prodZooOk = !designActive || commandProductionZooBundleCheck({ quiet: true });
     const selfTestFailures = workflowSelfTestChecks().filter((check) => !check.ok);
     const deploymentOk = !args['deployed-gate'] || !deploymentActive || commandDeploymentCheck({ quiet: true });
-    if (!reviewOk || !verifyOk || !auditOk || !handoverOk || !recordsOk || !routingOk || !guideOk || !guideBrowserOk || !zooOk || !zooVisualOk || !inventoryOk || !adapterOk || !policyOk || !portabilityOk || !traceOk || !hookConfigOk || !intakeOk || !branchEvidenceOk || !depAuditOk || !prodZooOk || !deploymentOk || selfTestFailures.length) {
+    if (!reviewOk || !verifyOk || !auditOk || !handoverOk || !recordsOk || !routingOk || !guideOk || !guideBrowserOk || !zooOk || !zooVisualOk || !inventoryOk || !adapterOk || !policyOk || !portabilityOk || !traceOk || !hookConfigOk || !intakeOk || !activityOk || !branchEvidenceOk || !depAuditOk || !prodZooOk || !deploymentOk || selfTestFailures.length) {
       if (!reviewOk) console.error('Release gate failed: missing passing review record.');
       if (!verifyOk) console.error('Release gate failed: missing passing verification record.');
       if (!auditOk) console.error('Release gate failed: missing passing audit record.');
@@ -8872,6 +9309,10 @@ function commandValidate(args) {
       if (!intakeOk) {
         console.error('Release gate failed: Work Intake traceability is incomplete.');
         for (const problem of intakeProblems()) console.error(`- ${problem}`);
+      }
+      if (!activityOk) {
+        console.error('Release gate failed: workflow activity trace has unexplained long lead phases.');
+        for (const problem of activityProblems()) console.error(`- ${problem}`);
       }
       if (!branchEvidenceOk) {
         console.error('Release gate failed: branch diff evidence is missing or stale.');
@@ -9220,6 +9661,7 @@ else if (command === 'zoo-visual-guide') commandZooVisualGuide(args);
 else if (command === 'record-intent') commandRecordIntent(args);
 else if (command === 'record-work-slice' || command === 'record-slice') commandRecordWorkSlice(args);
 else if (command === 'close-work-slice' || command === 'close-slice') commandCloseWorkSlice(args);
+else if (command === 'record-activity') commandRecordActivity(args);
 else if (command === 'record-patch') commandRecordPatch(args);
 else if (command === 'record-review') commandRecordReview(args);
 else if (command === 'record-verify') commandRecordVerification(args);
@@ -9253,6 +9695,9 @@ else if (command === 'verify-check') {
   process.exit(ok ? 0 : 1);
 } else if (command === 'work-intake-check' || command === 'intake-check') {
   const ok = commandWorkIntakeCheck(args);
+  process.exit(ok ? 0 : 1);
+} else if (command === 'activity-check') {
+  const ok = commandActivityCheck(args);
   process.exit(ok ? 0 : 1);
 } else if (command === 'records-check') {
   const ok = commandRecordsCheck(args);

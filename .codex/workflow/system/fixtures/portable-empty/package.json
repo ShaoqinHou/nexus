@@ -11,6 +11,7 @@
     "workflow:adapter-check": "node .codex/scripts/portable-workflow.mjs adapter-check",
     "workflow:trace-check": "node .codex/scripts/portable-workflow.mjs trace-check",
     "workflow:work-intake-check": "node .codex/scripts/portable-workflow.mjs work-intake-check",
+    "workflow:activity-check": "node .codex/scripts/portable-workflow.mjs activity-check",
     "workflow:run": "node .codex/scripts/portable-workflow.mjs run",
     "workflow:self-test": "node .codex/scripts/portable-workflow.mjs self-test",
     "workflow:release-gate": "node .codex/scripts/portable-workflow.mjs validate --release-gate",
