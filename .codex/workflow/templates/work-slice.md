@@ -2,23 +2,9 @@
 
 Body reference only. Create durable records with the project wrapper from `.codex/workflow/profile.json` `paths.workflowWrapper` (Nexus: `node .codex/scripts/nexus-workflow.mjs record-work-slice ...` or `close-work-slice ...`) so required frontmatter is generated and gates can validate the record.
 
-Status:
+Status: policy-owned in `.codex/workflow/policy/intake.json` `workSliceStatuses`
 
-- proposed
-- ready
-- active
-- blocked
-- review
-- verified
-- done
-- deferred
-- superseded
-
-Source Type:
-
-- user-intent
-- internal-maintenance
-- workflow-maintenance
+Source Type: policy-owned in `.codex/workflow/policy/intake.json` `sourceTypes`
 
 Intent IDs:
 

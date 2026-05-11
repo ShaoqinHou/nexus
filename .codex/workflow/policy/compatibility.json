@@ -1,0 +1,42 @@
+{
+  "schema": "codex-workflow-compatibility-policy/v1",
+  "legacySchemaByKind": {
+    "patches": [
+      "nexus-patche/v1"
+    ]
+  },
+  "legacySchemaRecords": [
+    {
+      "path": ".codex/workflow/records/patches/PATCH-20260508T170713Z-design-system-toast-semantic-parity.md",
+      "reason": "Historical record created before patch schema spelling was corrected."
+    },
+    {
+      "path": ".codex/workflow/records/patches/PATCH-20260508T174121Z-codex-native-workflow-migration-claude-workflow-.md",
+      "reason": "Historical record created before patch schema spelling was corrected."
+    },
+    {
+      "path": ".codex/workflow/records/patches/PATCH-20260508T174348Z-refresh-compact-workflow-state-and-dashboard-aft.md",
+      "reason": "Historical record created before patch schema spelling was corrected."
+    },
+    {
+      "path": ".codex/workflow/records/patches/PATCH-20260508T175045Z-record-deployment-evidence-and-update-workflow-h.md",
+      "reason": "Historical record created before patch schema spelling was corrected."
+    },
+    {
+      "path": ".codex/workflow/records/patches/PATCH-20260509T013840Z-correct-final-handover-state-after-server-pull.md",
+      "reason": "Historical record created before patch schema spelling was corrected."
+    },
+    {
+      "path": ".codex/workflow/records/patches/PATCH-20260509T014004Z-make-final-server-head-handover-wording-stable.md",
+      "reason": "Historical record created before patch schema spelling was corrected."
+    },
+    {
+      "path": ".codex/workflow/records/patches/PATCH-20260509T020234Z-harden-handover-workflow-model-routing-hooks-gui.md",
+      "reason": "Historical record created before patch schema spelling was corrected."
+    },
+    {
+      "path": ".codex/workflow/records/patches/PATCH-20260509T020903Z-record-public-guide-deployment-evidence.md",
+      "reason": "Historical record created before patch schema spelling was corrected."
+    }
+  ]
+}

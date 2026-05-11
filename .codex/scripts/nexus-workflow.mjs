@@ -72,8 +72,8 @@ const EVIDENCE_RECORD_KINDS = requiredPolicyArray('records', 'evidenceKinds');
 const GUIDE_RECORD_KINDS = requiredPolicyArray('records', 'guideKinds');
 const SCHEMA_BY_KIND = POLICY.records?.schemaByKind || {};
 const PREFIX_BY_KIND = POLICY.records?.prefixByKind || {};
-const LEGACY_SCHEMA_BY_KIND = POLICY.records?.legacySchemaByKind || {};
-const LEGACY_SCHEMA_RECORDS = new Set(POLICY.records?.legacySchemaRecords || []);
+const LEGACY_SCHEMA_BY_KIND = POLICY.compatibility?.legacySchemaByKind || {};
+const LEGACY_SCHEMA_RECORDS = new Set((POLICY.compatibility?.legacySchemaRecords || []).map((entry) => typeof entry === 'string' ? entry : entry.path).filter(Boolean));
 const RECORD_HISTORY_BASE_ENV = requiredPolicyNestedString('records', 'baseEnv.recordHistory');
 const BRANCH_BASE_ENV = requiredPolicyNestedString('records', 'baseEnv.branch');
 const INTAKE_POLICY = requiredPolicySection('intake');
@@ -716,6 +716,39 @@ function csv(value) {
     .filter(Boolean);
 }
 
+function recordBodyFileListLimit() {
+  const limit = Number(POLICY.records?.bodyFileList?.inlineLimit || 24);
+  return Number.isFinite(limit) && limit > 0 ? Math.floor(limit) : 24;
+}
+
+function recordBodyFileReference() {
+  return String(POLICY.records?.bodyFileList?.frontmatterReference || 'Complete file list is preserved in record frontmatter.');
+}
+
+function recordBodyFileLines(label, files = []) {
+  const items = (files || []).map(String).filter(Boolean);
+  if (!items.length) return [`${label}: n/a`];
+  const limit = recordBodyFileListLimit();
+  if (items.length <= limit) return [`${label}:`, ...items.map((file) => `- ${file}`)];
+  return [
+    `${label}: ${items.length} files. ${recordBodyFileReference()}`,
+    `First ${limit}:`,
+    ...items.slice(0, limit).map((file) => `- ${file}`),
+    `- ... ${items.length - limit} more file(s)`,
+  ];
+}
+
+function branchReferenceFileLines(label, files = [], patchId = '') {
+  const items = (files || []).map(String).filter(Boolean);
+  if (!items.length) return [`${label}: n/a`];
+  const owner = patchId ? `linked patch ${patchId}` : 'branch evidence hash';
+  return [`${label}: ${items.length} branch file(s). Complete file list is owned by ${owner}; this record stores judgment and branch hash only.`];
+}
+
+function frontmatterFilesForScope(scope, files = [], options = {}) {
+  return scope === 'branch' && !options.includeFiles ? [] : files;
+}
+
 function gitStatusEntries(pathspec = []) {
   const result = git(['status', '--porcelain=v1', '--', ...pathspec]);
   if (result.status !== 0) return [];
@@ -829,8 +862,15 @@ function branchEvidenceFrontmatter(branch = branchEvidenceInfo()) {
   };
 }
 
-function branchScopedFrontmatter(scope, branch = branchEvidenceInfo()) {
-  return scope === 'branch' ? branchEvidenceFrontmatter(branch) : {};
+function branchScopedFrontmatter(scope, branch = branchEvidenceInfo(), options = {}) {
+  if (scope !== 'branch' || !branch.hash) return {};
+  const out = {
+    branchBase: branch.base,
+    branchMergeBase: branch.mergeBase,
+    branchHash: branch.hash,
+  };
+  if (options.includeFiles) out.branchFiles = branch.files;
+  return out;
 }
 
 function stateCacheIntegrityProblems() {
@@ -3019,6 +3059,26 @@ function workIntakeHtml(model, html = escapeHtml) {
   `;
 }
 
+function workflowRoleTaxonomyHtml(html = escapeHtml) {
+  const entries = POLICY.files?.inventory?.roleTaxonomy || [];
+  if (!Array.isArray(entries) || !entries.length) return '';
+  return `
+    <section id="workflow-file-roles" class="panel">
+      <h2>Workflow File Roles</h2>
+      <p class="meta">This policy-owned map separates system code, project data, evidence, generated artifacts, mutable cache, and workflow documentation. Open only the rows needed for the task.</p>
+      <div class="trace-grid">
+        ${entries.map((entry) => `<span>
+          <strong>${html(entry.path || '')}</strong><br>
+          <code>${html(entry.role || '')}</code><br>
+          ${html(entry.truth || '')}<br>
+          <span class="meta">LLM: ${html(entry.llmLoadPolicy || '')}</span><br>
+          <span class="meta">Stale risk: ${html(entry.stalenessRisk || 'unknown')}</span>
+        </span>`).join('\n')}
+      </div>
+    </section>
+  `;
+}
+
 function commandDashboard(args = {}) {
   ensureDir(DASHBOARD_DIR);
   const recordKinds = GUIDE_RECORD_KINDS;
@@ -3149,6 +3209,7 @@ function commandDashboard(args = {}) {
   <div class="layout">
     <nav>
       <a href="#overview">Overview</a>
+      <a href="#workflow-file-roles">Workflow File Roles</a>
       <a href="#work-intake">Work Intake</a>
       <a href="#current">Current State</a>
       <a href="#zoo">Design Zoo/Gym</a>
@@ -3173,6 +3234,7 @@ function commandDashboard(args = {}) {
         ${displayOnlyRecordNotice ? `<p class="meta">${escapeHtml(displayOnlyRecordNotice)}</p>` : ''}
         <p class="meta">This is a generated snapshot for navigation. It intentionally does not embed live git status or mutable gate state. Run <code>npm run workflow:status</code> for the current worktree truth.</p>
       </section>
+      ${workflowRoleTaxonomyHtml(escapeHtml)}
       ${workIntakeHtml(intake, escapeHtml)}
       <section id="current" class="panel">${markdownLite(currentState)}</section>
       <section id="zoo" class="panel">
@@ -3333,6 +3395,7 @@ function commandPublicGuide(args = {}) {
         <div class="card"><strong>${skillFiles.length}</strong><p>repo skills</p></div>
       </div>
     </section>
+    ${workflowRoleTaxonomyHtml(publicHtml)}
     ${workIntakeHtml(intake, publicHtml)}
     <section>
       <h2>Project Structure</h2>
@@ -3617,6 +3680,7 @@ function inventoryProblems(options = {}) {
     '.codex/workflow/artifacts/screenshots/visual-zoo-guide/',
   ];
   const allowedArtifactExtensions = inventory.allowedArtifactExtensions || ['.jpg', '.jpeg', '.png', '.json'];
+  const artifactRetention = inventory.artifactRetention || {};
   const workflowRootFiles = inventory.workflowRootFiles || [
     '.codex/workflow/current-state.md',
     '.codex/workflow/dependency-audit-baseline.json',
@@ -3696,6 +3760,18 @@ function inventoryProblems(options = {}) {
     if (file.startsWith('.codex/workflow/briefs/') && !pathHasExtension(file, briefExtensions)) problems.push(`${file} is under .codex/workflow/briefs but does not use an approved brief extension.`);
     if (file.startsWith('.codex/workflow/scenarios/') && !scenarioFiles.has(file)) problems.push(`${file} is an unregistered workflow scenario file.`);
     if (file === '.codex/dashboard/README.md' && !requiredSet.has(file)) problems.push(`${file} is durable folder guidance but is missing from requiredWorkflowFiles.`);
+  }
+  const artifactFiles = checked.filter((file) => file.startsWith('.codex/workflow/artifacts/') && existsSync(join(ROOT, file)) && statSync(join(ROOT, file)).isFile());
+  const maxArtifactBytes = Number(artifactRetention.maxFileBytes || 0);
+  const maxArtifactTotalBytes = Number(artifactRetention.maxTotalBytes || 0);
+  let artifactTotalBytes = 0;
+  for (const file of artifactFiles) {
+    const bytes = statSync(join(ROOT, file)).size;
+    artifactTotalBytes += bytes;
+    if (maxArtifactBytes > 0 && bytes > maxArtifactBytes) problems.push(`${file} is ${bytes} bytes, above artifactRetention.maxFileBytes ${maxArtifactBytes}.`);
+  }
+  if (maxArtifactTotalBytes > 0 && artifactTotalBytes > maxArtifactTotalBytes) {
+    problems.push(`workflow artifacts total ${artifactTotalBytes} bytes, above artifactRetention.maxTotalBytes ${maxArtifactTotalBytes}.`);
   }
   for (const file of tracked) {
     const inRuntime = runtimeDirs.some((dir) => workflowPathMatchesPattern(file, dir));
@@ -3781,6 +3857,74 @@ function inventoryPolicyContractProblems() {
   if (inventory.root !== '.codex') problems.push('files policy inventory.root must be .codex.');
   for (const field of arrayFields) {
     if (!Array.isArray(inventory[field]) || !inventory[field].length) problems.push(`files policy inventory.${field} must be a non-empty array.`);
+  }
+  for (const field of ['maxTotalBytes', 'maxFileBytes']) {
+    const value = Number(inventory.artifactRetention?.[field]);
+    if (!Number.isFinite(value) || value <= 0) problems.push(`files policy inventory.artifactRetention.${field} must be a positive byte limit.`);
+  }
+  if (!String(inventory.artifactRetention?.rule || '').trim()) problems.push('files policy inventory.artifactRetention.rule must explain artifact retention.');
+  const roleTaxonomy = Array.isArray(inventory.roleTaxonomy) ? inventory.roleTaxonomy : [];
+  if (!roleTaxonomy.length) problems.push('files policy inventory.roleTaxonomy must classify workflow root files and directories.');
+  const allowedRoles = new Set([
+    'workflow-design-doc',
+    'workflow-reference-doc',
+    'managed-handover',
+    'preserved-user-brief',
+    'historical-analysis',
+    'project-profile-data',
+    'project-policy-data',
+    'append-only-evidence',
+    'generated-evidence-artifact',
+    'mutable-cache',
+    'runtime-telemetry',
+  ]);
+  const taxonomyPaths = new Set();
+  for (const entry of roleTaxonomy) {
+    const path = String(entry?.path || '');
+    const role = String(entry?.role || '');
+    if (!path) problems.push('files policy inventory.roleTaxonomy entry is missing path.');
+    if (path) {
+      if (taxonomyPaths.has(path)) problems.push(`files policy inventory.roleTaxonomy duplicates ${path}.`);
+      taxonomyPaths.add(path);
+    }
+    if (!allowedRoles.has(role)) problems.push(`files policy inventory.roleTaxonomy ${path || '(missing path)'} has unsupported role ${role || '(missing)'}.`);
+    for (const field of ['truth', 'llmLoadPolicy', 'stalenessRisk', 'portingRule']) {
+      if (!String(entry?.[field] || '').trim()) problems.push(`files policy inventory.roleTaxonomy ${path || '(missing path)'} is missing ${field}.`);
+    }
+  }
+  for (const path of [...(inventory.workflowRootFiles || []), ...(inventory.workflowRootDirectories || [])]) {
+    if (!taxonomyPaths.has(path)) problems.push(`files policy inventory.roleTaxonomy must classify ${path}.`);
+  }
+  return problems;
+}
+
+function compatibilityPolicyContractProblems() {
+  const policy = POLICY.compatibility || {};
+  const problems = [];
+  if (policy.schema !== 'codex-workflow-compatibility-policy/v1') {
+    problems.push('.codex/workflow/policy/compatibility.json must use schema codex-workflow-compatibility-policy/v1.');
+  }
+  if (POLICY.records?.legacySchemaByKind || POLICY.records?.legacySchemaRecords) {
+    problems.push('historical legacy schema exceptions belong in .codex/workflow/policy/compatibility.json, not records.json.');
+  }
+  const legacyRecords = Array.isArray(policy.legacySchemaRecords) ? policy.legacySchemaRecords : [];
+  for (const entry of legacyRecords) {
+    const path = typeof entry === 'string' ? entry : entry?.path;
+    const reason = typeof entry === 'string' ? '' : entry?.reason;
+    if (!path) problems.push('compatibility legacySchemaRecords entry is missing path.');
+    else if (!existsSync(join(ROOT, path))) problems.push(`compatibility legacy schema record is missing: ${path}.`);
+    if (!String(reason || '').trim()) problems.push(`compatibility legacy schema record ${path || '(missing path)'} is missing reason.`);
+  }
+  return problems;
+}
+
+function handoverPolicyContractProblems() {
+  const policy = POLICY.files?.handover || {};
+  const problems = [];
+  if (policy.path !== profileProjectRel('currentState')) problems.push(`files policy handover.path must match profile currentState (${profileProjectRel('currentState')}).`);
+  for (const field of ['maxLines', 'maxBytes', 'maxCompletedHistoryBullets']) {
+    const value = Number(policy[field]);
+    if (!Number.isFinite(value) || value <= 0) problems.push(`files policy handover.${field} must be a positive number.`);
   }
   return problems;
 }
@@ -3944,6 +4088,8 @@ function policyProblems() {
   problems.push(...policyClassifierProblems());
   problems.push(...profileContractProblems());
   problems.push(...inventoryPolicyContractProblems());
+  problems.push(...compatibilityPolicyContractProblems());
+  problems.push(...handoverPolicyContractProblems());
   problems.push(...packageScriptContractProblems());
   problems.push(...ciWorkflowContractProblems());
   const scripts = packageWorkflowScripts();
@@ -3970,6 +4116,11 @@ function policyProblems() {
   }
   for (const key of ['dashboard', 'public']) {
     if (!POLICY.guide?.titles?.[key]) problems.push(`.codex/workflow/policy/guide.json titles.${key} is required.`);
+  }
+  const generatedSizeLimits = POLICY.guide?.generatedSizeLimits || {};
+  for (const file of ['index.html', 'public.html']) {
+    const value = Number(generatedSizeLimits[file]);
+    if (!Number.isFinite(value) || value <= 0) problems.push(`.codex/workflow/policy/guide.json generatedSizeLimits.${file} must be a positive byte limit.`);
   }
   for (const key of ['repository', 'webApp', 'designSystem', 'designFlow', 'workflow']) {
     if (!Array.isArray(POLICY.guide?.viewGraphs?.[key]?.nodes) || !POLICY.guide.viewGraphs[key].nodes.length) {
@@ -4956,8 +5107,7 @@ function commandRecordPatch(args, hookPayload = null) {
     `Work slices: ${workSliceIds.join(', ') || 'n/a'}`,
     scope === 'branch' && branch.hash ? `Branch evidence hash: ${branch.hash}` : '',
     '',
-    `Files:`,
-    ...files.map((f) => `- ${f}`),
+    ...recordBodyFileLines('Files', files),
     '',
     `Worktree hash after patch: ${hash}`,
   ].join('\n');
@@ -4969,7 +5119,7 @@ function commandRecordPatch(args, hookPayload = null) {
     routingId,
     workSliceIds,
     routingRequired: !isLeadWorker(agent),
-    ...branchScopedFrontmatter(scope, branch),
+    ...branchScopedFrontmatter(scope, branch, { includeFiles: true }),
   });
   invalidateGates(files, `patch ${rec.id}`, agent, {
     patchId: rec.id,
@@ -5005,7 +5155,7 @@ function commandRecordReview(args) {
     process.exit(2);
   }
   const files = scope === 'branch' ? branch.files : (args.files ? csv(args.files) : substantiveFiles());
-  const patchId = args.patch || args['patch-id'] || (patchState.worktreeHash === hash ? patchState.patchId : null);
+  const patchId = reviewPatchIdForArgs(args, { scope, branch, hash, patchState });
   const workSliceIds = inferredWorkSliceIds(args, { scope, hash, branch, patchId });
   if (substantiveFiles().length && !patchId) {
     console.error('record-review requires a patch record for substantive changes. Run record-patch first or pass --patch <PATCH-id>.');
@@ -5022,7 +5172,7 @@ function commandRecordReview(args) {
     `Worktree hash: ${hash}`,
     scope === 'branch' && branch.hash ? `Branch evidence hash: ${branch.hash}` : '',
     '',
-    files.length ? ['Reviewed files:', ...files.map((f) => `- ${f}`)].join('\n') : 'Reviewed files: n/a',
+    ...(scope === 'branch' ? branchReferenceFileLines('Reviewed files', files, patchId || '') : recordBodyFileLines('Reviewed files', files)),
     '',
     args.notes ? `Notes: ${args.notes}` : 'Notes: n/a',
   ].join('\n');
@@ -5034,7 +5184,7 @@ function commandRecordReview(args) {
     kind,
     patchId: patchId || '',
     workSliceIds,
-    files,
+    files: frontmatterFilesForScope(scope, files),
     ...branchScopedFrontmatter(scope, branch),
   });
   const reviewKinds = verdict === 'pass'
@@ -5096,6 +5246,7 @@ function commandRecordVerification(args) {
   const files = scope === 'branch' ? branch.files : (args.files ? csv(args.files) : verificationRelevantFiles());
   const commandIds = csv(args.commands || args['command-ids']);
   const artifacts = csv(args.artifacts || args.evidence || args['summary-files']);
+  const patchId = args.patch || args['patch-id'] || (scope === 'branch' ? latestBranchPatchForBranch(branch)?.id || '' : '');
   const workSliceIds = inferredWorkSliceIds(args, { scope, hash, branch });
   if (verdict === 'pass' && !commandIds.length && !artifacts.length) {
     console.error('record-verify pass requires --commands/--command-ids or --artifacts/--evidence so execution evidence is reference-based.');
@@ -5140,9 +5291,10 @@ function commandRecordVerification(args) {
     `Worktree hash: ${hash}`,
     scope === 'branch' && branch.hash ? `Branch evidence hash: ${branch.hash}` : '',
     workSliceIds.length ? `Work slices: ${workSliceIds.join(', ')}` : '',
+    patchId ? `Patch: ${patchId}` : '',
     commandIds.length ? `Command run ids: ${commandIds.join(', ')}` : '',
     artifacts.length ? `Artifacts: ${artifacts.join(', ')}` : '',
-    files.length ? `Files: ${files.join(', ')}` : '',
+    ...(scope === 'branch' ? branchReferenceFileLines('Files', files, patchId) : recordBodyFileLines('Files', files)),
     ...commandEvidenceLines(commandEvidence.evidence),
     '',
     args.notes ? `Notes: ${args.notes}` : 'Notes: n/a',
@@ -5152,7 +5304,8 @@ function commandRecordVerification(args) {
     verdict,
     verifier: args.verifier || 'unknown',
     worktreeHash: hash,
-    files,
+    files: frontmatterFilesForScope(scope, files),
+    patchId,
     workSliceIds,
     commandIds,
     commandEvidence: commandEvidence.evidence,
@@ -5267,7 +5420,7 @@ function commandRecordDeployment(args) {
     artifactEvidence,
     guideArtifactHash: guideArtifactHash(),
     guideArtifacts: deploymentGuideArtifactMeta(),
-    ...branchEvidenceFrontmatter(branch),
+    ...branchScopedFrontmatter('branch', branch),
   });
   console.log(`Recorded deployment ${rec.id}`);
   console.log(relative(ROOT, rec.path));
@@ -5289,6 +5442,7 @@ function commandRecordAudit(args) {
   const files = scope === 'branch' ? branch.files : (args.files ? csv(args.files) : auditRelevantFiles());
   const commandIds = csv(args.commands || args['command-ids']);
   const artifacts = csv(args.artifacts || args.evidence || args['summary-files']);
+  const patchId = args.patch || args['patch-id'] || (scope === 'branch' ? latestBranchPatchForBranch(branch)?.id || '' : '');
   const workSliceIds = inferredWorkSliceIds(args, { scope, hash, branch });
   if (verdict === 'pass' && !commandIds.length && !artifacts.length) {
     console.error('record-audit pass requires --commands/--command-ids or --artifacts/--evidence so audit evidence is reference-based.');
@@ -5333,9 +5487,10 @@ function commandRecordAudit(args) {
     `Worktree hash: ${hash}`,
     scope === 'branch' && branch.hash ? `Branch evidence hash: ${branch.hash}` : '',
     workSliceIds.length ? `Work slices: ${workSliceIds.join(', ')}` : '',
+    patchId ? `Patch: ${patchId}` : '',
     commandIds.length ? `Command run ids: ${commandIds.join(', ')}` : '',
     artifacts.length ? `Artifacts: ${artifacts.join(', ')}` : '',
-    files.length ? `Files: ${files.join(', ')}` : '',
+    ...(scope === 'branch' ? branchReferenceFileLines('Files', files, patchId) : recordBodyFileLines('Files', files)),
     ...commandEvidenceLines(commandEvidence.evidence),
     '',
     args.notes ? `Notes: ${args.notes}` : 'Notes: n/a',
@@ -5345,7 +5500,8 @@ function commandRecordAudit(args) {
     verdict,
     auditor: args.auditor || 'unknown',
     worktreeHash: hash,
-    files,
+    files: frontmatterFilesForScope(scope, files),
+    patchId,
     workSliceIds,
     commandIds,
     commandEvidence: commandEvidence.evidence,
@@ -5714,14 +5870,36 @@ function branchRecordMatches(record, branch, extra = {}) {
   return true;
 }
 
+function latestBranchPatchForBranch(branch = branchEvidenceInfo()) {
+  return latestBranchPatchForRecords(recordFrontmatters('patches'), branch);
+}
+
+function latestBranchPatchForRecords(records = [], branch = branchEvidenceInfo()) {
+  if (!branch.hash) return null;
+  return (records || [])
+    .filter((record) => String(record.scope || '') === 'branch' && branchRecordMatches(record, branch))
+    .sort((a, b) => String(b.created || '').localeCompare(String(a.created || '')))[0] || null;
+}
+
+function reviewPatchIdForArgs(args, context = {}) {
+  const scope = context.scope || args.scope || 'worktree';
+  const branch = context.branch || branchEvidenceInfo();
+  const hash = context.hash || worktreeHash();
+  const patchState = context.patchState || loadJson(PATCH_STATE_FILE, {});
+  const latestBranchPatch = context.latestBranchPatch || (scope === 'branch' ? latestBranchPatchForBranch(branch) : null);
+  return args.patch || args['patch-id'] || (scope === 'branch' ? latestBranchPatch?.id || '' : '') || (patchState.worktreeHash === hash ? patchState.patchId : null) || '';
+}
+
 function branchRecordFiles(record) {
   const files = csv(record.files);
   return files.length ? files : csv(record.branchFiles);
 }
 
-function branchRecordFileProblems(record, branch, label) {
+function branchRecordFileProblems(record, branch, label, options = {}) {
   if (String(record.scope || '') !== 'branch') return [`${label} must have scope=branch.`];
   const files = branchRecordFiles(record);
+  if (!files.length && !options.requireFiles) return [];
+  if (!files.length && options.requireFiles) return [`${label} must own the current branch file list.`];
   if (!sameStringSet(files, branch.files)) {
     return [`${label} files do not match current branch diff. Record files=${JSON.stringify(sortedStringSet(files))}; branch files=${JSON.stringify(sortedStringSet(branch.files))}.`];
   }
@@ -5740,7 +5918,7 @@ function branchEvidenceProblemsForState(branch, recordsByKind) {
     problems.push(`branch ${branch.hash} has substantive diff but no branch-scope PATCH record tied to branchHash ${branch.hash}.`);
   }
   for (const record of branchPatches.filter((record) => String(record.scope || '') === 'branch')) {
-    problems.push(...branchRecordFileProblems(record, branch, `branch patch ${record.id || record.name || '(unknown)'}`));
+    problems.push(...branchRecordFileProblems(record, branch, `branch patch ${record.id || record.name || '(unknown)'}`, { requireFiles: true }));
   }
 
   const reviews = recordsByKind.reviews || [];
@@ -5850,9 +6028,14 @@ function commandGuideCheck({ quiet = false } = {}) {
   const intake = intakeModel();
   const publicPath = join(DASHBOARD_DIR, 'public.html');
   const dashboardPath = join(DASHBOARD_DIR, 'index.html');
+  const generatedSizeLimits = POLICY.guide?.generatedSizeLimits || {};
   if (!existsSync(publicPath)) {
     problems.push('.codex/dashboard/public.html is missing; run npm run workflow:public-guide.');
   } else {
+    const rel = 'public.html';
+    const bytes = statSync(publicPath).size;
+    const limit = Number(generatedSizeLimits[rel] || 0);
+    if (limit > 0 && bytes > limit) problems.push(`public guide ${rel} is ${bytes} bytes; policy limit is ${limit} bytes.`);
     const html = readFileSync(publicPath, 'utf8');
     if (!html.includes(`name="${guideMetaName('version')}" content="${PUBLIC_GUIDE_VERSION}"`)) problems.push('public guide version is stale; regenerate public.html.');
     if (htmlMetaContent(html, guideMetaName('sourceHash')) !== expectedHash) problems.push('public guide source hash is stale; regenerate public.html.');
@@ -5868,6 +6051,10 @@ function commandGuideCheck({ quiet = false } = {}) {
   if (!existsSync(dashboardPath)) {
     problems.push('.codex/dashboard/index.html is missing; run npm run workflow:dashboard.');
   } else {
+    const rel = 'index.html';
+    const bytes = statSync(dashboardPath).size;
+    const limit = Number(generatedSizeLimits[rel] || 0);
+    if (limit > 0 && bytes > limit) problems.push(`dashboard guide ${rel} is ${bytes} bytes; policy limit is ${limit} bytes.`);
     const html = readFileSync(dashboardPath, 'utf8');
     if (!html.includes(`name="${guideMetaName('version')}" content="${PUBLIC_GUIDE_VERSION}"`)) problems.push('dashboard guide version is stale; regenerate index.html.');
     if (htmlMetaContent(html, guideMetaName('sourceHash')) !== expectedHash) problems.push('dashboard source hash is stale; regenerate index.html.');
@@ -5897,6 +6084,25 @@ function handoverProblems(text = undefined) {
   const usingDefaultText = text === undefined || text === null;
   if (usingDefaultText) text = readText('.codex/workflow/current-state.md');
   const problems = [];
+  const handoverPolicy = POLICY.files?.handover || {};
+  const maxBytes = Number(handoverPolicy.maxBytes || 12000);
+  const maxLines = Number(handoverPolicy.maxLines || 140);
+  const maxCompletedHistoryBullets = Number(handoverPolicy.maxCompletedHistoryBullets || 12);
+  const byteLength = Buffer.byteLength(String(text || ''), 'utf8');
+  const lineCount = String(text || '').split(/\r?\n/).length;
+  if (Number.isFinite(maxBytes) && maxBytes > 0 && byteLength > maxBytes) {
+    problems.push(`current-state.md is ${byteLength} bytes; compact handover limit is ${maxBytes} bytes.`);
+  }
+  if (Number.isFinite(maxLines) && maxLines > 0 && lineCount > maxLines) {
+    problems.push(`current-state.md is ${lineCount} lines; compact handover limit is ${maxLines} lines.`);
+  }
+  const completedHistoryBullets = String(text || '').split(/\r?\n/).filter((line) => /^\s*-\s+(completed|fixed|added|made|moved|removed|regenerated|deployed|validated)\b/i.test(line)).length;
+  if (Number.isFinite(maxCompletedHistoryBullets) && maxCompletedHistoryBullets >= 0 && completedHistoryBullets > maxCompletedHistoryBullets) {
+    problems.push(`current-state.md has ${completedHistoryBullets} completed-history bullets; link records/research instead of keeping a running ledger.`);
+  }
+  if (/[A-Za-z]:\\Users\\/.test(text) && !/## First Required Answer[\s\S]*?## Current Work/.test(text)) {
+    problems.push('current-state.md contains absolute local paths outside the preserved first-required-answer evidence.');
+  }
   if (/Latest gate records for current worktree hash/i.test(text)) {
     problems.push('current-state.md labels fixed record links as latest/current-hash data; use stable wording and let the dashboard/status command show live state.');
   }
@@ -6067,6 +6273,7 @@ function workflowSelfTestChecks() {
   add('handover accepts stable branch-head wording', handoverProblems('## Next Required Work\n\nNo mandatory migration step remains.\n\n## Server\n\nPost-deployment workflow-record commits were pulled on the server after runtime validation. Check branch HEAD for the exact latest commit.\n').length === 0);
   add('handover CLI fixture rejects stale finalization', fixtureHandoverCheck('bad-handover', '## Deployment\n\n- Final handover commit: `abc1234`\n', false));
   add('handover CLI fixture accepts stable current state', fixtureHandoverCheck('good-handover', '## Next Required Work\n\nNo mandatory migration step remains.\n\n## Server\n\nCheck branch HEAD for the exact latest commit.\n', true));
+  add('handover rejects oversized ledger state', handoverProblems(Array.from({ length: Number(POLICY.files?.handover?.maxLines || 140) + 2 }, (_, index) => `- completed item ${index}`).join('\n')).some((problem) => problem.includes('compact handover') || problem.includes('running ledger')));
   add('record-test command stays retired', (() => {
     const script = process.argv[1] ? resolve(process.argv[1]) : join(CODEX, 'scripts', 'nexus-workflow.mjs');
     const result = spawnSync(process.execPath, [script, 'record-test', '--summary', 'self-test retired command'], {
@@ -6094,6 +6301,7 @@ function workflowSelfTestChecks() {
   add('workflow principles are required workflow manifest', requiredWorkflowFiles().includes('.codex/workflow/principles.md'));
   add('workflow capabilities are required workflow manifest', requiredWorkflowFiles().includes('.codex/workflow/capabilities.md'));
   add('policy manifest is required workflow manifest', requiredWorkflowFiles().includes('.codex/workflow/policy/manifest.json'));
+  add('compatibility policy is required workflow manifest', requiredWorkflowFiles().includes('.codex/workflow/policy/compatibility.json'));
   add('work intake policy is required workflow manifest', requiredWorkflowFiles().includes('.codex/workflow/policy/intake.json'));
   add('work intake templates are required workflow manifest', requiredWorkflowFiles().includes('.codex/workflow/templates/intent.md') && requiredWorkflowFiles().includes('.codex/workflow/templates/work-slice.md'));
   add('workflow profile is required workflow manifest', requiredWorkflowFiles().includes('.codex/workflow/profile.json'));
@@ -6110,6 +6318,7 @@ function workflowSelfTestChecks() {
     '.codex/workflow/policy/manifest.json',
     '.codex/workflow/policy/guide.json',
     '.codex/workflow/policy/records.json',
+    '.codex/workflow/policy/compatibility.json',
   ].every((file) => requiredReviewKinds([file]).includes('pattern')));
   add('branch review policy classifies pattern-sensitive changes', requiredBranchReviewKinds(['packages/api/src/modules/orders/service.ts']).includes('pattern'));
   add('branch review policy classifies api route boundary changes', requiredBranchReviewKinds(['packages/api/src/routes/tenant-settings/service.ts']).includes('pattern'));
@@ -6122,9 +6331,20 @@ function workflowSelfTestChecks() {
     && ['design-lint', 'theme-settings-preview-check'].every((className) => requiredEvidenceClassesForFiles(['packages/web/src/platform/theme/tokens.css'], 'audit').includes(className)));
   add('visual zoo capture asserts themed parity showcases', Array.isArray(POLICY.design?.zooVisualCapture?.interactiveShowcases?.['themed-empty-state']?.expectedTexts)
     && Array.isArray(POLICY.design?.zooVisualCapture?.interactiveShowcases?.['themed-toast']?.expectedTexts));
-  add('workflow research reports participate in public guide source hash', publicGuideInputFiles().some((file) => file.startsWith('.codex/workflow/research/') && file.endsWith('.md')));
+  add('workflow role taxonomy is policy-owned', Array.isArray(POLICY.files?.inventory?.roleTaxonomy)
+    && POLICY.files.inventory.roleTaxonomy.some((entry) => entry.path === '.codex/workflow/records/' && entry.role === 'append-only-evidence')
+    && POLICY.files.inventory.roleTaxonomy.some((entry) => entry.path === '.codex/workflow/artifacts/' && entry.role === 'generated-evidence-artifact'));
+  add('workflow role taxonomy participates in generated guide view', workflowRoleTaxonomyHtml(escapeHtml).includes('Workflow File Roles'));
+  add('curated workflow research reports are explicit guide documents', guideDocumentFiles().includes('.codex/workflow/research/workflow-data-shape-audit-2026-05-11.md')
+    && !(POLICY.guide?.sourceDirectories || []).some((entry) => String(typeof entry === 'string' ? entry : entry.path).includes('.codex/workflow/research')));
   add('workflow principles participate in public guide source hash', publicGuideInputFiles().includes('.codex/workflow/principles.md'));
   add('workflow capabilities participate in public guide source hash', publicGuideInputFiles().includes('.codex/workflow/capabilities.md'));
+  add('historical compatibility is separated from live records policy', !Object.hasOwn(POLICY.records || {}, 'legacySchemaRecords') && Object.hasOwn(POLICY.compatibility || {}, 'legacySchemaRecords'));
+  add('record body file list policy summarizes long file lists', recordBodyFileLines('Files', Array.from({ length: recordBodyFileListLimit() + 2 }, (_, index) => `file-${index}.ts`)).some((line) => line.includes('more file')));
+  add('work intake templates point to policy-owned enums', readText('.codex/workflow/templates/intent.md').includes('policy/intake.json')
+    && readText('.codex/workflow/templates/work-slice.md').includes('policy/intake.json')
+    && !readText('.codex/workflow/templates/intent.md').includes('- change-request')
+    && !readText('.codex/workflow/templates/work-slice.md').includes('- workflow-maintenance'));
   add('workflow policy check passes current policy pack', policyProblems().length === 0);
   add('workflow policy pins package script command bodies', packageScriptContractProblems().length === 0);
   add('workflow policy rejects package script bypasses', (() => {
@@ -6142,6 +6362,10 @@ function workflowSelfTestChecks() {
   add('codex inventory check passes current workflow tree', inventoryProblems().length === 0);
   add('codex inventory rejects stray legacy script extensions', inventoryProblems({ files: ['.codex/scripts/old-hook.sh'], tracked: [] }).some((problem) => problem.includes('old-hook.sh')));
   add('codex inventory rejects unmanaged workflow root files', inventoryProblems({ files: ['.codex/workflow/legacy-profile.json'], tracked: [] }).some((problem) => problem.includes('legacy-profile.json')));
+  add('codex inventory rejects unapproved artifact locations', inventoryProblems({ files: ['.codex/workflow/artifacts/random.png'], tracked: [] }).some((problem) => problem.includes('unmanaged workflow artifact')));
+  add('codex inventory enforces artifact retention budget policy', Number(POLICY.files?.inventory?.artifactRetention?.maxTotalBytes) > 0
+    && Number(POLICY.files?.inventory?.artifactRetention?.maxFileBytes) > 0
+    && Boolean(POLICY.files?.inventory?.artifactRetention?.rule));
   add('workflow trace check passes current telemetry shape', commandTraceProblems().length === 0);
   add('workflow profile contract passes current profile', profileContractProblems().length === 0);
   add('workflow profile contract rejects empty profile', profileContractProblems({}).length > 0);
@@ -6154,6 +6378,7 @@ function workflowSelfTestChecks() {
     && String(guideRecordDisplayValue('deployments', 99)) === 'gate');
   add('self-referential guide evidence exclusions are policy-owned', selfReferentialEvidenceKinds().has('deployments') && !guideTraceEvidenceKinds().includes('deployments'));
   add('display-only guide record kinds have a public notice', (POLICY.guide?.displayOnlyRecordKinds || []).includes('deployments') && Boolean(POLICY.guide?.displayOnlyRecordNotice));
+  add('generated guide size limits are policy-owned', Number(POLICY.guide?.generatedSizeLimits?.['index.html']) > 0 && Number(POLICY.guide?.generatedSizeLimits?.['public.html']) > 0);
   add('deployment guide artifact metadata rejects per-file drift', (() => {
     const meta = deploymentGuideArtifactMeta();
     const altered = {
@@ -6519,7 +6744,14 @@ function workflowSelfTestChecks() {
   add('file evidence hash canonicalizes text line endings', createHash('sha256').update(canonicalTextForHash('a\r\nb\r\n')).digest('hex') === createHash('sha256').update(canonicalTextForHash('a\nb\n')).digest('hex'));
   add('guide source hash canonicalizes line endings', createHash('sha256').update(canonicalTextForHash('a\r\nb\r\n')).digest('hex') === createHash('sha256').update(canonicalTextForHash('a\nb\n')).digest('hex'));
   add('worktree-scope records do not receive branch frontmatter', Object.keys(branchScopedFrontmatter('worktree', { hash: 'branch-hash', base: 'base', mergeBase: 'merge', files: ['a'] })).length === 0);
-  add('branch-scope records receive branch frontmatter', branchScopedFrontmatter('branch', { hash: 'branch-hash', base: 'base', mergeBase: 'merge', files: ['a'] }).branchHash === 'branch-hash');
+  add('branch-scope records receive branch hash without file-list ownership by default', (() => {
+    const fm = branchScopedFrontmatter('branch', { hash: 'branch-hash', base: 'base', mergeBase: 'merge', files: ['a'] });
+    return fm.branchHash === 'branch-hash' && !Object.hasOwn(fm, 'branchFiles');
+  })());
+  add('branch patch frontmatter owns branch file list explicitly', sameStringSet(
+    branchScopedFrontmatter('branch', { hash: 'branch-hash', base: 'base', mergeBase: 'merge', files: ['a'] }, { includeFiles: true }).branchFiles,
+    ['a'],
+  ));
   add('guide source hash excludes record feed and mutable state cache', (() => {
     const inputs = publicGuideInputFiles();
     return !inputs.some((file) => file.startsWith('.codex/workflow/state/'))
@@ -6660,6 +6892,36 @@ function workflowSelfTestChecks() {
       tests: [branchRecord({ verdict: 'pass', ...workflowEvidence('test-command') })],
       audits: [branchRecord({ verdict: 'pass', ...workflowEvidence('audit-command', { audit: true }) })],
     }).length === 0;
+  })());
+  add('branch review verify and audit records can reference branch hash without owning file lists', (() => {
+    const branch = { base: 'base', mergeBase: 'merge-base', hash: 'branch-hash', files: ['.codex/scripts/nexus-workflow.mjs'] };
+    const branchProof = (extra = {}) => ({ branchHash: 'branch-hash', scope: 'branch', ...extra });
+    return branchEvidenceProblemsForState(branch, {
+      patches: [branchRecord({ agent: 'codex-lead' })],
+      routing: [],
+      reviews: [
+        branchProof({ verdict: 'pass', kind: 'general' }),
+        branchProof({ verdict: 'pass', kind: 'workflow' }),
+      ],
+      tests: [branchProof({ verdict: 'pass', ...workflowEvidence('test-command') })],
+      audits: [branchProof({ verdict: 'pass', ...workflowEvidence('audit-command', { audit: true }) })],
+    }).length === 0;
+  })());
+  add('branch review command can infer durable branch patch after cache loss', (() => {
+    const branch = { hash: 'branch-hash' };
+    const latestBranchPatch = latestBranchPatchForRecords([
+      { id: 'PATCH-old', scope: 'branch', branchHash: 'branch-hash', created: '2026-05-11T00:00:00.000Z' },
+      { id: 'PATCH-new', scope: 'branch', branchHash: 'branch-hash', created: '2026-05-11T01:00:00.000Z' },
+      { id: 'PATCH-other', scope: 'branch', branchHash: 'other-hash', created: '2026-05-11T02:00:00.000Z' },
+    ], branch);
+    return latestBranchPatch?.id === 'PATCH-new'
+      && reviewPatchIdForArgs({ scope: 'branch' }, {
+        scope: 'branch',
+        branch,
+        hash: 'worktree-hash',
+        patchState: {},
+        latestBranchPatch,
+      }) === 'PATCH-new';
   })());
   add('branch evidence check still requires integrated review for stale-hash delegated branch records', (() => {
     const branch = { base: 'base', mergeBase: 'merge-base', hash: 'branch-hash', files: ['.codex/scripts/nexus-workflow.mjs'] };

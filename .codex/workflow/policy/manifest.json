@@ -2,6 +2,7 @@
   "schema": "codex-workflow-policy-manifest/v1",
   "policyNames": [
     "records",
+    "compatibility",
     "files",
     "guide",
     "design",

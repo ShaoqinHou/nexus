@@ -37,6 +37,7 @@ The release gate includes `.codex` inventory, policy-consumption, and command-tr
 - Record non-trivial delegation/routing decisions with `node .codex/scripts/nexus-workflow.mjs record-routing --summary "<task>" --route <route> --worker <agent> --files "a,b" --verification "<commands>" --fallback-trigger "<when>" --fallback-target "<agent>"`.
 - Hook-triggered patch state is only a compact invalidation signal. Create an explicit patch record for meaningful work slices before review or handover.
 - Keep `.codex/workflow/current-state.md` compact and link detailed records instead of pasting long logs.
+- Use `.codex/workflow/policy/files.json` `inventory.roleTaxonomy` before editing or porting workflow files; it separates system code, policy/profile data, evidence records, generated artifacts, mutable cache/runtime telemetry, and historical research.
 - Use subagents only when the task is independently useful and has a clear scope.
 - For a second project or a fresh Codex setup, start from `.codex/workflow/templates/project-bootstrap.md`. Each project should have its own `.codex/config.toml`; Nexus expects trusted `Custom (config.toml)` for hooks plus no-prompt permissions.
 

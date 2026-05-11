@@ -2,27 +2,9 @@
 
 Body reference only. Create durable records with the project wrapper from `.codex/workflow/profile.json` `paths.workflowWrapper` (Nexus: `node .codex/scripts/nexus-workflow.mjs record-intent ...`) so required frontmatter is generated and gates can validate the record.
 
-Kind:
+Kind: policy-owned in `.codex/workflow/policy/intake.json` `intentKinds`
 
-- initial
-- idea
-- feature
-- bug
-- clarification
-- constraint
-- change-request
-- maintenance
-- research
-
-Status:
-
-- captured
-- needs-clarification
-- accepted
-- converted
-- deferred
-- rejected
-- superseded
+Status: policy-owned in `.codex/workflow/policy/intake.json` `intentStatuses`
 
 Source:
 

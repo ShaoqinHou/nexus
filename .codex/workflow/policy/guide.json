@@ -86,6 +86,10 @@
     "zoo/index.html",
     "zoo/manifest.json"
   ],
+  "generatedSizeLimits": {
+    "index.html": 716800,
+    "public.html": 262144
+  },
   "ladderMentionFiles": [
     "AGENTS.md",
     "WORKFLOW.md",
@@ -168,6 +172,7 @@
     ".codex/workflow/profile.json",
     ".codex/workflow/policy/manifest.json",
     ".codex/workflow/policy/records.json",
+    ".codex/workflow/policy/compatibility.json",
     ".codex/workflow/policy/files.json",
     ".codex/workflow/policy/guide.json",
     ".codex/workflow/policy/design.json",
@@ -209,6 +214,7 @@
     ".codex/workflow/capabilities.md",
     ".codex/workflow/profile.json",
     ".codex/workflow/policy/manifest.json",
+    ".codex/workflow/policy/compatibility.json",
     ".codex/workflow/policy/files.json",
     ".codex/workflow/policy/gates.json",
     ".codex/workflow/policy/intake.json",
@@ -231,18 +237,17 @@
     ".codex/knowledge/verification.md",
     ".codex/knowledge/deployment.md",
     ".codex/workflow/principles.md",
-    ".codex/workflow/capabilities.md"
+    ".codex/workflow/capabilities.md",
+    ".codex/workflow/research/codex-capabilities-2026-05-09.md",
+    ".codex/workflow/research/workflow-engine-profile-extraction-2026-05-10.md",
+    ".codex/workflow/research/workflow-code-architecture-audit-2026-05-10.md",
+    ".codex/workflow/research/workflow-duplicate-agent-audit-2026-05-11.md",
+    ".codex/workflow/research/workflow-portability-onboarding-audit-2026-05-11.md",
+    ".codex/workflow/research/workflow-data-shape-audit-2026-05-11.md",
+    ".codex/workflow/research/design-system-integration-audit-2026-05-10.md",
+    ".codex/workflow/research/design-system-parity-implementation-2026-05-11.md"
   ],
-  "documentDirectories": [
-    {
-      "path": ".codex/workflow/research",
-      "maxDepth": 1,
-      "limit": 32,
-      "extensions": [
-        ".md"
-      ]
-    }
-  ],
+  "documentDirectories": [],
   "sourceDirectories": [
     {
       "path": ".agents/skills",
@@ -258,11 +263,6 @@
       "path": ".codex/workflow/policy",
       "maxDepth": 4,
       "limit": 100
-    },
-    {
-      "path": ".codex/workflow/research",
-      "maxDepth": 8,
-      "limit": 600
     },
     {
       "path": ".codex/workflow/scenarios",
@@ -300,6 +300,7 @@
   "viewContract": {
     "requiredStrings": [
       "Workflow System Nodes",
+      "Workflow File Roles",
       "Codex Workflow Nodes",
       ".codex/workflow/records",
       "Work Intake",

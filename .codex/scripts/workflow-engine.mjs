@@ -3,6 +3,7 @@ import { dirname, join, resolve } from 'node:path';
 
 export const DEFAULT_POLICY_NAMES = [
   'records',
+  'compatibility',
   'files',
   'guide',
   'routing',

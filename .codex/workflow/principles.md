@@ -69,7 +69,39 @@ The LLM supplies judgment. The workflow records that judgment and checks that re
 | `.codex/workflow/current-state.md` | Compact Nexus handover | Do not copy as live state. Create a new current-state from the target project. |
 | `.codex/workflow/research/*` | Historical Nexus audits and decisions | Keep in Nexus. For another project, copy only selected files into an archive/reference folder if they help explain the migration. |
 | `.codex/dashboard/*` | Generated Nexus views and visual artifacts | Do not copy as truth. Regenerate in the target project after policy/profile are adapted. |
+| `.codex/workflow/artifacts/*` | Bounded screenshots and summaries referenced by records or generated visual guides | Do not copy as truth. Keep only policy-approved, record-linked evidence or regenerated artifacts. |
 | `.codex/workflow/state/*` and `.codex/workflow/runtime/*` | Mutable local cache and telemetry | Do not copy except `.gitignore` placeholders. |
+
+## Workflow File Roles
+
+The machine-owned role taxonomy lives in `.codex/workflow/policy/files.json` under `inventory.roleTaxonomy`. It is the source of truth for whether a workflow path is system code, project policy/profile data, append-only evidence, generated artifact, mutable cache, or workflow documentation.
+
+Use these groups when deciding what to open, edit, copy, or discard:
+
+| Group | Examples | Read/Edit Rule |
+| --- | --- | --- |
+| System code | `.codex/scripts/workflow-engine.mjs`, project wrapper, hook dispatcher | Edit only for deterministic behavior. Project-specific facts should move to profile/policy first. |
+| Project policy/profile data | `.codex/workflow/profile.json`, `.codex/workflow/policy/*.json`, dependency audit baseline | Machine-consumed. Prefer compact JSON facts, enums, path lists, and gate contracts over prose duplication. |
+| Workflow design/reference docs | `principles.md`, `capabilities.md`, `templates/*` | Explain intent and usage. These are useful but stale-prone, so they should point at policy owners instead of repeating enums or path lists. |
+| Managed handover | `current-state.md` | Compact resume state only. It must not become a changelog or transcript. |
+| Append-only evidence | `records/*` | One event per file. Preserve frontmatter for gates; keep the body concise and link to artifacts or command ids for detail. |
+| Historical analysis | `research/*`, `briefs/*` | Open by title when needed. Do not bulk-load as current truth. |
+| Generated views/artifacts | `.codex/dashboard/*`, `workflow/artifacts/*` | Human inspection aids and evidence attachments. Regenerate or validate; do not edit as canonical memory. |
+| Mutable telemetry/cache | `state/*`, `runtime/*` | Delete-safe diagnostics only. Passing records can embed compact summaries from telemetry, but telemetry itself is not durable proof. |
+
+When a new directory or root workflow file is added, update `inventory.roleTaxonomy` and run `npm run workflow:policy-check` plus `npm run workflow:inventory-check`.
+
+## Data Shape
+
+Workflow data should be optimized for an LLM to resume with the smallest useful context:
+
+- Put searchable identifiers, status, hashes, links, and compact summaries in frontmatter.
+- Put narrative judgment in the markdown body, but avoid replaying every related file, command, or transcript when a reference is enough.
+- Preserve large details in the owner record or artifact. For branch closeout, the branch patch record owns the complete branch file list; branch review, verification, audit, and deployment records should reference the branch hash and patch instead of copying the full diff again.
+- Keep generated indexes and guides as views over records and policy. If a generated view is stale, fix the records, policy, or generator.
+- Keep research reports curated. A new research note should be linked from a record, a knowledge file, or the compact handover only when it remains relevant.
+
+This follows the same split used in established documentation and provenance systems: reference data stays structured and compact, event evidence is append-only, and explanatory docs are separate from machine-enforced policy.
 
 ## Where Humans Should Start
 

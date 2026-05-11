@@ -52,6 +52,7 @@ For workflow migration, architecture changes, or second-project setup, read `wor
 - `hooks.json` wires Codex lifecycle hooks when project hooks are enabled and trusted.
 - `.github/workflows/nexus-workflow-gates.yml` runs the same workflow gates in CI so enforcement is not hook-only.
 - `workflow/templates/` describes record shapes for humans and agents.
+- `workflow/artifacts/` stores bounded screenshots and summaries referenced by records or generated visual guides. These are evidence attachments, not canonical memory, and should not be copied to new projects as live state.
 - `workflow/state/` stores mutable workflow cache JSON. It is not durable evidence.
 - `workflow/runtime/` stores operational telemetry, hook heartbeats, PIDs, and local logs. It is not durable evidence.
 - `npm run workflow:status`, `npm run workflow:health`, `npm run workflow:release-gate`, and `npm run workflow:deployed-gate` are the public workflow ladder.
@@ -75,6 +76,8 @@ The center of the system is the deterministic kernel exposed through `scripts/ne
 - Worktree-scope records should not carry branch hashes. Branch hashes belong to final branch-scope records. Delegated worker patch records introduced on the branch remain branch evidence through routing id plus integrated review, even if later lead edits change the final branch hash.
 - `.codex/` inventory, policy consumption, and command trace telemetry are first-class release-gate inputs. This keeps workflow self-checks centralized in the kernel instead of relying on scattered handover reminders.
 - Work Intake records connect user prompts to lead work slices and then to implementation evidence. Substantive records should carry `workSliceIds` so generated guide views and release gates can detect drift.
+- `.codex/workflow/policy/files.json` `inventory.roleTaxonomy` owns the file/directory role map. Use it to distinguish system code, policy/profile data, workflow docs, append-only records, generated artifacts, mutable cache, and historical research before copying or editing workflow files.
+- Records should preserve enough structured frontmatter for gates while keeping bodies compact for humans and LLMs. Branch patch records own the complete branch file list; branch review, verification, audit, and deployment records should reference the branch hash and linked patch instead of repeating the full file inventory.
 
 When the kernel needs LLM judgment, it should fail with a specific missing-record message rather than hide judgment inside a hook. Add new workflow rules to the kernel and records first; keep skills and docs as concise usage guidance around that shared system.
 

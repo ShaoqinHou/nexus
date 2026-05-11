@@ -13,6 +13,7 @@
     ".codex/workflow/profile.json",
     ".codex/workflow/policy/manifest.json",
     ".codex/workflow/policy/records.json",
+    ".codex/workflow/policy/compatibility.json",
     ".codex/workflow/policy/files.json",
     ".codex/workflow/policy/guide.json",
     ".codex/workflow/policy/design.json",
@@ -103,6 +104,11 @@
       ".png",
       ".json"
     ],
+    "artifactRetention": {
+      "maxTotalBytes": 31457280,
+      "maxFileBytes": 7340032,
+      "rule": "Artifacts are bounded evidence attachments. Keep policy-approved, record-linked screenshots/summaries; regenerate or archive old raw captures instead of letting this folder become project memory."
+    },
     "workflowRootFiles": [
       ".codex/workflow/current-state.md",
       ".codex/workflow/capabilities.md",
@@ -120,6 +126,120 @@
       ".codex/workflow/scenarios/",
       ".codex/workflow/state/",
       ".codex/workflow/templates/"
+    ],
+    "roleTaxonomy": [
+      {
+        "path": ".codex/workflow/principles.md",
+        "role": "workflow-design-doc",
+        "truth": "workflow intention and placement rules",
+        "llmLoadPolicy": "read for workflow architecture, migration, or audit work; do not load for routine feature edits unless needed",
+        "stalenessRisk": "medium",
+        "portingRule": "copy shape and adjust only when the target workflow intentionally changes principles"
+      },
+      {
+        "path": ".codex/workflow/capabilities.md",
+        "role": "workflow-design-doc",
+        "truth": "capability ownership, gates, and optional/required boundaries",
+        "llmLoadPolicy": "read for porting or capability changes",
+        "stalenessRisk": "medium",
+        "portingRule": "copy shape; rewrite active/optional capability decisions for the target project"
+      },
+      {
+        "path": ".codex/workflow/current-state.md",
+        "role": "managed-handover",
+        "truth": "compact resumable state with links to records",
+        "llmLoadPolicy": "read at session start; keep compact and avoid finalization details that self-stale",
+        "stalenessRisk": "high",
+        "portingRule": "start fresh from the target project; do not copy Nexus state"
+      },
+      {
+        "path": ".codex/workflow/profile.json",
+        "role": "project-profile-data",
+        "truth": "project identity, root paths, generated surfaces, and environment variable names",
+        "llmLoadPolicy": "load when changing workflow paths, hook dispatch, generated views, or environment assumptions",
+        "stalenessRisk": "low",
+        "portingRule": "rewrite for the target project before editing wrapper logic"
+      },
+      {
+        "path": ".codex/workflow/dependency-audit-baseline.json",
+        "role": "project-policy-data",
+        "truth": "explicit expiring npm audit exceptions",
+        "llmLoadPolicy": "load only for dependency audit work",
+        "stalenessRisk": "high",
+        "portingRule": "regenerate or omit for the target project; never copy exceptions blindly"
+      },
+      {
+        "path": ".codex/workflow/policy/",
+        "role": "project-policy-data",
+        "truth": "machine-consumed classifiers, schemas, gates, guide contracts, design/deployment/routing/intake policy",
+        "llmLoadPolicy": "load the specific policy file that owns the rule being changed",
+        "stalenessRisk": "low",
+        "portingRule": "rewrite first; project-specific facts belong here before scripts"
+      },
+      {
+        "path": ".codex/workflow/scenarios/",
+        "role": "project-policy-data",
+        "truth": "executable model-routing and failure-path fixtures",
+        "llmLoadPolicy": "load for model-routing changes or tests",
+        "stalenessRisk": "medium",
+        "portingRule": "replace with target-project representative scenarios"
+      },
+      {
+        "path": ".codex/workflow/templates/",
+        "role": "workflow-reference-doc",
+        "truth": "record body reference shapes and bootstrap checklist",
+        "llmLoadPolicy": "load when creating records manually or bootstrapping another project; prefer script commands",
+        "stalenessRisk": "medium",
+        "portingRule": "copy shape and rewrite command examples/project names"
+      },
+      {
+        "path": ".codex/workflow/briefs/",
+        "role": "preserved-user-brief",
+        "truth": "long original user request preserved outside chat",
+        "llmLoadPolicy": "load only when checking original intent or drift",
+        "stalenessRisk": "low",
+        "portingRule": "do not copy as target-project live intent; preserve only as migration reference if relevant"
+      },
+      {
+        "path": ".codex/workflow/research/",
+        "role": "historical-analysis",
+        "truth": "bounded research/audit reports and rationale snapshots",
+        "llmLoadPolicy": "load by title when a specific decision history is needed; never bulk-load as current truth",
+        "stalenessRisk": "medium",
+        "portingRule": "copy selected files only into historical reference, not live policy"
+      },
+      {
+        "path": ".codex/workflow/records/",
+        "role": "append-only-evidence",
+        "truth": "event-level durable evidence for intent, work slices, patches, reviews, tests, audits, deployments, and decisions",
+        "llmLoadPolicy": "read index/current state first, then open only referenced records needed for the task",
+        "stalenessRisk": "low",
+        "portingRule": "start fresh; do not copy Nexus records as target-project evidence"
+      },
+      {
+        "path": ".codex/workflow/artifacts/",
+        "role": "generated-evidence-artifact",
+        "truth": "screenshots and summaries referenced by records or generated guides",
+        "llmLoadPolicy": "open only when validating browser/visual evidence",
+        "stalenessRisk": "medium",
+        "portingRule": "regenerate for the target project"
+      },
+      {
+        "path": ".codex/workflow/state/",
+        "role": "mutable-cache",
+        "truth": "none; delete-safe cache only",
+        "llmLoadPolicy": "inspect only to diagnose hooks/gates; never cite as durable evidence",
+        "stalenessRisk": "high",
+        "portingRule": "do not copy except placeholders"
+      },
+      {
+        "path": ".codex/workflow/runtime/",
+        "role": "runtime-telemetry",
+        "truth": "none until embedded into durable records",
+        "llmLoadPolicy": "inspect only for command/hook diagnostics",
+        "stalenessRisk": "high",
+        "portingRule": "do not copy except placeholders"
+      }
     ],
     "scriptExtensions": [
       ".mjs"
@@ -142,6 +262,12 @@
     "scenarioFiles": [
       ".codex/workflow/scenarios/model-routing.json"
     ]
+  },
+  "handover": {
+    "path": ".codex/workflow/current-state.md",
+    "maxLines": 140,
+    "maxBytes": 12000,
+    "maxCompletedHistoryBullets": 12
   },
   "classifierTestCases": [
     {
