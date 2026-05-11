@@ -2567,6 +2567,7 @@ function commandRecordGuideBrowser(args) {
   const hash = guideArtifactHash();
   const screenshots = args.screenshots ? csv(args.screenshots) : [];
   const summaryFile = args['summary-file'] || '';
+  const durationMs = Number(args.durationMs || args['duration-ms'] || 0);
   const evidenceFiles = [...screenshots, summaryFile].filter(Boolean);
   const artifactProblems = artifactInputProblems(evidenceFiles);
   if (artifactProblems.length) {
@@ -2586,6 +2587,7 @@ function commandRecordGuideBrowser(args) {
     `Verdict: ${verdict}`,
     `Reviewer: ${args.reviewer || args.verifier || 'unknown'}`,
     `Guide artifact hash: ${hash}`,
+    durationMs ? `Duration: ${durationMs}ms` : '',
     '',
     summaryFile ? `Summary file: ${summaryFile}` : 'Summary file: n/a',
     '',
@@ -2599,6 +2601,7 @@ function commandRecordGuideBrowser(args) {
     verdict,
     reviewer: args.reviewer || args.verifier || 'unknown',
     guideArtifactHash: hash,
+    durationMs,
     screenshots,
     summaryFile,
     evidenceArtifacts,
@@ -2609,6 +2612,7 @@ function commandRecordGuideBrowser(args) {
     checkedAt: nowIso(),
     reviewer: args.reviewer || args.verifier || 'unknown',
     guideBrowserRecord: relative(ROOT, rec.path).replaceAll('\\', '/'),
+    durationMs,
     screenshots,
     summaryFile,
     evidenceArtifacts,
@@ -2649,6 +2653,8 @@ function guideBrowserSummaryProblems(summaryFile) {
     if (!entry.name || !entry.target || !entry.viewport || !entry.title) problems.push(`guide browser summary entry is incomplete: ${entry.name || '(unnamed)'}`);
     if (!entry.meta || typeof entry.meta !== 'object') problems.push(`guide browser summary entry has no meta snapshot: ${entry.name || '(unnamed)'}`);
     if (!Array.isArray(entry.hrefs)) problems.push(`guide browser summary entry has no href snapshot: ${entry.name || '(unnamed)'}`);
+    if (!Number.isFinite(Number(entry.durationMs)) || Number(entry.durationMs) < 0) problems.push(`guide browser summary entry has no duration: ${entry.name || '(unnamed)'}`);
+    if (entry.imageLoad?.timedOut) problems.push(`guide browser summary image readiness timed out: ${entry.name || '(unnamed)'}`);
     if (Number(entry.brokenImages || 0) !== 0) problems.push(`guide browser summary entry has broken images: ${entry.name}`);
   }
   const dashboard = entries.find((entry) => entry.name === 'dashboard-artifact');
@@ -2712,26 +2718,52 @@ function guideBrowserProblems() {
 }
 
 async function captureBrowserTarget(page, outDirRel, target) {
+  const started = Date.now();
   const { name, url, viewport, screenshot } = target;
   await page.setViewportSize(viewport);
   await page.goto(url, { waitUntil: 'domcontentloaded' });
-  await page.evaluate(() => [...document.images].forEach((img) => { img.loading = 'eager'; }));
-  for (let pass = 0; pass < 3; pass++) {
-    const height = await page.evaluate(() => document.documentElement.scrollHeight);
-    for (let y = 0; y <= height; y += 700) {
-      await page.evaluate((scrollY) => window.scrollTo(0, scrollY), y);
-      await page.waitForTimeout(60);
+  const imageLoad = await page.evaluate(async () => {
+    const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+    const images = [...document.images];
+    images.forEach((img) => { img.loading = 'eager'; });
+    const height = document.documentElement.scrollHeight;
+    const step = Math.max(window.innerHeight || 700, 700);
+    for (let y = 0; y <= height; y += step) {
+      window.scrollTo(0, y);
+      await sleep(25);
     }
-  }
+    const decode = Promise.all(images.map(async (img) => {
+      if (img.complete && img.naturalWidth > 0) return true;
+      if (typeof img.decode === 'function') {
+        try {
+          await img.decode();
+        } catch {
+          return false;
+        }
+        return img.complete && img.naturalWidth > 0;
+      }
+      return false;
+    }));
+    const result = await Promise.race([
+      decode,
+      sleep(10000).then(() => 'timeout'),
+    ]);
+    const loaded = images.filter((img) => img.complete && img.naturalWidth > 0).length;
+    return {
+      imageCount: images.length,
+      loadedImages: loaded,
+      timedOut: result === 'timeout',
+    };
+  });
   await page.evaluate(() => window.scrollTo(0, 0));
-  await page.waitForFunction(() => [...document.images].every((img) => img.complete && img.naturalWidth > 0), null, { timeout: 30000 }).catch(() => null);
+  await page.waitForFunction(() => [...document.images].every((img) => img.complete && img.naturalWidth > 0), null, { timeout: 10000 }).catch(() => null);
   await page.screenshot({
     path: join(ROOT, outDirRel, screenshot),
     type: 'jpeg',
     quality: 76,
     fullPage: false,
   });
-  return page.evaluate((targetName) => ({
+  const snapshot = await page.evaluate(({ targetName, loadState }) => ({
     name: targetName,
     target: location.href,
     viewport: {
@@ -2744,10 +2776,16 @@ async function captureBrowserTarget(page, outDirRel, target) {
     textSample: document.body.innerText.slice(0, 300),
     imageCount: document.images.length,
     brokenImages: [...document.images].filter((img) => !img.complete || img.naturalWidth === 0).length,
-  }), name);
+    imageLoad: loadState,
+  }), { targetName: name, loadState: imageLoad });
+  return {
+    ...snapshot,
+    durationMs: Date.now() - started,
+  };
 }
 
 async function commandGuideBrowserFinalize(args = {}) {
+  const started = Date.now();
   if (!args['allow-precloseout'] && substantiveFiles().length) {
     const preflightProblems = [];
     const branch = branchEvidenceInfo();
@@ -2804,7 +2842,11 @@ async function commandGuideBrowserFinalize(args = {}) {
   }
 
   const summaryFile = `${outDirRel}/summary.json`;
-  writeFileSync(join(ROOT, summaryFile), `${JSON.stringify(entries, null, 2)}\n`);
+  const durationMs = Date.now() - started;
+  writeFileSync(join(ROOT, summaryFile), `${JSON.stringify({
+    durationMs,
+    entries,
+  }, null, 2)}\n`);
   const summaryProblems = guideBrowserSummaryProblems(summaryFile);
   if (summaryProblems.length) {
     console.error('guide browser summary problems:');
@@ -2818,6 +2860,7 @@ async function commandGuideBrowserFinalize(args = {}) {
     reviewer: args.reviewer || leadWorkerId(),
     screenshots: screenshots.join(','),
     'summary-file': summaryFile,
+    'duration-ms': String(durationMs),
     notes: args.notes || 'Final generated guide artifact browser validation. Deterministic proof is in summary.json; JPEG files are bounded viewport previews for human inspection, not pixel-diff baselines.',
   });
   if (!args.quiet) {
@@ -7001,13 +7044,38 @@ function workflowSelfTestChecks() {
       [guideMetaName('sourceHash')]: zooVisualSourceHash(),
       [guideMetaName('contentHash')]: 'fixture-content-hash',
     };
-    writeFileSync(summaryPath, JSON.stringify([
-      { name: 'dashboard-artifact', target: 'file:///dashboard', viewport: { width: 1, height: 1 }, title: GUIDE_TITLES.dashboard, meta: guideMeta, hrefs: [], imageCount: 0, brokenImages: 0 },
-      { name: 'workflow-guide-artifact', target: 'file:///public', viewport: { width: 1, height: 1 }, title: GUIDE_TITLES.public, meta: guideMeta, hrefs: ['zoo/index.html'], imageCount: 0, brokenImages: 0 },
-      { name: 'workflow-zoo-artifact-desktop', target: 'file:///zoo', viewport: { width: 1, height: 1 }, title: ZOO_VISUAL_GUIDE_TITLE, meta: zooMeta, hrefs: [], imageCount: 1, brokenImages: 0 },
-      { name: 'workflow-zoo-artifact-mobile', target: 'file:///zoo', viewport: { width: 1, height: 1 }, title: ZOO_VISUAL_GUIDE_TITLE, meta: zooMeta, hrefs: [], imageCount: 1, brokenImages: 0 },
-    ]));
+    writeFileSync(summaryPath, JSON.stringify({
+      durationMs: 123,
+      entries: [
+        { name: 'dashboard-artifact', target: 'file:///dashboard', viewport: { width: 1, height: 1 }, title: GUIDE_TITLES.dashboard, meta: guideMeta, hrefs: [], imageCount: 0, brokenImages: 0, durationMs: 10 },
+        { name: 'workflow-guide-artifact', target: 'file:///public', viewport: { width: 1, height: 1 }, title: GUIDE_TITLES.public, meta: guideMeta, hrefs: ['zoo/index.html'], imageCount: 0, brokenImages: 0, durationMs: 11 },
+        { name: 'workflow-zoo-artifact-desktop', target: 'file:///zoo', viewport: { width: 1, height: 1 }, title: ZOO_VISUAL_GUIDE_TITLE, meta: zooMeta, hrefs: [], imageCount: 1, brokenImages: 0, imageLoad: { timedOut: false }, durationMs: 12 },
+        { name: 'workflow-zoo-artifact-mobile', target: 'file:///zoo', viewport: { width: 1, height: 1 }, title: ZOO_VISUAL_GUIDE_TITLE, meta: zooMeta, hrefs: [], imageCount: 1, brokenImages: 0, imageLoad: { timedOut: false }, durationMs: 13 },
+      ],
+    }));
     const ok = guideBrowserSummaryProblems(rel).length === 0;
+    rmSync(dir, { recursive: true, force: true });
+    return ok;
+  })());
+  add('guide browser summary rejects missing duration telemetry', (() => {
+    const dir = mkdtempSync(join(tmpdir(), 'nexus-guide-summary-'));
+    const summaryPath = join(dir, 'summary.json');
+    const rel = relative(ROOT, summaryPath).replaceAll('\\', '/');
+    writeFileSync(summaryPath, JSON.stringify([
+      { name: 'dashboard-artifact', target: 'file:///dashboard', viewport: { width: 1, height: 1 }, title: GUIDE_TITLES.dashboard, meta: {}, hrefs: [], imageCount: 0, brokenImages: 0 },
+    ]));
+    const ok = guideBrowserSummaryProblems(rel).some((problem) => problem.includes('no duration'));
+    rmSync(dir, { recursive: true, force: true });
+    return ok;
+  })());
+  add('guide browser summary rejects image readiness timeout', (() => {
+    const dir = mkdtempSync(join(tmpdir(), 'nexus-guide-summary-'));
+    const summaryPath = join(dir, 'summary.json');
+    const rel = relative(ROOT, summaryPath).replaceAll('\\', '/');
+    writeFileSync(summaryPath, JSON.stringify([
+      { name: 'dashboard-artifact', target: 'file:///dashboard', viewport: { width: 1, height: 1 }, title: GUIDE_TITLES.dashboard, meta: {}, hrefs: [], imageCount: 0, brokenImages: 0, imageLoad: { timedOut: true }, durationMs: 1 },
+    ]));
+    const ok = guideBrowserSummaryProblems(rel).some((problem) => problem.includes('image readiness timed out'));
     rmSync(dir, { recursive: true, force: true });
     return ok;
   })());

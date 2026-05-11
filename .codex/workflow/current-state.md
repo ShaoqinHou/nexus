@@ -26,7 +26,7 @@ No active work slice is open in this compact handover.
 
 Latest completed workflow architecture slice:
 
-- `WORK-SLICE-20260511T054117Z-work-slice-done-audit-codex-workflow-role-bounda`
+- `WORK-SLICE-20260511T061540Z-work-slice-done-audit-workflow-command-telemetry`
 
 Use detailed records and research notes for history. This file is only the compact handover.
 
@@ -71,6 +71,12 @@ Current data-shape audit closeout:
 - patch: `PATCH-20260511T053900Z-finalize-workflow-data-shape-taxonomy-compatibil`
 - verification: `TEST-20260511T054049Z-verification-pass-worktree`
 - audit: `AUDIT-20260511T054102Z-audit-pass-worktree`
+
+Current performance audit closeout:
+
+- patch: `PATCH-20260511T061346Z-instrument-and-speed-up-guide-browser-evidence-f`
+- verification: `TEST-20260511T061518Z-verification-pass-worktree`
+- audit: `AUDIT-20260511T061531Z-audit-pass-worktree`
 
 ## Open Risks
 

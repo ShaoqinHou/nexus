@@ -50,6 +50,7 @@ Store bounded evidence under `.codex/workflow/artifacts/` and link it from a dur
 For guide-browser evidence, include:
 
 - a `summary.json` with target URLs, viewport sizes, titles, image counts, and broken image counts,
+- duration telemetry for the overall finalizer and each browser target,
 - representative desktop/mobile screenshot previews,
 - the local internal dashboard artifact, the public guide artifact, and the visual Zoo/Gym artifact,
 - a `GUIDE-BROWSER-*` record tied to the current guide artifact hash,
