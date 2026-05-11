@@ -1,5 +1,5 @@
 {
-  "durationMs": 18379,
+  "durationMs": 11721,
   "entries": [
     {
       "name": "dashboard-artifact",
@@ -13,8 +13,8 @@
         "viewport": "width=device-width, initial-scale=1",
         "nexus-guide-version": "nexus-public-workflow-guide/v2",
         "nexus-guide-source-hash": "0108a1a3310a294a738edbbc",
-        "nexus-guide-record-feed-hash": "0a3d8adafb39b01db9cf8e23",
-        "nexus-guide-content-hash": "9e73459e0af27f9ff07dfeda",
+        "nexus-guide-record-feed-hash": "da181b955183c4d3bba77f8c",
+        "nexus-guide-content-hash": "85e4653d84d9dc31199c4faa",
         "nexus-token-source": "packages/web/src/platform/theme/tokens.css"
       },
       "hrefs": [
@@ -66,7 +66,7 @@
         "http://localhost:5173/design/checkout-summary",
         "http://localhost:5173/design/themed-toast"
       ],
-      "textSample": "Nexus Workflow Dashboard\nSnapshot source 0108a1a3310a294a738edbbc · records 0a3d8adafb39b01db9cf8e23 · branch codex/native-workflow\nOverview\nWorkflow File Roles\nAdapter Source Owners\nWork Intake\nCurrent State\nDesign Zoo/Gym\nPatterns\nDesign System\nDeployment\nRecords\nDecisions\nPattern Proposals\nPatche",
+      "textSample": "Nexus Workflow Dashboard\nSnapshot source 0108a1a3310a294a738edbbc · records da181b955183c4d3bba77f8c · branch codex/native-workflow\nOverview\nWorkflow File Roles\nAdapter Source Owners\nWork Intake\nCurrent State\nDesign Zoo/Gym\nPatterns\nDesign System\nDeployment\nRecords\nDecisions\nPattern Proposals\nPatche",
       "imageCount": 0,
       "brokenImages": 0,
       "imageLoad": {
@@ -74,7 +74,7 @@
         "loadedImages": 0,
         "timedOut": false
       },
-      "durationMs": 5762
+      "durationMs": 5663
     },
     {
       "name": "workflow-guide-artifact",
@@ -88,14 +88,14 @@
         "viewport": "width=device-width, initial-scale=1",
         "nexus-guide-version": "nexus-public-workflow-guide/v2",
         "nexus-guide-source-hash": "0108a1a3310a294a738edbbc",
-        "nexus-guide-record-feed-hash": "0a3d8adafb39b01db9cf8e23",
-        "nexus-guide-content-hash": "8bd4902363f31f8402e9ce25",
+        "nexus-guide-record-feed-hash": "da181b955183c4d3bba77f8c",
+        "nexus-guide-content-hash": "3ceab771b69f94915158b7f4",
         "nexus-token-source": "packages/web/src/platform/theme/tokens.css"
       },
       "hrefs": [
         "zoo/"
       ],
-      "textSample": "Nexus Workflow Guide\nSnapshot source 0108a1a3310a294a738edbbc · records 0a3d8adafb39b01db9cf8e23 · branch codex/native-workflow · run workflow gates for live state before deploy\nWhat This Is\n\nThis is the public-safe guide for the Nexus Codex workflow. The complete internal workflow system lives in t",
+      "textSample": "Nexus Workflow Guide\nSnapshot source 0108a1a3310a294a738edbbc · records da181b955183c4d3bba77f8c · branch codex/native-workflow · run workflow gates for live state before deploy\nWhat This Is\n\nThis is the public-safe guide for the Nexus Codex workflow. The complete internal workflow system lives in t",
       "imageCount": 0,
       "brokenImages": 0,
       "imageLoad": {
@@ -103,7 +103,7 @@
         "loadedImages": 0,
         "timedOut": false
       },
-      "durationMs": 882
+      "durationMs": 852
     },
     {
       "name": "workflow-zoo-artifact-desktop",
@@ -189,7 +189,7 @@
         "loadedImages": 58,
         "timedOut": false
       },
-      "durationMs": 407
+      "durationMs": 365
     },
     {
       "name": "workflow-zoo-artifact-mobile",
@@ -275,7 +275,7 @@
         "loadedImages": 58,
         "timedOut": false
       },
-      "durationMs": 893
+      "durationMs": 852
     }
   ]
 }

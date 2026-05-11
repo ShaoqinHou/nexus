@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="nexus-guide-version" content="nexus-public-workflow-guide/v2" />
   <meta name="nexus-guide-source-hash" content="0108a1a3310a294a738edbbc" />
-  <meta name="nexus-guide-record-feed-hash" content="0a3d8adafb39b01db9cf8e23" />
-  <meta name="nexus-guide-content-hash" content="8bd4902363f31f8402e9ce25" />
+  <meta name="nexus-guide-record-feed-hash" content="da181b955183c4d3bba77f8c" />
+  <meta name="nexus-guide-content-hash" content="3ceab771b69f94915158b7f4" />
   <meta name="nexus-token-source" content="packages/web/src/platform/theme/tokens.css" />
   <title>Nexus Workflow Guide</title>
   <style>
@@ -72,7 +72,7 @@
 <body>
   <header>
     <h1>Nexus Workflow Guide</h1>
-    <div class="meta">Snapshot source 0108a1a3310a294a738edbbc · records 0a3d8adafb39b01db9cf8e23 · branch codex/native-workflow · run workflow gates for live state before deploy</div>
+    <div class="meta">Snapshot source 0108a1a3310a294a738edbbc · records da181b955183c4d3bba77f8c · branch codex/native-workflow · run workflow gates for live state before deploy</div>
   </header>
   <main>
     <section>
@@ -303,7 +303,7 @@
     <div class="graph">
       <h3>Intent Trace Graph</h3>
       <div class="nodes">
-        <div class="node" data-graph-node="Slice WORK-SLICE-20260511T101600Z-work-slice-active-research-design-implement-and-"><strong>Slice WORK-SLICE-20260511T101600Z-work-slice-active-research-design-implement-and-</strong><span>verified · Research, design, implement, and test a stronger system/project extraction for the Codex workflow</span></div>
+        <div class="node" data-graph-node="Slice WORK-SLICE-20260511T101600Z-work-slice-active-research-design-implement-and-"><strong>Slice WORK-SLICE-20260511T101600Z-work-slice-active-research-design-implement-and-</strong><span>done · Research, design, implement, and test a stronger system/project extraction for the Codex workflow</span></div>
 <div class="node" data-graph-node="Intent INTENT-20260511T101550Z-intent-maintenance-fully-extract-workflow-system"><strong>Intent INTENT-20260511T101550Z-intent-maintenance-fully-extract-workflow-system</strong><span>captured · Fully extract workflow system/project separation before second-project onboarding</span></div>
 <div class="node" data-graph-node="Patch PATCH-20260511T112822Z-refactor-workflow-into-reusable-system-layer-plu"><strong>Patch PATCH-20260511T112822Z-refactor-workflow-into-reusable-system-layer-plu</strong><span>PATCH-20260511T112822Z-refactor-workflow-into-reusable-system-layer-plu</span></div>
 <div class="node" data-graph-node="Patch PATCH-20260511T124509Z-extract-reusable-workflow-system-layer-and-polic"><strong>Patch PATCH-20260511T124509Z-extract-reusable-workflow-system-layer-and-polic</strong><span>PATCH-20260511T124509Z-extract-reusable-workflow-system-layer-and-polic</span></div>
@@ -442,7 +442,7 @@
     </div>
 
       <ul class="timeline"><li data-work-intake-trace-row="WORK-SLICE-20260511T101600Z-work-slice-active-research-design-implement-and-">
-    <strong>WORK-SLICE-20260511T101600Z-work-slice-active-research-design-implement-and-</strong> <span class="meta">verified · codex-lead</span><br>
+    <strong>WORK-SLICE-20260511T101600Z-work-slice-active-research-design-implement-and-</strong> <span class="meta">done · codex-lead</span><br>
     Research, design, implement, and test a stronger system/project extraction for the Codex workflow
     <div class="trace-grid">
       <span><strong>Intents</strong><br><span data-work-intake-trace-intent="INTENT-20260511T101550Z-intent-maintenance-fully-extract-workflow-system">INTENT-20260511T101550Z-intent-maintenance-fully-extract-workflow-system: Fully extract workflow system/project separation before second-project onboarding</span></span>
@@ -788,7 +788,7 @@ node .codex/scripts/nexus-workflow.mjs record-audit --scope branch --verdict pas
       <div class="grid">
         <div class="card"><strong>15</strong><p>decisions</p></div>
 <div class="card"><strong>12</strong><p>intents</p></div>
-<div class="card"><strong>27</strong><p>work-slices</p></div>
+<div class="card"><strong>28</strong><p>work-slices</p></div>
 <div class="card"><strong>17</strong><p>pattern-proposals</p></div>
 <div class="card"><strong>68</strong><p>routing</p></div>
 <div class="card"><strong>80</strong><p>patches</p></div>
@@ -802,6 +802,31 @@ node .codex/scripts/nexus-workflow.mjs record-audit --scope branch --verdict pas
     <section>
       <h2>Workflow Event Timeline</h2>
       <p class="meta">All indexed workflow records are listed here by title. The repo-local dashboard contains detailed excerpts and internal paths.</p>
+
+        <h3>Work Intake</h3>
+        <ul class="timeline">
+          <li><strong>work-slices:</strong> Work slice done Research, design, implement, and test a stronger system/project extraction for the Codex workflow <span class="meta">2026-05-11T12:55:19.747Z</span></li>
+<li><strong>work-slices:</strong> Work slice verified Research, design, implement, and test a stronger system/project extraction for the Codex workflow <span class="meta">2026-05-11T12:48:42.005Z</span></li>
+<li><strong>work-slices:</strong> Work slice done Research, design, implement, and test a stronger system/project extraction for the Codex workflow <span class="meta">2026-05-11T12:43:59.861Z</span></li>
+<li><strong>work-slices:</strong> Work slice active Research, design, implement, and test a stronger system/project extraction for the Codex workflow <span class="meta">2026-05-11T10:16:00.508Z</span></li>
+<li><strong>intents:</strong> Intent maintenance Fully extract workflow system/project separation before second-project onboarding <span class="meta">2026-05-11T10:15:50.657Z</span></li>
+<li><strong>work-slices:</strong> Work slice done Implement behavior-preserving workflow structure refactor with centralized adapter management for mechanical fixed files and validated portability boundaries <span class="meta">2026-05-11T09:23:22.453Z</span></li>
+<li><strong>work-slices:</strong> Work slice active Implement behavior-preserving workflow structure refactor with centralized adapter management for mechanical fixed files and validated portability boundaries <span class="meta">2026-05-11T08:00:31.917Z</span></li>
+<li><strong>intents:</strong> Intent maintenance Refactor workflow structure with explicit adapter contract, install/check/uninstall, updated docs, and thorough tests for portability <span class="meta">2026-05-11T08:00:22.487Z</span></li>
+<li><strong>work-slices:</strong> Work slice done Finish Nexus design-system parity for current project scope <span class="meta">2026-05-11T01:24:55.220Z</span></li>
+<li><strong>work-slices:</strong> Work slice active Finish Nexus design-system parity for current project scope <span class="meta">2026-05-11T01:00:42.211Z</span></li>
+<li><strong>work-slices:</strong> Work slice active Finish Nexus design-system parity for current project scope <span class="meta">2026-05-10T23:08:53.745Z</span></li>
+<li><strong>work-slices:</strong> Work slice done Implement and validate portable Work Intake workflow subsystem <span class="meta">2026-05-10T15:47:13.205Z</span></li>
+<li><strong>work-slices:</strong> Work slice done Reproduce and remove the non-failing ThemeProvider React act warning <span class="meta">2026-05-10T15:47:13.199Z</span></li>
+<li><strong>work-slices:</strong> Work slice deferred Review and repair design-system integration/documentation after Codex workflow closeout <span class="meta">2026-05-10T14:55:22.178Z</span></li>
+<li><strong>intents:</strong> Intent feature After workflow closeout, review and repair the partially migrated design-system integration that came from the old Claude workflow, rebuild stale/wrong documentation through the new workflow, and fix implementation gaps with proper records and validation <span class="meta">2026-05-10T14:55:11.700Z</span></li>
+<li><strong>work-slices:</strong> Work slice active Reproduce and remove the non-failing ThemeProvider React act warning <span class="meta">2026-05-10T14:49:18.458Z</span></li>
+<li><strong>intents:</strong> Intent maintenance Clean remaining ThemeProvider React act warning using the Codex workflow <span class="meta">2026-05-10T14:49:10.957Z</span></li>
+<li><strong>work-slices:</strong> Work slice active Implement and validate portable Work Intake workflow subsystem <span class="meta">2026-05-10T13:49:14.702Z</span></li>
+<li><strong>intents:</strong> Intent feature Expand Codex workflow with portable solo-dev Work Intake and presentation system <span class="meta">2026-05-10T13:49:02.030Z</span></li>
+<li><strong>decisions:</strong> Research solo-dev user-intent traceability workflow <span class="meta">2026-05-10T13:14:35.699Z</span></li>
+        </ul>
+
 
         <h3>Validation</h3>
         <ul class="timeline">
@@ -1223,30 +1248,6 @@ node .codex/scripts/nexus-workflow.mjs record-audit --scope branch --verdict pas
 <li><strong>patches:</strong> Codex-native workflow migration, Claude workflow archive, and design-system Toast continuation <span class="meta">2026-05-08T17:41:21.965Z</span></li>
 <li><strong>patches:</strong> Design-system toast semantic parity <span class="meta">2026-05-08T17:07:13.546Z</span></li>
 <li><strong>decisions:</strong> Workflow mechanism split <span class="meta">2026-05-08T16:38:32.282Z</span></li>
-        </ul>
-
-
-        <h3>Work Intake</h3>
-        <ul class="timeline">
-          <li><strong>work-slices:</strong> Work slice verified Research, design, implement, and test a stronger system/project extraction for the Codex workflow <span class="meta">2026-05-11T12:48:42.005Z</span></li>
-<li><strong>work-slices:</strong> Work slice done Research, design, implement, and test a stronger system/project extraction for the Codex workflow <span class="meta">2026-05-11T12:43:59.861Z</span></li>
-<li><strong>work-slices:</strong> Work slice active Research, design, implement, and test a stronger system/project extraction for the Codex workflow <span class="meta">2026-05-11T10:16:00.508Z</span></li>
-<li><strong>intents:</strong> Intent maintenance Fully extract workflow system/project separation before second-project onboarding <span class="meta">2026-05-11T10:15:50.657Z</span></li>
-<li><strong>work-slices:</strong> Work slice done Implement behavior-preserving workflow structure refactor with centralized adapter management for mechanical fixed files and validated portability boundaries <span class="meta">2026-05-11T09:23:22.453Z</span></li>
-<li><strong>work-slices:</strong> Work slice active Implement behavior-preserving workflow structure refactor with centralized adapter management for mechanical fixed files and validated portability boundaries <span class="meta">2026-05-11T08:00:31.917Z</span></li>
-<li><strong>intents:</strong> Intent maintenance Refactor workflow structure with explicit adapter contract, install/check/uninstall, updated docs, and thorough tests for portability <span class="meta">2026-05-11T08:00:22.487Z</span></li>
-<li><strong>work-slices:</strong> Work slice done Finish Nexus design-system parity for current project scope <span class="meta">2026-05-11T01:24:55.220Z</span></li>
-<li><strong>work-slices:</strong> Work slice active Finish Nexus design-system parity for current project scope <span class="meta">2026-05-11T01:00:42.211Z</span></li>
-<li><strong>work-slices:</strong> Work slice active Finish Nexus design-system parity for current project scope <span class="meta">2026-05-10T23:08:53.745Z</span></li>
-<li><strong>work-slices:</strong> Work slice done Implement and validate portable Work Intake workflow subsystem <span class="meta">2026-05-10T15:47:13.205Z</span></li>
-<li><strong>work-slices:</strong> Work slice done Reproduce and remove the non-failing ThemeProvider React act warning <span class="meta">2026-05-10T15:47:13.199Z</span></li>
-<li><strong>work-slices:</strong> Work slice deferred Review and repair design-system integration/documentation after Codex workflow closeout <span class="meta">2026-05-10T14:55:22.178Z</span></li>
-<li><strong>intents:</strong> Intent feature After workflow closeout, review and repair the partially migrated design-system integration that came from the old Claude workflow, rebuild stale/wrong documentation through the new workflow, and fix implementation gaps with proper records and validation <span class="meta">2026-05-10T14:55:11.700Z</span></li>
-<li><strong>work-slices:</strong> Work slice active Reproduce and remove the non-failing ThemeProvider React act warning <span class="meta">2026-05-10T14:49:18.458Z</span></li>
-<li><strong>intents:</strong> Intent maintenance Clean remaining ThemeProvider React act warning using the Codex workflow <span class="meta">2026-05-10T14:49:10.957Z</span></li>
-<li><strong>work-slices:</strong> Work slice active Implement and validate portable Work Intake workflow subsystem <span class="meta">2026-05-10T13:49:14.702Z</span></li>
-<li><strong>intents:</strong> Intent feature Expand Codex workflow with portable solo-dev Work Intake and presentation system <span class="meta">2026-05-10T13:49:02.030Z</span></li>
-<li><strong>decisions:</strong> Research solo-dev user-intent traceability workflow <span class="meta">2026-05-10T13:14:35.699Z</span></li>
         </ul>
 
 

@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="nexus-guide-version" content="nexus-public-workflow-guide/v2" />
   <meta name="nexus-guide-source-hash" content="0108a1a3310a294a738edbbc" />
-  <meta name="nexus-guide-record-feed-hash" content="0a3d8adafb39b01db9cf8e23" />
-  <meta name="nexus-guide-content-hash" content="9e73459e0af27f9ff07dfeda" />
+  <meta name="nexus-guide-record-feed-hash" content="da181b955183c4d3bba77f8c" />
+  <meta name="nexus-guide-content-hash" content="85e4653d84d9dc31199c4faa" />
   <meta name="nexus-token-source" content="packages/web/src/platform/theme/tokens.css" />
   <title>Nexus Workflow Dashboard</title>
   <style>
@@ -83,7 +83,7 @@
 <body>
   <header>
     <h1>Nexus Workflow Dashboard</h1>
-    <div class="meta">Snapshot source 0108a1a3310a294a738edbbc · records 0a3d8adafb39b01db9cf8e23 · branch codex/native-workflow</div>
+    <div class="meta">Snapshot source 0108a1a3310a294a738edbbc · records da181b955183c4d3bba77f8c · branch codex/native-workflow</div>
   </header>
   <div class="layout">
     <nav>
@@ -113,7 +113,7 @@
         <div class="grid">
           <div class="card"><span class="meta">Decisions</span><strong>15</strong></div>
 <div class="card"><span class="meta">Intents</span><strong>12</strong></div>
-<div class="card"><span class="meta">Work Slices</span><strong>27</strong></div>
+<div class="card"><span class="meta">Work Slices</span><strong>28</strong></div>
 <div class="card"><span class="meta">Pattern Proposals</span><strong>17</strong></div>
 <div class="card"><span class="meta">Routing</span><strong>68</strong></div>
 <div class="card"><span class="meta">Patches</span><strong>80</strong></div>
@@ -313,7 +313,7 @@
     <div class="graph">
       <h3>Intent Trace Graph</h3>
       <div class="nodes">
-        <div class="node" data-graph-node="Slice WORK-SLICE-20260511T101600Z-work-slice-active-research-design-implement-and-"><strong>Slice WORK-SLICE-20260511T101600Z-work-slice-active-research-design-implement-and-</strong><span>verified · Research, design, implement, and test a stronger system/project extraction for the Codex workflow</span></div>
+        <div class="node" data-graph-node="Slice WORK-SLICE-20260511T101600Z-work-slice-active-research-design-implement-and-"><strong>Slice WORK-SLICE-20260511T101600Z-work-slice-active-research-design-implement-and-</strong><span>done · Research, design, implement, and test a stronger system/project extraction for the Codex workflow</span></div>
 <div class="node" data-graph-node="Intent INTENT-20260511T101550Z-intent-maintenance-fully-extract-workflow-system"><strong>Intent INTENT-20260511T101550Z-intent-maintenance-fully-extract-workflow-system</strong><span>captured · Fully extract workflow system/project separation before second-project onboarding</span></div>
 <div class="node" data-graph-node="Patch PATCH-20260511T112822Z-refactor-workflow-into-reusable-system-layer-plu"><strong>Patch PATCH-20260511T112822Z-refactor-workflow-into-reusable-system-layer-plu</strong><span>PATCH-20260511T112822Z-refactor-workflow-into-reusable-system-layer-plu</span></div>
 <div class="node" data-graph-node="Patch PATCH-20260511T124509Z-extract-reusable-workflow-system-layer-and-polic"><strong>Patch PATCH-20260511T124509Z-extract-reusable-workflow-system-layer-and-polic</strong><span>PATCH-20260511T124509Z-extract-reusable-workflow-system-layer-and-polic</span></div>
@@ -452,7 +452,7 @@
     </div>
 
       <ul class="timeline"><li data-work-intake-trace-row="WORK-SLICE-20260511T101600Z-work-slice-active-research-design-implement-and-">
-    <strong>WORK-SLICE-20260511T101600Z-work-slice-active-research-design-implement-and-</strong> <span class="meta">verified · codex-lead</span><br>
+    <strong>WORK-SLICE-20260511T101600Z-work-slice-active-research-design-implement-and-</strong> <span class="meta">done · codex-lead</span><br>
     Research, design, implement, and test a stronger system/project extraction for the Codex workflow
     <div class="trace-grid">
       <span><strong>Intents</strong><br><span data-work-intake-trace-intent="INTENT-20260511T101550Z-intent-maintenance-fully-extract-workflow-system">INTENT-20260511T101550Z-intent-maintenance-fully-extract-workflow-system: Fully extract workflow system/project separation before second-project onboarding</span></span>
@@ -1668,6 +1668,24 @@ Acceptance signals: Intent/work-slice commands exist; records link to patches/re
 
     <section id="work-slices" class="panel">
       <h2>Work-slices</h2>
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Work slice done Research, design, implement, and test a stronger system/project extraction for the Codex workflow</strong>
+            <span>2026-05-11T12:55:19.747Z</span>
+          </div>
+          <span class="pill">done</span>
+          <p class="path">.codex/workflow/records/work-slices/WORK-SLICE-20260511T125519Z-work-slice-done-research-design-implement-and-te.md</p>
+          <pre>Status: done
+Source type: user-intent
+Owner: codex-lead
+Intent IDs: INTENT-20260511T101550Z-intent-maintenance-fully-extract-workflow-system
+Updates work slice: WORK-SLICE-20260511T101600Z-work-slice-active-research-design-implement-and-
+Tags: workflow, architecture, portability
+Lead understanding: Research, design, implement, and test a stronger system/project extraction for the Codex workflow
+Acceptance criteria: Reusable workflow system is clearly separated from Nexus project data; project-specific capabilities are policy/data driven; onboarding can point mainly at the workflow path; Nexus release/deployed gates still pass or improve; fresh/empty project role-play validates activation path.</pre>
+        </article>
+
 
         <article class="record">
           <div class="record-top">
