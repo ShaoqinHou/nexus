@@ -24,6 +24,7 @@ import {
   useTheme,
   type ThemeId,
 } from '@web/platform/theme/ThemeProvider';
+import { useT } from '@web/lib/i18n';
 import {
   Button,
   Badge,
@@ -58,6 +59,8 @@ import {
   Receipt,
   PromoCard,
   CheckoutSummary,
+  ThemedEmptyState,
+  ThemedToast,
 } from '@web/components/patterns/themed';
 import { ErrorBoundary } from '@web/components/patterns/ErrorBoundary';
 import { Smile, Mail, AlertCircle, ShoppingBag } from 'lucide-react';
@@ -273,6 +276,22 @@ function EmptyStateShowcase() {
         title="No orders yet"
         description="Orders will appear here when customers place them."
         action={{ label: 'Open kitchen display', onClick: () => alert('navigate…') }}
+      />
+    </Section>
+  );
+}
+
+function ThemedEmptyStateShowcase() {
+  const { themeId } = useTheme();
+  const t = useT();
+  return (
+    <Section title={t('Reference themed empty state')}>
+      <ThemedEmptyState
+        theme={themeId}
+        icon={ShoppingBag}
+        title={t('Your cart is empty')}
+        description={t('Browse the menu and add items to get started.')}
+        action={{ label: t('Browse menu'), onClick: () => alert(t('Browse menu')) }}
       />
     </Section>
   );
@@ -635,6 +654,41 @@ function ToastShowcase() {
   );
 }
 
+function ThemedToastShowcase() {
+  const { themeId } = useTheme();
+  const t = useT();
+  return (
+    <Section title={t('Reference themed toast cards')}>
+      <div className="grid max-w-3xl gap-3 md:grid-cols-2">
+        <ThemedToast
+          theme={themeId}
+          kind="success"
+          title={t('Order placed')}
+          description={t("We'll send a confirmation shortly.")}
+        />
+        <ThemedToast
+          theme={themeId}
+          kind="warning"
+          title={t('Low stock')}
+          description={t('Only two portions remain.')}
+        />
+        <ThemedToast
+          theme={themeId}
+          kind="error"
+          title={t('Payment failed')}
+          description={t('Ask the customer to try another method.')}
+        />
+        <ThemedToast
+          theme={themeId}
+          kind="info"
+          title={t('Kitchen connected')}
+          description={t('Orders are syncing in real time.')}
+        />
+      </div>
+    </Section>
+  );
+}
+
 function TourOverlayShowcase() {
   const steps: Array<{
     title: string;
@@ -864,11 +918,13 @@ const showcases: Record<string, { title: string; render: () => ReactNode }> = {
   select:            { title: 'Select',             render: SelectShowcase },
   'dietary-icon':    { title: 'DietaryIcon',        render: DietaryIconShowcase },
   'empty-state':     { title: 'EmptyState',         render: EmptyStateShowcase },
+  'themed-empty-state': { title: 'ThemedEmptyState', render: ThemedEmptyStateShowcase },
   'form-field':      { title: 'FormField',          render: FormFieldShowcase },
   'status-badge':    { title: 'StatusBadge',        render: StatusBadgeShowcase },
   'confirm-button':  { title: 'ConfirmButton',         render: ConfirmButtonShowcase },
   'image-upload':    { title: 'ImageUpload',           render: ImageUploadShowcase },
   'toast':           { title: 'Toast (ToastContainer)', render: ToastShowcase },
+  'themed-toast':    { title: 'ThemedToast',           render: ThemedToastShowcase },
   'tour-overlay':    { title: 'TourOverlay',           render: TourOverlayShowcase },
   'language-picker': { title: 'LanguagePicker',        render: LanguagePickerShowcase },
   'data-table':      { title: 'DataTable',             render: DataTableShowcase },

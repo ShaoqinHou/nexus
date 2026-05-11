@@ -1,25 +1,30 @@
 import {
   createContext,
   useContext,
-  useState,
   useEffect,
   type ReactNode,
 } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@web/lib/api';
 import { setCurrencySymbol, currencyCodeToSymbol } from '@web/lib/format';
 import type { TenantThemeSettings } from '@web/lib/theme';
 
-interface TenantSettings extends TenantThemeSettings {
+export interface TenantSettings extends TenantThemeSettings {
   currency?: string;
   timezone?: string;
 }
 
-interface Tenant {
-  id: string;
+export interface Tenant {
+  id?: string;
   name: string;
   slug: string;
   settings: TenantSettings;
 }
+
+export const tenantKeys = {
+  all: ['tenant'] as const,
+  detail: (tenantSlug: string) => [...tenantKeys.all, tenantSlug] as const,
+};
 
 interface TenantContextValue {
   tenant: Tenant | null;
@@ -36,61 +41,36 @@ interface TenantProviderProps {
 }
 
 export function TenantProvider({ tenantSlug, children }: TenantProviderProps) {
-  const [tenant, setTenant] = useState<Tenant | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const tenantQuery = useQuery({
+    queryKey: tenantKeys.detail(tenantSlug),
+    queryFn: () => apiClient.get<Tenant>(`/platform/tenants/${tenantSlug}`),
+    staleTime: 300000,
+  });
 
-  // Fetch tenant ONCE per slug change. Previously this effect's deps
-  // included `theme` (light/dark mode) because applyTenantTheme needed
-  // to know isDark — so every dark-mode toggle triggered a network round
-  // trip plus a full re-render with loading=true, briefly flashing the
-  // classic theme between unmount and re-fetch.
-  //
-  // Brand-color / font / radius / shadow tokens now flow through the
-  // ThemeProvider wrapper (data-theme cascade + brand inline override on
-  // both wrapper and document.body). The old applyTenantTheme path that
-  // wrote to <html> is redundant under the new architecture — we drop it
-  // entirely. Only currency remains a side-effect since it's a global
-  // module-level setting (lib/format).
+  // Currency is the only remaining global tenant side effect. Theme tokens flow
+  // through tenant-scoped ThemeProvider wrappers so settings updates can refresh
+  // the shell through the tenant query without writing theme vars to <html>.
   useEffect(() => {
-    let cancelled = false;
-
-    async function fetchTenant() {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const data = await apiClient.get<Tenant>(
-          `/platform/tenants/${tenantSlug}`,
-        );
-        if (!cancelled) {
-          setTenant(data);
-          if (data.settings) {
-            setCurrencySymbol(currencyCodeToSymbol(data.settings.currency));
-          }
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setError(
-            err instanceof Error ? err.message : 'Failed to load tenant',
-          );
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
+    if (tenantQuery.data) {
+      setCurrencySymbol(currencyCodeToSymbol(tenantQuery.data.settings?.currency));
     }
+  }, [tenantQuery.data?.slug, tenantQuery.data?.settings?.currency]);
 
-    fetchTenant();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [tenantSlug]);
+  const error = tenantQuery.error
+    ? tenantQuery.error instanceof Error
+      ? tenantQuery.error.message
+      : 'Failed to load tenant'
+    : null;
 
   return (
-    <TenantContext.Provider value={{ tenant, tenantSlug, loading, error }}>
+    <TenantContext.Provider
+      value={{
+        tenant: tenantQuery.data ?? null,
+        tenantSlug,
+        loading: tenantQuery.isLoading,
+        error,
+      }}
+    >
       {children}
     </TenantContext.Provider>
   );

@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { ThemeProvider, useTheme } from '@web/platform/theme/ThemeProvider';
+import { applyTenantTheme, clearTenantTheme } from '@web/lib/theme';
 import type { ReactNode } from 'react';
 
 // jsdom does not implement window.matchMedia — stub it out before any ThemeProvider renders.
@@ -36,6 +37,11 @@ afterEach(() => {
   document.documentElement.style.removeProperty('--color-primary');
   document.documentElement.style.removeProperty('--color-brand-hover');
   document.documentElement.style.removeProperty('--color-primary-hover');
+  document.documentElement.style.removeProperty('--color-accent');
+  document.documentElement.style.removeProperty('--color-accent-light');
+  document.body.removeAttribute('data-theme');
+  document.body.style.removeProperty('--color-accent');
+  document.body.style.removeProperty('--color-accent-light');
   localStorage.clear();
 });
 
@@ -229,6 +235,32 @@ describe('ThemeProvider — tenant-scoped merchant mode', () => {
     expect(document.documentElement.style.getPropertyValue('--color-brand')).toBe('');
   });
 
+  it('applies tenant accent override to wrapper and portal body, then cleans up', () => {
+    const { container, unmount } = render(
+      <ThemeProvider
+        scope="merchant"
+        initialThemeId="sichuan"
+        accentColor="#c89a3c"
+      >
+        <ThemeConsumer />
+      </ThemeProvider>,
+      { wrapper: Wrapper },
+    );
+
+    const wrapperDiv = container.querySelector<HTMLElement>('[data-themed-scope="merchant"]');
+    expect(wrapperDiv).not.toBeNull();
+    expect(wrapperDiv!.style.getPropertyValue('--color-accent')).toBe('#c89a3c');
+    expect(wrapperDiv!.style.getPropertyValue('--color-accent-light')).not.toBe('');
+    expect(document.body.style.getPropertyValue('--color-accent')).toBe('#c89a3c');
+    expect(document.body.style.getPropertyValue('--color-accent-light')).not.toBe('');
+    expect(document.documentElement.style.getPropertyValue('--color-accent')).toBe('');
+
+    unmount();
+
+    expect(document.body.style.getPropertyValue('--color-accent')).toBe('');
+    expect(document.body.style.getPropertyValue('--color-accent-light')).toBe('');
+  });
+
   it('nests cleanly inside an outer ThemeProvider — outer stays neutral', () => {
     // Mirrors real usage: outer (global) provider in main.tsx wraps the
     // tenant-scoped nested provider for either customer OR merchant.
@@ -252,5 +284,19 @@ describe('ThemeProvider — tenant-scoped merchant mode', () => {
     // Outer (login) content is NOT inside the theme wrapper.
     const loginArea = screen.getByTestId('login-area');
     expect(loginArea.closest('[data-themed-scope]')).toBeNull();
+  });
+});
+
+describe('legacy tenant theme helper', () => {
+  it('does not apply tenant accent overrides to <html>', () => {
+    applyTenantTheme({ accentColor: '#c89a3c' }, false);
+
+    expect(document.documentElement.style.getPropertyValue('--color-accent')).toBe('');
+    expect(document.documentElement.style.getPropertyValue('--color-accent-light')).toBe('');
+
+    document.documentElement.style.setProperty('--color-accent', '#c89a3c');
+    clearTenantTheme();
+
+    expect(document.documentElement.style.getPropertyValue('--color-accent')).toBe('');
   });
 });

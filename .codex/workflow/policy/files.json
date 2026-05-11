@@ -31,6 +31,7 @@
     ".codex/scripts/nexus-workflow.mjs",
     ".codex/scripts/run-hook.mjs",
     ".codex/scripts/validate-design-zoo.mjs",
+    ".codex/scripts/validate-theme-settings-preview.mjs",
     ".codex/scripts/workflow-engine.mjs",
     ".codex/scripts/capture-design-zoo-visuals.mjs",
     ".codex/knowledge/patterns.md",
@@ -242,6 +243,22 @@
       "audit": true,
       "guide": false,
       "zooVisual": false
+    },
+    {
+      "file": "packages/api/src/routes/tenant-settings/service.ts",
+      "substantive": true,
+      "verification": true,
+      "audit": true,
+      "guide": false,
+      "zooVisual": false
+    },
+    {
+      "file": "packages/shared/src/constants.ts",
+      "substantive": true,
+      "verification": true,
+      "audit": true,
+      "guide": false,
+      "zooVisual": false
     }
   ],
   "reviewKinds": {
@@ -261,6 +278,7 @@
         ".codex/workflow/policy/design.json",
         ".codex/scripts/capture-design-zoo-visuals.mjs",
         ".codex/scripts/validate-design-zoo.mjs",
+        ".codex/scripts/validate-theme-settings-preview.mjs",
         ".codex/scripts/check-production-zoo-bundle.mjs"
       ]
     },
@@ -287,6 +305,8 @@
         ".codex/workflow/templates/",
         ".agents/skills/",
         "packages/api/src/modules/",
+        "packages/api/src/routes/",
+        "packages/shared/src/",
         "packages/web/src/apps/",
         "packages/web/src/routes/",
         "packages/web/src/components/"
@@ -330,6 +350,7 @@
       "include": [
         "packages/web/src/",
         "packages/api/src/",
+        "packages/shared/src/",
         "packages/web/tests/",
         "packages/api/src/modules/",
         "design/reference/",
@@ -358,6 +379,8 @@
     "audit": {
       "include": [
         "packages/api/src/modules/",
+        "packages/api/src/routes/",
+        "packages/shared/src/",
         "packages/web/src/apps/",
         "packages/web/src/components/",
         "packages/web/src/platform/",
@@ -407,6 +430,7 @@
         ".codex/dashboard/zoo/",
         ".codex/scripts/capture-design-zoo-visuals.mjs",
         ".codex/scripts/validate-design-zoo.mjs",
+        ".codex/scripts/validate-theme-settings-preview.mjs",
         ".codex/scripts/check-production-zoo-bundle.mjs",
         ".codex/scripts/workflow-engine.mjs",
         ".codex/workflow/profile.json",

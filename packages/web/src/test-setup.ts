@@ -16,3 +16,23 @@ if (typeof window.PointerEvent === 'undefined') {
   // @ts-expect-error — polyfill for jsdom test environment
   window.PointerEvent = PointerEvent;
 }
+
+// jsdom does not implement matchMedia; ThemeProvider uses it for the initial
+// light/dark mode, so keep the browser stub in shared setup instead of each
+// ThemeProvider-adjacent test file.
+if (typeof window.matchMedia === 'undefined') {
+  const noop = () => {};
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: (query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: noop,
+      removeListener: noop,
+      addEventListener: noop,
+      removeEventListener: noop,
+      dispatchEvent: () => false,
+    }),
+  });
+}

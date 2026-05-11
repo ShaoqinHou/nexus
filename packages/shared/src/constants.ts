@@ -27,6 +27,22 @@ export const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
   refunded: 'Refunded',
 };
 
+// Cuisine theme IDs from the design-system reference bundle. Shared by API
+// validation and web theme state so saved tenant settings cannot drift.
+export const CUISINE_THEME_IDS = [
+  'classic',
+  'trattoria',
+  'izakaya',
+  'bubble-tea',
+  'counter',
+  'taqueria',
+  'curry-house',
+  'sichuan',
+  'cantonese',
+  'wok',
+] as const;
+export type CuisineThemeId = typeof CUISINE_THEME_IDS[number];
+
 // Dietary tags
 export const DIETARY_TAGS = [
   'vegetarian', 'vegan', 'gluten-free', 'dairy-free',

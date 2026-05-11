@@ -38,6 +38,7 @@
     "workflow:capture-zoo-visuals": "node .codex/scripts/capture-design-zoo-visuals.mjs",
     "workflow:zoo-visual-guide": "node .codex/scripts/nexus-workflow.mjs zoo-visual-guide",
     "workflow:zoo-visual-guide-check": "node .codex/scripts/nexus-workflow.mjs zoo-visual-guide-check",
+    "workflow:theme-settings-preview-check": "node .codex/scripts/validate-theme-settings-preview.mjs",
     "workflow:inventory-check": "node .codex/scripts/nexus-workflow.mjs inventory-check",
     "workflow:policy-check": "node .codex/scripts/nexus-workflow.mjs policy-check",
     "workflow:trace-check": "node .codex/scripts/nexus-workflow.mjs trace-check",

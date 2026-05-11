@@ -120,7 +120,9 @@
 
   /* Accent — per-cuisine non-semantic highlight (matcha, gold, olive, etc).
      Defaults to amber for the classic-fallback rendering of pre-tenant
-     chrome (login). Each cuisine theme overrides in its own [data-theme] block. */
+     chrome (login). Each cuisine theme overrides in its own [data-theme]
+     block; tenant-scoped ThemeProvider may layer an accent override on the
+     wrapper/body for restaurants that need it. */
   --color-accent: #f59e0b;
   --color-accent-light: #fef3c7;
 
@@ -214,7 +216,8 @@
   /* Per-theme accent — each cuisine theme picks its own (matcha for
      bubble-tea, gold for sichuan, olive for trattoria, vermillion for
      izakaya, etc). Used for badge backgrounds, promo decoration, and
-     non-semantic highlights. NEVER re-themed at the platform level. */
+     non-semantic highlights. Tenant overrides are allowed only through the
+     tenant-scoped ThemeProvider wrapper/body, not global platform chrome. */
   --color-accent: var(--color-accent);
   --color-accent-light: var(--color-accent-light);
   --font-sans: var(--font-sans);

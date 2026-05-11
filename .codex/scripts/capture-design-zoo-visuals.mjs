@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { chromium } from 'playwright';
 import {
@@ -19,6 +19,7 @@ const ZOO_CAPTURE_THEME_ENV = requiredProfileString(WORKFLOW, 'env.zooCaptureThe
 const ZOO_CAPTURE_MODE_ENV = requiredProfileString(WORKFLOW, 'env.zooCaptureMode');
 const OUT_DIR = join(ROOT, requiredProfileString(WORKFLOW, 'paths.zooGuideDir'));
 const ASSET_DIR = join(OUT_DIR, 'assets');
+const TEMP_DIR = join(ROOT, requiredProfileString(WORKFLOW, 'paths.runtime'), 'zoo-capture-tmp');
 const MANIFEST = join(ROOT, requiredProfileString(WORKFLOW, 'paths.zooGuideManifest'));
 const DESIGN_ROUTE_VALUE = requiredPolicyString(WORKFLOW, 'design', 'designRoute');
 const DESIGN_ROUTE = DESIGN_ROUTE_VALUE.startsWith('/') ? DESIGN_ROUTE_VALUE : `/${DESIGN_ROUTE_VALUE.replace(/^\/+/, '')}`;
@@ -28,6 +29,39 @@ const REGISTRY_PATH = requiredPolicyString(WORKFLOW, 'design', 'registryPath');
 
 function ensureDir(path) {
   mkdirSync(path, { recursive: true });
+}
+
+function isRetriableFsError(error) {
+  return ['EBUSY', 'EPERM', 'EACCES', 'UNKNOWN'].includes(error?.code);
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function writeFileWithRetry(file, buffer) {
+  let lastError;
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const safeName = relative(ROOT, file).replace(/[^a-zA-Z0-9._-]+/g, '-');
+    const tmp = join(TEMP_DIR, `${safeName}.${process.pid}.${attempt}.tmp`);
+    try {
+      ensureDir(TEMP_DIR);
+      writeFileSync(tmp, buffer);
+      rmSync(file, { force: true });
+      renameSync(tmp, file);
+      return;
+    } catch (error) {
+      lastError = error;
+      try {
+        rmSync(tmp, { force: true });
+      } catch {
+        // Best effort cleanup only.
+      }
+      if (!isRetriableFsError(error) || attempt === 5) break;
+      await sleep(100 * (attempt + 1));
+    }
+  }
+  throw lastError;
 }
 
 function parseArgs(argv) {
@@ -177,22 +211,27 @@ async function verifyChromeState(page, { mode, theme }) {
 
 async function exerciseShowcase(page, slug) {
   const config = CAPTURE_POLICY.interactiveShowcases?.[slug];
+  if (!config) return;
   if (config?.buttonName) {
     const button = page.getByRole('button', { name: config.buttonName });
     if (!(await button.count())) throw new Error(`Configured interactive showcase ${slug} is missing button "${config.buttonName}".`);
     await button.click();
-    if (config.expectedRole) {
-      const locator = config.expectedName
-        ? page.getByRole(config.expectedRole, { name: new RegExp(config.expectedName, 'i') })
-        : page.getByRole(config.expectedRole);
-      await locator.first().waitFor({ state: 'visible', timeout: 5000 });
-    }
-    if (config.expectedText) {
-      await page.getByText(config.expectedText, { exact: false }).first().waitFor({ state: 'visible', timeout: 5000 });
-    }
-    if (config.expectedPortalSelector) {
-      await page.locator(config.expectedPortalSelector).first().waitFor({ state: 'visible', timeout: 5000 });
-    }
+  }
+  if (config.expectedRole) {
+    const locator = config.expectedName
+      ? page.getByRole(config.expectedRole, { name: new RegExp(config.expectedName, 'i') })
+      : page.getByRole(config.expectedRole);
+    await locator.first().waitFor({ state: 'visible', timeout: 5000 });
+  }
+  const expectedTexts = [
+    ...(Array.isArray(config.expectedTexts) ? config.expectedTexts : []),
+    ...(config.expectedText ? [config.expectedText] : []),
+  ];
+  for (const text of expectedTexts) {
+    await page.getByText(text, { exact: false }).first().waitFor({ state: 'visible', timeout: 5000 });
+  }
+  if (config.expectedPortalSelector) {
+    await page.locator(config.expectedPortalSelector).first().waitFor({ state: 'visible', timeout: 5000 });
   }
 }
 
@@ -202,6 +241,7 @@ async function main() {
   const contexts = captureContexts(args);
 
   ensureDir(ASSET_DIR);
+  ensureDir(TEMP_DIR);
 
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ viewport: contexts[0].viewport });
@@ -223,7 +263,8 @@ async function main() {
         await page.waitForTimeout(350);
 
         const file = join(contextDir, `${target.slug}.jpg`);
-        await page.screenshot({ path: file, type: 'jpeg', quality: 82, fullPage: true });
+        const screenshot = await page.screenshot({ type: 'jpeg', quality: 82, fullPage: true });
+        await writeFileWithRetry(file, screenshot);
         const hash = createHash('sha256').update(readFileSync(file)).digest('hex');
         captured.push({
           ...target,

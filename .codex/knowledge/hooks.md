@@ -8,8 +8,8 @@ Hooks are guardrails, not the workflow brain. They must stay small and understan
 - `.codex/config.toml` also pins `sandbox_mode = "danger-full-access"` and `approval_policy = "never"` so choosing `Custom (config.toml)` keeps the same no-prompt shell posture as Full access while adding project config.
 - `.codex/hooks.json` wires lifecycle events to `.codex/scripts/nexus-workflow.mjs`.
 - `workflow:hook-config-check` verifies exact hook commands and matchers, so a hook cannot silently stop firing by changing `Bash`, `apply_patch`, `Edit`, `Write`, or session match patterns.
-- `workflow:hook-runtime-check` checks whether this checkout has actually seen a recent hook heartbeat. It is a local-session diagnostic, not a CI release gate.
-- `SessionStart` injects a compact reminder to read current state.
+- `workflow:hook-runtime-check` checks whether this checkout has actually seen a recent hook heartbeat. It is a local-session diagnostic, not a CI release gate. A missing `SessionStart` heartbeat is a warning when other hooks are firing, because the app may load project config after the thread has already started.
+- `SessionStart` injects a compact reminder to read current state when the client emits startup/resume after project config is trusted.
 - `PostToolUse` invalidates gates only when the tool payload identifies changed files. It does not assign worker identity; delegated work must be recorded explicitly with `record-patch --worker --routing`.
 - `PreToolUse` blocks common `git commit` shell invocations if review is missing.
 - `Stop` reminds when review, verification, audit, or handover hygiene is missing.
@@ -44,7 +44,7 @@ Current mitigation:
 - `AGENTS.md` tells agents to run workflow scripts at start and before handover.
 - `npm run workflow:release-gate` is deterministic and does not depend on hook loading.
 - The public/internal guides point humans to the same scripts.
-- `npm run workflow:hook-runtime-check` can confirm whether hooks actually fired in the current checkout.
+- `npm run workflow:hook-runtime-check` can confirm whether hooks actually fired in the current checkout. If it reports `seen` with a startup warning, project hooks are running but the current thread did not receive the optional startup reminder; use the explicit start commands in `AGENTS.md` for that session.
 
 Operational rule: if hooks do not appear to run, continue with the scripts. Do not treat hooks as the only enforcement mechanism.
 

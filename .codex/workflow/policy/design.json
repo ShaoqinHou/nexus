@@ -89,6 +89,13 @@
         "buttonName": "Start tour",
         "expectedText": "Welcome to Nexus",
         "expectedPortalSelector": "[data-tour-overlay]"
+      },
+      "themed-empty-state": {
+        "expectedTexts": ["Your cart is empty", "Browse menu"]
+      },
+      "themed-toast": {
+        "expectedRole": "status",
+        "expectedTexts": ["Order placed", "Low stock", "Payment failed", "Kitchen connected"]
       }
     }
   },
@@ -122,6 +129,7 @@
     ".codex/scripts/workflow-engine.mjs",
     ".codex/scripts/nexus-workflow.mjs",
     ".codex/scripts/capture-design-zoo-visuals.mjs",
+    ".codex/scripts/validate-theme-settings-preview.mjs",
     ".codex/knowledge/design-system.md",
     ".codex/workflow/policy/design.json",
     "packages/web/src/components/registry.json",

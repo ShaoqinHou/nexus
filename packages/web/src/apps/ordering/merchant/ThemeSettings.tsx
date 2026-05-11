@@ -37,11 +37,11 @@ const LOCALE_ENGLISH_NAMES: Record<string, string> = {
 
 // --- Language config for the settings UI ---
 const LANGUAGE_CONFIG = [
-  { code: 'en', label: 'English', flag: '\u{1F1EC}\u{1F1E7}', description: 'Default language' },
-  { code: 'zh', label: '中文 (Chinese)', flag: '\u{1F1E8}\u{1F1F3}', description: 'Simplified Chinese' },
-  { code: 'ja', label: '日本語 (Japanese)', flag: '\u{1F1EF}\u{1F1F5}', description: 'Japanese' },
-  { code: 'ko', label: '한국어 (Korean)', flag: '\u{1F1F0}\u{1F1F7}', description: 'Korean' },
-  { code: 'fr', label: 'Français (French)', flag: '\u{1F1EB}\u{1F1F7}', description: 'French' },
+  { code: 'en', labelKey: 'English', flag: '\u{1F1EC}\u{1F1E7}', descriptionKey: 'Default language' },
+  { code: 'zh', labelKey: 'Chinese', flag: '\u{1F1E8}\u{1F1F3}', descriptionKey: 'Simplified Chinese' },
+  { code: 'ja', labelKey: 'Japanese', flag: '\u{1F1EF}\u{1F1F5}', descriptionKey: 'Japanese' },
+  { code: 'ko', labelKey: 'Korean', flag: '\u{1F1F0}\u{1F1F7}', descriptionKey: 'Korean' },
+  { code: 'fr', labelKey: 'French', flag: '\u{1F1EB}\u{1F1F7}', descriptionKey: 'French' },
 ] as const;
 
 // --- Cuisine Theme Data (10 canonical themes from the design-system reference bundle) ---
@@ -49,7 +49,7 @@ const LANGUAGE_CONFIG = [
 // lint-override block: these are design-spec swatch values, not app chrome.
 
 interface CuisineThemeDef {
-  id: string;
+  id: ThemeId;
   name: string;
   vibe: string;
   swatches: [string, string, string, string]; // lint-override: cuisine theme spec swatches — design reference data, not chrome
@@ -266,6 +266,7 @@ function stateToHoursEntries(state: DayHoursState[]): OperatingHoursEntry[] {
 
 interface FormState {
   brandColor: string;
+  accentColor: string;
   cuisineTheme: string;
   logoUrl: string;
   coverImageUrl: string;
@@ -285,6 +286,7 @@ function settingsToFormState(settings: TenantThemeSettings | undefined): FormSta
   const additionalLocales = (rawLocales ?? []).filter((l) => l !== primary);
   return {
     brandColor: settings?.brandColor ?? '#2563eb', // lint-override: default brand color seed for form — user-facing input value, not chrome
+    accentColor: settings?.accentColor ?? '',
     cuisineTheme: settings?.theme ?? '',
     logoUrl: settings?.logoUrl ?? '',
     coverImageUrl: settings?.coverImageUrl ?? '',
@@ -311,6 +313,7 @@ function formStateToSettings(form: FormState): Partial<TenantThemeSettings> {
     borderRadius: undefined,
     surfaceStyle: undefined,
     brandColor: form.brandColor,
+    accentColor: form.accentColor || '',
     theme: form.cuisineTheme || undefined,
     logoUrl: form.logoUrl || undefined,
     coverImageUrl: form.coverImageUrl || undefined,
@@ -324,12 +327,30 @@ function formStateToSettings(form: FormState): Partial<TenantThemeSettings> {
   } as Partial<TenantThemeSettings>;
 }
 
+function formStateToThemePreview(form: FormState) {
+  const themeId: ThemeId = isThemeId(form.cuisineTheme) ? form.cuisineTheme : 'classic';
+  return {
+    themeId,
+    brandColor: form.brandColor || null,
+    accentColor: form.accentColor || null,
+  };
+}
+
+function settingsToThemePreview(settings: TenantThemeSettings | undefined) {
+  const themeId: ThemeId = isThemeId(settings?.theme) ? settings.theme : 'classic';
+  return {
+    themeId,
+    brandColor: settings?.brandColor ?? null,
+    accentColor: settings?.accentColor || null,
+  };
+}
+
 // --- Main Component ---
 
 export function ThemeSettings() {
   const t = useT();
   const { tenantSlug } = useTenant();
-  const { setThemeId, themeId: activeThemeId } = useTheme();
+  const { setTenantThemePreview } = useTheme();
   const { toast } = useToast();
   const { data: savedSettings, isLoading } = useTenantSettings(tenantSlug);
   const updateMutation = useUpdateTenantSettings(tenantSlug);
@@ -337,6 +358,7 @@ export function ThemeSettings() {
   const [form, setForm] = useState<FormState>(() => settingsToFormState(undefined));
   const [isDirty, setIsDirty] = useState(false);
   const savedRef = useRef<FormState | null>(null);
+  const savedThemePreviewRef = useRef<ReturnType<typeof settingsToThemePreview> | null>(null);
   const savedLocalesRef = useRef<string[]>(['en']);
 
   // Initialize form from fetched settings
@@ -345,38 +367,48 @@ export function ThemeSettings() {
       const initial = settingsToFormState(savedSettings);
       setForm(initial);
       savedRef.current = initial;
+      savedThemePreviewRef.current = settingsToThemePreview(savedSettings);
       savedLocalesRef.current = [...initial.supportedLocales];
       setIsDirty(false);
     }
   }, [savedSettings]);
 
-  // Live-preview cuisine theme on the merchant chrome itself by updating
-  // the data-theme attribute immediately. The MerchantThemeShell wrapper
-  // around PlatformShell re-renders with the new themeId so the staff
-  // sees the change live — no separate preview pane needed.
+  // Live-preview tenant theme settings on the merchant chrome itself.
+  // ThemeProvider owns the preview state so cuisine, brand, and accent
+  // overrides all share the same restoration behavior.
   useEffect(() => {
-    const id: ThemeId = isThemeId(form.cuisineTheme) ? form.cuisineTheme : 'classic';
-    if (id !== activeThemeId) {
-      setThemeId(id);
-    }
-  }, [form.cuisineTheme, activeThemeId, setThemeId]);
+    if (!savedRef.current) return;
+    if (!isDirty) return;
+    setTenantThemePreview(formStateToThemePreview(form));
+  }, [form.cuisineTheme, form.brandColor, form.accentColor, isDirty, setTenantThemePreview]);
+
+  useEffect(() => {
+    return () => {
+      if (!savedThemePreviewRef.current) return;
+      setTenantThemePreview(savedThemePreviewRef.current);
+    };
+  }, [setTenantThemePreview]);
 
   const updateField = useCallback(<K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
     setIsDirty(true);
   }, []);
 
+  const selectedCuisineTheme = CUISINE_THEMES.find((theme) => (
+    form.cuisineTheme === theme.id ||
+    (theme.id === 'classic' && form.cuisineTheme === '')
+  )) ?? CUISINE_THEMES[0];
+  const accentPreviewColor = form.accentColor || selectedCuisineTheme.swatches[2];
+
   const handleReset = useCallback(() => {
     if (savedRef.current) {
       setForm(savedRef.current);
       setIsDirty(false);
-      // Restore saved cuisine theme — guard, don't cast.
-      const savedThemeId: ThemeId = isThemeId(savedRef.current.cuisineTheme)
-        ? savedRef.current.cuisineTheme
-        : 'classic';
-      setThemeId(savedThemeId);
+      if (savedThemePreviewRef.current) {
+        setTenantThemePreview(savedThemePreviewRef.current);
+      }
     }
-  }, [setThemeId]);
+  }, [setTenantThemePreview]);
 
   const handleSave = useCallback(() => {
     // Validate operating hours: open must be before close for all enabled days
@@ -394,14 +426,20 @@ export function ThemeSettings() {
 
     const settings = formStateToSettings(form);
     updateMutation.mutate(settings, {
-      onSuccess: () => {
+      onSuccess: (res) => {
+        const savedSettings = res.data;
+        const savedForm = settingsToFormState(savedSettings);
+        const savedThemePreview = settingsToThemePreview(savedSettings);
         toast('success', t('Settings saved'));
-        savedRef.current = { ...form };
-        savedLocalesRef.current = [...form.supportedLocales];
+        savedRef.current = savedForm;
+        savedThemePreviewRef.current = savedThemePreview;
+        savedLocalesRef.current = [...savedForm.supportedLocales];
+        setTenantThemePreview(savedThemePreview);
+        setForm(savedForm);
         setIsDirty(false);
 
         // Auto-translate for any newly added additional locales
-        const newLocales = form.supportedLocales.filter(
+        const newLocales = savedForm.supportedLocales.filter(
           (locale) => !previousLocales.includes(locale),
         );
         for (const locale of newLocales) {
@@ -421,7 +459,7 @@ export function ThemeSettings() {
         toast('error', err instanceof Error ? err.message : t('Failed to save settings'));
       },
     });
-  }, [form, updateMutation, toast, tenantSlug, t]);
+  }, [form, updateMutation, toast, tenantSlug, t, setTenantThemePreview]);
 
   if (isLoading) {
     return (
@@ -496,7 +534,7 @@ export function ThemeSettings() {
                 type="color"
                 value={form.brandColor}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField('brandColor', e.target.value)}
-                className="w-12 h-10 rounded-md border border-border cursor-pointer bg-transparent p-0.5"
+                className="min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] rounded-md border border-border cursor-pointer bg-transparent p-0.5"
                 aria-label={t('Brand Color')}
               />
               <Input
@@ -519,6 +557,49 @@ export function ThemeSettings() {
             <ActiveThemePalette />
             <p className="text-xs text-text-tertiary">
               {t('Your brand color overlays the cuisine theme. Pick a shade that complements it.')}
+            </p>
+          </div>
+
+          {/* Accent color override */}
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-text">{t('Accent Color')}</label>
+            <div className="flex items-center gap-3 flex-wrap">
+              <input
+                type="color"
+                value={accentPreviewColor}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField('accentColor', e.target.value)}
+                className="min-h-[var(--hit-sm)] min-w-[var(--hit-sm)] rounded-md border border-border cursor-pointer bg-transparent p-0.5"
+                aria-label={t('Accent Color')}
+              />
+              <Input
+                value={form.accentColor}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  const val = e.target.value;
+                  if (/^#[0-9a-fA-F]{0,6}$/.test(val) || val === '') {
+                    updateField('accentColor', val);
+                  }
+                }}
+                className="w-32 font-mono text-sm"
+                placeholder={selectedCuisineTheme.swatches[2]} // lint-override: theme swatch placeholder — user-facing color input
+              />
+              <div
+                className="w-10 h-10 rounded-md border border-border shrink-0"
+                style={{ backgroundColor: accentPreviewColor }}
+                title={form.accentColor || t('Theme accent')}
+              />
+              {form.accentColor && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => updateField('accentColor', '')}
+                >
+                  {t('Use theme accent')}
+                </Button>
+              )}
+            </div>
+            <p className="text-xs text-text-tertiary">
+              {t('Optional. Leave empty to use the cuisine theme accent.')}
             </p>
           </div>
 
@@ -564,7 +645,7 @@ export function ThemeSettings() {
             }}
             options={LANGUAGE_CONFIG.map((lang) => ({
               value: lang.code,
-              label: `${lang.flag} ${lang.label}`,
+              label: `${lang.flag} ${t(lang.labelKey)}`,
             }))}
           />
 
@@ -584,7 +665,8 @@ export function ThemeSettings() {
                   >
                     <span className="text-lg shrink-0">{lang.flag}</span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-text">{lang.label}</p>
+                      <p className="text-sm font-medium text-text">{t(lang.labelKey)}</p>
+                      <p className="text-xs text-text-tertiary mt-0.5">{t(lang.descriptionKey)}</p>
                       {isNewlyEnabled && (
                         <p className="text-xs text-primary mt-0.5">
                           {t('Menu items will be translated automatically on save')}

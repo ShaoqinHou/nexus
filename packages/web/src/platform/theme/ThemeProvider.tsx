@@ -10,6 +10,7 @@ import {
   type CSSProperties,
 } from 'react';
 import { generatePalette } from '@web/lib/theme';
+import { CUISINE_THEME_IDS, type CuisineThemeId } from '@nexus/shared';
 
 type Mode = 'light' | 'dark';
 
@@ -18,20 +19,9 @@ type Mode = 'light' | 'dark';
  * [data-theme="<id>"] block in platform/theme/themes/*.css. Classic is the
  * merchant-console default and the fallback when no tenant theme is set.
  */
-export const THEME_IDS = [
-  'classic',
-  'trattoria',
-  'izakaya',
-  'bubble-tea',
-  'counter',
-  'taqueria',
-  'curry-house',
-  'sichuan',
-  'cantonese',
-  'wok',
-] as const;
+export const THEME_IDS = CUISINE_THEME_IDS;
 
-export type ThemeId = (typeof THEME_IDS)[number];
+export type ThemeId = CuisineThemeId;
 
 export function isThemeId(value: unknown): value is ThemeId {
   return typeof value === 'string' && (THEME_IDS as readonly string[]).includes(value);
@@ -50,12 +40,26 @@ interface ThemeContextValue {
   themeId: ThemeId;
   /** Set the cuisine theme. Set to 'classic' to reset. */
   setThemeId: (id: ThemeId) => void;
+  /** Set tenant-scoped live-preview overrides for settings screens. */
+  setTenantThemePreview: (preview: TenantThemePreview) => void;
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 const MODE_STORAGE_KEY = 'nexus_theme';
 const THEME_STORAGE_KEY = 'nexus_theme_id';
+const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/;
+
+interface TenantThemePreview {
+  themeId?: ThemeId;
+  brandColor?: string | null;
+  brandColorHover?: string | null;
+  accentColor?: string | null;
+}
+
+function validColorOrNull(value: string | null | undefined): string | null {
+  return typeof value === 'string' && HEX_COLOR_RE.test(value) ? value : null;
+}
 
 function getInitialMode(): Mode {
   const stored = typeof localStorage !== 'undefined' ? localStorage.getItem(MODE_STORAGE_KEY) : null;
@@ -95,6 +99,11 @@ interface ThemeProviderProps {
   /** Optional pre-computed brand-hover override (if the caller already knows it). */
   brandColorHover?: string | null;
   /**
+   * Optional per-tenant accent override. When absent, each cuisine theme keeps
+   * its own --color-accent / --color-accent-light pair.
+   */
+  accentColor?: string | null;
+  /**
    * Tag the wrapper for selector targeting. 'customer' marks the customer
    * shell, 'merchant' marks the merchant chrome. Both render the same
    * wrapper structure — the tag only affects the data-attribute.
@@ -107,12 +116,16 @@ export function ThemeProvider({
   initialThemeId,
   brandColor,
   brandColorHover,
+  accentColor,
   scope,
 }: ThemeProviderProps) {
   const [mode, setMode] = useState<Mode>(getInitialMode);
   const [themeId, setThemeIdState] = useState<ThemeId>(
     initialThemeId ?? getInitialThemeId
   );
+  const [previewBrandColor, setPreviewBrandColor] = useState<string | null>(() => validColorOrNull(brandColor));
+  const [previewBrandColorHover, setPreviewBrandColorHover] = useState<string | null>(() => validColorOrNull(brandColorHover));
+  const [previewAccentColor, setPreviewAccentColor] = useState<string | null>(() => validColorOrNull(accentColor));
 
   /**
    * Whether this instance is a tenant-scoped (nested) provider.
@@ -120,6 +133,9 @@ export function ThemeProvider({
    * NOT to <html> — keeping global pre-tenant chrome (login page) neutral.
    */
   const isTenantScoped = initialThemeId !== undefined;
+  const effectiveBrandColor = previewBrandColor;
+  const effectiveBrandColorHover = previewBrandColorHover;
+  const effectiveAccentColor = previewAccentColor;
 
   // Keep state in sync ONLY when the parent's initialThemeId actually
   // changes (e.g. tenant settings refetched). We track the previous prop
@@ -147,6 +163,30 @@ export function ThemeProvider({
       }
     }
   }, [initialThemeId]);
+
+  const prevTenantVarsRef = useRef({
+    brandColor: validColorOrNull(brandColor),
+    brandColorHover: validColorOrNull(brandColorHover),
+    accentColor: validColorOrNull(accentColor),
+  });
+  useEffect(() => {
+    const next = {
+      brandColor: validColorOrNull(brandColor),
+      brandColorHover: validColorOrNull(brandColorHover),
+      accentColor: validColorOrNull(accentColor),
+    };
+    const prev = prevTenantVarsRef.current;
+    if (
+      next.brandColor !== prev.brandColor ||
+      next.brandColorHover !== prev.brandColorHover ||
+      next.accentColor !== prev.accentColor
+    ) {
+      prevTenantVarsRef.current = next;
+      setPreviewBrandColor(next.brandColor);
+      setPreviewBrandColorHover(next.brandColorHover);
+      setPreviewAccentColor(next.accentColor);
+    }
+  }, [brandColor, brandColorHover, accentColor]);
 
   // Apply light/dark class to <html> — always app-wide regardless of scope.
   useEffect(() => {
@@ -193,17 +233,22 @@ export function ThemeProvider({
     if (typeof document === 'undefined') return;
     const body = document.body;
     body.dataset.theme = themeId;
-    if (brandColor) {
-      const palette = generatePalette(brandColor, mode === 'dark');
-      const hover = brandColorHover ?? palette.brandHover;
+    if (effectiveBrandColor) {
+      const palette = generatePalette(effectiveBrandColor, mode === 'dark');
+      const hover = effectiveBrandColorHover ?? palette.brandHover;
       // Raw brand for accent fills; mode-aware palette for text on neutral
       // surfaces. See in-render brandStyle comment for full rationale.
-      body.style.setProperty('--color-brand', brandColor);
+      body.style.setProperty('--color-brand', effectiveBrandColor);
       body.style.setProperty('--color-primary', palette.primary);
       body.style.setProperty('--color-brand-hover', hover);
       body.style.setProperty('--color-primary-hover', palette.primaryHover);
       body.style.setProperty('--color-primary-light', palette.primaryLight);
       body.style.setProperty('--color-brand-light', palette.primaryLight);
+    }
+    if (effectiveAccentColor) {
+      const accentPalette = generatePalette(effectiveAccentColor, mode === 'dark');
+      body.style.setProperty('--color-accent', effectiveAccentColor);
+      body.style.setProperty('--color-accent-light', accentPalette.primaryLight);
     }
     return () => {
       // Cleanup on unmount or before next effect run — restore body to
@@ -215,8 +260,10 @@ export function ThemeProvider({
       body.style.removeProperty('--color-primary-hover');
       body.style.removeProperty('--color-primary-light');
       body.style.removeProperty('--color-brand-light');
+      body.style.removeProperty('--color-accent');
+      body.style.removeProperty('--color-accent-light');
     };
-  }, [isTenantScoped, themeId, brandColor, brandColorHover, mode]);
+  }, [isTenantScoped, themeId, effectiveBrandColor, effectiveBrandColorHover, effectiveAccentColor, mode]);
 
   const toggleTheme = useCallback(() => {
     setMode((prev) => (prev === 'light' ? 'dark' : 'light'));
@@ -226,9 +273,27 @@ export function ThemeProvider({
     setThemeIdState(id);
   }, []);
 
+  const setTenantThemePreview = useCallback((preview: TenantThemePreview) => {
+    if (preview.themeId !== undefined) {
+      setThemeIdState(preview.themeId);
+    }
+    if ('brandColor' in preview) {
+      setPreviewBrandColor(validColorOrNull(preview.brandColor));
+      if (!('brandColorHover' in preview)) {
+        setPreviewBrandColorHover(null);
+      }
+    }
+    if ('brandColorHover' in preview) {
+      setPreviewBrandColorHover(validColorOrNull(preview.brandColorHover));
+    }
+    if ('accentColor' in preview) {
+      setPreviewAccentColor(validColorOrNull(preview.accentColor));
+    }
+  }, []);
+
   const value = useMemo<ThemeContextValue>(
-    () => ({ theme: mode, toggleTheme, themeId, setThemeId }),
-    [mode, toggleTheme, themeId, setThemeId]
+    () => ({ theme: mode, toggleTheme, themeId, setThemeId, setTenantThemePreview }),
+    [mode, toggleTheme, themeId, setThemeId, setTenantThemePreview]
   );
 
   // Tenant-scoped: wrap children in a <div data-theme="…"> so the cuisine
@@ -264,17 +329,22 @@ export function ThemeProvider({
     // a dark mode tenant chrome left text-primary as raw #111827 against
     // the dark-tinted primary-light (l=18) → both dark-blue, unreadable.
     const brandStyle: CSSProperties = (() => {
-      if (!brandColor) return {};
-      const palette = generatePalette(brandColor, mode === 'dark');
-      const hover = brandColorHover ?? palette.brandHover;
-      return {
-        ['--color-brand' as never]: brandColor,
-        ['--color-primary' as never]: palette.primary,
-        ['--color-brand-hover' as never]: hover,
-        ['--color-primary-hover' as never]: palette.primaryHover,
-        ['--color-primary-light' as never]: palette.primaryLight,
-        ['--color-brand-light' as never]: palette.primaryLight,
-      } as CSSProperties;
+      const style: CSSProperties & Record<string, string> = {};
+      if (effectiveAccentColor) {
+        const accentPalette = generatePalette(effectiveAccentColor, mode === 'dark');
+        style['--color-accent'] = effectiveAccentColor;
+        style['--color-accent-light'] = accentPalette.primaryLight;
+      }
+      if (!effectiveBrandColor) return style;
+      const palette = generatePalette(effectiveBrandColor, mode === 'dark');
+      const hover = effectiveBrandColorHover ?? palette.brandHover;
+      style['--color-brand'] = effectiveBrandColor;
+      style['--color-primary'] = palette.primary;
+      style['--color-brand-hover'] = hover;
+      style['--color-primary-hover'] = palette.primaryHover;
+      style['--color-primary-light'] = palette.primaryLight;
+      style['--color-brand-light'] = palette.primaryLight;
+      return style;
     })();
 
     return (

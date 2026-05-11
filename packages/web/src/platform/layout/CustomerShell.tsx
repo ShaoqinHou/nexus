@@ -169,6 +169,7 @@ export function CustomerShell() {
   // both props undefined so the nested ThemeProvider's theme defaults take over.
   const isDark = mode === 'dark';
   const tenantBrandColor = settings.brandColor ?? null;
+  const tenantAccentColor = settings.accentColor ?? null;
   const tenantBrandColorHover = tenantBrandColor
     ? generatePalette(tenantBrandColor, isDark).brandHover
     : null;
@@ -184,6 +185,7 @@ export function CustomerShell() {
       initialThemeId={tenantThemeId}
       brandColor={tenantBrandColor}
       brandColorHover={tenantBrandColorHover}
+      accentColor={tenantAccentColor}
     >
       <CustomerShellContent />
     </ThemeProvider>

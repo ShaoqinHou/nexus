@@ -96,6 +96,7 @@ function MerchantThemeShell({ children }: { children: ReactNode }) {
   const settings = (tenant?.settings ?? {}) as TenantThemeSettings;
   const tenantThemeId = isThemeId(settings.theme) ? settings.theme : 'classic';
   const tenantBrandColor = settings.brandColor ?? null;
+  const tenantAccentColor = settings.accentColor ?? null;
   const tenantBrandColorHover = tenantBrandColor
     ? generatePalette(tenantBrandColor, mode === 'dark').brandHover
     : null;
@@ -106,6 +107,7 @@ function MerchantThemeShell({ children }: { children: ReactNode }) {
       initialThemeId={tenantThemeId}
       brandColor={tenantBrandColor}
       brandColorHover={tenantBrandColorHover}
+      accentColor={tenantAccentColor}
     >
       {children}
     </ThemeProvider>

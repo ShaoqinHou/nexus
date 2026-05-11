@@ -129,7 +129,8 @@ export interface OperatingHoursEntry {
 
 export interface TenantThemeSettings {
   brandColor?: string;
-  /** Cuisine theme ID (one of ThemeProvider THEME_IDS). Stored as free-form string; validated via isThemeId() at read time. */
+  accentColor?: string;
+  /** Cuisine theme ID from the shared CUISINE_THEME_IDS list. */
   theme?: string;
   logoUrl?: string;
   coverImageUrl?: string;
@@ -331,6 +332,9 @@ export function clearTenantTheme(): void {
   const props = [
     '--color-primary', '--color-primary-hover', '--color-primary-light',
     '--color-brand', '--color-brand-hover',
+    // Legacy cleanup only. Tenant accent overrides are applied by ThemeProvider
+    // on scoped wrappers/body, not by applyTenantTheme on <html>.
+    '--color-accent', '--color-accent-light',
     '--font-sans', '--radius-sm', '--radius-md', '--radius-lg', '--radius-xl',
     '--shadow-sm', '--shadow-md', '--shadow-lg',
   ];

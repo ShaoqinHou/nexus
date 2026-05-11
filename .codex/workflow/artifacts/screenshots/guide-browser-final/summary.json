@@ -10,9 +10,9 @@
     "meta": {
       "viewport": "width=device-width, initial-scale=1",
       "nexus-guide-version": "nexus-public-workflow-guide/v2",
-      "nexus-guide-source-hash": "c6a33971e8043a3182c9a652",
-      "nexus-guide-record-feed-hash": "90b09bcf5d0c284e114dcf59",
-      "nexus-guide-content-hash": "b0dc4903afa1e1f25b45d58c",
+      "nexus-guide-source-hash": "ae5f00b5f07c0873ba6f813a",
+      "nexus-guide-record-feed-hash": "eb8618b637943ea721029db9",
+      "nexus-guide-content-hash": "5e4e16774f6cedb3f709d29c",
       "nexus-token-source": "packages/web/src/platform/theme/tokens.css"
     },
     "hrefs": [
@@ -51,6 +51,7 @@
       "http://localhost:5173/design/form-field",
       "http://localhost:5173/design/status-badge",
       "http://localhost:5173/design/empty-state",
+      "http://localhost:5173/design/themed-empty-state",
       "http://localhost:5173/design/confirm-button",
       "http://localhost:5173/design/error-boundary",
       "http://localhost:5173/design/pull-to-refresh",
@@ -58,9 +59,10 @@
       "http://localhost:5173/design/order-tracker",
       "http://localhost:5173/design/receipt",
       "http://localhost:5173/design/promo-card",
-      "http://localhost:5173/design/checkout-summary"
+      "http://localhost:5173/design/checkout-summary",
+      "http://localhost:5173/design/themed-toast"
     ],
-    "textSample": "Nexus Workflow Dashboard\nGenerated 2026-05-10T19:52:10.453Z · branch codex/native-workflow\nOverview\nWork Intake\nCurrent State\nDesign Zoo/Gym\nPatterns\nDesign System\nDeployment\nRecords\nDecisions\nPattern Proposals\nPatches\nReviews\nTests\nAudits\nDeployments\nRisks\nDeployment\nOverview\nDecisions\n10\nIntents\n6",
+    "textSample": "Nexus Workflow Dashboard\nGenerated 2026-05-11T01:25:11.620Z · branch codex/native-workflow\nOverview\nWork Intake\nCurrent State\nDesign Zoo/Gym\nPatterns\nDesign System\nDeployment\nRecords\nDecisions\nPattern Proposals\nPatches\nReviews\nTests\nAudits\nDeployments\nRisks\nDeployment\nOverview\nDecisions\n11\nIntents\n7",
     "imageCount": 0,
     "brokenImages": 0
   },
@@ -75,15 +77,15 @@
     "meta": {
       "viewport": "width=device-width, initial-scale=1",
       "nexus-guide-version": "nexus-public-workflow-guide/v2",
-      "nexus-guide-source-hash": "c6a33971e8043a3182c9a652",
-      "nexus-guide-record-feed-hash": "90b09bcf5d0c284e114dcf59",
-      "nexus-guide-content-hash": "33189697e0e7def3e8510ed7",
+      "nexus-guide-source-hash": "ae5f00b5f07c0873ba6f813a",
+      "nexus-guide-record-feed-hash": "eb8618b637943ea721029db9",
+      "nexus-guide-content-hash": "3e48c91cc3fee2ff51612708",
       "nexus-token-source": "packages/web/src/platform/theme/tokens.css"
     },
     "hrefs": [
       "zoo/"
     ],
-    "textSample": "Nexus Workflow Guide\nGenerated snapshot 2026-05-10T19:52:11.479Z · branch codex/native-workflow · run workflow gates for live state before deploy\nWhat This Is\n\nThis is the public-safe guide for the Nexus Codex workflow. The complete internal workflow system lives in the repository under .codex/, wit",
+    "textSample": "Nexus Workflow Guide\nGenerated snapshot 2026-05-11T01:25:13.296Z · branch codex/native-workflow · run workflow gates for live state before deploy\nWhat This Is\n\nThis is the public-safe guide for the Nexus Codex workflow. The complete internal workflow system lives in the repository under .codex/, wit",
     "imageCount": 0,
     "brokenImages": 0
   },
@@ -98,8 +100,8 @@
     "meta": {
       "viewport": "width=device-width, initial-scale=1",
       "nexus-guide-version": "nexus-design-zoo-visual-guide/v1",
-      "nexus-guide-source-hash": "312fa4fbaa70f8966e1b4896",
-      "nexus-guide-content-hash": "59e697339a58134640c964f1",
+      "nexus-guide-source-hash": "4cd44a017c8626ec28732c1c",
+      "nexus-guide-content-hash": "53168a50904e2a3c5e98c7b6",
       "nexus-token-source": "packages/web/src/platform/theme/tokens.css"
     },
     "hrefs": [
@@ -123,6 +125,7 @@
       "assets/desktop-light-sichuan/form-field.jpg",
       "assets/desktop-light-sichuan/status-badge.jpg",
       "assets/desktop-light-sichuan/empty-state.jpg",
+      "assets/desktop-light-sichuan/themed-empty-state.jpg",
       "assets/desktop-light-sichuan/confirm-button.jpg",
       "assets/desktop-light-sichuan/error-boundary.jpg",
       "assets/desktop-light-sichuan/pull-to-refresh.jpg",
@@ -131,6 +134,7 @@
       "assets/desktop-light-sichuan/receipt.jpg",
       "assets/desktop-light-sichuan/promo-card.jpg",
       "assets/desktop-light-sichuan/checkout-summary.jpg",
+      "assets/desktop-light-sichuan/themed-toast.jpg",
       "assets/mobile-dark-sichuan/index.jpg",
       "assets/mobile-dark-sichuan/tokens.jpg",
       "assets/mobile-dark-sichuan/themes.jpg",
@@ -150,6 +154,7 @@
       "assets/mobile-dark-sichuan/form-field.jpg",
       "assets/mobile-dark-sichuan/status-badge.jpg",
       "assets/mobile-dark-sichuan/empty-state.jpg",
+      "assets/mobile-dark-sichuan/themed-empty-state.jpg",
       "assets/mobile-dark-sichuan/confirm-button.jpg",
       "assets/mobile-dark-sichuan/error-boundary.jpg",
       "assets/mobile-dark-sichuan/pull-to-refresh.jpg",
@@ -157,10 +162,11 @@
       "assets/mobile-dark-sichuan/order-tracker.jpg",
       "assets/mobile-dark-sichuan/receipt.jpg",
       "assets/mobile-dark-sichuan/promo-card.jpg",
-      "assets/mobile-dark-sichuan/checkout-summary.jpg"
+      "assets/mobile-dark-sichuan/checkout-summary.jpg",
+      "assets/mobile-dark-sichuan/themed-toast.jpg"
     ],
-    "textSample": "Nexus Design Zoo / Gym\nVisual Demo Surface · generated 2026-05-10T19:52:10.353Z · captured 2026-05-10T19:16:36.152Z\nCaptured From Real /design Routes\n\nThis page is the deployable visual guide for the dev-only component gym. Screenshots are captured from real Nexus components rendered by packages/web",
-    "imageCount": 54,
+    "textSample": "Nexus Design Zoo / Gym\nVisual Demo Surface · generated 2026-05-11T01:25:11.443Z · captured 2026-05-11T01:20:16.389Z\nCaptured From Real /design Routes\n\nThis page is the deployable visual guide for the dev-only component gym. Screenshots are captured from real Nexus components rendered by packages/web",
+    "imageCount": 58,
     "brokenImages": 0
   },
   {
@@ -174,8 +180,8 @@
     "meta": {
       "viewport": "width=device-width, initial-scale=1",
       "nexus-guide-version": "nexus-design-zoo-visual-guide/v1",
-      "nexus-guide-source-hash": "312fa4fbaa70f8966e1b4896",
-      "nexus-guide-content-hash": "59e697339a58134640c964f1",
+      "nexus-guide-source-hash": "4cd44a017c8626ec28732c1c",
+      "nexus-guide-content-hash": "53168a50904e2a3c5e98c7b6",
       "nexus-token-source": "packages/web/src/platform/theme/tokens.css"
     },
     "hrefs": [
@@ -199,6 +205,7 @@
       "assets/desktop-light-sichuan/form-field.jpg",
       "assets/desktop-light-sichuan/status-badge.jpg",
       "assets/desktop-light-sichuan/empty-state.jpg",
+      "assets/desktop-light-sichuan/themed-empty-state.jpg",
       "assets/desktop-light-sichuan/confirm-button.jpg",
       "assets/desktop-light-sichuan/error-boundary.jpg",
       "assets/desktop-light-sichuan/pull-to-refresh.jpg",
@@ -207,6 +214,7 @@
       "assets/desktop-light-sichuan/receipt.jpg",
       "assets/desktop-light-sichuan/promo-card.jpg",
       "assets/desktop-light-sichuan/checkout-summary.jpg",
+      "assets/desktop-light-sichuan/themed-toast.jpg",
       "assets/mobile-dark-sichuan/index.jpg",
       "assets/mobile-dark-sichuan/tokens.jpg",
       "assets/mobile-dark-sichuan/themes.jpg",
@@ -226,6 +234,7 @@
       "assets/mobile-dark-sichuan/form-field.jpg",
       "assets/mobile-dark-sichuan/status-badge.jpg",
       "assets/mobile-dark-sichuan/empty-state.jpg",
+      "assets/mobile-dark-sichuan/themed-empty-state.jpg",
       "assets/mobile-dark-sichuan/confirm-button.jpg",
       "assets/mobile-dark-sichuan/error-boundary.jpg",
       "assets/mobile-dark-sichuan/pull-to-refresh.jpg",
@@ -233,10 +242,11 @@
       "assets/mobile-dark-sichuan/order-tracker.jpg",
       "assets/mobile-dark-sichuan/receipt.jpg",
       "assets/mobile-dark-sichuan/promo-card.jpg",
-      "assets/mobile-dark-sichuan/checkout-summary.jpg"
+      "assets/mobile-dark-sichuan/checkout-summary.jpg",
+      "assets/mobile-dark-sichuan/themed-toast.jpg"
     ],
-    "textSample": "Nexus Design Zoo / Gym\nVisual Demo Surface · generated 2026-05-10T19:52:10.353Z · captured 2026-05-10T19:16:36.152Z\nCaptured From Real /design Routes\n\nThis page is the deployable visual guide for the dev-only component gym. Screenshots are captured from real Nexus components rendered by packages/web",
-    "imageCount": 54,
+    "textSample": "Nexus Design Zoo / Gym\nVisual Demo Surface · generated 2026-05-11T01:25:11.443Z · captured 2026-05-11T01:20:16.389Z\nCaptured From Real /design Routes\n\nThis page is the deployable visual guide for the dev-only component gym. Screenshots are captured from real Nexus components rendered by packages/web",
+    "imageCount": 58,
     "brokenImages": 0
   }
 ]

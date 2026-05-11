@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@web/lib/api';
 import type { TenantThemeSettings } from '@web/lib/theme';
+import { tenantKeys, type Tenant } from '@web/platform/tenant/TenantProvider';
 
 interface TenantSettings extends TenantThemeSettings {
   currency?: string;
@@ -36,8 +37,11 @@ export function useUpdateTenantSettings(tenantSlug: string) {
       ),
     onSuccess: (res) => {
       queryClient.setQueryData(tenantSettingsKeys.detail(tenantSlug), res);
-      // Also invalidate the tenant info query so TenantProvider picks up new theme
-      queryClient.invalidateQueries({ queryKey: ['tenant', tenantSlug] });
+      queryClient.setQueryData<Tenant | undefined>(
+        tenantKeys.detail(tenantSlug),
+        (tenant) => tenant ? { ...tenant, settings: res.data } : tenant,
+      );
+      queryClient.invalidateQueries({ queryKey: tenantKeys.detail(tenantSlug) });
     },
   });
 }

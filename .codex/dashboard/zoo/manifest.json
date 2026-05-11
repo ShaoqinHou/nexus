@@ -1,6 +1,6 @@
 {
   "schema": "nexus-design-zoo-visual-manifest/v1",
-  "capturedAt": "2026-05-10T19:16:36.152Z",
+  "capturedAt": "2026-05-11T01:20:16.389Z",
   "contexts": [
     {
       "id": "desktop-light-sichuan",
@@ -49,7 +49,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/index.jpg",
-      "sha256": "b4b960037c40cd37265953eff7798cd032bd52278b9ef90762645d8a2d77394c"
+      "sha256": "e716e97f8c7663b8008128ddcdcf54c259165148c4a489cc41ca4f94db4c79f1"
     },
     {
       "slug": "tokens",
@@ -76,7 +76,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/tokens.jpg",
-      "sha256": "2aa1915033216fa8593ebada896b4a2ea435640ca100aad807e98b4dc670ea0d"
+      "sha256": "2304f0d0f3a1731b7b01d2cf240949f26a243f2587f922700355d757c79c6ddd"
     },
     {
       "slug": "themes",
@@ -103,7 +103,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/themes.jpg",
-      "sha256": "6dab43f634178868e354749928cc2168b83bc2ecf923e95bd306c0874559231b"
+      "sha256": "57a216542d89af4b7b2779b91edd6c3afe0751de1b14e7dff9a9a6f719fbb0d0"
     },
     {
       "slug": "button",
@@ -130,7 +130,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/button.jpg",
-      "sha256": "897828d7f906849414f7e6e85bd956c797a14a9d0a248e5a72a856d451e6f436"
+      "sha256": "0960fb9e157088bce9085b313cb30864f746d77dd9261e8523e22a0527684899"
     },
     {
       "slug": "badge",
@@ -157,7 +157,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/badge.jpg",
-      "sha256": "90fdf3e5393b2a3fd6c560b09531a4556c426e7c6920aabe9b0c2b7d0c0f727c"
+      "sha256": "763f4d86cee4e163d3546ef87f9201d9662dafc6a59cef62c6e9be0e5cc5e1f1"
     },
     {
       "slug": "card",
@@ -184,7 +184,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/card.jpg",
-      "sha256": "fdfc0c8ebf0b9a56d92f3df9587bc9a1137e9e2998034c71dab90b9ab0a659f4"
+      "sha256": "78f4b6a0188bd54b6dcb181bbaa53e4b417ad321de328a3b8b84d93755f9e54e"
     },
     {
       "slug": "dialog",
@@ -211,7 +211,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/dialog.jpg",
-      "sha256": "233b6d383fda09f4afd1614efc5e8f9c5557a9f266ddccf6c44301ee18ead9b4"
+      "sha256": "9c952b80dda3ddcfe1bee449fba0dec24a185116568b60b88c09a57dfbcd3b86"
     },
     {
       "slug": "input",
@@ -238,7 +238,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/input.jpg",
-      "sha256": "638a2a7756d95f30c44193ba3baca951ed05b697d7a5f49d40486cff0b3e25fc"
+      "sha256": "89a9c596af0d717168df411d53e7c7fd43dd16a082b456ea667fff15b4a665e1"
     },
     {
       "slug": "toggle",
@@ -265,7 +265,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/toggle.jpg",
-      "sha256": "03387ce0b2ef4b21fb6fb562809b33cc22b8f22f476f8ea7a0eccaaf63500a63"
+      "sha256": "b14d686a0e41969b4b0513947396b642257bd2a5106730dbe6fd6a1668817888"
     },
     {
       "slug": "select",
@@ -292,7 +292,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/select.jpg",
-      "sha256": "e95ac4c58501df7ffefb1daa467d446372353e656f7de8efa7deee6c6c51b9eb"
+      "sha256": "d8359378d0fc1cea6e4b3fc2834f7298485d9ae94663918aba2c850d2015f804"
     },
     {
       "slug": "image-upload",
@@ -319,7 +319,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/image-upload.jpg",
-      "sha256": "d24404f7301c2ee1cef3068c9f13e5fc7b15f16e5c522afcef97253dbd6a6300"
+      "sha256": "e379b281a45db105e0383d283bd42e92796c9aa981848cef972cd6e1d02c9b13"
     },
     {
       "slug": "toast",
@@ -346,7 +346,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/toast.jpg",
-      "sha256": "0957dbb3118eb943f78acb624795f06f9e0fd0040039380887b84dc9d575c78a"
+      "sha256": "1d23a81e89090be8162270ff2bc75e824635f11f21a17e2b8279c63fe8e98963"
     },
     {
       "slug": "tour-overlay",
@@ -373,7 +373,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/tour-overlay.jpg",
-      "sha256": "5fc587fb86caffc4834c7eed20f3becef73a8a0bf5d1cbedfb70023474228265"
+      "sha256": "ebc89d3ba5c8f0d69bb17e08d94264a1bf4dc0928306d55320a4745776441e42"
     },
     {
       "slug": "language-picker",
@@ -400,7 +400,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/language-picker.jpg",
-      "sha256": "cc61db7d1c21d4d3867d1a7a105bdb364de932238fd0852e1915c14a8b857bd6"
+      "sha256": "84f10f191f53e323b949e01af50ed4e20d1c26715cabc172a4dded0d935b1223"
     },
     {
       "slug": "dietary-icon",
@@ -427,7 +427,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/dietary-icon.jpg",
-      "sha256": "625c971922a336bdcf36ead134d4d213017ce97e49ebe902b62cba70db0c80ac"
+      "sha256": "4da9115b44595390f0e5cfdbabaee81c1349825ac53b1d51dd7105a0025bcc59"
     },
     {
       "slug": "data-table",
@@ -454,7 +454,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/data-table.jpg",
-      "sha256": "b48ae59cbacffbfa197680c9d4ee8aa3ec515db8726375a8555eb4d06c4e5179"
+      "sha256": "fc4b6845d1802c063fe352385a68107cca068f913584b43af048392b4fc68057"
     },
     {
       "slug": "form-field",
@@ -481,7 +481,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/form-field.jpg",
-      "sha256": "0f77bb03010b136c4e1325704c340f9a3d07b5524015575290389a07fcf54216"
+      "sha256": "b2859d44b8f560c8804be1aaecb8365708cbce5f4486c6e448414c582648b541"
     },
     {
       "slug": "status-badge",
@@ -508,7 +508,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/status-badge.jpg",
-      "sha256": "f087d0d8c6d67622dc72f3ee8a2cfa46ebe89f9a986aafafb04dd3aaecb53bf0"
+      "sha256": "9f2f4b9d133556d75f5724bbf1bbeacd83c019a9f9770dc4117863414dad8fc4"
     },
     {
       "slug": "empty-state",
@@ -535,7 +535,34 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/empty-state.jpg",
-      "sha256": "a276540b4ea603bea54100cd7e32b87d45bd7ec0f46dc29c6c564ab560d916d1"
+      "sha256": "88e2a5a000d59491453dba14d416ec961abb403e46a590ebb0cc194436d98180"
+    },
+    {
+      "slug": "themed-empty-state",
+      "title": "ThemedEmptyState",
+      "kind": "pattern",
+      "route": "/design/themed-empty-state",
+      "path": "packages/web/src/components/patterns/themed/EmptyState.tsx",
+      "purpose": "Theme-aware empty-state panel from the reference themed-components set. Uses data-theme plus cuisine display type, card radius, primary tokens, and dashed border styling.",
+      "contextId": "desktop-light-sichuan",
+      "contextLabel": "Desktop light sichuan",
+      "mode": "light",
+      "theme": "sichuan",
+      "verifiedMode": "light",
+      "verifiedTheme": "sichuan",
+      "verifiedChromeState": {
+        "htmlDark": false,
+        "bodyTheme": "sichuan",
+        "scopeTheme": "sichuan",
+        "selectValue": "sichuan"
+      },
+      "viewport": {
+        "width": 1360,
+        "height": 860
+      },
+      "fullPage": true,
+      "asset": "assets/desktop-light-sichuan/themed-empty-state.jpg",
+      "sha256": "bf88cd96e789f64a81a43b076f014894eb6693560a576fdd60724c67483857e9"
     },
     {
       "slug": "confirm-button",
@@ -562,7 +589,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/confirm-button.jpg",
-      "sha256": "661b29c0cc6b82d61c20c2e2a4ebafba1dc8595e704df39022e7d953a169d049"
+      "sha256": "96c2f2e7fc037e880e85fa5381157378bc23db38d5507c73b1742cf56cc94c9a"
     },
     {
       "slug": "error-boundary",
@@ -589,7 +616,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/error-boundary.jpg",
-      "sha256": "487c9ab76be89597833a1772f3ef131e6a9982f4fa6e11635ab59d21426aa8e4"
+      "sha256": "953d1d03bc92e8d69718c14697ccfbd80b74e1b01b32177343189f2d0c5b53a8"
     },
     {
       "slug": "pull-to-refresh",
@@ -616,7 +643,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/pull-to-refresh.jpg",
-      "sha256": "23e55cb66c0912afded7c9a6f1d08333bd019eb2163b1efa47c38224e80a4dd9"
+      "sha256": "287ec56645172d7e1ef0bbe4397a963afd30da2ff9478073f1859a2f957a9d20"
     },
     {
       "slug": "add-to-cart-toast",
@@ -643,7 +670,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/add-to-cart-toast.jpg",
-      "sha256": "2d0334f0a238a287d4785a5705c5585cf291fbcc22a56a03088060b3bebafb46"
+      "sha256": "c1e34c1023e7ee162633d2f686bc6c4a5b8d4188f5510b1d34de1ee2a5b75d92"
     },
     {
       "slug": "order-tracker",
@@ -670,7 +697,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/order-tracker.jpg",
-      "sha256": "a79f68e031e14a5b5fb3e84ad9d263af8b851b494f54e78f92852a529a9acfc4"
+      "sha256": "8e570b37b829a49137b233b5119907ca05ca10c2070171a2bfb1cd6ad3b00bc6"
     },
     {
       "slug": "receipt",
@@ -697,7 +724,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/receipt.jpg",
-      "sha256": "467ef3720cab8c695573526adc03b484878a4b3484260c73d76223da94b077cd"
+      "sha256": "5758b284899d1e631c4a45ab1dc71dd9a0a9b53862ab9977655603fd4fe5fb9a"
     },
     {
       "slug": "promo-card",
@@ -724,7 +751,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/promo-card.jpg",
-      "sha256": "42512815f0bdbd4cc31c5ebe9f29717a24f17dbb82e6ab9c119e91821c483df5"
+      "sha256": "c187b5ae475de2a433db59e5451772bed25d135edecadb37079eb2a23c1f64eb"
     },
     {
       "slug": "checkout-summary",
@@ -751,7 +778,34 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/checkout-summary.jpg",
-      "sha256": "1f41ace313034169b166b08d95cd0a792e0b750e916fd592c59950bf97fe2167"
+      "sha256": "c97beb9261b95d0ea70d1eccb9f61b25d291241cd3391979cd75d6d154bc9610"
+    },
+    {
+      "slug": "themed-toast",
+      "title": "ThemedToast",
+      "kind": "pattern",
+      "route": "/design/themed-toast",
+      "path": "packages/web/src/components/patterns/themed/Toast.tsx",
+      "purpose": "Theme-aware toast card from the reference themed-components set. Uses data-theme, elevated surface, semantic tone bubble, and left accent border.",
+      "contextId": "desktop-light-sichuan",
+      "contextLabel": "Desktop light sichuan",
+      "mode": "light",
+      "theme": "sichuan",
+      "verifiedMode": "light",
+      "verifiedTheme": "sichuan",
+      "verifiedChromeState": {
+        "htmlDark": false,
+        "bodyTheme": "sichuan",
+        "scopeTheme": "sichuan",
+        "selectValue": "sichuan"
+      },
+      "viewport": {
+        "width": 1360,
+        "height": 860
+      },
+      "fullPage": true,
+      "asset": "assets/desktop-light-sichuan/themed-toast.jpg",
+      "sha256": "31660cccca6306ddb8ad814fa12d864c68835770583d3005bd802264ef19e0d0"
     },
     {
       "slug": "index",
@@ -859,7 +913,7 @@
       },
       "fullPage": true,
       "asset": "assets/mobile-dark-sichuan/button.jpg",
-      "sha256": "5d01be5f67cdfa5cad2b86d8ff0d8641b356ac65172a68703c30955149fdc5fa"
+      "sha256": "0414b9a1da1d51ee85be81302439d6b958555e427411f163a023c44b6578e0fe"
     },
     {
       "slug": "badge",
@@ -1267,6 +1321,33 @@
       "sha256": "84f6b9d76dad17809b0583a5458328a60b6ccdb0886734c31d9c76c64eed5afc"
     },
     {
+      "slug": "themed-empty-state",
+      "title": "ThemedEmptyState",
+      "kind": "pattern",
+      "route": "/design/themed-empty-state",
+      "path": "packages/web/src/components/patterns/themed/EmptyState.tsx",
+      "purpose": "Theme-aware empty-state panel from the reference themed-components set. Uses data-theme plus cuisine display type, card radius, primary tokens, and dashed border styling.",
+      "contextId": "mobile-dark-sichuan",
+      "contextLabel": "Mobile dark sichuan",
+      "mode": "dark",
+      "theme": "sichuan",
+      "verifiedMode": "dark",
+      "verifiedTheme": "sichuan",
+      "verifiedChromeState": {
+        "htmlDark": true,
+        "bodyTheme": "sichuan",
+        "scopeTheme": "sichuan",
+        "selectValue": "sichuan"
+      },
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "fullPage": true,
+      "asset": "assets/mobile-dark-sichuan/themed-empty-state.jpg",
+      "sha256": "6dd066ae2374739ecefd69e85f606d1874fb78da4102e1c45422df29874020c6"
+    },
+    {
       "slug": "confirm-button",
       "title": "ConfirmButton",
       "kind": "pattern",
@@ -1426,7 +1507,7 @@
       },
       "fullPage": true,
       "asset": "assets/mobile-dark-sichuan/receipt.jpg",
-      "sha256": "d80677a7c4f4ea68dab7f23044df6c0abcaf5a756685c301863e95a95d8ec794"
+      "sha256": "0251c7a556469826f4593b210a7d82311243a4c3adf0ab0b04e015765b70ac6a"
     },
     {
       "slug": "promo-card",
@@ -1481,6 +1562,33 @@
       "fullPage": true,
       "asset": "assets/mobile-dark-sichuan/checkout-summary.jpg",
       "sha256": "a5664c27154f4345c3f09a26f98493a33b9b2903fadd96d9705585ce82ed95ac"
+    },
+    {
+      "slug": "themed-toast",
+      "title": "ThemedToast",
+      "kind": "pattern",
+      "route": "/design/themed-toast",
+      "path": "packages/web/src/components/patterns/themed/Toast.tsx",
+      "purpose": "Theme-aware toast card from the reference themed-components set. Uses data-theme, elevated surface, semantic tone bubble, and left accent border.",
+      "contextId": "mobile-dark-sichuan",
+      "contextLabel": "Mobile dark sichuan",
+      "mode": "dark",
+      "theme": "sichuan",
+      "verifiedMode": "dark",
+      "verifiedTheme": "sichuan",
+      "verifiedChromeState": {
+        "htmlDark": true,
+        "bodyTheme": "sichuan",
+        "scopeTheme": "sichuan",
+        "selectValue": "sichuan"
+      },
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "fullPage": true,
+      "asset": "assets/mobile-dark-sichuan/themed-toast.jpg",
+      "sha256": "2541f110cef8472254489319a2be53d1f0ca60ed65fbfce2cf4c3eb3d32b5b77"
     }
   ]
 }

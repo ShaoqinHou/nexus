@@ -150,4 +150,63 @@ describe('Tenant theme isolation (S-TENANT-ISOLATION-TEST)', () => {
     const settingsA = JSON.parse(storedA!.settings ?? '{}') as Record<string, unknown>;
     expect(settingsA.theme).toBe('sichuan');
   });
+
+  it('persists tenant accentColor only on the authenticated tenant settings row', async () => {
+    const tenantA = createTenant(db, 'tenant-a');
+    const tenantB = createTenant(db, 'tenant-b');
+    const staffB = await createStaff(db, tenantB.id, 'owner@tenant-b.com');
+    const tokenB = signToken(staffB.id, tenantB.id);
+
+    const res = await app.request(
+      new Request('http://localhost/api/t/tenant-b/settings', {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${tokenB}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          theme: 'sichuan',
+          brandColor: '#b8262b',
+          accentColor: '#c89a3c',
+        }),
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json() as { data: Record<string, unknown> };
+    expect(body.data.accentColor).toBe('#c89a3c');
+
+    const storedA = db.select().from(schema.tenants).where(eq(schema.tenants.id, tenantA.id)).get();
+    const storedB = db.select().from(schema.tenants).where(eq(schema.tenants.id, tenantB.id)).get();
+    const settingsA = JSON.parse(storedA!.settings ?? '{}') as Record<string, unknown>;
+    const settingsB = JSON.parse(storedB!.settings ?? '{}') as Record<string, unknown>;
+
+    expect(settingsA.accentColor).toBeUndefined();
+    expect(settingsB.accentColor).toBe('#c89a3c');
+  });
+
+  it('rejects non-canonical tenant theme ids', async () => {
+    const tenant = createTenant(db, 'tenant-a');
+    const staff = await createStaff(db, tenant.id, 'owner@tenant-a.com');
+    const token = signToken(staff.id, tenant.id);
+
+    const res = await app.request(
+      new Request('http://localhost/api/t/tenant-a/settings', {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          theme: 'not-a-theme',
+        }),
+      }),
+    );
+
+    expect(res.status).toBe(400);
+
+    const stored = db.select().from(schema.tenants).where(eq(schema.tenants.id, tenant.id)).get();
+    const settings = JSON.parse(stored!.settings ?? '{}') as Record<string, unknown>;
+    expect(settings.theme).toBeUndefined();
+  });
 });

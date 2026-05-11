@@ -4020,6 +4020,25 @@ function policyProblems() {
       }
     }
   }
+  const verificationRulesByName = new Map((evidencePolicy.verificationRules || []).map((rule) => [String(rule.name || ''), rule]));
+  const auditRulesByName = new Map((evidencePolicy.auditRules || []).map((rule) => [String(rule.name || ''), rule]));
+  for (const ruleName of evidencePolicy.auditMirrorsVerificationRules || []) {
+    const verificationRule = verificationRulesByName.get(String(ruleName));
+    const auditRule = auditRulesByName.get(String(ruleName));
+    if (!verificationRule) {
+      problems.push(`.codex/workflow/policy/gates.json evidence.auditMirrorsVerificationRules references missing verification rule ${ruleName}.`);
+      continue;
+    }
+    if (!auditRule) {
+      problems.push(`.codex/workflow/policy/gates.json evidence.auditRules must include ${ruleName} because auditMirrorsVerificationRules requires it.`);
+      continue;
+    }
+    for (const className of verificationRule.classes || []) {
+      if (!(auditRule.classes || []).includes(className)) {
+        problems.push(`.codex/workflow/policy/gates.json evidence.auditRules.${ruleName} must include verification class ${className}.`);
+      }
+    }
+  }
   for (const className of POLICY.deployment?.requiredCommandClasses || []) {
     if (!commandClasses[className]) problems.push(`.codex/workflow/policy/deployment.json requiredCommandClasses references unknown command class ${className}.`);
   }
@@ -4159,17 +4178,18 @@ function commandHookConfigCheck({ quiet = false } = {}) {
   return problems.length === 0;
 }
 
-function hookRuntimeProblems({ maxAgeDays = 14 } = {}) {
-  const runtime = loadJson(join(RUNTIME_DIR, 'hooks-state.json'), {});
+function hookRuntimeDiagnostics(runtime, { maxAgeDays = 14, runtimePolicy = POLICY.hooks?.runtime || {} } = {}) {
   const problems = [];
+  const warnings = [];
   if (!runtime.lastSeenAt) {
     problems.push('no hook runtime heartbeat recorded in this checkout; use trusted Custom (config.toml) for project hooks, and rely on explicit workflow gates when hooks are not loaded.');
-    return problems;
+    return { problems, warnings, recentEvents: new Set() };
   }
   const ageMs = Date.now() - Date.parse(runtime.lastSeenAt);
   if (!Number.isFinite(ageMs)) problems.push(`hook runtime heartbeat timestamp is invalid: ${runtime.lastSeenAt}.`);
   else if (ageMs > 1000 * 60 * 60 * 24 * maxAgeDays) problems.push(`hook runtime heartbeat is older than ${maxAgeDays} days: ${runtime.lastSeenAt}.`);
-  const requiredEvents = POLICY.hooks?.runtime?.requiredEvents || ['session-start'];
+  const requiredEvents = Array.isArray(runtimePolicy.requiredEvents) ? runtimePolicy.requiredEvents : [];
+  const diagnosticEvents = Array.isArray(runtimePolicy.diagnosticEvents) ? runtimePolicy.diagnosticEvents : ['session-start'];
   const recentEvents = new Set((runtime.events || [])
     .filter((event) => {
       const eventAgeMs = Date.now() - Date.parse(event.at || '');
@@ -4179,18 +4199,37 @@ function hookRuntimeProblems({ maxAgeDays = 14 } = {}) {
   for (const event of requiredEvents) {
     if (!recentEvents.has(event)) problems.push(`hook runtime heartbeat is partial; no recent ${event} event was recorded in this checkout.`);
   }
-  return problems;
+  for (const event of diagnosticEvents) {
+    if (!recentEvents.has(event)) warnings.push(`hook runtime heartbeat is partial; no recent ${event} event was recorded in this checkout.`);
+  }
+  return { problems, warnings, recentEvents };
+}
+
+function hookRuntimeHealth({ maxAgeDays = 14 } = {}) {
+  const runtime = loadJson(join(RUNTIME_DIR, 'hooks-state.json'), {});
+  return { runtime, ...hookRuntimeDiagnostics(runtime, { maxAgeDays }) };
+}
+
+function hookRuntimeProblems({ maxAgeDays = 14 } = {}) {
+  return hookRuntimeHealth({ maxAgeDays }).problems;
+}
+
+function hookRuntimeStatusLabel(health) {
+  if (health.problems.length) return 'not seen';
+  if (health.warnings.length) return 'seen (partial startup reminder)';
+  return 'seen';
 }
 
 function commandHookRuntimeCheck({ quiet = false } = {}) {
-  const problems = hookRuntimeProblems();
-  const runtime = loadJson(join(RUNTIME_DIR, 'hooks-state.json'), {});
+  const health = hookRuntimeHealth();
   if (!quiet) {
-    console.log(`hook runtime problems: ${problems.length}`);
-    if (runtime.lastSeenAt) console.log(`last hook heartbeat: ${runtime.lastSeenAt} (${runtime.lastEvent || 'unknown'})`);
-    for (const problem of problems) console.log(`- ${problem}`);
+    console.log(`hook runtime problems: ${health.problems.length}`);
+    console.log(`hook runtime warnings: ${health.warnings.length}`);
+    if (health.runtime.lastSeenAt) console.log(`last hook heartbeat: ${health.runtime.lastSeenAt} (${health.runtime.lastEvent || 'unknown'})`);
+    for (const problem of health.problems) console.log(`- ${problem}`);
+    for (const warning of health.warnings) console.log(`- warning: ${warning}`);
   }
-  return problems.length === 0;
+  return health.problems.length === 0;
 }
 
 function commandDependencyAuditCheck({ quiet = false } = {}) {
@@ -4579,7 +4618,8 @@ function commandStatus({ health = false } = {}) {
   const policyOk = health ? commandPolicyCheck({ quiet: true }) : null;
   const traceOk = health ? commandTraceCheck({ quiet: true }) : null;
   const hookConfigOk = health ? commandHookConfigCheck({ quiet: true }) : null;
-  const hookRuntimeOk = commandHookRuntimeCheck({ quiet: true });
+  const hookRuntimeHealthValue = hookRuntimeHealth();
+  const hookRuntimeOk = hookRuntimeHealthValue.problems.length === 0;
   const intakeOk = health ? commandWorkIntakeCheck({ quiet: true }) : null;
   const depAuditOk = health ? commandDependencyAuditCheck({ quiet: true }) : null;
   const prodZooOk = health ? commandProductionZooBundleCheck({ quiet: true }) : null;
@@ -4621,7 +4661,7 @@ function commandStatus({ health = false } = {}) {
     console.log(`hook config: ${hookConfigOk ? 'ok' : 'needs attention'}`);
     console.log(`work intake: ${intakeOk ? 'ok' : 'needs attention'}`);
   }
-  console.log(`hook runtime: ${hookRuntimeOk ? 'seen' : 'not seen'}`);
+  console.log(`hook runtime: ${hookRuntimeStatusLabel(hookRuntimeHealthValue)}`);
   if (health) {
     console.log(`branch evidence: ${branchEvidenceOk ? 'ok' : 'needs attention'}`);
     console.log(`dependency audit: ${depAuditOk ? 'ok' : 'needs attention'}`);
@@ -6018,6 +6058,16 @@ function workflowSelfTestChecks() {
     '.codex/workflow/policy/records.json',
   ].every((file) => requiredReviewKinds([file]).includes('pattern')));
   add('branch review policy classifies pattern-sensitive changes', requiredBranchReviewKinds(['packages/api/src/modules/orders/service.ts']).includes('pattern'));
+  add('branch review policy classifies api route boundary changes', requiredBranchReviewKinds(['packages/api/src/routes/tenant-settings/service.ts']).includes('pattern'));
+  add('branch review policy classifies shared contract changes', requiredBranchReviewKinds(['packages/shared/src/constants.ts']).includes('pattern'));
+  add('audit classifier includes api route boundary changes', auditRelevantFiles(['packages/api/src/routes/tenant-settings/service.ts']).length === 1);
+  add('audit classifier includes shared contract changes', auditRelevantFiles(['packages/shared/src/constants.ts']).length === 1);
+  add('verification classifier includes shared contract changes', verificationRelevantFiles(['packages/shared/src/constants.ts']).length === 1);
+  add('audit evidence mirrors project build and design verification classes', policyProblems().every((problem) => !problem.includes('auditMirrorsVerificationRules'))
+    && ['unit-tests', 'build'].every((className) => requiredEvidenceClassesForFiles(['packages/shared/src/constants.ts'], 'audit').includes(className))
+    && ['design-lint', 'theme-settings-preview-check'].every((className) => requiredEvidenceClassesForFiles(['packages/web/src/platform/theme/tokens.css'], 'audit').includes(className)));
+  add('visual zoo capture asserts themed parity showcases', Array.isArray(POLICY.design?.zooVisualCapture?.interactiveShowcases?.['themed-empty-state']?.expectedTexts)
+    && Array.isArray(POLICY.design?.zooVisualCapture?.interactiveShowcases?.['themed-toast']?.expectedTexts));
   add('workflow research reports participate in public guide source hash', publicGuideInputFiles().some((file) => file.startsWith('.codex/workflow/research/') && file.endsWith('.md')));
   add('workflow policy check passes current policy pack', policyProblems().length === 0);
   add('workflow policy pins package script command bodies', packageScriptContractProblems().length === 0);
@@ -6312,6 +6362,34 @@ function workflowSelfTestChecks() {
     const original = readText('.codex/hooks.json');
     return original.includes('run-hook.mjs') && !original.includes('node -e');
   })());
+  add('hook runtime accepts tool heartbeat without startup event', (() => {
+    const at = nowIso();
+    const health = hookRuntimeDiagnostics({ lastSeenAt: at, events: [{ at, event: 'post-tool-use' }], lastEvent: 'post-tool-use' }, {
+      runtimePolicy: { requiredEvents: [], diagnosticEvents: ['session-start'] },
+    });
+    return health.problems.length === 0 && health.warnings.length === 1 && hookRuntimeStatusLabel(health) === 'seen (partial startup reminder)';
+  })());
+  add('hook runtime still rejects missing heartbeat', hookRuntimeDiagnostics({}, {
+    runtimePolicy: { requiredEvents: [], diagnosticEvents: ['session-start'] },
+  }).problems.length > 0);
+  add('hook runtime policy can require specific lifecycle events', (() => {
+    const at = nowIso();
+    return hookRuntimeDiagnostics({ lastSeenAt: at, events: [{ at, event: 'post-tool-use' }] }, {
+      runtimePolicy: { requiredEvents: ['session-start'], diagnosticEvents: [] },
+    }).problems.some((problem) => problem.includes('session-start'));
+  })());
+  add('hook patch parser extracts apply_patch header paths', sameStringSet(parsePatchFilesFromPayload({
+    tool_input: '*** Begin Patch\n*** Update File: packages/web/src/App.tsx\n@@\n+ok\n*** End Patch\n',
+  }), ['packages/web/src/App.tsx']));
+  add('hook patch parser extracts escaped apply_patch header paths', sameStringSet(parsePatchFilesFromPayload({
+    tool_input: { patch: '*** Begin Patch\n*** Update File: packages/web/src/App.tsx\n@@\n+ok\n*** End Patch\n' },
+  }), ['packages/web/src/App.tsx']));
+  add('hook patch parser rejects patch hunks masquerading as file_path values', parsePatchFilesFromPayload({
+    tool_input: { file_path: 'packages/web/src/App.tsx\\n@@\\n+not-a-path\\n*** End Patch\\n' },
+  }).length === 0);
+  add('hook patch parser accepts clean file_path values', sameStringSet(parsePatchFilesFromPayload({
+    tool_input: { file_path: 'packages/web/src/App.tsx' },
+  }), ['packages/web/src/App.tsx']));
   add('dependency audit baseline is explicit and expiring', (() => {
     const baseline = loadJson(join(CODEX, 'workflow', 'dependency-audit-baseline.json'), {});
     return Boolean(baseline.expiresAt)
@@ -7269,18 +7347,71 @@ function commandValidate(args) {
   console.log('workflow validation: ok');
 }
 
+function normalizeHookPathCandidate(value) {
+  const text = typeof value === 'string' ? value.trim() : '';
+  if (!text) return '';
+  if (text.length > 300) return '';
+  if (/[\n\r\0]/.test(text) || /\\[nr]/.test(text)) return '';
+  if (text.includes('@@') || text.includes('*** Begin Patch') || text.includes('*** End Patch')) return '';
+  return text;
+}
+
+function collectHookPathFields(value, out = []) {
+  if (!value || typeof value !== 'object') return out;
+  if (Array.isArray(value)) {
+    for (const item of value) collectHookPathFields(item, out);
+    return out;
+  }
+  for (const [key, fieldValue] of Object.entries(value)) {
+    const normalizedKey = key.toLowerCase().replace(/[-_]/g, '');
+    if (['file', 'filepath', 'filename', 'path'].includes(normalizedKey)) {
+      const candidate = normalizeHookPathCandidate(fieldValue);
+      if (candidate) out.push(candidate);
+    } else if (fieldValue && typeof fieldValue === 'object') {
+      collectHookPathFields(fieldValue, out);
+    }
+  }
+  return out;
+}
+
+function collectHookPatchTexts(value, out = []) {
+  if (!value || typeof value !== 'object') return out;
+  if (Array.isArray(value)) {
+    for (const item of value) collectHookPatchTexts(item, out);
+    return out;
+  }
+  for (const [key, fieldValue] of Object.entries(value)) {
+    const normalizedKey = key.toLowerCase().replace(/[-_]/g, '');
+    if (['patch', 'patchtext'].includes(normalizedKey) && typeof fieldValue === 'string') {
+      out.push(fieldValue);
+    } else if (fieldValue && typeof fieldValue === 'object') {
+      collectHookPatchTexts(fieldValue, out);
+    }
+  }
+  return out;
+}
+
 function parsePatchFilesFromPayload(payload) {
   const input = payload?.tool_input;
-  const text = typeof input === 'string' ? input : JSON.stringify(input || {});
-  const files = [];
-  const patterns = [
-    /\*\*\* (?:Add|Update|Delete) File:\s*([^\n\r]+)/g,
-    /"file_path"\s*:\s*"([^"]+)"/g,
-  ];
-  for (const pattern of patterns) {
-    let match;
-    while ((match = pattern.exec(text)) !== null) files.push(match[1].trim());
+  const texts = typeof input === 'string' ? [input] : collectHookPatchTexts(input);
+  if (typeof input === 'string' && input.trim().startsWith('{')) {
+    try {
+      const parsed = JSON.parse(input);
+      texts.push(...collectHookPatchTexts(parsed));
+    } catch {
+      // Hook payloads are not guaranteed to be JSON.
+    }
   }
+  const files = [];
+  const headerPattern = /^\*\*\* (?:Add|Update|Delete) File:\s*([^\n\r]+)$/gm;
+  for (const text of texts) {
+    let match;
+    while ((match = headerPattern.exec(text)) !== null) {
+      const candidate = normalizeHookPathCandidate(match[1]);
+      if (candidate) files.push(candidate);
+    }
+  }
+  files.push(...collectHookPathFields(input));
   return [...new Set(files)];
 }
 

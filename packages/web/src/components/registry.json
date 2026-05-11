@@ -244,6 +244,22 @@
       "zooRoute": "/design/empty-state"
     },
     {
+      "name": "ThemedEmptyState",
+      "path": "packages/web/src/components/patterns/themed/EmptyState.tsx",
+      "kind": "pattern",
+      "purpose": "Theme-aware empty-state panel from the reference themed-components set. Uses data-theme plus cuisine display type, card radius, primary tokens, and dashed border styling.",
+      "propsShape": {
+        "theme": "string (data-theme value; optional)",
+        "icon": "Lucide icon component (optional)",
+        "title": "string",
+        "description": "string (optional)",
+        "action": "{ label: string; onClick: () => void } (optional)"
+      },
+      "tokensUsed": ["--color-bg-surface", "--color-border-strong", "--color-primary", "--color-primary-light", "--color-text", "--color-text-secondary", "--radius-card", "--radius-btn", "--radius-full", "--font-sans", "--font-display", "--font-display-weight", "--font-display-tracking", "--hit-sm"],
+      "dependencies": ["lucide-react"],
+      "zooRoute": "/design/themed-empty-state"
+    },
+    {
       "name": "ConfirmButton",
       "path": "packages/web/src/components/patterns/ConfirmButton.tsx",
       "kind": "pattern",
@@ -368,6 +384,21 @@
       "tokensUsed": ["--color-bg-elevated", "--color-border", "--color-bg-muted", "--color-text", "--color-text-secondary", "--color-primary", "--color-text-inverse", "--radius-card", "--radius-btn", "--font-sans", "--font-display", "--font-display-weight", "--font-mono"],
       "dependencies": ["@web/lib/i18n"],
       "zooRoute": "/design/checkout-summary"
+    },
+    {
+      "name": "ThemedToast",
+      "path": "packages/web/src/components/patterns/themed/Toast.tsx",
+      "kind": "pattern",
+      "purpose": "Theme-aware toast card from the reference themed-components set. Uses data-theme, elevated surface, semantic tone bubble, and left accent border.",
+      "propsShape": {
+        "theme": "string (data-theme value; optional)",
+        "kind": "'success' | 'warning' | 'error' | 'danger' | 'info'",
+        "title": "string",
+        "description": "string (optional)"
+      },
+      "tokensUsed": ["--color-bg-elevated", "--color-border", "--color-success", "--color-success-light", "--color-warning", "--color-warning-light", "--color-danger", "--color-danger-light", "--color-info", "--color-info-light", "--color-text", "--color-text-secondary", "--radius-card", "--radius-full", "--shadow-md", "--font-sans"],
+      "dependencies": ["lucide-react"],
+      "zooRoute": "/design/themed-toast"
     }
   ],
   "tokens": {
