@@ -137,7 +137,19 @@
   "displayOnlyRecordKinds": [
     "deployments"
   ],
-  "displayOnlyRecordNotice": "Deployment records are display-only in generated guide artifacts. Append-only deployment records plus workflow:deployed-gate are the authoritative deployment proof.",
+  "recordEmbedExcludeKinds": [
+    "deployments"
+  ],
+  "recordEmbedExcludedCountLabels": {
+    "deployments": "gate"
+  },
+  "selfReferentialWarningFilters": [
+    {
+      "kind": "deployments",
+      "includes": "requires deployment but has no linked passing deployment record"
+    }
+  ],
+  "displayOnlyRecordNotice": "Deployment records are gate-only in generated guide artifacts. Append-only deployment records plus workflow:deployed-gate are the authoritative deployment proof.",
   "publicTimeline": {
     "excludeKinds": [
       "deployments"

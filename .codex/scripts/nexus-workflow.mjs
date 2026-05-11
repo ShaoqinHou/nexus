@@ -2247,6 +2247,27 @@ function displayOnlyRecordLabel(kind, label = kind) {
   return (POLICY.guide?.displayOnlyRecordKinds || []).includes(kind) ? `${label} (display-only)` : label;
 }
 
+function guideRecordEmbedExcludeKinds() {
+  const configured = POLICY.guide?.recordEmbedExcludeKinds || [];
+  return new Set(Array.isArray(configured) ? configured.map(String) : []);
+}
+
+function guideRecordDisplayValue(kind, count) {
+  const excluded = guideRecordEmbedExcludeKinds();
+  if (!excluded.has(kind)) return count;
+  return POLICY.guide?.recordEmbedExcludedCountLabels?.[kind] || 'gate';
+}
+
+function guideVisibleWorkIntakeWarnings(warnings = []) {
+  const filters = Array.isArray(POLICY.guide?.selfReferentialWarningFilters)
+    ? POLICY.guide.selfReferentialWarningFilters
+    : [];
+  return warnings.filter((warning) => !filters.some((filter) => {
+    const includes = String(filter?.includes || '');
+    return includes && String(warning).includes(includes);
+  }));
+}
+
 function workIntakeGuideContractProblems(html, label = 'guide', model = intakeModel()) {
   if (!INTAKE_ENABLED) return [];
   const problems = [];
@@ -2918,6 +2939,7 @@ function workIntakeHtml(model, html = escapeHtml) {
   const active = model.activeSlices.slice(0, maxActive);
   const trace = workIntakeTraceRows(model, maxTrace, { evidenceKinds: traceKinds });
   const catalog = featureCatalogEntries(model).slice(0, maxCatalog);
+  const visibleWarnings = guideVisibleWorkIntakeWarnings(model.warnings || []);
   const intentLine = (record) => `<li data-work-intake-intent="${html(recordDisplayId(record))}"><strong>${html(recordDisplayId(record))}</strong> <span class="meta">${html(record.status || 'unknown')} · ${html(record.kind || 'intent')}</span><br>${html(recordSummary(record))}</li>`;
   const sliceLine = (record, attr = 'data-work-intake-slice') => `<li ${attr}="${html(record.rootId || record.id || record.name)}"><strong>${html(record.rootId || record.id || record.name)}</strong> <span class="meta">${html(record.status || 'unknown')} · ${html(record.owner || 'unknown')}</span><br>${html(recordSummary(record))}<br><span class="meta">${html(linkedEvidenceSummary(record.rootId || record.id, model, traceKinds))}</span></li>`;
   const evidenceList = (kind, records) => records.length
@@ -2951,7 +2973,7 @@ function workIntakeHtml(model, html = escapeHtml) {
         <div class="card"><span class="meta">Inbox</span><strong>${model.inbox.length}</strong></div>
         <div class="card"><span class="meta">Active Work Slices</span><strong>${model.activeSlices.length}</strong></div>
         <div class="card"><span class="meta">Feature Catalog</span><strong>${catalog.length}</strong></div>
-        <div class="card"><span class="meta">Work Intake Warnings</span><strong>${model.warnings.length}</strong></div>
+        <div class="card"><span class="meta">Work Intake Warnings</span><strong>${visibleWarnings.length}</strong></div>
       </div>
       <h3>Work Intake Inbox</h3>
       ${inbox.length ? `<ul>${inbox.map(intentLine).join('\n')}</ul>` : '<p class="muted">No open user-intent records.</p>'}
@@ -2962,8 +2984,8 @@ function workIntakeHtml(model, html = escapeHtml) {
       <h3>Feature Catalog</h3>
       ${catalog.length ? `<ul>${catalog.map(catalogLine).join('\n')}</ul>` : '<p class="muted">No feature/intent catalog records yet.</p>'}
       <h3>Work Intake Warnings</h3>
-      <div data-work-intake-warning-state="${model.warnings.length ? 'problems' : 'clean'}">
-        ${model.warnings.length ? `<ul>${model.warnings.map((problem) => `<li>${html(problem)}</li>`).join('\n')}</ul>` : '<p class="muted">No deterministic intake problems reported.</p>'}
+      <div data-work-intake-warning-state="${visibleWarnings.length ? 'problems' : 'clean'}">
+        ${visibleWarnings.length ? `<ul>${visibleWarnings.map((problem) => `<li>${html(problem)}</li>`).join('\n')}</ul>` : '<p class="muted">No deterministic intake problems reported.</p>'}
       </div>
     </section>
   `;
@@ -2976,6 +2998,7 @@ function commandDashboard(args = {}) {
   const displayOnlyRecordNotice = String(POLICY.guide?.displayOnlyRecordNotice || '').trim();
   const rawRecords = Object.fromEntries(recordKinds.map((kind) => [kind, listRecords(kind)]));
   const records = displayRecords(rawRecords);
+  const recordEmbedExcludeKinds = guideRecordEmbedExcludeKinds();
   const currentState = readText(profileProjectRel('currentState'));
   const knowledgeSections = dashboardKnowledgeSections();
   const risks = readText(profileProjectRel('risks'));
@@ -3007,13 +3030,15 @@ function commandDashboard(args = {}) {
     ['Reviews', records.reviews.length],
     ['Tests', records.tests.length],
     ['Audits', records.audits.length],
-    [displayOnlyRecordLabel('deployments', 'Deployments'), records.deployments.length],
+    [displayOnlyRecordLabel('deployments', 'Deployments'), guideRecordDisplayValue('deployments', records.deployments.length)],
     ['Zoo Pages', `${zooLinked}/${zooEntries.length}`],
   ];
   const recordHtml = recordKinds.map((kind) => `
     <section id="${kind}" class="panel">
       <h2>${kind[0].toUpperCase() + kind.slice(1)}</h2>
-      ${records[kind].length ? records[kind].map((record) => `
+      ${recordEmbedExcludeKinds.has(kind)
+    ? `<p class="muted">${escapeHtml(displayOnlyRecordNotice || `${kind} records are omitted from generated guide artifacts and validated by gates.`)}</p>`
+    : records[kind].length ? records[kind].map((record) => `
         <article class="record">
           <div class="record-top">
             <strong>${escapeHtml(record.title)}</strong>
@@ -3338,7 +3363,7 @@ function commandPublicGuide(args = {}) {
           const items = records[kind] || [];
           const label = kind === 'audits' ? 'audits (first-class + legacy)' : kind;
           const displayLabel = displayOnlyRecordKinds.has(kind) ? `${label} (display-only)` : label;
-          return `<div class="card"><strong>${items.length}</strong><p>${publicHtml(displayLabel)}</p></div>`;
+          return `<div class="card"><strong>${publicHtml(guideRecordDisplayValue(kind, items.length))}</strong><p>${publicHtml(displayLabel)}</p></div>`;
         }).join('\n')}
       </div>
       <p class="meta">Guide-browser evidence is tracked separately by hash-bound records and omitted from this generated guide to avoid self-referential guide freshness loops.</p>
@@ -6093,7 +6118,9 @@ function workflowSelfTestChecks() {
   add('canonical ladder package scripts exist', canonicalLadder().every((script) => Object.hasOwn(packageWorkflowScripts(), script)));
   add('public guide uses deployment policy visual zoo URL', PUBLIC_ZOO_GUIDE_URL === POLICY.deployment?.visualZooGuideUrl);
   add('deployment records do not self-stale public guide source hash', !publicGuideInputFiles().some((file) => file.startsWith('.codex/workflow/records/deployments/')));
-  add('deployment records remain displayable guide records', GUIDE_RECORD_KINDS.includes('deployments'));
+  add('deployment records are gate-only in generated guide artifacts', GUIDE_RECORD_KINDS.includes('deployments')
+    && guideRecordEmbedExcludeKinds().has('deployments')
+    && String(guideRecordDisplayValue('deployments', 99)) === 'gate');
   add('self-referential guide evidence exclusions are policy-owned', selfReferentialEvidenceKinds().has('deployments') && !guideTraceEvidenceKinds().includes('deployments'));
   add('display-only guide record kinds have a public notice', (POLICY.guide?.displayOnlyRecordKinds || []).includes('deployments') && Boolean(POLICY.guide?.displayOnlyRecordNotice));
   add('deployment guide artifact metadata rejects per-file drift', (() => {
@@ -6287,6 +6314,26 @@ function workflowSelfTestChecks() {
     } finally {
       rmSync(path, { force: true });
     }
+  })());
+  add('work intake guide omits self-referential deployment warnings', (() => {
+    const model = {
+      intents: [],
+      workSlices: [],
+      latestSlices: [],
+      intentById: new Map(),
+      inbox: [],
+      activeSlices: [],
+      index: { latestByRoot: new Map(), byId: new Map() },
+      warnings: [
+        'work slice WORK-SLICE-test requires deployment but has no linked passing deployment record.',
+        'unrelated warning remains visible',
+      ],
+      evidence: Object.fromEntries(WORK_INTAKE_EVIDENCE_KINDS.map((kind) => [kind, []])),
+    };
+    const html = workIntakeHtml(model, escapeHtml);
+    return html.includes('unrelated warning remains visible')
+      && !html.includes('requires deployment but has no linked passing deployment record')
+      && html.includes('<span class="meta">Work Intake Warnings</span><strong>1</strong>');
   })());
   add('work intake guide contract rejects label-only trace surface', (() => {
     const intents = [{ id: 'INTENT-label', kind: 'feature', status: 'accepted', summary: 'Label only' }];
