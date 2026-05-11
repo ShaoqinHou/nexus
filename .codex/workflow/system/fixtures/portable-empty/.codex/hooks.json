@@ -1,0 +1,26 @@
+{
+  "SessionStart": [
+    {
+      "matcher": "startup|resume",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "node .codex/scripts/run-hook.mjs session-start",
+          "timeout": 30
+        }
+      ]
+    }
+  ],
+  "PostToolUse": [
+    {
+      "matcher": "Bash|apply_patch|Edit|Write",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "node .codex/scripts/run-hook.mjs post-tool-use",
+          "timeout": 30
+        }
+      ]
+    }
+  ]
+}

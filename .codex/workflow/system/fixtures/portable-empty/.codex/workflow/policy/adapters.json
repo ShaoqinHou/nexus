@@ -1,0 +1,83 @@
+{
+  "schema": "codex-workflow-adapters-policy/v1",
+  "sourceRoot": ".codex/workflow/project/adapters",
+  "modes": [
+    "exact-file",
+    "package-scripts"
+  ],
+  "uninstallBehaviors": [
+    "refuse-by-default",
+    "remove-if-clean",
+    "remove-managed-fields"
+  ],
+  "sourceOwners": {
+    "exact-file": {
+      "path": ".codex/workflow/project/adapters/",
+      "summary": "Exact fixed-path outputs are sourced from project adapter files."
+    },
+    "package-scripts": {
+      "path": ".codex/workflow/policy/gates.json#packageScripts",
+      "summary": "Package workflow scripts are pinned in gates.packageScripts."
+    }
+  },
+  "ownerMentionFiles": [
+    "WORKFLOW.md",
+    ".codex/README.md"
+  ],
+  "targets": [
+    {
+      "id": "root-agents-md",
+      "mode": "exact-file",
+      "source": "root/AGENTS.md",
+      "target": "AGENTS.md",
+      "ownership": "project-authored-managed-copy",
+      "uninstall": "refuse-by-default",
+      "portingAction": "rewrite"
+    },
+    {
+      "id": "root-workflow-md",
+      "mode": "exact-file",
+      "source": "root/WORKFLOW.md",
+      "target": "WORKFLOW.md",
+      "ownership": "project-authored-managed-copy",
+      "uninstall": "refuse-by-default",
+      "portingAction": "rewrite"
+    },
+    {
+      "id": "project-workflow-wrapper",
+      "mode": "exact-file",
+      "source": "scripts/portable-workflow.mjs",
+      "target": ".codex/scripts/portable-workflow.mjs",
+      "ownership": "mechanical-managed-copy",
+      "uninstall": "remove-if-clean",
+      "portingAction": "rewrite"
+    },
+    {
+      "id": "workflow-engine-shim",
+      "mode": "exact-file",
+      "source": "scripts/workflow-engine.mjs",
+      "target": ".codex/scripts/workflow-engine.mjs",
+      "ownership": "mechanical-managed-copy",
+      "uninstall": "remove-if-clean",
+      "portingAction": "copy-as-is"
+    },
+    {
+      "id": "workflow-hook-dispatcher",
+      "mode": "exact-file",
+      "source": "scripts/run-hook.mjs",
+      "target": ".codex/scripts/run-hook.mjs",
+      "ownership": "mechanical-managed-copy",
+      "uninstall": "remove-if-clean",
+      "portingAction": "copy-as-is"
+    },
+    {
+      "id": "package-scripts",
+      "mode": "package-scripts",
+      "target": "package.json",
+      "sourcePolicy": "gates.packageScripts",
+      "ownership": "managed workflow package scripts only",
+      "uninstall": "remove-managed-fields",
+      "portingAction": "rewrite"
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "schema": "codex-workflow-gates-policy/v1",
+  "ciWorkflowPath": ".github/workflows/portable-workflow-gates.yml",
+  "canonicalLadder": [
+    "workflow:status",
+    "workflow:health",
+    "workflow:release-gate",
+    "workflow:deployed-gate"
+  ],
+  "packageScripts": {
+    "workflow:status": "node .codex/scripts/portable-workflow.mjs status",
+    "workflow:health": "node .codex/scripts/portable-workflow.mjs health",
+    "workflow:dashboard": "node .codex/scripts/portable-workflow.mjs dashboard",
+    "workflow:public-guide": "node .codex/scripts/portable-workflow.mjs public-guide",
+    "workflow:guide-check": "node .codex/scripts/portable-workflow.mjs guide-check",
+    "workflow:policy-check": "node .codex/scripts/portable-workflow.mjs policy-check",
+    "workflow:capability-check": "node .codex/scripts/portable-workflow.mjs capability-check",
+    "workflow:inventory-check": "node .codex/scripts/portable-workflow.mjs inventory-check",
+    "workflow:adapter-check": "node .codex/scripts/portable-workflow.mjs adapter-check",
+    "workflow:trace-check": "node .codex/scripts/portable-workflow.mjs trace-check",
+    "workflow:work-intake-check": "node .codex/scripts/portable-workflow.mjs work-intake-check",
+    "workflow:run": "node .codex/scripts/portable-workflow.mjs run",
+    "workflow:self-test": "node .codex/scripts/portable-workflow.mjs self-test",
+    "workflow:release-gate": "node .codex/scripts/portable-workflow.mjs validate --release-gate",
+    "workflow:deployed-gate": "node .codex/scripts/portable-workflow.mjs validate --deployed-gate",
+    "workflow:portability-check": "node .codex/scripts/portable-workflow.mjs portability-check"
+  },
+  "ciWorkflowCommands": [
+    "npm run workflow:run -- --id ci-portable-policy --timeout-ms 90000 -- npm run workflow:policy-check",
+    "npm run workflow:run -- --id ci-portable-release --timeout-ms 120000 -- npm run workflow:release-gate"
+  ],
+  "evidence": {
+    "auditMirrorsVerificationRules": [
+      "workflow-system"
+    ],
+    "commandClasses": {
+      "workflow-policy": {
+        "npmScripts": [
+          "workflow:policy-check",
+          "workflow:capability-check"
+        ]
+      },
+      "workflow-adapter": {
+        "npmScripts": [
+          "workflow:adapter-check"
+        ]
+      },
+      "workflow-self-test": {
+        "npmScripts": [
+          "workflow:self-test"
+        ]
+      },
+      "workflow-trace": {
+        "npmScripts": [
+          "workflow:trace-check"
+        ]
+      },
+      "model-routing": {
+        "npmScripts": [
+          "workflow:status"
+        ]
+      }
+    },
+    "verificationRules": [
+      {
+        "name": "workflow-system",
+        "include": [
+          ".codex/",
+          "AGENTS.md",
+          "WORKFLOW.md",
+          "package.json",
+          "src/"
+        ],
+        "classes": [
+          "workflow-policy",
+          "workflow-adapter",
+          "workflow-self-test"
+        ]
+      }
+    ],
+    "auditRules": [
+      {
+        "name": "workflow-system",
+        "include": [
+          ".codex/",
+          "AGENTS.md",
+          "WORKFLOW.md",
+          "package.json",
+          "src/"
+        ],
+        "classes": [
+          "workflow-policy",
+          "workflow-adapter",
+          "workflow-self-test",
+          "workflow-trace"
+        ]
+      }
+    ]
+  }
+}

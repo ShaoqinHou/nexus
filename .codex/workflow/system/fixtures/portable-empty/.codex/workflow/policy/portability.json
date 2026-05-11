@@ -1,0 +1,233 @@
+{
+  "schema": "codex-workflow-portability-policy/v1",
+  "states": [
+    "required",
+    "active-optional",
+    "active-wrapper-coupled",
+    "disabled-stub",
+    "unsupported"
+  ],
+  "actions": [
+    "copy-as-is",
+    "copy-rename",
+    "rewrite",
+    "fresh-create",
+    "regenerate",
+    "never-copy",
+    "optional-capability"
+  ],
+  "capabilities": [
+    {
+      "id": "core-workflow-ladder",
+      "state": "required",
+      "portingAction": "rewrite",
+      "owner": "gates policy plus wrapper",
+      "emptyProjectRule": "enabled immediately"
+    },
+    {
+      "id": "workflow-engine-profile-loading",
+      "state": "required",
+      "portingAction": "copy-as-is",
+      "owner": "system engine",
+      "emptyProjectRule": "copy system scripts first"
+    },
+    {
+      "id": "adapter-contract",
+      "state": "required",
+      "portingAction": "rewrite",
+      "owner": "adapters policy",
+      "emptyProjectRule": "start with package scripts"
+    },
+    {
+      "id": "work-intake",
+      "state": "required",
+      "portingAction": "rewrite",
+      "owner": "intake policy and records",
+      "emptyProjectRule": "enable for solo-dev traces"
+    },
+    {
+      "id": "patch-review-verify-audit",
+      "state": "required",
+      "portingAction": "rewrite",
+      "owner": "records and gates",
+      "emptyProjectRule": "anti-drift evidence spine"
+    },
+    {
+      "id": "model-routing",
+      "state": "active-optional",
+      "portingAction": "rewrite",
+      "owner": "routing policy",
+      "emptyProjectRule": "generic workers until project roles exist"
+    },
+    {
+      "id": "hooks",
+      "state": "disabled-stub",
+      "portingAction": "optional-capability",
+      "owner": "hooks policy",
+      "emptyProjectRule": "enable only after trust/config decision"
+    },
+    {
+      "id": "generated-guide",
+      "state": "active-optional",
+      "portingAction": "regenerate",
+      "owner": "guide policy",
+      "emptyProjectRule": "bootstrap guide shows stubs"
+    },
+    {
+      "id": "deployment-validation",
+      "state": "disabled-stub",
+      "portingAction": "optional-capability",
+      "owner": "deployment policy",
+      "emptyProjectRule": "disabled until host exists"
+    },
+    {
+      "id": "design-system-zoo-gym",
+      "state": "disabled-stub",
+      "portingAction": "optional-capability",
+      "owner": "design policy",
+      "emptyProjectRule": "disabled until components/routes exist"
+    },
+    {
+      "id": "dependency-audit-baseline",
+      "state": "disabled-stub",
+      "portingAction": "optional-capability",
+      "owner": "dependency baseline",
+      "emptyProjectRule": "regenerate for npm projects"
+    },
+    {
+      "id": "ci-workflow-gates",
+      "state": "disabled-stub",
+      "portingAction": "optional-capability",
+      "owner": "CI adapter",
+      "emptyProjectRule": "enable only when CI exists"
+    }
+  ],
+  "pathRules": [
+    {
+      "match": "AGENTS.md",
+      "group": "fixed-adapter",
+      "portingAction": "rewrite",
+      "reason": "project instructions are project-specific"
+    },
+    {
+      "match": "WORKFLOW.md",
+      "group": "fixed-adapter",
+      "portingAction": "rewrite",
+      "reason": "human entry point is project-specific"
+    },
+    {
+      "match": "package.json",
+      "group": "fixed-adapter",
+      "portingAction": "rewrite",
+      "reason": "workflow scripts are installed adapter fields"
+    },
+    {
+      "match": ".codex/README.md",
+      "group": "workflow-reference-doc",
+      "portingAction": "rewrite",
+      "reason": "project-local guide"
+    },
+    {
+      "match": ".codex/config.toml",
+      "group": "fixed-adapter",
+      "portingAction": "rewrite",
+      "reason": "project trust, hooks, agents, and permission posture are project-specific"
+    },
+    {
+      "match": ".codex/hooks.json",
+      "group": "fixed-adapter",
+      "portingAction": "rewrite",
+      "reason": "hook triggers are project-specific fixed-path integration"
+    },
+    {
+      "match": ".codex/agents/",
+      "group": "fixed-adapter",
+      "portingAction": "rewrite",
+      "reason": "agent roles and model routing are project-specific"
+    },
+    {
+      "match": ".codex/scripts/",
+      "group": "project-wrapper",
+      "portingAction": "copy-rename",
+      "reason": "wrapper is project-specific, shims point to system"
+    },
+    {
+      "match": ".codex/workflow/principles.md",
+      "group": "workflow-design-doc",
+      "portingAction": "copy-as-is",
+      "reason": "portable workflow design map"
+    },
+    {
+      "match": ".codex/workflow/capabilities.md",
+      "group": "workflow-design-doc",
+      "portingAction": "rewrite",
+      "reason": "target capability states must be explicit"
+    },
+    {
+      "match": ".codex/workflow/system/",
+      "group": "reusable-system",
+      "portingAction": "copy-as-is",
+      "reason": "shared workflow mechanics"
+    },
+    {
+      "match": ".codex/workflow/project/",
+      "group": "project-adapter-source",
+      "portingAction": "rewrite",
+      "reason": "adapter sources are project facts"
+    },
+    {
+      "match": ".codex/workflow/policy/",
+      "group": "project-policy-data",
+      "portingAction": "rewrite",
+      "reason": "project-specific policy"
+    },
+    {
+      "match": ".codex/workflow/profile.json",
+      "group": "project-profile-data",
+      "portingAction": "rewrite",
+      "reason": "project identity and paths"
+    },
+    {
+      "match": ".codex/workflow/current-state.md",
+      "group": "managed-handover",
+      "portingAction": "fresh-create",
+      "reason": "target state starts fresh"
+    },
+    {
+      "match": ".codex/workflow/records/",
+      "group": "append-only-evidence",
+      "portingAction": "fresh-create",
+      "reason": "records are target evidence"
+    },
+    {
+      "match": ".codex/workflow/state/",
+      "group": "mutable-cache",
+      "portingAction": "never-copy",
+      "reason": "cache is delete-safe"
+    },
+    {
+      "match": ".codex/workflow/runtime/",
+      "group": "runtime-telemetry",
+      "portingAction": "never-copy",
+      "reason": "telemetry is local"
+    },
+    {
+      "match": ".codex/workflow/templates/",
+      "group": "workflow-reference-doc",
+      "portingAction": "rewrite",
+      "reason": "record shapes transfer with renamed examples"
+    },
+    {
+      "match": ".codex/workflow/scenarios/",
+      "group": "project-policy-data",
+      "portingAction": "rewrite",
+      "reason": "routing examples are project-specific"
+    },
+    {
+      "match": ".codex/knowledge/",
+      "group": "project-knowledge",
+      "portingAction": "rewrite",
+      "reason": "project knowledge starts as stubs"
+    }
+  ]
+}

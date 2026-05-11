@@ -1,5 +1,6 @@
 {
   "schema": "codex-workflow-gates-policy/v1",
+  "ciWorkflowPath": ".github/workflows/nexus-workflow-gates.yml",
   "canonicalLadder": [
     "workflow:status",
     "workflow:health",
@@ -33,6 +34,8 @@
     "workflow:adapter-sync": "node .codex/scripts/nexus-workflow.mjs adapter-sync",
     "workflow:adapter-uninstall": "node .codex/scripts/nexus-workflow.mjs adapter-uninstall",
     "workflow:policy-check": "node .codex/scripts/nexus-workflow.mjs policy-check",
+    "workflow:capability-check": "node .codex/scripts/nexus-workflow.mjs capability-check",
+    "workflow:portability-check": "node .codex/scripts/nexus-workflow.mjs portability-check",
     "workflow:trace-check": "node .codex/scripts/nexus-workflow.mjs trace-check",
     "workflow:hook-config-check": "node .codex/scripts/nexus-workflow.mjs hook-config-check",
     "workflow:hook-runtime-check": "node .codex/scripts/nexus-workflow.mjs hook-runtime-check",
@@ -62,7 +65,10 @@
     ],
     "commandClasses": {
       "workflow-policy": {
-        "npmScripts": ["workflow:policy-check"]
+        "npmScripts": ["workflow:policy-check", "workflow:capability-check"]
+      },
+      "workflow-portability": {
+        "npmScripts": ["workflow:portability-check"]
       },
       "workflow-adapter": {
         "npmScripts": ["workflow:adapter-check"]
@@ -114,7 +120,7 @@
       {
         "name": "workflow-system",
         "include": ["AGENTS.md", "WORKFLOW.md", ".codex/", ".agents/skills/", ".github/workflows/", "package.json", "package-lock.json"],
-        "classes": ["workflow-policy", "workflow-adapter", "workflow-self-test"]
+        "classes": ["workflow-policy", "workflow-adapter", "workflow-self-test", "workflow-portability"]
       },
       {
         "name": "routing",
@@ -146,7 +152,7 @@
       {
         "name": "workflow-audit",
         "include": ["AGENTS.md", "WORKFLOW.md", ".codex/", ".agents/skills/", ".github/workflows/", "package.json", "package-lock.json"],
-        "classes": ["workflow-policy", "workflow-adapter", "workflow-self-test", "workflow-trace"]
+        "classes": ["workflow-policy", "workflow-adapter", "workflow-self-test", "workflow-trace", "workflow-portability"]
       },
       {
         "name": "routing-audit",

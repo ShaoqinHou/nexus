@@ -1,0 +1,23 @@
+[
+  {
+    "id": "portable-small-slice",
+    "summary": "Small explicit change with tests.",
+    "expectedRoute": "spark",
+    "files": [
+      "src/example.ts"
+    ],
+    "small": true,
+    "narrow": true,
+    "explicit": true,
+    "tests": true
+  },
+  {
+    "id": "portable-architecture",
+    "summary": "Architecture refactor needs strong worker.",
+    "expectedRoute": "strong",
+    "files": [
+      "src/example.ts"
+    ],
+    "architecture": true
+  }
+]

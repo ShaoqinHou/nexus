@@ -1,0 +1,1 @@
+Portable workflow root. Canonical ladder: workflow:status -> workflow:health -> workflow:release-gate -> workflow:deployed-gate. System code is under .codex/workflow/system/. Project data is policy/profile/knowledge/records. Adapter truth lives in .codex/workflow/policy/adapters.json and package scripts are owned by gates.packageScripts.

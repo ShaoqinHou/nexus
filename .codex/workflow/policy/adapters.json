@@ -13,7 +13,7 @@
   "sourceOwners": {
     "exact-file": {
       "path": ".codex/workflow/project/adapters/",
-      "summary": "Canonical source files for exact fixed-path outputs. Edit target.source under sourceRoot, then sync/check adapters."
+      "summary": "Canonical payload files for exact fixed-path outputs. Script payloads use imports relative to the installed target path, so execute the synced target, not the adapter source in place."
     },
     "package-scripts": {
       "path": ".codex/workflow/policy/gates.json#packageScripts",
@@ -84,6 +84,33 @@
       "ownership": "managed-json-fields",
       "uninstall": "remove-managed-fields",
       "portingAction": "rewrite"
+    },
+    {
+      "id": "project-workflow-wrapper",
+      "mode": "exact-file",
+      "source": "scripts/nexus-workflow.mjs",
+      "target": ".codex/scripts/nexus-workflow.mjs",
+      "ownership": "mechanical-managed-copy",
+      "uninstall": "remove-if-clean",
+      "portingAction": "rewrite"
+    },
+    {
+      "id": "workflow-engine-shim",
+      "mode": "exact-file",
+      "source": "scripts/workflow-engine.mjs",
+      "target": ".codex/scripts/workflow-engine.mjs",
+      "ownership": "mechanical-managed-copy",
+      "uninstall": "remove-if-clean",
+      "portingAction": "copy-as-is"
+    },
+    {
+      "id": "workflow-hook-dispatcher",
+      "mode": "exact-file",
+      "source": "scripts/run-hook.mjs",
+      "target": ".codex/scripts/run-hook.mjs",
+      "ownership": "mechanical-managed-copy",
+      "uninstall": "remove-if-clean",
+      "portingAction": "copy-as-is"
     },
     {
       "id": "codex-agent-nexus-auditor",

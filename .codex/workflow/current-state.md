@@ -24,9 +24,11 @@ Evidence checked:
 
 No active work slice is open in this compact handover.
 
-Latest completed workflow architecture slice:
+Latest completed workflow architecture slices:
 
 - `WORK-SLICE-20260511T092322Z-work-slice-done-implement-behavior-preserving-wo`
+- `WORK-SLICE-20260511T124359Z-work-slice-done-research-design-implement-and-te`
+- `WORK-SLICE-20260511T124842Z-work-slice-verified-research-design-implement-an`
 
 Use detailed records and research notes for history. This file is only the compact handover.
 
@@ -88,10 +90,22 @@ Current adapter-backed workflow refactor closeout:
 
 The refactor centralizes fixed-path workflow files through `.codex/workflow/policy/adapters.json`. Exact-file adapter sources live in `.codex/workflow/project/adapters/`; package workflow scripts are owned by `.codex/workflow/policy/gates.json` `gates.packageScripts`. A routing-cache bug found during closeout was fixed in `.codex/scripts/nexus-workflow.mjs` and regression-tested in `workflow:self-test`.
 
+Current system/project extraction closeout:
+
+- intent: `INTENT-20260511T101550Z-intent-maintenance-fully-extract-workflow-system`
+- work slice: `WORK-SLICE-20260511T124359Z-work-slice-done-research-design-implement-and-te`
+- local verification closeout: `WORK-SLICE-20260511T124842Z-work-slice-verified-research-design-implement-an`
+- decision: `DECISION-20260511T112806Z-extract-reusable-workflow-system-from-nexus-proj`
+- research: `.codex/workflow/research/workflow-system-project-separation-2026-05-11.md`
+
+The workflow now has a reusable system layer at `.codex/workflow/system/`, a project-specific layer at `.codex/workflow/project/`, and an inspectable empty-project fixture at `.codex/workflow/system/fixtures/portable-empty/`. The deterministic portability check role-plays a fresh project with disabled/stubbed optional capabilities and checks that the reusable system does not carry Nexus app literals into the target project.
+
+Final local proof for this extraction is recorded with `wf-extract-*-final3` command ids. Use the latest branch-scope patch/review/verification/audit records tied to the current branch hash as the closeout source of truth; deployment proof remains in deployment records plus `workflow:deployed-gate`.
+
 ## Open Risks
 
 - Hook loading is still session/config dependent even though this session has now seen the project hook runtime. Use trusted `Custom (config.toml)` when hooks matter; explicit workflow gates remain the enforcement source.
-- The engine/profile extraction is conservative. A second project should rewrite profile/policy and adapt the wrapper before extracting more generic code.
+- A second project should copy the reusable system layer, then rewrite profile, policy, knowledge, adapter sources, agents, skills, package scripts, and optional capability inputs before installing fixed-path outputs.
 - Dependency audit baseline expires on 2026-06-09. Recheck before then or when `drizzle-kit` changes.
 - Design-system contrast coverage is stronger for primary-colored surfaces than for every possible token pair across all themes.
 
@@ -99,8 +113,8 @@ The refactor centralizes fixed-path workflow files through `.codex/workflow/poli
 
 1. Read `.codex/README.md`.
 2. Run `npm run workflow:status`.
-3. If continuing workflow architecture work, read `.codex/workflow/principles.md` and `.codex/workflow/capabilities.md`.
-4. Inspect the active work-slice record above, then open only linked records or research files needed for the task.
+3. If continuing workflow architecture work, read `.codex/workflow/principles.md`, `.codex/workflow/capabilities.md`, `.codex/workflow/system/README.md`, and `.codex/workflow/project/README.md`.
+4. Open only linked records or research files needed for the task.
 5. Before final local handover, run `npm run workflow:release-gate`.
 
 ## Git Note

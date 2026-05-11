@@ -1,0 +1,154 @@
+{
+  "schema": "codex-workflow-guide-policy/v1",
+  "version": "portable-workflow-guide/v1",
+  "contentHashPlaceholder": "__PORTABLE_GUIDE_CONTENT_HASH__",
+  "metaNames": {
+    "version": "portable-guide-version",
+    "sourceHash": "portable-guide-source-hash",
+    "recordFeedHash": "portable-guide-record-feed-hash",
+    "contentHash": "portable-guide-content-hash",
+    "tokenSource": "portable-token-source"
+  },
+  "tokenSourceLabel": "policy-owned tokens not configured",
+  "titles": {
+    "dashboard": "Portable Workflow Dashboard",
+    "public": "Portable Workflow Guide"
+  },
+  "publicSanitizer": {
+    "redactions": [
+      {
+        "pattern": "(token|secret|password|api[_-]?key)=([^&\\s]+)",
+        "flags": "gi",
+        "replacement": "$1=redacted"
+      }
+    ],
+    "forbiddenStrings": []
+  },
+  "artifacts": [
+    "index.html",
+    "public.html"
+  ],
+  "generatedSizeLimits": {
+    "index.html": 262144,
+    "public.html": 131072
+  },
+  "ladderMentionFiles": [
+    "AGENTS.md",
+    "WORKFLOW.md",
+    ".codex/README.md"
+  ],
+  "dashboardKnowledgeSections": [
+    {
+      "id": "work-intake",
+      "title": "Work Intake",
+      "file": ".codex/knowledge/work-intake.md"
+    }
+  ],
+  "sessionStart": {
+    "readDocs": [
+      ".codex/README.md",
+      "{currentState}",
+      "closest relevant .codex/knowledge file"
+    ],
+    "statusCommand": "node .codex/scripts/portable-workflow.mjs status"
+  },
+  "resume": {
+    "readDocs": [
+      "WORKFLOW.md",
+      "AGENTS.md",
+      ".codex/workflow/current-state.md"
+    ],
+    "permissionAdvice": "Use explicit workflow gates as enforcement; enable trusted project config only when hooks matter.",
+    "branchCloseoutCommands": [
+      "node .codex/scripts/portable-workflow.mjs record-patch --scope branch --summary \"<branch summary>\" --worker <lead-worker>"
+    ]
+  },
+  "recordFeedExcludeKinds": [
+    "deployments"
+  ],
+  "displayOnlyRecordKinds": [
+    "deployments"
+  ],
+  "displayOnlyRecordNotice": "Deployment proof is checked by gates and not embedded in bootstrap guide snapshots.",
+  "recordEmbedExcludeKinds": [
+    "deployments"
+  ],
+  "recordEmbedExcludedCountLabels": {
+    "deployments": "gate"
+  },
+  "selfReferentialWarningFilters": [
+    {
+      "kind": "deployments",
+      "includes": "requires deployment but has no linked passing deployment record"
+    }
+  ],
+  "requiredSourceFiles": [
+    ".codex/README.md",
+    ".codex/workflow/principles.md",
+    ".codex/workflow/capabilities.md",
+    ".codex/workflow/system/README.md"
+  ],
+  "sourceFiles": [
+    ".codex/README.md",
+    ".codex/workflow/principles.md",
+    ".codex/workflow/capabilities.md",
+    ".codex/workflow/system/README.md"
+  ],
+  "documentFiles": [
+    ".codex/README.md",
+    "WORKFLOW.md",
+    ".codex/workflow/principles.md",
+    ".codex/workflow/capabilities.md",
+    ".codex/knowledge/work-intake.md"
+  ],
+  "viewGraphs": {
+    "repository": {
+      "title": "Repository",
+      "nodes": [
+        {
+          "id": "root",
+          "label": "Project Root"
+        }
+      ],
+      "edges": []
+    },
+    "webApp": {
+      "title": "App",
+      "nodes": [
+        {
+          "id": "future-app",
+          "label": "Future App"
+        }
+      ],
+      "edges": []
+    },
+    "workflow": {
+      "title": "Workflow",
+      "nodes": [
+        {
+          "id": "system",
+          "label": "System Kernel"
+        },
+        {
+          "id": "policy",
+          "label": "Project Policy"
+        }
+      ],
+      "edges": [
+        [
+          "Project Policy",
+          "System Kernel"
+        ]
+      ]
+    }
+  },
+  "viewContract": {
+    "requiredStrings": [
+      "Workflow Shape",
+      "Workflow System Nodes",
+      "How Future Sessions Resume"
+    ],
+    "timelineCategoryHeadings": [],
+    "minTimelineCategories": 0
+  }
+}

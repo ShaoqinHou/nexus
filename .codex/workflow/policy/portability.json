@@ -16,6 +16,20 @@
     "never-copy",
     "optional-capability"
   ],
+  "sourceProjectLeakStrings": [
+    "Nexus",
+    "nexus",
+    "packages/",
+    "tenant",
+    "restaurant",
+    "cv.rehou",
+    "134.199",
+    "sichuan",
+    "/design/toast",
+    "+ Warning",
+    "Ingredient threshold reached.",
+    "Welcome to Nexus"
+  ],
   "capabilities": [
     {
       "id": "core-workflow-ladder",

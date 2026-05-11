@@ -34,6 +34,7 @@ For workflow migration, architecture changes, or second-project setup, read `wor
 - `workflow/policy/*.json` is the project-specific policy pack consumed by the workflow engine.
 - `workflow/research/codex-capabilities-2026-05-09.md` records the Codex behavior research.
 - `workflow/research/workflow-engine-profile-extraction-2026-05-10.md` records the first reusable engine/profile extraction boundary.
+- `workflow/research/workflow-system-project-separation-2026-05-11.md` records the current system/project separation research and empty-project role-play decision.
 - `workflow/templates/project-bootstrap.md` is the portable bootstrap checklist for creating `.codex/config.toml`, hooks, profile, and policy in a second project.
 - `knowledge/patterns.md` captures durable project patterns and traps.
 - `knowledge/design-system.md` captures the design-system source of truth and invariants.
@@ -43,14 +44,18 @@ For workflow migration, architecture changes, or second-project setup, read `wor
 - `knowledge/verification.md` captures evidence policy for tests, browser checks, screenshots, and deployment validation.
 - `knowledge/deployment.md` captures server and deployment conventions.
 - `agents/*.toml` defines project-scoped Codex subagents.
-- `scripts/workflow-engine.mjs` is the reusable loader/path-policy layer for Codex workflow profiles.
-- `scripts/nexus-workflow.mjs` is the Nexus wrapper and deterministic workflow helper.
+- `workflow/system/scripts/workflow-engine.mjs` is the reusable loader/path-policy layer for Codex workflow profiles.
+- `workflow/system/scripts/workflow-kernel.mjs` is the reusable deterministic workflow kernel.
+- `workflow/system/scripts/run-hook.mjs` is the reusable thin hook dispatcher.
+- `workflow/system/fixtures/portable-empty/` is the inspectable empty-project fixture used by `workflow:portability-check`.
+- `scripts/nexus-workflow.mjs` is the Nexus wrapper shim into the system kernel.
+- `scripts/workflow-engine.mjs` is a compatibility shim for fixed-path imports.
 - `scripts/audit-deps.mjs` runs `npm audit` with an explicit expiring baseline for known dev-only advisories.
 - `scripts/check-public-guide-images.mjs` validates the deployed public workflow guide and Zoo/Gym screenshot image responses.
 - `scripts/check-production-zoo-bundle.mjs` checks production build output does not ship the interactive dev-only Zoo route/chunk.
 - `scripts/validate-design-zoo.mjs` validates the running `/design` zoo through Playwright.
 - `scripts/capture-design-zoo-visuals.mjs` captures the live `/design` zoo into the deployable visual guide at `dashboard/zoo/index.html`.
-- `scripts/run-hook.mjs` is the only command hooks call; it forwards hook events to the workflow kernel.
+- `scripts/run-hook.mjs` is the fixed hook-dispatcher shim Codex hooks call; the implementation lives in `workflow/system/scripts/run-hook.mjs`.
 - `hooks.json` wires Codex lifecycle hooks when project hooks are enabled and trusted.
 - `workflow/project/adapters/` is the canonical source for exact-file adapter outputs such as `AGENTS.md`, `WORKFLOW.md`, `.codex/config.toml`, `.codex/hooks.json`, `.codex/agents/*.toml`, `.agents/skills/*`, and GitHub workflow gates.
 - `.codex/workflow/policy/adapters.json` is the adapter owner map. It also declares the `package-scripts` adapter, whose canonical source is `.codex/workflow/policy/gates.json` `gates.packageScripts`.
@@ -61,18 +66,19 @@ For workflow migration, architecture changes, or second-project setup, read `wor
 - `workflow/runtime/` stores operational telemetry, hook heartbeats, PIDs, and local logs. It is not durable evidence.
 - `npm run workflow:status`, `npm run workflow:health`, `npm run workflow:release-gate`, and `npm run workflow:deployed-gate` are the public workflow ladder.
 - `npm run workflow:inventory-check`, `npm run workflow:adapter-check`, `npm run workflow:policy-check`, and `npm run workflow:trace-check` are deterministic checks for workflow file placement, fixed adapter drift, policy consumption, and command execution telemetry.
+- `npm run workflow:portability-check` builds a temporary empty-project installation from the reusable system layer plus fresh project policy/profile stubs. It proves optional design/deployment capabilities can wait for content without carrying Nexus app facts into system code.
 - `npm run workflow:work-intake-check` validates user-intent/work-slice traceability, orphan patch coverage, stale active slices, and optional external tracker references.
 - `npm run workflow:guide-browser-finalize` is the deterministic final guide-evidence step when guide artifacts are in scope. Run it after review, verification, and audit records are in place; it regenerates guide artifacts, captures browser evidence, and records the hash-bound guide-browser pass.
 
 ## Workflow Kernel
 
-The center of the system is the deterministic kernel exposed through `scripts/nexus-workflow.mjs`, with reusable profile loading and path policy helpers in `scripts/workflow-engine.mjs`. Nexus-specific facts live in `workflow/profile.json` and `workflow/policy/*.json`.
+The center of the system is the deterministic kernel in `workflow/system/scripts/workflow-kernel.mjs`, exposed through the project wrapper `scripts/nexus-workflow.mjs`. Reusable profile loading and path policy helpers live in `workflow/system/scripts/workflow-engine.mjs`. Nexus-specific facts live in `workflow/profile.json`, `workflow/policy/*.json`, `.codex/knowledge/`, and `workflow/project/adapters/`.
 
 - records are its durable state,
 - hooks, package scripts, local/server validation, and future CI should call it instead of duplicating logic,
 - LLMs supply judgment by creating review, verification, audit, routing, and pattern-proposal records,
 - the kernel decides whether required records exist, hashes match, guide artifacts are current, and release gates can pass.
-- file classifiers, review-kind classifiers, required files, record schemas, hook expectations, guide contracts, deployment URLs, and design-system source inputs should be changed in the policy pack before changing kernel code.
+- file classifiers, review-kind classifiers, required files, record schemas, hook expectations, guide contracts, capability states, deployment URLs, and design-system source inputs should be changed in the policy pack before changing kernel code.
 - passing verification, audit, and deployment records embed compact command-run summaries from the timed runner, so gates validate durable command evidence instead of trusting mutable runtime telemetry.
 - state JSON files under `workflow/state/` are caches only; gates cross-check them against append-only markdown records before trusting a pass.
 - record integrity also checks committed evidence-record history against the configured base branch when available, so old records must be corrected by adding a new record instead of rewriting the old one.
@@ -135,7 +141,7 @@ Before final local handover, run the canonical gate:
 npm run workflow:release-gate
 ```
 
-If it fails, run `npm run workflow:health` for the diagnostic breakdown. The release gate covers records, routing, generated guides, guide-browser evidence, Zoo/Gym evidence, `.codex` inventory, workflow policy, command trace telemetry, hook config, branch evidence, dependency-audit baseline, production Zoo bundling, handover hygiene, and workflow self-tests.
+If it fails, run `npm run workflow:health` for the diagnostic breakdown. The release gate covers records, routing, generated guides, guide-browser evidence, Zoo/Gym evidence, `.codex` inventory, workflow policy, empty-project portability, command trace telemetry, hook config, branch evidence, dependency-audit baseline, production Zoo bundling, handover hygiene, and workflow self-tests.
 
 Pattern proposal, routing, patch, review, test, audit, guide-browser, and deployment records are append-only once committed. If a record is wrong, create a correction record rather than editing committed evidence. `NEXUS_RECORD_BASE=<ref>` can be used to force the base ref for append-only history checks; otherwise the kernel uses `origin/main` or `main` when present.
 

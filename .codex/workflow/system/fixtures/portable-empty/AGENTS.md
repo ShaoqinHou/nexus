@@ -1,0 +1,1 @@
+Read .codex/README.md, .codex/workflow/current-state.md, and run npm run workflow:status. Canonical ladder: workflow:status -> workflow:health -> workflow:release-gate -> workflow:deployed-gate. Adapter truth lives in .codex/workflow/policy/adapters.json and package scripts are owned by gates.packageScripts.

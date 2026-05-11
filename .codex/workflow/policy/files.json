@@ -28,6 +28,7 @@
     ".codex/workflow/runtime/.gitignore",
     ".codex/workflow/dependency-audit-baseline.json",
     ".codex/workflow/system/README.md",
+    ".codex/workflow/system/fixtures/portable-empty/",
     ".codex/workflow/project/README.md",
     ".github/workflows/nexus-workflow-gates.yml",
     ".codex/scripts/audit-deps.mjs",
@@ -41,6 +42,9 @@
     ".codex/scripts/validate-theme-settings-preview.mjs",
     ".codex/scripts/workflow-engine.mjs",
     ".codex/scripts/capture-design-zoo-visuals.mjs",
+    ".codex/workflow/system/scripts/workflow-engine.mjs",
+    ".codex/workflow/system/scripts/workflow-kernel.mjs",
+    ".codex/workflow/system/scripts/run-hook.mjs",
     ".codex/knowledge/patterns.md",
     ".codex/knowledge/design-system.md",
     ".codex/knowledge/work-intake.md",
@@ -193,10 +197,42 @@
       {
         "path": ".codex/workflow/system/",
         "role": "workflow-system-code",
-        "truth": "reusable workflow-system architecture notes and adapter contracts",
+        "truth": "reusable workflow-system architecture notes, adapter contracts, and shared deterministic kernel code",
         "llmLoadPolicy": "read for workflow architecture changes, portability work, or adapter-system changes",
         "stalenessRisk": "medium",
         "portingRule": "copy shape when the reusable system contract is still intended, then verify against target policy"
+      },
+      {
+        "path": ".codex/workflow/system/scripts/workflow-kernel.mjs",
+        "role": "workflow-system-code",
+        "truth": "shared deterministic workflow CLI implementation, capability switchboard, records, gates, and guide renderer",
+        "llmLoadPolicy": "edit for reusable workflow mechanics; do not hardcode project facts here",
+        "stalenessRisk": "medium",
+        "portingRule": "copy as system code; target projects provide profile, policy, knowledge, records, adapters, and optional capability data"
+      },
+      {
+        "path": ".codex/workflow/system/scripts/workflow-engine.mjs",
+        "role": "workflow-system-code",
+        "truth": "shared workflow profile, policy, path, TOML, and sanitizer helpers",
+        "llmLoadPolicy": "edit for reusable loading and path-policy mechanics only",
+        "stalenessRisk": "low",
+        "portingRule": "copy as system code; installed .codex/scripts/workflow-engine.mjs is a compatibility shim"
+      },
+      {
+        "path": ".codex/workflow/system/scripts/run-hook.mjs",
+        "role": "workflow-system-code",
+        "truth": "shared thin hook dispatcher that resolves the active project wrapper from workflow profile data",
+        "llmLoadPolicy": "edit only for reusable hook dispatch mechanics; keep project judgment in the kernel, records, skills, and knowledge",
+        "stalenessRisk": "low",
+        "portingRule": "copy as system code; installed .codex/scripts/run-hook.mjs is an adapter-managed shim"
+      },
+      {
+        "path": ".codex/workflow/system/fixtures/portable-empty/",
+        "role": "workflow-system-fixture",
+        "truth": "inspectable empty-project bootstrap fixture used by workflow:portability-check",
+        "llmLoadPolicy": "read for portability changes or second-project setup; keep source-project facts out",
+        "stalenessRisk": "medium",
+        "portingRule": "copy as a reference fixture only; target projects rewrite project policy/profile/knowledge and start fresh records"
       },
       {
         "path": ".codex/workflow/scenarios/",
@@ -307,6 +343,22 @@
       "audit": true,
       "guide": true,
       "zooVisual": true
+    },
+    {
+      "file": ".codex/scripts/run-hook.mjs",
+      "substantive": true,
+      "verification": true,
+      "audit": true,
+      "guide": true,
+      "zooVisual": false
+    },
+    {
+      "file": ".codex/workflow/system/scripts/run-hook.mjs",
+      "substantive": true,
+      "verification": true,
+      "audit": true,
+      "guide": true,
+      "zooVisual": false
     },
     {
       "file": ".codex/workflow/policy/files.json",

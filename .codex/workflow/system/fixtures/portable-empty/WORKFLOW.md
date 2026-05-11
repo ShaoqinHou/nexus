@@ -1,0 +1,1 @@
+Portable workflow bootstrap. Canonical ladder: workflow:status -> workflow:health -> workflow:release-gate -> workflow:deployed-gate. Adapter truth lives in .codex/workflow/policy/adapters.json and package workflow scripts are owned by gates.packageScripts.

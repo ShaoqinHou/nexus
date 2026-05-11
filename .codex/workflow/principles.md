@@ -20,7 +20,7 @@ The LLM supplies judgment. The workflow records that judgment and checks that re
    Durable project state lives in append-only records under `.codex/workflow/records/` plus git branch/worktree state. Chat, generated guides, mutable cache, and screenshots are not the source of truth.
 
 2. There is one deterministic kernel.
-   Workflow enforcement should route through the project wrapper, currently `.codex/scripts/nexus-workflow.mjs`, and the reusable loader `.codex/scripts/workflow-engine.mjs`. Do not create parallel closeout checklists that duplicate gate logic.
+   Workflow enforcement routes through the reusable system kernel at `.codex/workflow/system/scripts/workflow-kernel.mjs`, reached by the project wrapper at `.codex/scripts/nexus-workflow.mjs`. Do not create parallel closeout checklists that duplicate gate logic.
 
 3. Project facts live in policy, profile, and knowledge.
    Paths, file classifiers, record schemas, guide contracts, deployment URLs, design-system inputs, hook expectations, adapter targets, adapter source owners, and routing scenarios belong in `.codex/workflow/profile.json` and `.codex/workflow/policy/*.json` first. Project patterns and invariants belong in `.codex/knowledge/`; canonical exact-file adapter sources belong in `.codex/workflow/project/adapters/`.
@@ -46,11 +46,12 @@ The LLM supplies judgment. The workflow records that judgment and checks that re
 10. Model routing is explicit.
    Fast workers are allowed only for narrow, heavily guided work with clear scope and tests. Ambiguous debugging, architecture, visual/design judgment, deployment, and cross-cutting changes stay with a strong model or the lead.
 
-11. Portability means replacing project data, not pretending Nexus facts are generic.
-   The workflow shape can be copied. Nexus app paths, design-system details, deployment URLs, tenant rules, package scripts, and historical records must be rewritten or discarded for the target project.
+11. Portability means copying the system and replacing project data.
+   The reusable system layer can be copied. Nexus app paths, design-system details, deployment URLs, tenant rules, package scripts, adapter sources, knowledge, generated guides, and historical records must be rewritten, regenerated, or discarded for the target project. The executable proof is `npm run workflow:portability-check`, which role-plays a fresh empty project with disabled/stubbed optional capabilities.
 
 12. Fixed-path integration is an adapter problem.
    Some tools require files outside the workflow root, such as `AGENTS.md`, `.codex/config.toml`, repo skills, CI workflow files, and package scripts. `.codex/workflow/policy/adapters.json` declares every target and its source owner. Exact-file outputs are sourced from `.codex/workflow/project/adapters/`; package workflow scripts are sourced from `.codex/workflow/policy/gates.json` `gates.packageScripts`.
+   Exact-file script adapter sources are target-path payloads, not standalone runnable scripts from the adapter directory. Install or check them through the adapter commands.
 
 ## Responsibility Map
 
@@ -60,12 +61,15 @@ The LLM supplies judgment. The workflow records that judgment and checks that re
 | `WORKFLOW.md` | Human-facing root pointer | Copy shape, rewrite as the shortest "start here" for the target project. |
 | `.codex/README.md` | Detailed workflow entry point | Copy shape, rewrite project-specific sections and links. |
 | `.codex/workflow/principles.md` | Base design and portability map | Copy, then adjust only if the target workflow intentionally changes principles. |
-| `.codex/scripts/workflow-engine.mjs` | Reusable loader, path policy, sanitizer, and matching helpers | Copy as reusable system code unless the second project proves an engine change is needed. |
-| `.codex/scripts/nexus-workflow.mjs` | Nexus wrapper and deterministic kernel surface | Copy as starting point, rename to `<project>-workflow.mjs`, then remove or adapt Nexus-specific behavior. |
-| `.codex/scripts/run-hook.mjs` | Thin hook dispatcher | Copy and point it at the target wrapper through profile data. |
+| `.codex/workflow/system/scripts/workflow-engine.mjs` | Reusable loader, path policy, sanitizer, and matching helpers | Copy as reusable system code. Installed `.codex/scripts/workflow-engine.mjs` is only a compatibility shim. |
+| `.codex/workflow/system/scripts/workflow-kernel.mjs` | Reusable deterministic workflow kernel | Copy as system code. Project facts must arrive through profile, policy, knowledge, records, adapter sources, and capability inputs. |
+| `.codex/workflow/system/scripts/run-hook.mjs` | Reusable thin hook dispatcher | Copy as system code; it reads the target wrapper from profile data. |
+| `.codex/workflow/system/fixtures/portable-empty/` | Inspectable empty-project fixture for portability role-play | Copy as system reference. It is not target live state; target projects rewrite profile, policy, adapter sources, and records. |
+| `.codex/scripts/nexus-workflow.mjs` | Nexus wrapper shim into the system kernel | Rewrite/rename through `.codex/workflow/project/adapters/scripts/` and `profile.paths.workflowWrapper`. |
+| `.codex/scripts/run-hook.mjs` | Fixed hook-dispatcher shim | Install from adapter source so Codex hooks have a stable command path. |
 | `.codex/workflow/profile.json` | Project identity, root paths, env names, generated surface paths | Rewrite for the target project. |
 | `.codex/workflow/policy/*.json` | Project-specific rules consumed by gates | Rewrite first. Do not hardcode target-project facts in scripts until policy cannot express them. |
-| `.codex/workflow/system/*` | Reusable workflow-system contracts and adapter design | Copy shape when the same system is intended; verify behavior in the target project. |
+| `.codex/workflow/system/*` | Reusable workflow-system code, contracts, and adapter design | Copy the system layer first, then verify behavior in the target project. |
 | `.codex/workflow/project/*` | Project-specific workflow overlays and canonical exact-file adapter sources | Rewrite before installing fixed-path files. Do not copy Nexus adapter sources as target truth. |
 | `.codex/knowledge/*.md` | Durable project patterns and operational knowledge | Rewrite. Do not carry Nexus design/deployment facts as live truth. |
 | `.codex/workflow/templates/*.md` | Record shapes and bootstrap guidance | Copy, then rename command examples and project-specific names. |
@@ -88,7 +92,7 @@ Use these groups when deciding what to open, edit, copy, or discard:
 
 | Group | Examples | Read/Edit Rule |
 | --- | --- | --- |
-| System code | `.codex/scripts/workflow-engine.mjs`, project wrapper, hook dispatcher | Edit only for deterministic behavior. Project-specific facts should move to profile/policy first. |
+| System code | `.codex/workflow/system/scripts/*`, `.codex/scripts/*` shims, hook dispatcher | Edit only for deterministic behavior. Project-specific facts should move to profile/policy first. |
 | Project adapter sources | `.codex/workflow/project/adapters/*`, `.codex/workflow/project/README.md` | Canonical sources for exact-file adapter outputs. Package workflow scripts are owned by `gates.packageScripts` instead. |
 | Project policy/profile data | `.codex/workflow/profile.json`, `.codex/workflow/policy/*.json`, dependency audit baseline | Machine-consumed. Prefer compact JSON facts, enums, path lists, and gate contracts over prose duplication. |
 | Workflow design/reference docs | `principles.md`, `capabilities.md`, `templates/*` | Explain intent and usage. These are useful but stale-prone, so they should point at policy owners instead of repeating enums or path lists. |
@@ -178,11 +182,12 @@ If a note is worth keeping but not worth loading every session, put it in `resea
 
 Before claiming the workflow works in another project:
 
-1. Replace profile and policy with target-project facts.
-2. Rename the wrapper and package scripts.
-3. Replace Nexus knowledge files with target-project knowledge.
-4. Start fresh records and current state.
-5. Rewrite adapter source owners, sync fixed-path outputs, and run adapter checks.
-6. Run policy, inventory, adapter, trace, self-test, and release gates.
-7. Exercise at least one easy task, one hard/escalation task, one review-trigger task, and one failure-path test.
-8. Record what failed and whether the fix changed policy, knowledge, script behavior, adapters, or only documentation.
+1. Copy `.codex/workflow/system/` and the fixed-path shims it requires.
+2. Create target profile, policy, knowledge, adapter sources, records root, and current-state from templates.
+3. Rename the project wrapper and package scripts through adapter sources and gates policy.
+4. Decide capability states in portability policy before adding design/deployment/Zoo/project-specific scripts.
+5. Start fresh records and current state.
+6. Sync fixed-path outputs and run adapter, capability, policy, inventory, trace, self-test, and release gates.
+7. Run `npm run workflow:portability-check` to prove the reusable system can install into an empty project from the inspectable portable fixture plus current system scripts.
+8. Exercise at least one easy task, one hard/escalation task, one review-trigger task, and one failure-path test.
+9. Record what failed and whether the fix changed policy, knowledge, system code, project adapter sources, or only documentation.

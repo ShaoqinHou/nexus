@@ -1,0 +1,20 @@
+{
+  "schema": "codex-workflow-hooks-policy/v1",
+  "config": {
+    "sandbox_mode": "danger-full-access",
+    "approval_policy": "never",
+    "features": {
+      "hooks": true,
+      "multi_agent": true
+    },
+    "deprecatedFeatures": {
+      "codex_hooks": "hooks",
+      "enable_experimental_windows_sandbox": "experimental_windows_sandbox"
+    }
+  },
+  "hooks": {},
+  "runtime": {
+    "requiredEvents": [],
+    "diagnosticEvents": []
+  }
+}

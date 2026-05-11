@@ -194,6 +194,8 @@
     ".codex/scripts/run-hook.mjs",
     ".codex/scripts/workflow-engine.mjs",
     ".codex/scripts/nexus-workflow.mjs",
+    ".codex/workflow/system/scripts/workflow-engine.mjs",
+    ".codex/workflow/system/scripts/workflow-kernel.mjs",
     ".codex/scripts/capture-design-zoo-visuals.mjs",
     ".codex/scripts/validate-design-zoo.mjs",
     ".codex/knowledge/design-system.md",
@@ -226,8 +228,10 @@
     ".codex/workflow/policy/intake.json",
     ".codex/workflow/policy/deployment.json",
     ".codex/scripts/nexus-workflow.mjs",
+    ".codex/workflow/system/scripts/workflow-kernel.mjs",
     ".codex/scripts/check-production-app.mjs",
     ".codex/scripts/workflow-engine.mjs",
+    ".codex/workflow/system/scripts/workflow-engine.mjs",
     ".codex/workflow/system/README.md",
     ".codex/workflow/project/README.md",
     ".codex/workflow/templates/project-bootstrap.md"
@@ -254,6 +258,7 @@
     ".codex/workflow/research/workflow-duplicate-agent-audit-2026-05-11.md",
     ".codex/workflow/research/workflow-portability-onboarding-audit-2026-05-11.md",
     ".codex/workflow/research/workflow-data-shape-audit-2026-05-11.md",
+    ".codex/workflow/research/workflow-system-project-separation-2026-05-11.md",
     ".codex/workflow/research/design-system-integration-audit-2026-05-10.md",
     ".codex/workflow/research/design-system-parity-implementation-2026-05-11.md"
   ],

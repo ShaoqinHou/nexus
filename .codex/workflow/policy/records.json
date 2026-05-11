@@ -14,6 +14,7 @@
     "deployments"
   ],
   "evidenceKinds": [
+    "decisions",
     "intents",
     "work-slices",
     "pattern-proposals",

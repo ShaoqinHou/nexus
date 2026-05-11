@@ -1,0 +1,4 @@
+name = "portable-researcher"
+description = "Read-only workflow bootstrap researcher."
+model = "gpt-5.4-mini"
+reasoning_effort = "medium"

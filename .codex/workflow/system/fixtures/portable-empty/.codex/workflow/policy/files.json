@@ -1,0 +1,362 @@
+{
+  "schema": "codex-workflow-files-policy/v1",
+  "requiredWorkflowFiles": [
+    "AGENTS.md",
+    "WORKFLOW.md",
+    "package.json",
+    ".codex/README.md",
+    ".codex/config.toml",
+    ".codex/hooks.json",
+    ".codex/workflow/current-state.md",
+    ".codex/workflow/principles.md",
+    ".codex/workflow/capabilities.md",
+    ".codex/workflow/profile.json",
+    ".codex/workflow/records/risks.md",
+    ".codex/workflow/policy/manifest.json",
+    ".codex/workflow/policy/records.json",
+    ".codex/workflow/policy/compatibility.json",
+    ".codex/workflow/policy/files.json",
+    ".codex/workflow/policy/guide.json",
+    ".codex/workflow/policy/adapters.json",
+    ".codex/workflow/policy/portability.json",
+    ".codex/workflow/policy/routing.json",
+    ".codex/workflow/policy/intake.json",
+    ".codex/workflow/policy/hooks.json",
+    ".codex/workflow/policy/gates.json",
+    ".codex/workflow/state/.gitignore",
+    ".codex/workflow/runtime/.gitignore",
+    ".codex/workflow/system/README.md",
+    ".codex/workflow/system/fixtures/portable-empty/",
+    ".codex/workflow/system/scripts/workflow-engine.mjs",
+    ".codex/workflow/system/scripts/workflow-kernel.mjs",
+    ".codex/workflow/system/scripts/run-hook.mjs",
+    ".codex/workflow/project/README.md",
+    ".codex/workflow/templates/project-bootstrap.md",
+    ".codex/workflow/templates/intent.md",
+    ".codex/workflow/templates/work-slice.md",
+    ".codex/workflow/scenarios/model-routing.json",
+    ".codex/knowledge/work-intake.md",
+    ".codex/knowledge/model-routing.md",
+    ".codex/knowledge/patterns.md",
+    ".codex/knowledge/hooks.md",
+    ".codex/knowledge/verification.md",
+    ".codex/agents/portable-researcher.toml",
+    ".codex/scripts/portable-workflow.mjs",
+    ".codex/scripts/workflow-engine.mjs",
+    ".codex/scripts/run-hook.mjs"
+  ],
+  "inventory": {
+    "root": ".codex",
+    "allowedRootFiles": [
+      ".codex/README.md",
+      ".codex/config.toml",
+      ".codex/hooks.json"
+    ],
+    "allowedRootDirectories": [
+      ".codex/agents/",
+      ".codex/dashboard/",
+      ".codex/knowledge/",
+      ".codex/scripts/",
+      ".codex/workflow/"
+    ],
+    "runtimeDirectories": [
+      ".codex/workflow/state/",
+      ".codex/workflow/runtime/"
+    ],
+    "runtimeTrackedAllowlist": [
+      ".codex/workflow/state/.gitignore",
+      ".codex/workflow/runtime/.gitignore"
+    ],
+    "allowedArtifactDirectories": [
+      ".codex/workflow/artifacts/portability/"
+    ],
+    "allowedArtifactExtensions": [
+      ".json",
+      ".png",
+      ".jpg"
+    ],
+    "artifactRetention": {
+      "maxTotalBytes": 1048576,
+      "maxFileBytes": 262144,
+      "rule": "Portable bootstrap keeps artifacts bounded and record-linked."
+    },
+    "workflowRootFiles": [
+      ".codex/workflow/current-state.md",
+      ".codex/workflow/capabilities.md",
+      ".codex/workflow/principles.md",
+      ".codex/workflow/profile.json"
+    ],
+    "workflowRootDirectories": [
+      ".codex/workflow/artifacts/",
+      ".codex/workflow/policy/",
+      ".codex/workflow/project/",
+      ".codex/workflow/records/",
+      ".codex/workflow/runtime/",
+      ".codex/workflow/scenarios/",
+      ".codex/workflow/state/",
+      ".codex/workflow/system/",
+      ".codex/workflow/templates/"
+    ],
+    "scriptExtensions": [
+      ".mjs"
+    ],
+    "agentExtensions": [
+      ".toml"
+    ],
+    "knowledgeExtensions": [
+      ".md"
+    ],
+    "templateExtensions": [
+      ".md"
+    ],
+    "researchExtensions": [
+      ".md"
+    ],
+    "briefExtensions": [
+      ".md"
+    ],
+    "roleTaxonomy": [
+      {
+        "path": ".codex/workflow/current-state.md",
+        "role": "managed-handover",
+        "truth": "compact current state",
+        "llmLoadPolicy": "read at session start",
+        "stalenessRisk": "high",
+        "portingRule": "fresh-create"
+      },
+      {
+        "path": ".codex/workflow/principles.md",
+        "role": "workflow-design-doc",
+        "truth": "workflow intention and placement rules",
+        "llmLoadPolicy": "read for workflow architecture work",
+        "stalenessRisk": "medium",
+        "portingRule": "copy shape and adapt intentionally"
+      },
+      {
+        "path": ".codex/workflow/capabilities.md",
+        "role": "workflow-design-doc",
+        "truth": "capability ownership and optional boundaries",
+        "llmLoadPolicy": "read for capability and porting work",
+        "stalenessRisk": "medium",
+        "portingRule": "copy shape and adapt capability decisions"
+      },
+      {
+        "path": ".codex/workflow/profile.json",
+        "role": "project-profile-data",
+        "truth": "project identity and paths",
+        "llmLoadPolicy": "load for workflow path changes",
+        "stalenessRisk": "low",
+        "portingRule": "rewrite"
+      },
+      {
+        "path": ".codex/workflow/system/",
+        "role": "workflow-system-code",
+        "truth": "reusable workflow kernel",
+        "llmLoadPolicy": "copy as system code",
+        "stalenessRisk": "medium",
+        "portingRule": "copy as-is, then verify against project policy"
+      },
+      {
+        "path": ".codex/workflow/system/fixtures/portable-empty/",
+        "role": "workflow-system-fixture",
+        "truth": "inspectable empty-project bootstrap fixture used by workflow:portability-check",
+        "llmLoadPolicy": "read for portability changes or second-project setup; keep source-project facts out",
+        "stalenessRisk": "medium",
+        "portingRule": "copy as a reference fixture only; target projects rewrite project policy/profile/knowledge and start fresh records"
+      },
+      {
+        "path": ".codex/workflow/project/",
+        "role": "project-adapter-source",
+        "truth": "project adapter sources",
+        "llmLoadPolicy": "load for fixed-path adapters",
+        "stalenessRisk": "medium",
+        "portingRule": "rewrite"
+      },
+      {
+        "path": ".codex/workflow/policy/",
+        "role": "project-policy-data",
+        "truth": "machine-consumed project policy",
+        "llmLoadPolicy": "rewrite for target project",
+        "stalenessRisk": "low",
+        "portingRule": "fresh project data"
+      },
+      {
+        "path": ".codex/workflow/records/",
+        "role": "append-only-evidence",
+        "truth": "durable event evidence",
+        "llmLoadPolicy": "read referenced records only",
+        "stalenessRisk": "low",
+        "portingRule": "fresh-create"
+      },
+      {
+        "path": ".codex/workflow/artifacts/",
+        "role": "generated-evidence-artifact",
+        "truth": "bounded evidence attachments",
+        "llmLoadPolicy": "load by record reference",
+        "stalenessRisk": "medium",
+        "portingRule": "regenerate"
+      },
+      {
+        "path": ".codex/workflow/runtime/",
+        "role": "runtime-telemetry",
+        "truth": "delete-safe telemetry",
+        "llmLoadPolicy": "diagnostics only",
+        "stalenessRisk": "high",
+        "portingRule": "never-copy"
+      },
+      {
+        "path": ".codex/workflow/scenarios/",
+        "role": "project-policy-data",
+        "truth": "routing fixtures",
+        "llmLoadPolicy": "load for model routing",
+        "stalenessRisk": "medium",
+        "portingRule": "rewrite"
+      },
+      {
+        "path": ".codex/workflow/state/",
+        "role": "mutable-cache",
+        "truth": "delete-safe cache",
+        "llmLoadPolicy": "diagnostics only",
+        "stalenessRisk": "high",
+        "portingRule": "never-copy"
+      },
+      {
+        "path": ".codex/workflow/templates/",
+        "role": "workflow-reference-doc",
+        "truth": "record templates",
+        "llmLoadPolicy": "load when creating records manually",
+        "stalenessRisk": "medium",
+        "portingRule": "rewrite"
+      }
+    ],
+    "scenarioFiles": [
+      ".codex/workflow/scenarios/model-routing.json"
+    ]
+  },
+  "handover": {
+    "path": ".codex/workflow/current-state.md",
+    "maxLines": 80,
+    "maxBytes": 8000,
+    "maxCompletedHistoryBullets": 8
+  },
+  "classifierTestCases": [
+    {
+      "file": ".codex/scripts/portable-workflow.mjs",
+      "substantive": true,
+      "verification": true,
+      "audit": true,
+      "guide": false,
+      "zooVisual": false
+    },
+    {
+      "file": ".codex/workflow/state/review-state.json",
+      "substantive": false,
+      "verification": false,
+      "audit": false,
+      "guide": false,
+      "zooVisual": false
+    },
+    {
+      "file": ".codex/dashboard/public.html",
+      "substantive": false,
+      "verification": false,
+      "audit": false,
+      "guide": true,
+      "zooVisual": false
+    },
+    {
+      "file": ".codex/dashboard/zoo/index.html",
+      "substantive": false,
+      "verification": false,
+      "audit": false,
+      "guide": false,
+      "zooVisual": true
+    },
+    {
+      "file": "src/example.ts",
+      "substantive": true,
+      "verification": true,
+      "audit": true,
+      "guide": false,
+      "zooVisual": false
+    }
+  ],
+  "reviewKinds": {
+    "general": {
+      "whenSubstantive": true
+    },
+    "workflow": {
+      "include": [
+        ".codex/",
+        "AGENTS.md",
+        "WORKFLOW.md",
+        "package.json"
+      ]
+    },
+    "pattern": {
+      "include": [
+        ".codex/knowledge/patterns.md",
+        ".codex/workflow/policy/",
+        ".codex/workflow/system/",
+        "src/"
+      ]
+    },
+    "design": {
+      "include": [
+        ".codex/workflow/policy/design.json",
+        "src/design/"
+      ]
+    }
+  },
+  "classifiers": {
+    "substantive": {
+      "include": [
+        ".codex/",
+        "AGENTS.md",
+        "WORKFLOW.md",
+        "package.json",
+        "src/"
+      ],
+      "exclude": [
+        ".codex/dashboard/",
+        ".codex/workflow/state/",
+        ".codex/workflow/runtime/",
+        ".codex/workflow/records/"
+      ]
+    },
+    "verification": {
+      "include": [
+        ".codex/",
+        "AGENTS.md",
+        "WORKFLOW.md",
+        "package.json",
+        "src/"
+      ]
+    },
+    "audit": {
+      "include": [
+        ".codex/",
+        "AGENTS.md",
+        "WORKFLOW.md",
+        "package.json",
+        "src/"
+      ]
+    },
+    "guide": {
+      "include": [
+        ".codex/dashboard/index.html",
+        ".codex/dashboard/public.html",
+        ".codex/README.md",
+        ".codex/workflow/current-state.md",
+        ".codex/workflow/policy/",
+        ".codex/workflow/system/",
+        ".codex/knowledge/"
+      ]
+    },
+    "zooVisual": {
+      "include": [
+        ".codex/dashboard/zoo/"
+      ]
+    }
+  }
+}

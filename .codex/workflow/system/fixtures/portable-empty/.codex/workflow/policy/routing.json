@@ -1,0 +1,42 @@
+{
+  "schema": "codex-workflow-routing-policy/v1",
+  "scenarioFile": ".codex/workflow/scenarios/model-routing.json",
+  "validRoutes": [
+    "lead",
+    "spark",
+    "strong",
+    "research",
+    "review",
+    "integrated-review",
+    "escalate"
+  ],
+  "routeAliases": {
+    "escalate-to-strong": "escalate"
+  },
+  "defaultWorkers": {
+    "lead": "codex-lead",
+    "spark": "spark_worker",
+    "strong": "strong_worker",
+    "research": "research_worker",
+    "review": "pattern_reviewer",
+    "integrated-review": "integrated_reviewer",
+    "escalate": "strong_worker"
+  },
+  "leadAliases": [
+    "codex",
+    "codex-lead",
+    "lead"
+  ],
+  "strongSignals": [
+    "architecture",
+    "ambiguous",
+    "cross-cutting",
+    "deployment"
+  ],
+  "sparkPositiveSignals": [
+    "small",
+    "narrow",
+    "explicit",
+    "tests"
+  ]
+}

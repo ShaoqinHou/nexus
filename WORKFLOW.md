@@ -52,7 +52,7 @@ Canonical execution ladder:
 3. `npm run workflow:release-gate`
 4. `npm run workflow:deployed-gate` after server validation
 
-The old Claude Code setup is historical evidence only. Active Codex guidance is in `AGENTS.md`, `.codex/`, and `.agents/skills/`. Reusable workflow mechanics live in `.codex/scripts/workflow-engine.mjs`; Nexus-specific facts live in the profile, policy pack, knowledge files, and project adapter sources.
+The old Claude Code setup is historical evidence only. Active Codex guidance is in `AGENTS.md`, `.codex/`, and `.agents/skills/`. Reusable workflow mechanics live in `.codex/workflow/system/scripts/`; Nexus-specific facts live in the profile, policy pack, knowledge files, and project adapter sources.
 
 Fixed-path files that Codex, package managers, or GitHub expect outside the workflow root are managed as adapters. `.codex/workflow/policy/adapters.json` declares each target, source owner, install/check/uninstall behavior, and porting action. Exact-file adapter sources live in `.codex/workflow/project/adapters/`; package workflow scripts are sourced from `.codex/workflow/policy/gates.json` `gates.packageScripts` and installed into `package.json`. Use `npm run workflow:adapter-check` to detect drift, `npm run workflow:adapter-sync` to install canonical sources, and `npm run workflow:adapter-uninstall` only when intentionally removing clean managed outputs.
 

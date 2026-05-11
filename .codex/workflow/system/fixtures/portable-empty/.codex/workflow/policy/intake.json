@@ -1,0 +1,104 @@
+{
+  "schema": "codex-workflow-intake-policy/v1",
+  "enabled": true,
+  "intentKinds": [
+    "initial",
+    "idea",
+    "feature",
+    "bug",
+    "change-request",
+    "maintenance"
+  ],
+  "intentStatuses": [
+    "captured",
+    "needs-clarification",
+    "accepted",
+    "converted",
+    "deferred",
+    "rejected",
+    "superseded"
+  ],
+  "workSliceStatuses": [
+    "proposed",
+    "ready",
+    "active",
+    "blocked",
+    "review",
+    "verified",
+    "done",
+    "deferred",
+    "superseded"
+  ],
+  "activeWorkSliceStatuses": [
+    "ready",
+    "active",
+    "review",
+    "blocked"
+  ],
+  "sourceTypes": [
+    "user-intent",
+    "internal-maintenance",
+    "workflow-maintenance"
+  ],
+  "sourceTypesWithoutIntent": [
+    "internal-maintenance",
+    "workflow-maintenance"
+  ],
+  "evidenceRequiredStatuses": [
+    "review",
+    "verified",
+    "done"
+  ],
+  "closedWorkSliceStatuses": [
+    "verified",
+    "done",
+    "deferred",
+    "superseded"
+  ],
+  "recordKinds": {
+    "intents": "intents",
+    "workSlices": "work-slices"
+  },
+  "evidenceKinds": [
+    "patches",
+    "routing",
+    "reviews",
+    "tests",
+    "audits",
+    "deployments"
+  ],
+  "externalTrackerMode": "optional",
+  "externalRefPrefixes": [
+    "url:",
+    "github:",
+    "linear:",
+    "jira:"
+  ],
+  "staleActiveWorkSliceDays": 14,
+  "requireWorkSliceForSubstantivePatches": true,
+  "requireWorkSliceForEvidenceRecords": true,
+  "guide": {
+    "maxTraceItems": 8,
+    "maxEvidenceItemsPerSlice": 3,
+    "maxInboxItems": 5,
+    "maxActiveSlices": 5,
+    "maxFeatureCatalogItems": 8,
+    "featureCatalogIntentKinds": [
+      "initial",
+      "idea",
+      "feature",
+      "bug",
+      "change-request"
+    ],
+    "traceEvidenceKinds": [
+      "patches",
+      "routing",
+      "reviews",
+      "tests",
+      "audits"
+    ],
+    "selfReferentialEvidenceKinds": [
+      "deployments"
+    ]
+  }
+}

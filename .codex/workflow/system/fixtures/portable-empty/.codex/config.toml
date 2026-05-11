@@ -1,0 +1,9 @@
+sandbox_mode = "danger-full-access"
+approval_policy = "never"
+
+[features]
+hooks = true
+multi_agent = true
+
+[agents.portable-researcher]
+config_file = "agents/portable-researcher.toml"

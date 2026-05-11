@@ -1,0 +1,76 @@
+{
+  "schema": "codex-workflow-records-policy/v1",
+  "kinds": [
+    "decisions",
+    "intents",
+    "work-slices",
+    "pattern-proposals",
+    "routing",
+    "patches",
+    "reviews",
+    "tests",
+    "audits",
+    "guide-browser",
+    "deployments"
+  ],
+  "evidenceKinds": [
+    "decisions",
+    "intents",
+    "work-slices",
+    "pattern-proposals",
+    "routing",
+    "patches",
+    "reviews",
+    "tests",
+    "audits",
+    "guide-browser",
+    "deployments"
+  ],
+  "guideKinds": [
+    "decisions",
+    "intents",
+    "work-slices",
+    "pattern-proposals",
+    "routing",
+    "patches",
+    "reviews",
+    "tests",
+    "audits",
+    "guide-browser",
+    "deployments"
+  ],
+  "schemaByKind": {
+    "decisions": "codex-decisions/v1",
+    "intents": "codex-intents/v1",
+    "work-slices": "codex-work-slices/v1",
+    "pattern-proposals": "codex-pattern-proposals/v1",
+    "routing": "codex-routing/v1",
+    "patches": "codex-patches/v1",
+    "reviews": "codex-reviews/v1",
+    "tests": "codex-tests/v1",
+    "audits": "codex-audits/v1",
+    "guide-browser": "codex-guide-browser/v1",
+    "deployments": "codex-deployments/v1"
+  },
+  "prefixByKind": {
+    "decisions": "DECISION",
+    "intents": "INTENT",
+    "work-slices": "WORK-SLICE",
+    "pattern-proposals": "PATTERN-PROPOSAL",
+    "routing": "ROUTING",
+    "patches": "PATCH",
+    "reviews": "REVIEW",
+    "tests": "TEST",
+    "audits": "AUDIT",
+    "guide-browser": "GUIDE-BROWSER",
+    "deployments": "DEPLOYMENT"
+  },
+  "baseEnv": {
+    "recordHistory": "PORTABLE_RECORD_BASE",
+    "branch": "PORTABLE_BRANCH_BASE"
+  },
+  "bodyFileList": {
+    "inlineLimit": 8,
+    "frontmatterReference": "Complete file list is preserved in record frontmatter."
+  }
+}
