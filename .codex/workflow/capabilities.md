@@ -11,6 +11,7 @@ The important rule: a capability is optional only when the wrapper, policy, guid
 | Core workflow ladder | Required | `AGENTS.md`, `WORKFLOW.md`, `.codex/README.md`, package scripts, `policy/gates.json` | `workflow:status`, `workflow:health`, `workflow:release-gate` | Always copy the ladder shape, then rename project commands and wrapper path. |
 | Workflow engine/profile loading | Required | `scripts/workflow-engine.mjs`, `workflow/profile.json`, `policy/manifest.json` | `workflow:policy-check`, `workflow:self-test` | Copy engine first; rewrite profile and manifest before editing wrapper logic. |
 | Deterministic project wrapper | Required | `scripts/nexus-workflow.mjs` | all workflow commands | Copy as a starting wrapper, rename it, and remove or adapt Nexus-specific code. Do not assume the wrapper is generic. |
+| Fixed-path adapters | Required | `policy/adapters.json`, exact-file sources in `workflow/project/adapters/*`, package script source map in `policy/gates.json` `gates.packageScripts`, and fixed outputs such as `AGENTS.md`, `WORKFLOW.md`, `.codex/config.toml`, `.codex/hooks.json`, `.codex/agents`, `.agents/skills`, `.github/workflows`, and package workflow scripts | `workflow:adapter-check`, release gate, `workflow:self-test` | Rewrite the source owner declared in `policy/adapters.json` first, then sync/check installed outputs. Do not copy Nexus adapter sources as target truth. |
 | Work Intake | Required for solo-dev AI work | `policy/intake.json`, `knowledge/work-intake.md`, `templates/intent.md`, `templates/work-slice.md`, records under `intents/` and `work-slices/` | `workflow:work-intake-check`, release gate | Keep unless the target project has another durable intent system. Rewrite intent kinds and guide limits. |
 | Patch/review/verify/audit records | Required | `policy/records.json`, record templates, wrapper record commands | `review-check`, `verify-check`, `audit-check`, branch evidence check | Keep. This is the main anti-drift system. |
 | Historical compatibility | Required while old records exist | `policy/compatibility.json` | `workflow:policy-check`, record integrity checks | Keep project history out of the live records contract. Rewrite or remove when the target project starts fresh. |
@@ -28,6 +29,7 @@ The current reusable extraction is conservative:
 
 - `workflow-engine.mjs` is the reusable loader/path/sanitizer layer.
 - `profile.json` and `policy/*.json` are the first-class data boundary.
+- `policy/adapters.json` is the first-class fixed-file boundary; it maps exact-file targets to `workflow/project/adapters/` and package workflow scripts to `policy/gates.json` `gates.packageScripts`.
 - `nexus-workflow.mjs` still contains Nexus wrapper behavior, record lifecycle, guide rendering, Work Intake rendering, and active design/deployment assumptions.
 
 That is intentional for Nexus. For the second project, prove the behavior by adapting the wrapper first. Extract more into `workflow-engine.mjs` only after two projects need the same behavior with different project data.
@@ -37,6 +39,7 @@ That is intentional for Nexus. For the second project, prove the behavior by ada
 These are not release blockers for Nexus, but they matter during porting:
 
 - The wrapper is named `nexus-workflow.mjs`; command examples and package scripts must be renamed deliberately.
+- Adapter source files are Nexus-specific even when their installed paths are generic.
 - The design/Zoo/Gym capability is active and visible in the guide, policy, scripts, and checks.
 - Deployment checks target `https://cv.rehou.games/nexus/` and must be replaced.
 - Skills and agents are named `nexus-*`.

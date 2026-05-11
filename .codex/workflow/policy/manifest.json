@@ -5,6 +5,8 @@
     "compatibility",
     "files",
     "guide",
+    "adapters",
+    "portability",
     "design",
     "routing",
     "intake",

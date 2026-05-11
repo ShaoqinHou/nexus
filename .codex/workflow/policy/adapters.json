@@ -1,0 +1,224 @@
+{
+  "schema": "codex-workflow-adapters-policy/v1",
+  "sourceRoot": ".codex/workflow/project/adapters",
+  "modes": [
+    "exact-file",
+    "package-scripts"
+  ],
+  "uninstallBehaviors": [
+    "refuse-by-default",
+    "remove-if-clean",
+    "remove-managed-fields"
+  ],
+  "sourceOwners": {
+    "exact-file": {
+      "path": ".codex/workflow/project/adapters/",
+      "summary": "Canonical source files for exact fixed-path outputs. Edit target.source under sourceRoot, then sync/check adapters."
+    },
+    "package-scripts": {
+      "path": ".codex/workflow/policy/gates.json#packageScripts",
+      "summary": "Canonical package workflow command map. Edit gates.packageScripts, then sync/check the package.json adapter."
+    }
+  },
+  "ownerMentionFiles": [
+    "AGENTS.md",
+    "WORKFLOW.md",
+    ".codex/README.md",
+    ".agents/skills/nexus-workflow/SKILL.md",
+    ".codex/workflow/principles.md",
+    ".codex/workflow/system/README.md",
+    ".codex/workflow/project/README.md",
+    ".codex/workflow/templates/project-bootstrap.md"
+  ],
+  "targets": [
+    {
+      "id": "root-agents-md",
+      "mode": "exact-file",
+      "source": "root/AGENTS.md",
+      "target": "AGENTS.md",
+      "ownership": "project-authored-managed-copy",
+      "uninstall": "refuse-by-default",
+      "portingAction": "rewrite"
+    },
+    {
+      "id": "root-workflow-md",
+      "mode": "exact-file",
+      "source": "root/WORKFLOW.md",
+      "target": "WORKFLOW.md",
+      "ownership": "project-authored-managed-copy",
+      "uninstall": "refuse-by-default",
+      "portingAction": "rewrite"
+    },
+    {
+      "id": "codex-config",
+      "mode": "exact-file",
+      "source": "codex/config.toml",
+      "target": ".codex/config.toml",
+      "ownership": "mechanical-managed-copy",
+      "uninstall": "remove-if-clean",
+      "portingAction": "rewrite"
+    },
+    {
+      "id": "codex-hooks",
+      "mode": "exact-file",
+      "source": "codex/hooks.json",
+      "target": ".codex/hooks.json",
+      "ownership": "mechanical-managed-copy",
+      "uninstall": "remove-if-clean",
+      "portingAction": "rewrite"
+    },
+    {
+      "id": "github-workflow-gates",
+      "mode": "exact-file",
+      "source": "github/workflows/nexus-workflow-gates.yml",
+      "target": ".github/workflows/nexus-workflow-gates.yml",
+      "ownership": "mechanical-managed-copy",
+      "uninstall": "remove-if-clean",
+      "portingAction": "rewrite"
+    },
+    {
+      "id": "package-workflow-scripts",
+      "mode": "package-scripts",
+      "target": "package.json",
+      "sourcePolicy": "gates.packageScripts",
+      "ownership": "managed-json-fields",
+      "uninstall": "remove-managed-fields",
+      "portingAction": "rewrite"
+    },
+    {
+      "id": "codex-agent-nexus-auditor",
+      "mode": "exact-file",
+      "source": "codex/agents/nexus-auditor.toml",
+      "target": ".codex/agents/nexus-auditor.toml",
+      "ownership": "project-authored-managed-copy",
+      "uninstall": "remove-if-clean",
+      "portingAction": "rewrite"
+    },
+    {
+      "id": "codex-agent-nexus-design-reviewer",
+      "mode": "exact-file",
+      "source": "codex/agents/nexus-design-reviewer.toml",
+      "target": ".codex/agents/nexus-design-reviewer.toml",
+      "ownership": "project-authored-managed-copy",
+      "uninstall": "remove-if-clean",
+      "portingAction": "rewrite"
+    },
+    {
+      "id": "codex-agent-nexus-pattern-reviewer",
+      "mode": "exact-file",
+      "source": "codex/agents/nexus-pattern-reviewer.toml",
+      "target": ".codex/agents/nexus-pattern-reviewer.toml",
+      "ownership": "project-authored-managed-copy",
+      "uninstall": "remove-if-clean",
+      "portingAction": "rewrite"
+    },
+    {
+      "id": "codex-agent-nexus-researcher",
+      "mode": "exact-file",
+      "source": "codex/agents/nexus-researcher.toml",
+      "target": ".codex/agents/nexus-researcher.toml",
+      "ownership": "project-authored-managed-copy",
+      "uninstall": "remove-if-clean",
+      "portingAction": "rewrite"
+    },
+    {
+      "id": "codex-agent-nexus-spark-worker",
+      "mode": "exact-file",
+      "source": "codex/agents/nexus-spark-worker.toml",
+      "target": ".codex/agents/nexus-spark-worker.toml",
+      "ownership": "project-authored-managed-copy",
+      "uninstall": "remove-if-clean",
+      "portingAction": "rewrite"
+    },
+    {
+      "id": "codex-agent-nexus-strong-worker",
+      "mode": "exact-file",
+      "source": "codex/agents/nexus-strong-worker.toml",
+      "target": ".codex/agents/nexus-strong-worker.toml",
+      "ownership": "project-authored-managed-copy",
+      "uninstall": "remove-if-clean",
+      "portingAction": "rewrite"
+    },
+    {
+      "id": "codex-agent-nexus-verifier",
+      "mode": "exact-file",
+      "source": "codex/agents/nexus-verifier.toml",
+      "target": ".codex/agents/nexus-verifier.toml",
+      "ownership": "project-authored-managed-copy",
+      "uninstall": "remove-if-clean",
+      "portingAction": "rewrite"
+    },
+    {
+      "id": "repo-skill-nexus-audit",
+      "mode": "exact-file",
+      "source": "repo-skills/skills/nexus-audit/SKILL.md",
+      "target": ".agents/skills/nexus-audit/SKILL.md",
+      "ownership": "project-authored-managed-copy",
+      "uninstall": "remove-if-clean",
+      "portingAction": "rewrite"
+    },
+    {
+      "id": "repo-skill-nexus-audit-agent",
+      "mode": "exact-file",
+      "source": "repo-skills/skills/nexus-audit/agents/openai.yaml",
+      "target": ".agents/skills/nexus-audit/agents/openai.yaml",
+      "ownership": "project-authored-managed-copy",
+      "uninstall": "remove-if-clean",
+      "portingAction": "rewrite"
+    },
+    {
+      "id": "repo-skill-nexus-review",
+      "mode": "exact-file",
+      "source": "repo-skills/skills/nexus-review/SKILL.md",
+      "target": ".agents/skills/nexus-review/SKILL.md",
+      "ownership": "project-authored-managed-copy",
+      "uninstall": "remove-if-clean",
+      "portingAction": "rewrite"
+    },
+    {
+      "id": "repo-skill-nexus-review-agent",
+      "mode": "exact-file",
+      "source": "repo-skills/skills/nexus-review/agents/openai.yaml",
+      "target": ".agents/skills/nexus-review/agents/openai.yaml",
+      "ownership": "project-authored-managed-copy",
+      "uninstall": "remove-if-clean",
+      "portingAction": "rewrite"
+    },
+    {
+      "id": "repo-skill-nexus-verify",
+      "mode": "exact-file",
+      "source": "repo-skills/skills/nexus-verify/SKILL.md",
+      "target": ".agents/skills/nexus-verify/SKILL.md",
+      "ownership": "project-authored-managed-copy",
+      "uninstall": "remove-if-clean",
+      "portingAction": "rewrite"
+    },
+    {
+      "id": "repo-skill-nexus-verify-agent",
+      "mode": "exact-file",
+      "source": "repo-skills/skills/nexus-verify/agents/openai.yaml",
+      "target": ".agents/skills/nexus-verify/agents/openai.yaml",
+      "ownership": "project-authored-managed-copy",
+      "uninstall": "remove-if-clean",
+      "portingAction": "rewrite"
+    },
+    {
+      "id": "repo-skill-nexus-workflow",
+      "mode": "exact-file",
+      "source": "repo-skills/skills/nexus-workflow/SKILL.md",
+      "target": ".agents/skills/nexus-workflow/SKILL.md",
+      "ownership": "project-authored-managed-copy",
+      "uninstall": "remove-if-clean",
+      "portingAction": "rewrite"
+    },
+    {
+      "id": "repo-skill-nexus-workflow-agent",
+      "mode": "exact-file",
+      "source": "repo-skills/skills/nexus-workflow/agents/openai.yaml",
+      "target": ".agents/skills/nexus-workflow/agents/openai.yaml",
+      "ownership": "project-authored-managed-copy",
+      "uninstall": "remove-if-clean",
+      "portingAction": "rewrite"
+    }
+  ]
+}

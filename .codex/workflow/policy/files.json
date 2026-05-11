@@ -16,6 +16,8 @@
     ".codex/workflow/policy/compatibility.json",
     ".codex/workflow/policy/files.json",
     ".codex/workflow/policy/guide.json",
+    ".codex/workflow/policy/adapters.json",
+    ".codex/workflow/policy/portability.json",
     ".codex/workflow/policy/design.json",
     ".codex/workflow/policy/routing.json",
     ".codex/workflow/policy/intake.json",
@@ -25,6 +27,8 @@
     ".codex/workflow/state/.gitignore",
     ".codex/workflow/runtime/.gitignore",
     ".codex/workflow/dependency-audit-baseline.json",
+    ".codex/workflow/system/README.md",
+    ".codex/workflow/project/README.md",
     ".github/workflows/nexus-workflow-gates.yml",
     ".codex/scripts/audit-deps.mjs",
     ".codex/scripts/check-design-tokens.mjs",
@@ -120,11 +124,13 @@
       ".codex/workflow/artifacts/",
       ".codex/workflow/briefs/",
       ".codex/workflow/policy/",
+      ".codex/workflow/project/",
       ".codex/workflow/records/",
       ".codex/workflow/research/",
       ".codex/workflow/runtime/",
       ".codex/workflow/scenarios/",
       ".codex/workflow/state/",
+      ".codex/workflow/system/",
       ".codex/workflow/templates/"
     ],
     "roleTaxonomy": [
@@ -175,6 +181,22 @@
         "llmLoadPolicy": "load the specific policy file that owns the rule being changed",
         "stalenessRisk": "low",
         "portingRule": "rewrite first; project-specific facts belong here before scripts"
+      },
+      {
+        "path": ".codex/workflow/project/",
+        "role": "project-adapter-source",
+        "truth": "canonical project-specific sources for fixed adapter outputs and project workflow overlays",
+        "llmLoadPolicy": "load when changing fixed surfaces such as AGENTS.md, WORKFLOW.md, hooks/config, repo skills, CI, or package workflow scripts",
+        "stalenessRisk": "medium",
+        "portingRule": "rewrite for the target project, then run adapter-check/sync instead of editing installed copies by hand"
+      },
+      {
+        "path": ".codex/workflow/system/",
+        "role": "workflow-system-code",
+        "truth": "reusable workflow-system architecture notes and adapter contracts",
+        "llmLoadPolicy": "read for workflow architecture changes, portability work, or adapter-system changes",
+        "stalenessRisk": "medium",
+        "portingRule": "copy shape when the reusable system contract is still intended, then verify against target policy"
       },
       {
         "path": ".codex/workflow/scenarios/",
@@ -288,6 +310,22 @@
     },
     {
       "file": ".codex/workflow/policy/files.json",
+      "substantive": true,
+      "verification": true,
+      "audit": true,
+      "guide": true,
+      "zooVisual": false
+    },
+    {
+      "file": ".codex/workflow/policy/adapters.json",
+      "substantive": true,
+      "verification": true,
+      "audit": true,
+      "guide": true,
+      "zooVisual": false
+    },
+    {
+      "file": ".codex/workflow/project/adapters/root/AGENTS.md",
       "substantive": true,
       "verification": true,
       "audit": true,
@@ -447,7 +485,9 @@
         ".codex/README.md",
         ".codex/knowledge/",
         ".codex/workflow/policy/",
+        ".codex/workflow/project/",
         ".codex/workflow/scenarios/",
+        ".codex/workflow/system/",
         ".codex/workflow/templates/",
         ".agents/skills/",
         "packages/api/src/modules/",
@@ -486,6 +526,8 @@
         ".codex/workflow/principles.md",
         ".codex/workflow/profile.json",
         ".codex/workflow/policy/",
+        ".codex/workflow/project/",
+        ".codex/workflow/system/",
         ".codex/workflow/state/.gitignore",
         ".codex/workflow/runtime/.gitignore",
         ".codex/workflow/dependency-audit-baseline.json",
@@ -512,6 +554,8 @@
         ".codex/workflow/principles.md",
         ".codex/workflow/profile.json",
         ".codex/workflow/policy/",
+        ".codex/workflow/project/",
+        ".codex/workflow/system/",
         ".codex/workflow/dependency-audit-baseline.json",
         ".codex/workflow/scenarios/",
         ".codex/workflow/templates/",

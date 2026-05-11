@@ -1,0 +1,41 @@
+#:schema https://developers.openai.com/codex/config-schema.json
+
+sandbox_mode = "danger-full-access"
+approval_policy = "never"
+
+[features]
+hooks = true
+multi_agent = true
+
+[agents]
+max_threads = 6
+max_depth = 1
+job_max_runtime_seconds = 1800
+
+[agents.nexus_researcher]
+description = "Read-only Nexus codebase researcher for mapping files, patterns, history, and deployment clues before implementation."
+config_file = "agents/nexus-researcher.toml"
+
+[agents.nexus_spark_worker]
+description = "Fast implementation worker for small, heavily guided Nexus coding slices with narrow file ownership and clear tests."
+config_file = "agents/nexus-spark-worker.toml"
+
+[agents.nexus_strong_worker]
+description = "Strong Nexus implementation worker for ambiguous debugging, architecture, cross-cutting changes, design judgment, or Spark fallback."
+config_file = "agents/nexus-strong-worker.toml"
+
+[agents.nexus_pattern_reviewer]
+description = "Read-only reviewer for Nexus changes focused on project patterns, tenant isolation, related updates, and deprecated approaches."
+config_file = "agents/nexus-pattern-reviewer.toml"
+
+[agents.nexus_design_reviewer]
+description = "Read-only reviewer for Nexus design-system and visual changes, including theme cascade, zoo coverage, and reference-bundle fidelity."
+config_file = "agents/nexus-design-reviewer.toml"
+
+[agents.nexus_verifier]
+description = "Verification worker for local tests, browser checks, E2E behavior, deployment checks, and evidence records."
+config_file = "agents/nexus-verifier.toml"
+
+[agents.nexus_auditor]
+description = "Read-only workflow and project-health auditor for full gates, recurring issues, and release readiness."
+config_file = "agents/nexus-auditor.toml"

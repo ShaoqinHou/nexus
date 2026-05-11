@@ -1,0 +1,55 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .codex/scripts/run-hook.mjs session-start",
+            "timeout": 30,
+            "statusMessage": "Loading Nexus Codex state"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .codex/scripts/run-hook.mjs pre-tool-use",
+            "timeout": 30,
+            "statusMessage": "Checking Nexus workflow gate"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash|apply_patch|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .codex/scripts/run-hook.mjs post-tool-use",
+            "timeout": 30,
+            "statusMessage": "Registering Nexus workflow state"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .codex/scripts/run-hook.mjs stop",
+            "timeout": 30,
+            "statusMessage": "Checking Nexus handover state"
+          }
+        ]
+      }
+    ]
+  }
+}

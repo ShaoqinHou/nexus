@@ -1,5 +1,5 @@
 {
-  "durationMs": 16779,
+  "durationMs": 14161,
   "entries": [
     {
       "name": "dashboard-artifact",
@@ -12,14 +12,15 @@
       "meta": {
         "viewport": "width=device-width, initial-scale=1",
         "nexus-guide-version": "nexus-public-workflow-guide/v2",
-        "nexus-guide-source-hash": "182a82da653afc6338a6e6de",
-        "nexus-guide-record-feed-hash": "d048d07901bc928bc43f5feb",
-        "nexus-guide-content-hash": "67f34259506740532f931cdd",
+        "nexus-guide-source-hash": "8e3b0b5c23b7f339d347a449",
+        "nexus-guide-record-feed-hash": "0a39a8582803c616ca5a88cd",
+        "nexus-guide-content-hash": "b1eada6d114a86ebe633765f",
         "nexus-token-source": "packages/web/src/platform/theme/tokens.css"
       },
       "hrefs": [
         "#overview",
         "#workflow-file-roles",
+        "#adapter-source-owners",
         "#work-intake",
         "#current",
         "#zoo",
@@ -65,7 +66,7 @@
         "http://localhost:5173/design/checkout-summary",
         "http://localhost:5173/design/themed-toast"
       ],
-      "textSample": "Nexus Workflow Dashboard\nSnapshot source 182a82da653afc6338a6e6de · records d048d07901bc928bc43f5feb · branch codex/native-workflow\nOverview\nWorkflow File Roles\nWork Intake\nCurrent State\nDesign Zoo/Gym\nPatterns\nDesign System\nDeployment\nRecords\nDecisions\nPattern Proposals\nPatches\nReviews\nTests\nAudits",
+      "textSample": "Nexus Workflow Dashboard\nSnapshot source 8e3b0b5c23b7f339d347a449 · records 0a39a8582803c616ca5a88cd · branch codex/native-workflow\nOverview\nWorkflow File Roles\nAdapter Source Owners\nWork Intake\nCurrent State\nDesign Zoo/Gym\nPatterns\nDesign System\nDeployment\nRecords\nDecisions\nPattern Proposals\nPatche",
       "imageCount": 0,
       "brokenImages": 0,
       "imageLoad": {
@@ -73,7 +74,7 @@
         "loadedImages": 0,
         "timedOut": false
       },
-      "durationMs": 5580
+      "durationMs": 5470
     },
     {
       "name": "workflow-guide-artifact",
@@ -86,15 +87,15 @@
       "meta": {
         "viewport": "width=device-width, initial-scale=1",
         "nexus-guide-version": "nexus-public-workflow-guide/v2",
-        "nexus-guide-source-hash": "182a82da653afc6338a6e6de",
-        "nexus-guide-record-feed-hash": "d048d07901bc928bc43f5feb",
-        "nexus-guide-content-hash": "5b1556d2042f101698897a1c",
+        "nexus-guide-source-hash": "8e3b0b5c23b7f339d347a449",
+        "nexus-guide-record-feed-hash": "0a39a8582803c616ca5a88cd",
+        "nexus-guide-content-hash": "f486cdca766555a75ec8d2f1",
         "nexus-token-source": "packages/web/src/platform/theme/tokens.css"
       },
       "hrefs": [
         "zoo/"
       ],
-      "textSample": "Nexus Workflow Guide\nSnapshot source 182a82da653afc6338a6e6de · records d048d07901bc928bc43f5feb · branch codex/native-workflow · run workflow gates for live state before deploy\nWhat This Is\n\nThis is the public-safe guide for the Nexus Codex workflow. The complete internal workflow system lives in t",
+      "textSample": "Nexus Workflow Guide\nSnapshot source 8e3b0b5c23b7f339d347a449 · records 0a39a8582803c616ca5a88cd · branch codex/native-workflow · run workflow gates for live state before deploy\nWhat This Is\n\nThis is the public-safe guide for the Nexus Codex workflow. The complete internal workflow system lives in t",
       "imageCount": 0,
       "brokenImages": 0,
       "imageLoad": {
@@ -102,7 +103,7 @@
         "loadedImages": 0,
         "timedOut": false
       },
-      "durationMs": 936
+      "durationMs": 813
     },
     {
       "name": "workflow-zoo-artifact-desktop",
@@ -115,8 +116,8 @@
       "meta": {
         "viewport": "width=device-width, initial-scale=1",
         "nexus-guide-version": "nexus-design-zoo-visual-guide/v1",
-        "nexus-guide-source-hash": "00a4119fb4c1027b6f4efa41",
-        "nexus-guide-content-hash": "4e367100dcc08042bff3efab",
+        "nexus-guide-source-hash": "1be5278d26cd5a093f3c00de",
+        "nexus-guide-content-hash": "b34ba30b52885f3d17e647ff",
         "nexus-token-source": "packages/web/src/platform/theme/tokens.css"
       },
       "hrefs": [
@@ -180,7 +181,7 @@
         "assets/mobile-dark-sichuan/checkout-summary.jpg",
         "assets/mobile-dark-sichuan/themed-toast.jpg"
       ],
-      "textSample": "Nexus Design Zoo / Gym\nVisual Demo Surface · source 00a4119fb4c1027b6f4efa41 · captured 2026-05-11T02:18:02.158Z\nCaptured From Real /design Routes\n\nThis page is the deployable visual guide for the dev-only component gym. Screenshots are captured from real Nexus components rendered by packages/web/sr",
+      "textSample": "Nexus Design Zoo / Gym\nVisual Demo Surface · source 1be5278d26cd5a093f3c00de · captured 2026-05-11T02:18:02.158Z\nCaptured From Real /design Routes\n\nThis page is the deployable visual guide for the dev-only component gym. Screenshots are captured from real Nexus components rendered by packages/web/sr",
       "imageCount": 58,
       "brokenImages": 0,
       "imageLoad": {
@@ -188,7 +189,7 @@
         "loadedImages": 58,
         "timedOut": false
       },
-      "durationMs": 473
+      "durationMs": 362
     },
     {
       "name": "workflow-zoo-artifact-mobile",
@@ -201,8 +202,8 @@
       "meta": {
         "viewport": "width=device-width, initial-scale=1",
         "nexus-guide-version": "nexus-design-zoo-visual-guide/v1",
-        "nexus-guide-source-hash": "00a4119fb4c1027b6f4efa41",
-        "nexus-guide-content-hash": "4e367100dcc08042bff3efab",
+        "nexus-guide-source-hash": "1be5278d26cd5a093f3c00de",
+        "nexus-guide-content-hash": "b34ba30b52885f3d17e647ff",
         "nexus-token-source": "packages/web/src/platform/theme/tokens.css"
       },
       "hrefs": [
@@ -266,7 +267,7 @@
         "assets/mobile-dark-sichuan/checkout-summary.jpg",
         "assets/mobile-dark-sichuan/themed-toast.jpg"
       ],
-      "textSample": "Nexus Design Zoo / Gym\nVisual Demo Surface · source 00a4119fb4c1027b6f4efa41 · captured 2026-05-11T02:18:02.158Z\nCaptured From Real /design Routes\n\nThis page is the deployable visual guide for the dev-only component gym. Screenshots are captured from real Nexus components rendered by packages/web/sr",
+      "textSample": "Nexus Design Zoo / Gym\nVisual Demo Surface · source 1be5278d26cd5a093f3c00de · captured 2026-05-11T02:18:02.158Z\nCaptured From Real /design Routes\n\nThis page is the deployable visual guide for the dev-only component gym. Screenshots are captured from real Nexus components rendered by packages/web/sr",
       "imageCount": 58,
       "brokenImages": 0,
       "imageLoad": {
@@ -274,7 +275,7 @@
         "loadedImages": 58,
         "timedOut": false
       },
-      "durationMs": 1049
+      "durationMs": 828
     }
   ]
 }

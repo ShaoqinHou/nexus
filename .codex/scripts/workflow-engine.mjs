@@ -6,6 +6,8 @@ export const DEFAULT_POLICY_NAMES = [
   'compatibility',
   'files',
   'guide',
+  'adapters',
+  'portability',
   'routing',
   'intake',
   'hooks',

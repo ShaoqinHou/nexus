@@ -175,12 +175,16 @@
     ".codex/workflow/policy/compatibility.json",
     ".codex/workflow/policy/files.json",
     ".codex/workflow/policy/guide.json",
+    ".codex/workflow/policy/adapters.json",
+    ".codex/workflow/policy/portability.json",
     ".codex/workflow/policy/design.json",
     ".codex/workflow/policy/routing.json",
     ".codex/workflow/policy/intake.json",
     ".codex/workflow/policy/deployment.json",
     ".codex/workflow/policy/hooks.json",
     ".codex/workflow/policy/gates.json",
+    ".codex/workflow/system/README.md",
+    ".codex/workflow/project/README.md",
     ".codex/workflow/dependency-audit-baseline.json",
     ".codex/scripts/audit-deps.mjs",
     ".codex/scripts/check-design-tokens.mjs",
@@ -216,12 +220,16 @@
     ".codex/workflow/policy/manifest.json",
     ".codex/workflow/policy/compatibility.json",
     ".codex/workflow/policy/files.json",
+    ".codex/workflow/policy/adapters.json",
+    ".codex/workflow/policy/portability.json",
     ".codex/workflow/policy/gates.json",
     ".codex/workflow/policy/intake.json",
     ".codex/workflow/policy/deployment.json",
     ".codex/scripts/nexus-workflow.mjs",
     ".codex/scripts/check-production-app.mjs",
     ".codex/scripts/workflow-engine.mjs",
+    ".codex/workflow/system/README.md",
+    ".codex/workflow/project/README.md",
     ".codex/workflow/templates/project-bootstrap.md"
   ],
   "documentFiles": [
@@ -238,6 +246,8 @@
     ".codex/knowledge/deployment.md",
     ".codex/workflow/principles.md",
     ".codex/workflow/capabilities.md",
+    ".codex/workflow/system/README.md",
+    ".codex/workflow/project/README.md",
     ".codex/workflow/research/codex-capabilities-2026-05-09.md",
     ".codex/workflow/research/workflow-engine-profile-extraction-2026-05-10.md",
     ".codex/workflow/research/workflow-code-architecture-audit-2026-05-10.md",
@@ -263,6 +273,16 @@
       "path": ".codex/workflow/policy",
       "maxDepth": 4,
       "limit": 100
+    },
+    {
+      "path": ".codex/workflow/project",
+      "maxDepth": 8,
+      "limit": 600
+    },
+    {
+      "path": ".codex/workflow/system",
+      "maxDepth": 8,
+      "limit": 200
     },
     {
       "path": ".codex/workflow/scenarios",
@@ -301,7 +321,11 @@
     "requiredStrings": [
       "Workflow System Nodes",
       "Workflow File Roles",
+      "Adapter Source Owners",
       "Codex Workflow Nodes",
+      ".codex/workflow/project/adapters",
+      "gates.json#packageScripts",
+      "adapter-check",
       ".codex/workflow/records",
       "Work Intake",
       "Work Intake Inbox",
@@ -573,6 +597,14 @@
           "detail": "repo skills for workflow, review, verification, and audit"
         },
         {
+          "label": ".codex/workflow/project/adapters",
+          "detail": "canonical sources for fixed adapter outputs"
+        },
+        {
+          "label": "adapter-check",
+          "detail": "deterministic drift check for fixed workflow surfaces"
+        },
+        {
           "label": "nexus-workflow.mjs",
           "detail": "Nexus deterministic workflow wrapper"
         },
@@ -593,6 +625,14 @@
         [
           ".codex/knowledge",
           ".codex/agents"
+        ],
+        [
+          ".codex/workflow/project/adapters",
+          "adapter-check"
+        ],
+        [
+          "adapter-check",
+          "AGENTS.md"
         ],
         [
           "workflow-engine.mjs",

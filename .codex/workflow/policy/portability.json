@@ -1,0 +1,299 @@
+{
+  "schema": "codex-workflow-portability-policy/v1",
+  "states": [
+    "required",
+    "active-optional",
+    "active-wrapper-coupled",
+    "disabled-stub",
+    "unsupported"
+  ],
+  "actions": [
+    "copy-as-is",
+    "copy-rename",
+    "rewrite",
+    "fresh-create",
+    "regenerate",
+    "never-copy",
+    "optional-capability"
+  ],
+  "capabilities": [
+    {
+      "id": "core-workflow-ladder",
+      "state": "required",
+      "portingAction": "rewrite",
+      "owner": "gates policy plus project wrapper",
+      "emptyProjectRule": "enable with project-specific wrapper name and package scripts"
+    },
+    {
+      "id": "workflow-engine-profile-loading",
+      "state": "required",
+      "portingAction": "copy-as-is",
+      "owner": "workflow-engine and profile/policy loader",
+      "emptyProjectRule": "copy engine first, then rewrite profile and policy"
+    },
+    {
+      "id": "adapter-contract",
+      "state": "required",
+      "portingAction": "rewrite",
+      "owner": "adapters policy plus project adapter sources",
+      "emptyProjectRule": "create target-project adapter sources before installing fixed files"
+    },
+    {
+      "id": "work-intake",
+      "state": "required",
+      "portingAction": "rewrite",
+      "owner": "intake policy, records, guide view",
+      "emptyProjectRule": "enable for solo-dev AI work with target intent kinds"
+    },
+    {
+      "id": "patch-review-verify-audit",
+      "state": "required",
+      "portingAction": "rewrite",
+      "owner": "records policy and wrapper record commands",
+      "emptyProjectRule": "keep as the anti-drift evidence spine"
+    },
+    {
+      "id": "model-routing",
+      "state": "active-optional",
+      "portingAction": "rewrite",
+      "owner": "routing policy, scenarios, agents, skills",
+      "emptyProjectRule": "enable only when project-specific agents and failure scenarios exist"
+    },
+    {
+      "id": "hooks",
+      "state": "active-optional",
+      "portingAction": "rewrite",
+      "owner": "hook policy and installed hook adapter",
+      "emptyProjectRule": "installed is not the same as runtime-loaded; keep explicit gates authoritative"
+    },
+    {
+      "id": "generated-guide",
+      "state": "active-optional",
+      "portingAction": "regenerate",
+      "owner": "guide policy and wrapper renderer",
+      "emptyProjectRule": "generate only honest bootstrap state; never copy Nexus generated HTML as truth"
+    },
+    {
+      "id": "deployment-validation",
+      "state": "active-wrapper-coupled",
+      "portingAction": "optional-capability",
+      "owner": "deployment policy and wrapper deployment gate",
+      "emptyProjectRule": "disable or stub until a real host and validation route exist"
+    },
+    {
+      "id": "design-system-zoo-gym",
+      "state": "active-wrapper-coupled",
+      "portingAction": "optional-capability",
+      "owner": "design policy, design scripts, wrapper guide sections",
+      "emptyProjectRule": "disable or stub for empty projects; enable only after real components/routes exist"
+    },
+    {
+      "id": "dependency-audit-baseline",
+      "state": "active-optional",
+      "portingAction": "optional-capability",
+      "owner": "dependency audit baseline and audit wrapper",
+      "emptyProjectRule": "regenerate for target dependencies; never copy Nexus exceptions"
+    },
+    {
+      "id": "ci-workflow-gates",
+      "state": "active-optional",
+      "portingAction": "rewrite",
+      "owner": "GitHub workflow adapter plus gates policy",
+      "emptyProjectRule": "enable only when the target project uses GitHub Actions"
+    }
+  ],
+  "pathRules": [
+    {
+      "match": "AGENTS.md",
+      "group": "fixed-adapter",
+      "portingAction": "rewrite",
+      "reason": "Codex loads this fixed path, but project hard rules are target-specific"
+    },
+    {
+      "match": "WORKFLOW.md",
+      "group": "fixed-adapter",
+      "portingAction": "rewrite",
+      "reason": "human entry point must describe the target project workflow"
+    },
+    {
+      "match": ".codex/config.toml",
+      "group": "fixed-adapter",
+      "portingAction": "rewrite",
+      "reason": "project trust and agent paths are target-specific"
+    },
+    {
+      "match": ".codex/hooks.json",
+      "group": "fixed-adapter",
+      "portingAction": "rewrite",
+      "reason": "hook commands should stay thin but point at the target wrapper"
+    },
+    {
+      "match": ".codex/README.md",
+      "group": "workflow-reference-doc",
+      "portingAction": "rewrite",
+      "reason": "project-local workflow navigation must explain the target workflow roots and active capabilities"
+    },
+    {
+      "match": ".codex/dashboard/",
+      "group": "generated-view",
+      "portingAction": "regenerate",
+      "reason": "generated guide artifacts are views over target records and policy"
+    },
+    {
+      "match": ".codex/agents/",
+      "group": "fixed-adapter",
+      "portingAction": "rewrite",
+      "reason": "agent names, models, and prompts are project-specific adapter outputs"
+    },
+    {
+      "match": ".codex/scripts/",
+      "group": "project-wrapper",
+      "portingAction": "copy-rename",
+      "reason": "scripts are an active execution surface; reusable helpers copy, project wrapper and app-specific checks rewrite"
+    },
+    {
+      "match": ".codex/workflow/system/",
+      "group": "reusable-system",
+      "portingAction": "copy-as-is",
+      "reason": "shared adapter and workflow-system documentation"
+    },
+    {
+      "match": ".codex/scripts/workflow-engine.mjs",
+      "group": "reusable-system",
+      "portingAction": "copy-as-is",
+      "reason": "current reusable loader and policy helpers"
+    },
+    {
+      "match": ".codex/scripts/run-hook.mjs",
+      "group": "reusable-system",
+      "portingAction": "copy-as-is",
+      "reason": "thin hook dispatcher reads wrapper path from profile"
+    },
+    {
+      "match": ".codex/scripts/nexus-workflow.mjs",
+      "group": "project-wrapper",
+      "portingAction": "copy-rename",
+      "reason": "wrapper still owns Nexus-specific lifecycle, guide, design, and deployment behavior"
+    },
+    {
+      "match": ".codex/workflow/project/adapters/",
+      "group": "project-adapter-source",
+      "portingAction": "rewrite",
+      "reason": "canonical sources for fixed target files, including project-authored guidance"
+    },
+    {
+      "match": ".codex/workflow/project/",
+      "group": "project-adapter-source",
+      "portingAction": "rewrite",
+      "reason": "project-specific workflow overlays and adapter sources must be rewritten for the target project"
+    },
+    {
+      "match": ".codex/workflow/principles.md",
+      "group": "workflow-design-doc",
+      "portingAction": "copy-rename",
+      "reason": "system principles mostly transfer, but project examples and names should be checked"
+    },
+    {
+      "match": ".codex/workflow/capabilities.md",
+      "group": "workflow-design-doc",
+      "portingAction": "rewrite",
+      "reason": "capability status must match the target project's real support"
+    },
+    {
+      "match": ".codex/workflow/profile.json",
+      "group": "project-profile-data",
+      "portingAction": "rewrite",
+      "reason": "project identity, paths, and env variables are target-specific"
+    },
+    {
+      "match": ".codex/workflow/policy/",
+      "group": "project-policy-data",
+      "portingAction": "rewrite",
+      "reason": "policy pack encodes target project facts and active capabilities"
+    },
+    {
+      "match": ".codex/knowledge/",
+      "group": "project-knowledge",
+      "portingAction": "rewrite",
+      "reason": "project patterns, design, routing, hooks, deployment, and verification are target-specific"
+    },
+    {
+      "match": ".codex/workflow/records/",
+      "group": "append-only-evidence",
+      "portingAction": "fresh-create",
+      "reason": "Nexus records are historical evidence, not target-project truth"
+    },
+    {
+      "match": ".codex/workflow/current-state.md",
+      "group": "managed-handover",
+      "portingAction": "fresh-create",
+      "reason": "compact current state must describe the target project"
+    },
+    {
+      "match": ".codex/workflow/artifacts/",
+      "group": "generated-evidence-artifact",
+      "portingAction": "regenerate",
+      "reason": "screenshots and summaries must be target-project evidence"
+    },
+    {
+      "match": ".codex/workflow/state/",
+      "group": "mutable-cache",
+      "portingAction": "never-copy",
+      "reason": "delete-safe cache, not durable evidence"
+    },
+    {
+      "match": ".codex/workflow/runtime/",
+      "group": "runtime-telemetry",
+      "portingAction": "never-copy",
+      "reason": "local telemetry becomes proof only after embedded in records"
+    },
+    {
+      "match": ".codex/workflow/research/",
+      "group": "historical-analysis",
+      "portingAction": "never-copy",
+      "reason": "copy selected notes only as explicitly historical reference"
+    },
+    {
+      "match": ".codex/workflow/briefs/",
+      "group": "preserved-user-brief",
+      "portingAction": "never-copy",
+      "reason": "the Nexus migration brief is not target-project live intent"
+    },
+    {
+      "match": ".codex/workflow/templates/",
+      "group": "workflow-reference-doc",
+      "portingAction": "rewrite",
+      "reason": "record shapes transfer but examples and project command names must be target-specific"
+    },
+    {
+      "match": ".codex/workflow/scenarios/",
+      "group": "project-policy-data",
+      "portingAction": "rewrite",
+      "reason": "routing and failure fixtures must represent the target project's real tasks"
+    },
+    {
+      "match": ".codex/workflow/dependency-audit-baseline.json",
+      "group": "project-policy-data",
+      "portingAction": "optional-capability",
+      "reason": "dependency exceptions expire and must be regenerated for target dependencies"
+    },
+    {
+      "match": ".agents/skills/",
+      "group": "fixed-adapter",
+      "portingAction": "rewrite",
+      "reason": "repo skills are discoverable at a fixed path but contain project-specific judgment"
+    },
+    {
+      "match": ".github/workflows/",
+      "group": "fixed-adapter",
+      "portingAction": "rewrite",
+      "reason": "CI wiring must match target scripts and branch policy"
+    },
+    {
+      "match": "package.json",
+      "group": "fixed-adapter",
+      "portingAction": "rewrite",
+      "reason": "workflow scripts are managed JSON fields in the target package"
+    }
+  ]
+}

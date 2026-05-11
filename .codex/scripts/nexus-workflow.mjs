@@ -208,6 +208,9 @@ function helpTextForCommand(commandName = '') {
     'record-verify': `${script} record-verify --scope worktree|branch --verdict pass|fail|partial|blocked --verifier <name> --commands "<timed-command-ids>" --notes "<summary>"`,
     'record-audit': `${script} record-audit --scope worktree|branch --verdict pass|fail|partial|blocked --auditor <name> --commands "<timed-command-ids>" --notes "<summary>"`,
     'record-deployment': `${script} record-deployment --summary "<deploy>" --target "<url>" --verdict pass|fail|partial|blocked --operator <name> --commands "<timed-command-ids>" --checks "<checks>"`,
+    'adapter-check': `${script} adapter-check`,
+    'adapter-sync': `${script} adapter-sync [--target <id>] [--dry-run] [--force]`,
+    'adapter-uninstall': `${script} adapter-uninstall [--target <id>] [--dry-run] [--force]`,
     run: `${script} run --id <stable-id> --timeout-ms <ms> --warn-ms <ms> -- <command> [args...]`,
   };
   if (commandName && commandName !== 'help' && usage[commandName]) return `Usage:\n  ${usage[commandName]}`;
@@ -3122,6 +3125,31 @@ function workflowRoleTaxonomyHtml(html = escapeHtml) {
   `;
 }
 
+function adapterSourceOwnersHtml(html = escapeHtml) {
+  const adapter = adapterPolicy();
+  const owners = adapter.sourceOwners && typeof adapter.sourceOwners === 'object' ? adapter.sourceOwners : {};
+  const targets = adapterTargets();
+  const rows = Object.entries(owners).map(([mode, owner]) => {
+    const count = targets.filter((target) => target.mode === mode).length;
+    return `<span>
+      <strong>${html(mode)}</strong><br>
+      <code>${html(owner.path || '')}</code><br>
+      ${html(owner.summary || '')}<br>
+      <span class="meta">Targets: ${count}</span>
+    </span>`;
+  });
+  if (!rows.length) return '';
+  return `
+    <section id="adapter-source-owners" class="panel">
+      <h2>Adapter Source Owners</h2>
+      <p class="meta">Policy-owned fixed-path ownership map from <code>.codex/workflow/policy/adapters.json</code>. Exact files and package workflow scripts share adapter enforcement, but they do not share the same canonical source.</p>
+      <div class="trace-grid">
+        ${rows.join('\n')}
+      </div>
+    </section>
+  `;
+}
+
 function commandDashboard(args = {}) {
   ensureDir(DASHBOARD_DIR);
   const recordKinds = GUIDE_RECORD_KINDS;
@@ -3253,6 +3281,7 @@ function commandDashboard(args = {}) {
     <nav>
       <a href="#overview">Overview</a>
       <a href="#workflow-file-roles">Workflow File Roles</a>
+      <a href="#adapter-source-owners">Adapter Source Owners</a>
       <a href="#work-intake">Work Intake</a>
       <a href="#current">Current State</a>
       <a href="#zoo">Design Zoo/Gym</a>
@@ -3278,6 +3307,7 @@ function commandDashboard(args = {}) {
         <p class="meta">This is a generated snapshot for navigation. It intentionally does not embed live git status or mutable gate state. Run <code>npm run workflow:status</code> for the current worktree truth.</p>
       </section>
       ${workflowRoleTaxonomyHtml(escapeHtml)}
+      ${adapterSourceOwnersHtml(escapeHtml)}
       ${workIntakeHtml(intake, escapeHtml)}
       <section id="current" class="panel">${markdownLite(currentState)}</section>
       <section id="zoo" class="panel">
@@ -3439,6 +3469,7 @@ function commandPublicGuide(args = {}) {
       </div>
     </section>
     ${workflowRoleTaxonomyHtml(publicHtml)}
+    ${adapterSourceOwnersHtml(publicHtml)}
     ${workIntakeHtml(intake, publicHtml)}
     <section>
       <h2>Project Structure</h2>
@@ -3877,6 +3908,380 @@ function ciRunCommands(text = '') {
     .map((value) => value.replace(/^['"]|['"]$/g, ''));
 }
 
+function adapterPolicy(policy = POLICY) {
+  return policy.adapters && typeof policy.adapters === 'object' ? policy.adapters : {};
+}
+
+function adapterTargets(policy = POLICY) {
+  return Array.isArray(adapterPolicy(policy).targets) ? adapterPolicy(policy).targets : [];
+}
+
+function adapterSourceRoot(policy = POLICY, root = ROOT) {
+  return join(root, normalizedProjectRel(adapterPolicy(policy).sourceRoot || '.codex/workflow/project/adapters'));
+}
+
+function normalizedProjectRel(value = '') {
+  return String(value || '').replaceAll('\\', '/').replace(/^\/+/, '');
+}
+
+function projectRelPathIsSafe(value) {
+  const raw = String(value || '');
+  const normalized = normalizedProjectRel(value);
+  return Boolean(normalized)
+    && !/^[a-z]:/i.test(raw)
+    && !raw.startsWith('/')
+    && !raw.startsWith('\\')
+    && !normalized.split('/').includes('..')
+    && !normalized.includes('\0');
+}
+
+function adapterSourcePath(target, policy = POLICY, root = ROOT) {
+  return join(adapterSourceRoot(policy, root), normalizedProjectRel(target.source || ''));
+}
+
+function adapterTargetPath(target, root = ROOT) {
+  return join(root, normalizedProjectRel(target.target || ''));
+}
+
+function bufferEqual(a, b) {
+  return Buffer.isBuffer(a) && Buffer.isBuffer(b) && a.length === b.length && a.equals(b);
+}
+
+function readFileBuffer(path) {
+  try {
+    return readFileSync(path);
+  } catch {
+    return null;
+  }
+}
+
+function selectedAdapterTargets(args = {}, policy = POLICY) {
+  const raw = args.target || args.targets || '';
+  const ids = String(raw || '').split(',').map((id) => id.trim()).filter(Boolean);
+  const targets = adapterTargets(policy);
+  if (!ids.length) return targets;
+  const selected = targets.filter((target) => ids.includes(String(target.id)));
+  const selectedIds = new Set(selected.map((target) => String(target.id)));
+  const missing = ids.filter((id) => !selectedIds.has(id));
+  if (missing.length) throw new Error(`Unknown adapter target id(s): ${missing.join(', ')}`);
+  return selected;
+}
+
+function adapterPackageExpectedScripts(target, policy = POLICY) {
+  if (target.sourcePolicy !== 'gates.packageScripts') return {};
+  return policy.gates?.packageScripts || {};
+}
+
+function adapterPackageScriptProblems(target, options = {}) {
+  const root = options.root || ROOT;
+  const policy = options.policy || POLICY;
+  const packagePath = adapterTargetPath(target, root);
+  const scripts = options.scripts || packageWorkflowScripts(packagePath);
+  const expected = adapterPackageExpectedScripts(target, policy);
+  const problems = [];
+  if (!existsSync(packagePath)) {
+    problems.push(`adapter ${target.id} target is missing: ${projectRel(packagePath)}.`);
+    return problems;
+  }
+  if (!Object.keys(expected).length) {
+    problems.push(`adapter ${target.id} has no expected package scripts from ${target.sourcePolicy}.`);
+    return problems;
+  }
+  for (const [name, command] of Object.entries(expected)) {
+    if (scripts[name] !== command) problems.push(`adapter ${target.id} package script ${name} must be exactly "${command}", got "${scripts[name] || '(missing)'}".`);
+  }
+  return problems;
+}
+
+function adapterDriftProblems(options = {}) {
+  const root = options.root || ROOT;
+  const policy = options.policy || POLICY;
+  const targets = options.targets || adapterTargets(policy);
+  const problems = [];
+  for (const target of targets) {
+    if (target.mode === 'exact-file') {
+      const sourcePath = adapterSourcePath(target, policy, root);
+      const targetPath = adapterTargetPath(target, root);
+      const source = readFileBuffer(sourcePath);
+      const installed = readFileBuffer(targetPath);
+      if (!source) {
+        problems.push(`adapter ${target.id} source is missing: ${projectRel(sourcePath)}.`);
+        continue;
+      }
+      if (!installed) {
+        problems.push(`adapter ${target.id} target is missing: ${projectRel(targetPath)}.`);
+        continue;
+      }
+      if (!bufferEqual(source, installed)) problems.push(`adapter ${target.id} target differs from canonical source: ${projectRel(targetPath)}.`);
+    } else if (target.mode === 'package-scripts') {
+      problems.push(...adapterPackageScriptProblems(target, { root, policy }));
+    }
+  }
+  return problems;
+}
+
+function adapterPolicyContractProblems(policy = POLICY, root = ROOT) {
+  const adapter = adapterPolicy(policy);
+  const problems = [];
+  if (adapter.schema !== 'codex-workflow-adapters-policy/v1') problems.push('.codex/workflow/policy/adapters.json must use schema codex-workflow-adapters-policy/v1.');
+  if (!projectRelPathIsSafe(adapter.sourceRoot)) problems.push('.codex/workflow/policy/adapters.json sourceRoot must be a safe project-relative path.');
+  else if (!existsSync(adapterSourceRoot(policy, root))) problems.push(`adapter sourceRoot is missing: ${normalizedProjectRel(adapter.sourceRoot)}.`);
+  const modes = new Set(Array.isArray(adapter.modes) ? adapter.modes.map(String) : []);
+  const uninstallBehaviors = new Set(Array.isArray(adapter.uninstallBehaviors) ? adapter.uninstallBehaviors.map(String) : []);
+  const sourceOwners = adapter.sourceOwners && typeof adapter.sourceOwners === 'object' && !Array.isArray(adapter.sourceOwners) ? adapter.sourceOwners : {};
+  if (!modes.size) problems.push('.codex/workflow/policy/adapters.json modes must be a non-empty array.');
+  if (!uninstallBehaviors.size) problems.push('.codex/workflow/policy/adapters.json uninstallBehaviors must be a non-empty array.');
+  if (!Object.keys(sourceOwners).length) problems.push('.codex/workflow/policy/adapters.json sourceOwners must declare a canonical owner for each adapter mode.');
+  for (const mode of modes) {
+    const owner = sourceOwners[mode];
+    if (!owner || typeof owner !== 'object' || Array.isArray(owner)) {
+      problems.push(`.codex/workflow/policy/adapters.json sourceOwners.${mode} is required.`);
+      continue;
+    }
+    if (!String(owner.path || '').trim()) problems.push(`.codex/workflow/policy/adapters.json sourceOwners.${mode}.path is required.`);
+    if (!String(owner.summary || '').trim()) problems.push(`.codex/workflow/policy/adapters.json sourceOwners.${mode}.summary is required.`);
+  }
+  const targets = adapterTargets(policy);
+  if (!targets.length) problems.push('.codex/workflow/policy/adapters.json targets must be a non-empty array.');
+  const ids = new Set();
+  const portabilityActions = new Set(Array.isArray(policy.portability?.actions) ? policy.portability.actions.map(String) : []);
+  for (const target of targets) {
+    const id = String(target?.id || '');
+    if (!id) problems.push('adapter target is missing id.');
+    else if (ids.has(id)) problems.push(`adapter target id is duplicated: ${id}.`);
+    else ids.add(id);
+    const mode = String(target?.mode || '');
+    if (!modes.has(mode)) problems.push(`adapter ${id || '(missing id)'} uses unsupported mode ${mode || '(missing)'}.`);
+    const targetPath = String(target?.target || '');
+    if (!projectRelPathIsSafe(targetPath)) problems.push(`adapter ${id || '(missing id)'} target must be a safe project-relative path.`);
+    if (['.codex/workflow/records/', '.codex/workflow/runtime/', '.codex/workflow/state/', '.codex/workflow/artifacts/'].some((dir) => workflowPathMatchesPattern(normalizedProjectRel(targetPath), dir))) {
+      problems.push(`adapter ${id || '(missing id)'} must not install into records/runtime/state/artifacts.`);
+    }
+    if (!String(target?.ownership || '').trim()) problems.push(`adapter ${id || '(missing id)'} is missing ownership.`);
+    const uninstall = String(target?.uninstall || '');
+    if (!uninstall.trim()) problems.push(`adapter ${id || '(missing id)'} is missing uninstall behavior.`);
+    else if (uninstallBehaviors.size && !uninstallBehaviors.has(uninstall)) problems.push(`adapter ${id || '(missing id)'} uses unsupported uninstall behavior ${uninstall}.`);
+    const portingAction = String(target?.portingAction || '');
+    if (!portingAction) problems.push(`adapter ${id || '(missing id)'} is missing portingAction.`);
+    else if (portabilityActions.size && !portabilityActions.has(portingAction)) problems.push(`adapter ${id || '(missing id)'} uses unknown portingAction ${portingAction}.`);
+    if (mode === 'exact-file') {
+      if (uninstall === 'remove-managed-fields') problems.push(`adapter ${id || '(missing id)'} exact-file target must not use remove-managed-fields uninstall behavior.`);
+      if (!projectRelPathIsSafe(target?.source)) problems.push(`adapter ${id || '(missing id)'} source must be a safe path relative to sourceRoot.`);
+      else if (!existsSync(adapterSourcePath(target, policy, root))) problems.push(`adapter ${id || '(missing id)'} source file is missing: ${projectRel(adapterSourcePath(target, policy, root))}.`);
+    } else if (mode === 'package-scripts') {
+      if (uninstall && uninstall !== 'remove-managed-fields') problems.push(`adapter ${id || '(missing id)'} package-scripts target must use remove-managed-fields uninstall behavior.`);
+      if (normalizedProjectRel(targetPath) !== 'package.json') problems.push(`adapter ${id || '(missing id)'} package-scripts target must be package.json.`);
+      if (target.sourcePolicy !== 'gates.packageScripts') problems.push(`adapter ${id || '(missing id)'} package-scripts sourcePolicy must be gates.packageScripts.`);
+      if (!Object.keys(adapterPackageExpectedScripts(target, policy)).length) problems.push(`adapter ${id || '(missing id)'} package-scripts has no expected gate script map.`);
+    }
+  }
+  const ownerMentionFiles = Array.isArray(adapter.ownerMentionFiles) ? adapter.ownerMentionFiles.map(String) : [];
+  if (!ownerMentionFiles.length) problems.push('.codex/workflow/policy/adapters.json ownerMentionFiles must list docs that explain adapter ownership.');
+  for (const file of ownerMentionFiles) {
+    if (!projectRelPathIsSafe(file)) {
+      problems.push(`adapter owner mention file must be a safe project-relative path: ${file}.`);
+      continue;
+    }
+    const text = readText(file);
+    if (!text) {
+      problems.push(`adapter owner mention file is missing or empty: ${file}.`);
+      continue;
+    }
+    if (!text.includes('.codex/workflow/policy/adapters.json')) problems.push(`${file} must point to .codex/workflow/policy/adapters.json for adapter owner truth.`);
+    if (!text.includes('gates.packageScripts')) problems.push(`${file} must mention gates.packageScripts as the package workflow script source owner.`);
+  }
+  return problems;
+}
+
+function portabilityPolicyContractProblems(policy = POLICY) {
+  const portability = policy.portability || {};
+  const problems = [];
+  if (portability.schema !== 'codex-workflow-portability-policy/v1') problems.push('.codex/workflow/policy/portability.json must use schema codex-workflow-portability-policy/v1.');
+  const states = new Set(Array.isArray(portability.states) ? portability.states.map(String) : []);
+  const actions = new Set(Array.isArray(portability.actions) ? portability.actions.map(String) : []);
+  if (!states.size) problems.push('.codex/workflow/policy/portability.json states must be a non-empty array.');
+  if (!actions.size) problems.push('.codex/workflow/policy/portability.json actions must be a non-empty array.');
+  const capabilities = Array.isArray(portability.capabilities) ? portability.capabilities : [];
+  if (!capabilities.length) problems.push('.codex/workflow/policy/portability.json capabilities must be a non-empty array.');
+  const capabilityIds = new Set();
+  for (const capability of capabilities) {
+    const id = String(capability?.id || '');
+    if (!id) problems.push('portability capability is missing id.');
+    else if (capabilityIds.has(id)) problems.push(`portability capability id is duplicated: ${id}.`);
+    else capabilityIds.add(id);
+    if (!states.has(String(capability?.state || ''))) problems.push(`portability capability ${id || '(missing id)'} has unsupported state ${capability?.state || '(missing)'}.`);
+    if (!actions.has(String(capability?.portingAction || ''))) problems.push(`portability capability ${id || '(missing id)'} has unsupported portingAction ${capability?.portingAction || '(missing)'}.`);
+    for (const field of ['owner', 'emptyProjectRule']) {
+      if (!String(capability?.[field] || '').trim()) problems.push(`portability capability ${id || '(missing id)'} is missing ${field}.`);
+    }
+  }
+  const pathRules = Array.isArray(portability.pathRules) ? portability.pathRules : [];
+  if (!pathRules.length) problems.push('.codex/workflow/policy/portability.json pathRules must be a non-empty array.');
+  for (const rule of pathRules) {
+    const match = String(rule?.match || '');
+    if (!match) problems.push('portability path rule is missing match.');
+    if (!String(rule?.group || '').trim()) problems.push(`portability path rule ${match || '(missing)'} is missing group.`);
+    if (!actions.has(String(rule?.portingAction || ''))) problems.push(`portability path rule ${match || '(missing)'} has unsupported portingAction ${rule?.portingAction || '(missing)'}.`);
+    if (!String(rule?.reason || '').trim()) problems.push(`portability path rule ${match || '(missing)'} is missing reason.`);
+    if (['append-only-evidence', 'generated-evidence-artifact', 'mutable-cache', 'runtime-telemetry'].includes(String(rule?.group || ''))
+      && ['copy-as-is', 'copy-rename'].includes(String(rule?.portingAction || ''))) {
+      problems.push(`portability path rule ${match || '(missing)'} must not blindly copy generated/evidence/runtime data.`);
+    }
+  }
+  for (const file of requiredWorkflowFiles()) {
+    if (file.startsWith('.codex/archive/')) continue;
+    if (!pathRules.some((rule) => workflowPathMatchesPattern(file, String(rule.match || '')))) {
+      problems.push(`portability pathRules must classify required workflow file: ${file}.`);
+    }
+  }
+  return problems;
+}
+
+function adapterProblems(options = {}) {
+  const policy = options.policy || POLICY;
+  const root = options.root || ROOT;
+  return [...new Set([
+    ...adapterPolicyContractProblems(policy, root),
+    ...adapterDriftProblems({ root, policy, targets: options.targets }),
+  ])].sort();
+}
+
+function syncAdapterExactFile(target, options) {
+  const sourcePath = adapterSourcePath(target, options.policy, options.root);
+  const targetPath = adapterTargetPath(target, options.root);
+  const source = readFileBuffer(sourcePath);
+  if (!source) return { problem: `adapter ${target.id} source is missing: ${projectRel(sourcePath)}.` };
+  const installed = readFileBuffer(targetPath);
+  if (installed && !bufferEqual(source, installed) && !options.force) {
+    return { problem: `adapter ${target.id} target differs from source; inspect it and rerun adapter-sync --force if the canonical source should win.` };
+  }
+  if (installed && bufferEqual(source, installed)) return { action: `unchanged ${normalizedProjectRel(target.target)}` };
+  if (!options.dryRun) {
+    ensureDir(dirname(targetPath));
+    writeFileSync(targetPath, source);
+  }
+  return { action: `${options.dryRun ? 'would sync' : 'synced'} ${normalizedProjectRel(target.target)}` };
+}
+
+function syncAdapterPackageScripts(target, options) {
+  const packagePath = adapterTargetPath(target, options.root);
+  const expected = adapterPackageExpectedScripts(target, options.policy);
+  if (!existsSync(packagePath)) return { problem: `adapter ${target.id} target is missing: ${projectRel(packagePath)}.` };
+  const packageJson = loadJson(packagePath, null);
+  if (!packageJson || typeof packageJson !== 'object' || Array.isArray(packageJson)) return { problem: `adapter ${target.id} target is not a JSON object: ${projectRel(packagePath)}.` };
+  const scripts = packageJson.scripts && typeof packageJson.scripts === 'object' && !Array.isArray(packageJson.scripts) ? { ...packageJson.scripts } : {};
+  const changed = [];
+  for (const [name, command] of Object.entries(expected)) {
+    if (scripts[name] && scripts[name] !== command && !options.force) {
+      return { problem: `adapter ${target.id} package script ${name} differs; inspect it and rerun adapter-sync --force if the policy should win.` };
+    }
+    if (scripts[name] !== command) {
+      scripts[name] = command;
+      changed.push(name);
+    }
+  }
+  if (!changed.length) return { action: 'unchanged package.json workflow scripts' };
+  if (!options.dryRun) saveJson(packagePath, { ...packageJson, scripts });
+  return { action: `${options.dryRun ? 'would sync' : 'synced'} package.json scripts: ${changed.join(', ')}` };
+}
+
+function uninstallAdapterExactFile(target, options) {
+  const sourcePath = adapterSourcePath(target, options.policy, options.root);
+  const targetPath = adapterTargetPath(target, options.root);
+  if (target.uninstall === 'refuse-by-default' && !options.force) {
+    return { problem: `adapter ${target.id} refuses uninstall by default; keep or move this project-authored file intentionally.` };
+  }
+  if (!existsSync(targetPath)) return { action: `already absent ${normalizedProjectRel(target.target)}` };
+  const source = readFileBuffer(sourcePath);
+  const installed = readFileBuffer(targetPath);
+  if (source && installed && !bufferEqual(source, installed) && !options.force) {
+    return { problem: `adapter ${target.id} target differs from canonical source; refusing to uninstall modified file.` };
+  }
+  if (!options.dryRun) rmSync(targetPath, { force: true });
+  return { action: `${options.dryRun ? 'would remove' : 'removed'} ${normalizedProjectRel(target.target)}` };
+}
+
+function uninstallAdapterPackageScripts(target, options) {
+  const packagePath = adapterTargetPath(target, options.root);
+  const expected = adapterPackageExpectedScripts(target, options.policy);
+  if (!existsSync(packagePath)) return { action: 'already absent package.json' };
+  const packageJson = loadJson(packagePath, null);
+  if (!packageJson || typeof packageJson !== 'object' || Array.isArray(packageJson)) return { problem: `adapter ${target.id} target is not a JSON object: ${projectRel(packagePath)}.` };
+  const scripts = packageJson.scripts && typeof packageJson.scripts === 'object' && !Array.isArray(packageJson.scripts) ? { ...packageJson.scripts } : {};
+  const removed = [];
+  for (const [name, command] of Object.entries(expected)) {
+    if (!Object.hasOwn(scripts, name)) continue;
+    if (scripts[name] !== command && !options.force) return { problem: `adapter ${target.id} package script ${name} is modified; refusing to uninstall.` };
+    delete scripts[name];
+    removed.push(name);
+  }
+  if (!removed.length) return { action: 'unchanged package.json workflow scripts' };
+  const nextPackageJson = { ...packageJson };
+  if (Object.keys(scripts).length) nextPackageJson.scripts = scripts;
+  else delete nextPackageJson.scripts;
+  if (!options.dryRun) saveJson(packagePath, nextPackageJson);
+  return { action: `${options.dryRun ? 'would remove' : 'removed'} package.json scripts: ${removed.join(', ')}` };
+}
+
+function mutateAdapters(args = {}, mode = 'sync') {
+  const dryRun = Boolean(args['dry-run']);
+  const force = Boolean(args.force);
+  let targets = [];
+  try {
+    targets = selectedAdapterTargets(args, POLICY);
+  } catch (error) {
+    return { ok: false, problems: [error.message], actions: [] };
+  }
+  const policyProblems = adapterPolicyContractProblems();
+  const problems = [...policyProblems];
+  const actions = [];
+  if (!policyProblems.length) {
+    for (const target of targets) {
+      const result = mode === 'uninstall'
+        ? (target.mode === 'package-scripts'
+          ? uninstallAdapterPackageScripts(target, { root: ROOT, policy: POLICY, dryRun, force })
+          : uninstallAdapterExactFile(target, { root: ROOT, policy: POLICY, dryRun, force }))
+        : (target.mode === 'package-scripts'
+          ? syncAdapterPackageScripts(target, { root: ROOT, policy: POLICY, dryRun, force })
+          : syncAdapterExactFile(target, { root: ROOT, policy: POLICY, dryRun, force }));
+      if (result.problem) problems.push(result.problem);
+      if (result.action) actions.push(result.action);
+    }
+  }
+  return { ok: problems.length === 0, problems, actions };
+}
+
+function commandAdapterCheck(args = {}) {
+  const quiet = Boolean(args.quiet);
+  let targets = null;
+  let problems = [];
+  try {
+    targets = selectedAdapterTargets(args, POLICY);
+  } catch (error) {
+    problems = [error.message];
+  }
+  if (!problems.length) problems = adapterProblems({ targets });
+  if (!quiet) {
+    console.log(`workflow adapter problems: ${problems.length}`);
+    for (const problem of problems) console.log(`- ${problem}`);
+  }
+  return problems.length === 0;
+}
+
+function commandAdapterSync(args = {}) {
+  const result = mutateAdapters(args, 'sync');
+  for (const action of result.actions) console.log(action);
+  for (const problem of result.problems) console.error(`- ${problem}`);
+  process.exit(result.ok ? 0 : 1);
+}
+
+function commandAdapterUninstall(args = {}) {
+  const result = mutateAdapters(args, 'uninstall');
+  for (const action of result.actions) console.log(action);
+  for (const problem of result.problems) console.error(`- ${problem}`);
+  process.exit(result.ok ? 0 : 1);
+}
+
 function inventoryPolicyContractProblems() {
   const inventory = POLICY.files?.inventory || {};
   const problems = [];
@@ -3911,11 +4316,13 @@ function inventoryPolicyContractProblems() {
   const allowedRoles = new Set([
     'workflow-design-doc',
     'workflow-reference-doc',
+    'workflow-system-code',
     'managed-handover',
     'preserved-user-brief',
     'historical-analysis',
     'project-profile-data',
     'project-policy-data',
+    'project-adapter-source',
     'append-only-evidence',
     'generated-evidence-artifact',
     'mutable-cache',
@@ -4132,11 +4539,13 @@ function policyProblems() {
   problems.push(...profileContractProblems());
   problems.push(...inventoryPolicyContractProblems());
   problems.push(...compatibilityPolicyContractProblems());
+  problems.push(...adapterPolicyContractProblems());
+  problems.push(...portabilityPolicyContractProblems());
   problems.push(...handoverPolicyContractProblems());
   problems.push(...packageScriptContractProblems());
   problems.push(...ciWorkflowContractProblems());
   const scripts = packageWorkflowScripts();
-  for (const script of [...canonicalLadder(), 'workflow:policy-check', 'workflow:inventory-check', 'workflow:trace-check', 'workflow:work-intake-check']) {
+  for (const script of [...canonicalLadder(), 'workflow:policy-check', 'workflow:inventory-check', 'workflow:adapter-check', 'workflow:trace-check', 'workflow:work-intake-check']) {
     if (!scripts[script]) problems.push(`package.json is missing ${script}.`);
   }
   const ladderMentionFiles = POLICY.guide?.ladderMentionFiles || [];
@@ -4826,6 +5235,7 @@ function printHealthDetails() {
   printed = printProblemDetails('zoo registry', zooRegistryProblems()) || printed;
   printed = printProblemDetails('zoo visual guide', zooVisualGuideProblems()) || printed;
   printed = printProblemDetails('codex inventory', inventoryProblems()) || printed;
+  printed = printProblemDetails('workflow adapters', adapterProblems()) || printed;
   printed = printProblemDetails('workflow policy', policyProblems()) || printed;
   printed = printProblemDetails('command trace', commandTraceProblems()) || printed;
   const traceAttention = commandTraceAttentionLines(readCommandRuns(), 5);
@@ -4859,6 +5269,7 @@ function commandStatus({ health = false } = {}) {
   const guideBrowserOk = health ? commandGuideBrowserCheck({ quiet: true }) : null;
   const zooVisualOk = health ? commandZooVisualGuideCheck({ quiet: true }) : null;
   const inventoryOk = health ? commandInventoryCheck({ quiet: true }) : null;
+  const adapterOk = health ? commandAdapterCheck({ quiet: true }) : null;
   const policyOk = health ? commandPolicyCheck({ quiet: true }) : null;
   const traceOk = health ? commandTraceCheck({ quiet: true }) : null;
   const hookConfigOk = health ? commandHookConfigCheck({ quiet: true }) : null;
@@ -4899,6 +5310,7 @@ function commandStatus({ health = false } = {}) {
     console.log(`guide browser: ${guideBrowserOk ? 'ok' : 'needs attention'}`);
     console.log(`zoo visual guide: ${zooVisualOk ? 'ok' : 'needs attention'}`);
     console.log(`codex inventory: ${inventoryOk ? 'ok' : 'needs attention'}`);
+    console.log(`workflow adapters: ${adapterOk ? 'ok' : 'needs attention'}`);
     console.log(`workflow policy: ${policyOk ? 'ok' : 'needs attention'}`);
     const traceCounts = traceWarned || traceTimedOut ? ` (warned ${traceWarned}, timed out ${traceTimedOut})` : '';
     console.log(`command trace: ${traceOk ? 'ok' : 'needs attention'}${traceCounts}`);
@@ -5710,6 +6122,43 @@ function commandRecordRouting(args) {
   console.log(relative(ROOT, rec.path));
 }
 
+function closedRoutingStateFromRecord(routingId, routingRecord = {}, previousState = {}, closeRecord = '', closedAt = nowIso()) {
+  const samePrevious = previousState.routingId === routingId ? previousState : {};
+  const recordPath = recordPathFor('routing', routingId);
+  return {
+    routingId,
+    route: routingRecord.route || samePrevious.route || '',
+    worker: routingRecord.worker || samePrevious.worker || '',
+    rejectedRoutes: csv(routingRecord.rejectedRoutes || samePrevious.rejectedRoutes),
+    files: csv(routingRecord.files || samePrevious.files),
+    writeScope: csv(routingRecord.writeScope || routingRecord.files || samePrevious.writeScope || samePrevious.files),
+    workSliceIds: csv(routingRecord.workSliceIds || samePrevious.workSliceIds),
+    verification: routingRecord.verification || samePrevious.verification || '',
+    fallbackTrigger: routingRecord.fallbackTrigger || samePrevious.fallbackTrigger || '',
+    fallbackTarget: routingRecord.fallbackTarget || samePrevious.fallbackTarget || '',
+    fromRoutingId: routingRecord.fromRoutingId || samePrevious.fromRoutingId || '',
+    deadline: routingRecord.deadline || samePrevious.deadline || '',
+    status: 'closed',
+    worktreeHash: routingRecord.worktreeHash || samePrevious.worktreeHash || '',
+    recordedAt: routingRecord.recordedAt || routingRecord.created || samePrevious.recordedAt || '',
+    record: recordPath ? relative(ROOT, recordPath).replaceAll('\\', '/') : '',
+    closedAt,
+    closeRecord,
+  };
+}
+
+function routingStateAfterCompletion(previousState = {}, routingId, routingRecord = {}, closeRecord = '', closedAt = nowIso()) {
+  if (!previousState.routingId || previousState.routingId === routingId) {
+    return closedRoutingStateFromRecord(routingId, routingRecord, previousState, closeRecord, closedAt);
+  }
+  return {
+    ...previousState,
+    recentClosedRoutingId: routingId,
+    recentClosedRoutingAt: closedAt,
+    recentClosedRoutingRecord: closeRecord,
+  };
+}
+
 function commandCompleteRouting(args) {
   const routingState = loadJson(ROUTING_STATE_FILE, {});
   const routingId = args.routing || args['routing-id'] || routingState.routingId || '';
@@ -5742,13 +6191,12 @@ function commandCompleteRouting(args) {
     workSliceIds: csv(routingRecord.workSliceIds || routingState.workSliceIds),
     worktreeHash: hash,
   });
-  saveJson(ROUTING_STATE_FILE, {
-    ...routingState,
+  saveJson(ROUTING_STATE_FILE, routingStateAfterCompletion(
+    routingState,
     routingId,
-    status: 'closed',
-    closedAt: nowIso(),
-    closeRecord: relative(ROOT, rec.path).replaceAll('\\', '/'),
-  });
+    routingRecord,
+    relative(ROOT, rec.path).replaceAll('\\', '/'),
+  ));
   console.log(`Completed routing ${routingId}`);
   console.log(relative(ROOT, rec.path));
 }
@@ -6254,6 +6702,7 @@ function workflowSelfTestChecks() {
   const workflowEvidence = (idPrefix, { audit = false } = {}) => {
     const scripts = [
       'workflow:policy-check',
+      'workflow:adapter-check',
       'workflow:self-test',
       audit ? 'workflow:trace-check' : '',
       'workflow:guide-check',
@@ -6350,6 +6799,9 @@ function workflowSelfTestChecks() {
   add('workflow profile is required workflow manifest', requiredWorkflowFiles().includes('.codex/workflow/profile.json'));
   add('workflow engine is required workflow manifest', requiredWorkflowFiles().includes('.codex/scripts/workflow-engine.mjs'));
   add('workflow kernel is required workflow manifest', requiredWorkflowFiles().includes('.codex/scripts/nexus-workflow.mjs'));
+  add('workflow adapter policy is required workflow manifest', requiredWorkflowFiles().includes('.codex/workflow/policy/adapters.json'));
+  add('workflow portability policy is required workflow manifest', requiredWorkflowFiles().includes('.codex/workflow/policy/portability.json'));
+  add('workflow system/project roots are required workflow manifest', requiredWorkflowFiles().includes('.codex/workflow/system/README.md') && requiredWorkflowFiles().includes('.codex/workflow/project/README.md'));
   add('workflow bootstrap template is required workflow manifest', requiredWorkflowFiles().includes('.codex/workflow/templates/project-bootstrap.md'));
   add('guide policy declares every required public-guide source input', requiredGuideSourceFiles().every((file) => POLICY.guide?.sourceFiles?.includes(file) || publicGuideInputFiles().includes(file)));
   add('workflow policy files are substantive changes', substantiveFiles(['.codex/workflow/policy/files.json']).length === 1);
@@ -6389,6 +6841,214 @@ function workflowSelfTestChecks() {
     && !readText('.codex/workflow/templates/intent.md').includes('- change-request')
     && !readText('.codex/workflow/templates/work-slice.md').includes('- workflow-maintenance'));
   add('workflow policy check passes current policy pack', policyProblems().length === 0);
+  add('workflow adapter check passes current installed adapters', adapterProblems().length === 0);
+  add('workflow adapter source owners are policy-owned', (() => {
+    const owners = POLICY.adapters?.sourceOwners || {};
+    return owners['exact-file']?.path === '.codex/workflow/project/adapters/'
+      && owners['package-scripts']?.path === '.codex/workflow/policy/gates.json#packageScripts'
+      && adapterPolicyContractProblems().length === 0;
+  })());
+  add('workflow adapter source owners participate in generated guide view', adapterSourceOwnersHtml(escapeHtml).includes('Adapter Source Owners')
+    && adapterSourceOwnersHtml(escapeHtml).includes('gates.json#packageScripts'));
+  add('workflow adapter policy rejects missing canonical source', (() => {
+    const dir = mkdtempSync(join(tmpdir(), 'nexus-adapter-policy-'));
+    const policy = {
+      adapters: {
+        schema: 'codex-workflow-adapters-policy/v1',
+        sourceRoot: 'adapters',
+        modes: ['exact-file'],
+        targets: [{ id: 'missing', mode: 'exact-file', source: 'missing.txt', target: 'out.txt', ownership: 'test', uninstall: 'remove-if-clean', portingAction: 'rewrite' }],
+      },
+      portability: { actions: ['rewrite'] },
+    };
+    const result = adapterPolicyContractProblems(policy, dir).some((problem) => problem.includes('sourceRoot') || problem.includes('source file is missing'));
+    rmSync(dir, { recursive: true, force: true });
+    return result;
+  })());
+  add('workflow adapter policy rejects absolute target paths', (() => {
+    const dir = mkdtempSync(join(tmpdir(), 'nexus-adapter-policy-'));
+    ensureDir(join(dir, 'adapters'));
+    writeFileSync(join(dir, 'adapters', 'source.txt'), 'source\n');
+    const policy = {
+      adapters: {
+        schema: 'codex-workflow-adapters-policy/v1',
+        sourceRoot: 'adapters',
+        modes: ['exact-file'],
+        targets: [{ id: 'absolute', mode: 'exact-file', source: 'source.txt', target: '/tmp/out.txt', ownership: 'test', uninstall: 'remove-if-clean', portingAction: 'rewrite' }],
+      },
+      portability: { actions: ['rewrite'] },
+    };
+    const result = adapterPolicyContractProblems(policy, dir).some((problem) => problem.includes('safe project-relative path'));
+    rmSync(dir, { recursive: true, force: true });
+    return result;
+  })());
+  add('workflow adapter policy rejects unsupported target modes', (() => {
+    const dir = mkdtempSync(join(tmpdir(), 'nexus-adapter-policy-'));
+    ensureDir(join(dir, 'adapters'));
+    const policy = {
+      adapters: {
+        schema: 'codex-workflow-adapters-policy/v1',
+        sourceRoot: 'adapters',
+        modes: ['exact-file'],
+        uninstallBehaviors: ['remove-if-clean'],
+        targets: [{ id: 'bad-mode', mode: 'symlink', target: 'out.txt', ownership: 'test', uninstall: 'remove-if-clean', portingAction: 'rewrite' }],
+      },
+      portability: { actions: ['rewrite'] },
+    };
+    const result = adapterPolicyContractProblems(policy, dir).some((problem) => problem.includes('unsupported mode symlink'));
+    rmSync(dir, { recursive: true, force: true });
+    return result;
+  })());
+  add('workflow adapter policy rejects missing source owner entries', (() => {
+    const dir = mkdtempSync(join(tmpdir(), 'nexus-adapter-policy-'));
+    ensureDir(join(dir, 'adapters'));
+    writeFileSync(join(dir, 'adapters', 'source.txt'), 'source\n');
+    const policy = {
+      adapters: {
+        schema: 'codex-workflow-adapters-policy/v1',
+        sourceRoot: 'adapters',
+        modes: ['exact-file'],
+        uninstallBehaviors: ['remove-if-clean'],
+        targets: [{ id: 'missing-owner', mode: 'exact-file', source: 'source.txt', target: 'out.txt', ownership: 'test', uninstall: 'remove-if-clean', portingAction: 'rewrite' }],
+      },
+      portability: { actions: ['rewrite'] },
+    };
+    const result = adapterPolicyContractProblems(policy, dir).some((problem) => problem.includes('sourceOwners'));
+    rmSync(dir, { recursive: true, force: true });
+    return result;
+  })());
+  add('workflow adapter policy rejects unknown uninstall behavior', (() => {
+    const dir = mkdtempSync(join(tmpdir(), 'nexus-adapter-policy-'));
+    ensureDir(join(dir, 'adapters'));
+    writeFileSync(join(dir, 'adapters', 'source.txt'), 'source\n');
+    const policy = {
+      adapters: {
+        schema: 'codex-workflow-adapters-policy/v1',
+        sourceRoot: 'adapters',
+        modes: ['exact-file'],
+        uninstallBehaviors: ['remove-if-clean'],
+        targets: [{ id: 'bad-uninstall', mode: 'exact-file', source: 'source.txt', target: 'out.txt', ownership: 'test', uninstall: 'delete-all', portingAction: 'rewrite' }],
+      },
+      portability: { actions: ['rewrite'] },
+    };
+    const result = adapterPolicyContractProblems(policy, dir).some((problem) => problem.includes('unsupported uninstall behavior delete-all'));
+    rmSync(dir, { recursive: true, force: true });
+    return result;
+  })());
+  add('workflow adapter policy rejects package-script uninstall mismatches', (() => {
+    const dir = mkdtempSync(join(tmpdir(), 'nexus-adapter-policy-'));
+    ensureDir(join(dir, 'adapters'));
+    const policy = {
+      adapters: {
+        schema: 'codex-workflow-adapters-policy/v1',
+        sourceRoot: 'adapters',
+        modes: ['package-scripts'],
+        uninstallBehaviors: ['remove-if-clean', 'remove-managed-fields'],
+        targets: [{ id: 'package', mode: 'package-scripts', target: 'package.json', sourcePolicy: 'gates.packageScripts', ownership: 'test', uninstall: 'remove-if-clean', portingAction: 'rewrite' }],
+      },
+      gates: { packageScripts: { 'workflow:status': 'node .codex/scripts/example.mjs status' } },
+      portability: { actions: ['rewrite'] },
+    };
+    const result = adapterPolicyContractProblems(policy, dir).some((problem) => problem.includes('package-scripts target must use remove-managed-fields'));
+    rmSync(dir, { recursive: true, force: true });
+    return result;
+  })());
+  add('workflow adapter check catches exact-file drift', (() => {
+    const dir = mkdtempSync(join(tmpdir(), 'nexus-adapter-drift-'));
+    ensureDir(join(dir, 'adapters'));
+    writeFileSync(join(dir, 'adapters', 'source.txt'), 'source\n');
+    writeFileSync(join(dir, 'target.txt'), 'drift\n');
+    const policy = {
+      adapters: {
+        schema: 'codex-workflow-adapters-policy/v1',
+        sourceRoot: 'adapters',
+        modes: ['exact-file'],
+        targets: [{ id: 'drift', mode: 'exact-file', source: 'source.txt', target: 'target.txt', ownership: 'test', uninstall: 'remove-if-clean', portingAction: 'rewrite' }],
+      },
+      portability: { actions: ['rewrite'] },
+    };
+    const result = adapterProblems({ root: dir, policy }).some((problem) => problem.includes('differs from canonical source'));
+    rmSync(dir, { recursive: true, force: true });
+    return result;
+  })());
+  add('workflow adapter sync installs and refuses unforced drift', (() => {
+    const dir = mkdtempSync(join(tmpdir(), 'nexus-adapter-sync-'));
+    ensureDir(join(dir, 'adapters'));
+    writeFileSync(join(dir, 'adapters', 'source.txt'), 'source\n');
+    const policy = { adapters: { sourceRoot: 'adapters' } };
+    const target = { id: 'sync', source: 'source.txt', target: 'target.txt' };
+    const first = syncAdapterExactFile(target, { root: dir, policy, dryRun: false, force: false });
+    writeFileSync(join(dir, 'target.txt'), 'manual\n');
+    const second = syncAdapterExactFile(target, { root: dir, policy, dryRun: false, force: false });
+    rmSync(dir, { recursive: true, force: true });
+    return first.action?.includes('synced') && second.problem?.includes('differs from source');
+  })());
+  add('workflow adapter uninstall removes clean exact files', (() => {
+    const dir = mkdtempSync(join(tmpdir(), 'nexus-adapter-uninstall-'));
+    ensureDir(join(dir, 'adapters'));
+    writeFileSync(join(dir, 'adapters', 'source.txt'), 'source\n');
+    writeFileSync(join(dir, 'target.txt'), 'source\n');
+    const policy = { adapters: { sourceRoot: 'adapters' } };
+    const target = { id: 'clean', source: 'source.txt', target: 'target.txt', uninstall: 'remove-if-clean' };
+    const result = uninstallAdapterExactFile(target, { root: dir, policy, dryRun: false, force: false });
+    const removed = !existsSync(join(dir, 'target.txt'));
+    rmSync(dir, { recursive: true, force: true });
+    return result.action?.includes('removed') && removed;
+  })());
+  add('workflow adapter uninstall refuses drifted exact files unless forced', (() => {
+    const dir = mkdtempSync(join(tmpdir(), 'nexus-adapter-uninstall-'));
+    ensureDir(join(dir, 'adapters'));
+    writeFileSync(join(dir, 'adapters', 'source.txt'), 'source\n');
+    writeFileSync(join(dir, 'target.txt'), 'manual\n');
+    const policy = { adapters: { sourceRoot: 'adapters' } };
+    const target = { id: 'drifted', source: 'source.txt', target: 'target.txt', uninstall: 'remove-if-clean' };
+    const refused = uninstallAdapterExactFile(target, { root: dir, policy, dryRun: false, force: false });
+    const forced = uninstallAdapterExactFile(target, { root: dir, policy, dryRun: false, force: true });
+    const removed = !existsSync(join(dir, 'target.txt'));
+    rmSync(dir, { recursive: true, force: true });
+    return refused.problem?.includes('refusing to uninstall modified file')
+      && forced.action?.includes('removed')
+      && removed;
+  })());
+  add('workflow adapter package scripts sync and uninstall clean managed fields', (() => {
+    const dir = mkdtempSync(join(tmpdir(), 'nexus-adapter-package-'));
+    const policy = {
+      gates: { packageScripts: { 'workflow:status': 'node .codex/scripts/example.mjs status' } },
+    };
+    const target = { id: 'package', target: 'package.json', sourcePolicy: 'gates.packageScripts' };
+    saveJson(join(dir, 'package.json'), { scripts: { test: 'node test.mjs' } });
+    const sync = syncAdapterPackageScripts(target, { root: dir, policy, dryRun: false, force: false });
+    const synced = loadJson(join(dir, 'package.json'), {});
+    const uninstall = uninstallAdapterPackageScripts(target, { root: dir, policy, dryRun: false, force: false });
+    const uninstalled = loadJson(join(dir, 'package.json'), {});
+    rmSync(dir, { recursive: true, force: true });
+    return sync.action?.includes('synced')
+      && synced.scripts?.['workflow:status'] === policy.gates.packageScripts['workflow:status']
+      && uninstall.action?.includes('removed')
+      && !Object.hasOwn(uninstalled.scripts || {}, 'workflow:status')
+      && uninstalled.scripts?.test === 'node test.mjs';
+  })());
+  add('workflow adapter CLI rejects unknown targets', (() => {
+    const script = process.argv[1] ? resolve(process.argv[1]) : join(CODEX, 'scripts', 'nexus-workflow.mjs');
+    const result = spawnSync(process.execPath, [script, 'adapter-check', '--target', '__missing_adapter__'], {
+      cwd: ROOT,
+      encoding: 'utf8',
+    });
+    return result.status !== 0 && String(result.stdout || result.stderr || '').includes('Unknown adapter target');
+  })());
+  add('workflow adapter CLI refuses protected root uninstall by default', (() => {
+    const script = process.argv[1] ? resolve(process.argv[1]) : join(CODEX, 'scripts', 'nexus-workflow.mjs');
+    const result = spawnSync(process.execPath, [script, 'adapter-uninstall', '--target', 'root-agents-md', '--dry-run'], {
+      cwd: ROOT,
+      encoding: 'utf8',
+    });
+    return result.status !== 0 && String(result.stdout || result.stderr || '').includes('refuses uninstall by default');
+  })());
+  add('workflow health surfaces adapter diagnostics', (() => {
+    const scriptText = readFileSync(resolve(process.argv[1] || join(CODEX, 'scripts', 'nexus-workflow.mjs')), 'utf8');
+    return scriptText.includes('workflow adapters:')
+      && scriptText.includes("printProblemDetails('workflow adapters'");
+  })());
   add('workflow policy pins package script command bodies', packageScriptContractProblems().length === 0);
   add('workflow policy rejects package script bypasses', (() => {
     const scripts = { ...packageWorkflowScripts(), 'workflow:release-gate': 'node .codex/scripts/nexus-workflow.mjs validate' };
@@ -7161,6 +7821,52 @@ function workflowSelfTestChecks() {
     worktreeHash: 'current',
     currentHash: 'current',
   }, ['.codex/scripts/nexus-workflow.mjs'], {}).length === 0);
+  add('complete-routing state rebuild uses the completed routing record', (() => {
+    const state = closedRoutingStateFromRecord('ROUTING-old', {
+      route: 'research',
+      worker: 'nexus_researcher',
+      files: ['.codex/workflow/policy/adapters.json'],
+      workSliceIds: ['WORK-SLICE-old'],
+      worktreeHash: 'oldhash',
+      recordedAt: '2026-05-11T00:00:00.000Z',
+    }, {
+      routingId: 'ROUTING-new',
+      route: 'review',
+      worker: 'nexus_pattern_reviewer',
+      files: ['AGENTS.md'],
+      worktreeHash: 'newhash',
+      record: '.codex/workflow/records/routing/ROUTING-new.md',
+    }, '.codex/workflow/records/routing/ROUTING-close.md', '2026-05-11T00:01:00.000Z');
+    return state.routingId === 'ROUTING-old'
+      && state.route === 'research'
+      && state.worker === 'nexus_researcher'
+      && state.record.endsWith('/ROUTING-old.md')
+      && state.files.length === 1
+      && state.files[0] === '.codex/workflow/policy/adapters.json'
+      && state.worktreeHash === 'oldhash'
+      && state.closeRecord === '.codex/workflow/records/routing/ROUTING-close.md';
+  })());
+  add('complete-routing preserves current routing state when closing an older routing', (() => {
+    const previous = {
+      routingId: 'ROUTING-current',
+      route: 'review',
+      worker: 'nexus_pattern_reviewer',
+      files: ['AGENTS.md'],
+      worktreeHash: 'currenthash',
+      record: '.codex/workflow/records/routing/ROUTING-current.md',
+    };
+    const state = routingStateAfterCompletion(previous, 'ROUTING-old', {
+      route: 'research',
+      worker: 'nexus_researcher',
+      files: ['.codex/workflow/policy/adapters.json'],
+      worktreeHash: 'oldhash',
+    }, '.codex/workflow/records/routing/ROUTING-close.md', '2026-05-11T00:01:00.000Z');
+    return state.routingId === 'ROUTING-current'
+      && state.worker === 'nexus_pattern_reviewer'
+      && state.record === '.codex/workflow/records/routing/ROUTING-current.md'
+      && state.recentClosedRoutingId === 'ROUTING-old'
+      && state.recentClosedRoutingRecord === '.codex/workflow/records/routing/ROUTING-close.md';
+  })());
   add('routing check requires preflight for delegated worker patches', routingScopeProblemsForState({}, ['packages/web/src/components/ui/Toast.tsx'], {
     worktreeHash: worktreeHash(),
     workers: ['nexus_spark_worker'],
@@ -7298,6 +8004,7 @@ function workflowSelfTestChecks() {
     files: ['.codex/scripts/nexus-workflow.mjs'],
     commandEvidence: [
       { id: 'policy', command: ['npm', 'run', 'workflow:policy-check'], exitCode: 0, timedOut: false },
+      { id: 'adapter', command: ['npm', 'run', 'workflow:adapter-check'], exitCode: 0, timedOut: false },
       { id: 'self-test', command: ['npm', 'run', 'workflow:self-test'], exitCode: 0, timedOut: false },
       { id: 'guide', command: ['npm', 'run', 'workflow:guide-check'], exitCode: 0, timedOut: false },
       { id: 'guide-browser', command: ['npm', 'run', 'workflow:guide-browser-check'], exitCode: 0, timedOut: false },
@@ -7679,6 +8386,7 @@ function commandValidate(args) {
     const zooOk = commandZooCheck({ quiet: true });
     const zooVisualOk = !needsZooVisual || commandZooVisualGuideCheck({ quiet: true });
     const inventoryOk = commandInventoryCheck({ quiet: true });
+    const adapterOk = commandAdapterCheck({ quiet: true });
     const policyOk = commandPolicyCheck({ quiet: true });
     const traceOk = commandTraceCheck({ quiet: true });
     const hookConfigOk = commandHookConfigCheck({ quiet: true });
@@ -7687,7 +8395,7 @@ function commandValidate(args) {
     const prodZooOk = commandProductionZooBundleCheck({ quiet: true });
     const selfTestFailures = workflowSelfTestChecks().filter((check) => !check.ok);
     const deploymentOk = !args['deployed-gate'] || commandDeploymentCheck({ quiet: true });
-    if (!reviewOk || !verifyOk || !auditOk || !handoverOk || !recordsOk || !routingOk || !guideOk || !guideBrowserOk || !zooOk || !zooVisualOk || !inventoryOk || !policyOk || !traceOk || !hookConfigOk || !intakeOk || !branchEvidenceOk || !depAuditOk || !prodZooOk || !deploymentOk || selfTestFailures.length) {
+    if (!reviewOk || !verifyOk || !auditOk || !handoverOk || !recordsOk || !routingOk || !guideOk || !guideBrowserOk || !zooOk || !zooVisualOk || !inventoryOk || !adapterOk || !policyOk || !traceOk || !hookConfigOk || !intakeOk || !branchEvidenceOk || !depAuditOk || !prodZooOk || !deploymentOk || selfTestFailures.length) {
       if (!reviewOk) console.error('Release gate failed: missing passing review record.');
       if (!verifyOk) console.error('Release gate failed: missing passing verification record.');
       if (!auditOk) console.error('Release gate failed: missing passing audit record.');
@@ -7715,6 +8423,10 @@ function commandValidate(args) {
       if (!inventoryOk) {
         console.error('Release gate failed: .codex workflow inventory has unmanaged or misplaced files.');
         for (const problem of inventoryProblems()) console.error(`- ${problem}`);
+      }
+      if (!adapterOk) {
+        console.error('Release gate failed: workflow adapter outputs are missing or drifted from canonical sources.');
+        for (const problem of adapterProblems()) console.error(`- ${problem}`);
       }
       if (!policyOk) {
         console.error('Release gate failed: workflow policy pack is incomplete or not executable truth.');
@@ -8131,6 +8843,13 @@ else if (command === 'verify-check') {
 } else if (command === 'inventory-check') {
   const ok = commandInventoryCheck(args);
   process.exit(ok ? 0 : 1);
+} else if (command === 'adapter-check') {
+  const ok = commandAdapterCheck(args);
+  process.exit(ok ? 0 : 1);
+} else if (command === 'adapter-sync' || command === 'adapter-install') {
+  commandAdapterSync(args);
+} else if (command === 'adapter-uninstall') {
+  commandAdapterUninstall(args);
 } else if (command === 'policy-check') {
   const ok = commandPolicyCheck(args);
   process.exit(ok ? 0 : 1);

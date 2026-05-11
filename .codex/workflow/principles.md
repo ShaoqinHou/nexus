@@ -23,7 +23,7 @@ The LLM supplies judgment. The workflow records that judgment and checks that re
    Workflow enforcement should route through the project wrapper, currently `.codex/scripts/nexus-workflow.mjs`, and the reusable loader `.codex/scripts/workflow-engine.mjs`. Do not create parallel closeout checklists that duplicate gate logic.
 
 3. Project facts live in policy, profile, and knowledge.
-   Paths, file classifiers, record schemas, guide contracts, deployment URLs, design-system inputs, hook expectations, and routing scenarios belong in `.codex/workflow/profile.json` and `.codex/workflow/policy/*.json` first. Project patterns and invariants belong in `.codex/knowledge/`.
+   Paths, file classifiers, record schemas, guide contracts, deployment URLs, design-system inputs, hook expectations, adapter targets, adapter source owners, and routing scenarios belong in `.codex/workflow/profile.json` and `.codex/workflow/policy/*.json` first. Project patterns and invariants belong in `.codex/knowledge/`; canonical exact-file adapter sources belong in `.codex/workflow/project/adapters/`.
 
 4. Hooks are thin triggers.
    Hooks can remind, invalidate, or block obvious unsafe actions. They must not contain LLM review logic, project judgment, or long checklists. Judgment belongs in reviews, audits, verification records, skills, and knowledge files.
@@ -31,20 +31,26 @@ The LLM supplies judgment. The workflow records that judgment and checks that re
 5. Generated views are delete-safe aids.
    `.codex/dashboard/`, public workflow guides, and Zoo/Gym guide pages help humans inspect the workflow. They are generated views over records, policy, and knowledge. Gates use hashes and browser evidence to prove freshness, but generated HTML is still not canonical memory.
 
-6. Work Intake protects user intent.
+6. State cache is derived and must stay ID-coherent.
+   Files under `.codex/workflow/state/` can speed up status checks, but every cached record pointer must match the record id it claims. Closing or repairing older evidence must not overwrite the current cache with mixed metadata from another record; if cache and records disagree, fix the deterministic cache update path and rely on records as truth.
+
+7. Work Intake protects user intent.
    User prompts are captured as compact intent records, then converted into lead-owned work slices. Later bug reports, vague feature ideas, and corrections should update or supersede work slices instead of creating random one-off notes.
 
-7. Review, verify, and audit are automatic workflow obligations.
+8. Review, verify, and audit are automatic workflow obligations.
    They are not only actions taken when the user asks. Substantive changes need focused review records, command or artifact-backed verification records, and audit records when policy requires them.
 
-8. Pattern guidance is evidence-based.
+9. Pattern guidance is evidence-based.
    If an agent finds a repeated mistake, undocumented invariant, deprecated approach, or useful convention, it creates a pattern proposal first. Durable guidance changes only after the source code, tests, history, or reference docs support it.
 
-9. Model routing is explicit.
+10. Model routing is explicit.
    Fast workers are allowed only for narrow, heavily guided work with clear scope and tests. Ambiguous debugging, architecture, visual/design judgment, deployment, and cross-cutting changes stay with a strong model or the lead.
 
-10. Portability means replacing project data, not pretending Nexus facts are generic.
-    The workflow shape can be copied. Nexus app paths, design-system details, deployment URLs, tenant rules, package scripts, and historical records must be rewritten or discarded for the target project.
+11. Portability means replacing project data, not pretending Nexus facts are generic.
+   The workflow shape can be copied. Nexus app paths, design-system details, deployment URLs, tenant rules, package scripts, and historical records must be rewritten or discarded for the target project.
+
+12. Fixed-path integration is an adapter problem.
+   Some tools require files outside the workflow root, such as `AGENTS.md`, `.codex/config.toml`, repo skills, CI workflow files, and package scripts. `.codex/workflow/policy/adapters.json` declares every target and its source owner. Exact-file outputs are sourced from `.codex/workflow/project/adapters/`; package workflow scripts are sourced from `.codex/workflow/policy/gates.json` `gates.packageScripts`.
 
 ## Responsibility Map
 
@@ -59,12 +65,14 @@ The LLM supplies judgment. The workflow records that judgment and checks that re
 | `.codex/scripts/run-hook.mjs` | Thin hook dispatcher | Copy and point it at the target wrapper through profile data. |
 | `.codex/workflow/profile.json` | Project identity, root paths, env names, generated surface paths | Rewrite for the target project. |
 | `.codex/workflow/policy/*.json` | Project-specific rules consumed by gates | Rewrite first. Do not hardcode target-project facts in scripts until policy cannot express them. |
+| `.codex/workflow/system/*` | Reusable workflow-system contracts and adapter design | Copy shape when the same system is intended; verify behavior in the target project. |
+| `.codex/workflow/project/*` | Project-specific workflow overlays and canonical exact-file adapter sources | Rewrite before installing fixed-path files. Do not copy Nexus adapter sources as target truth. |
 | `.codex/knowledge/*.md` | Durable project patterns and operational knowledge | Rewrite. Do not carry Nexus design/deployment facts as live truth. |
 | `.codex/workflow/templates/*.md` | Record shapes and bootstrap guidance | Copy, then rename command examples and project-specific names. |
 | `.codex/workflow/scenarios/*.json` | Routing and failure scenarios | Replace with target-project examples. |
-| `.codex/agents/*.toml` and `.agents/skills/*` | Project-scoped agent and skill guidance | Copy shape, rename roles, rewrite project facts and command names. |
-| `.codex/hooks.json` and `.codex/config.toml` | Trusted Codex session integration | Copy only after deciding target project permissions and hook needs. |
-| `.github/workflows/*` | Optional CI gate enforcement | Copy only if the target project uses GitHub CI, then rewrite package scripts and branch assumptions. |
+| `.codex/agents/*.toml` and `.agents/skills/*` | Project-scoped agent and skill guidance installed from adapter sources | Copy shape, rename roles, rewrite project facts and command names in `.codex/workflow/project/adapters/`, then sync. |
+| `.codex/hooks.json` and `.codex/config.toml` | Trusted Codex session integration installed from adapter sources | Copy only after deciding target project permissions and hook needs, then check with adapter/config gates. |
+| `.github/workflows/*` | Optional CI gate enforcement installed from adapter sources | Copy only if the target project uses GitHub CI, then rewrite package scripts and branch assumptions. |
 | `.codex/workflow/records/*` | Append-only Nexus evidence | Do not copy as live records. Start fresh in the target project. |
 | `.codex/workflow/current-state.md` | Compact Nexus handover | Do not copy as live state. Create a new current-state from the target project. |
 | `.codex/workflow/research/*` | Historical Nexus audits and decisions | Keep in Nexus. For another project, copy only selected files into an archive/reference folder if they help explain the migration. |
@@ -74,13 +82,14 @@ The LLM supplies judgment. The workflow records that judgment and checks that re
 
 ## Workflow File Roles
 
-The machine-owned role taxonomy lives in `.codex/workflow/policy/files.json` under `inventory.roleTaxonomy`. It is the source of truth for whether a workflow path is system code, project policy/profile data, append-only evidence, generated artifact, mutable cache, or workflow documentation.
+The machine-owned role taxonomy lives in `.codex/workflow/policy/files.json` under `inventory.roleTaxonomy`. It is the source of truth for whether a workflow path is system code, project adapter source, project policy/profile data, append-only evidence, generated artifact, mutable cache, or workflow documentation.
 
 Use these groups when deciding what to open, edit, copy, or discard:
 
 | Group | Examples | Read/Edit Rule |
 | --- | --- | --- |
 | System code | `.codex/scripts/workflow-engine.mjs`, project wrapper, hook dispatcher | Edit only for deterministic behavior. Project-specific facts should move to profile/policy first. |
+| Project adapter sources | `.codex/workflow/project/adapters/*`, `.codex/workflow/project/README.md` | Canonical sources for exact-file adapter outputs. Package workflow scripts are owned by `gates.packageScripts` instead. |
 | Project policy/profile data | `.codex/workflow/profile.json`, `.codex/workflow/policy/*.json`, dependency audit baseline | Machine-consumed. Prefer compact JSON facts, enums, path lists, and gate contracts over prose duplication. |
 | Workflow design/reference docs | `principles.md`, `capabilities.md`, `templates/*` | Explain intent and usage. These are useful but stale-prone, so they should point at policy owners instead of repeating enums or path lists. |
 | Managed handover | `current-state.md` | Compact resume state only. It must not become a changelog or transcript. |
@@ -89,7 +98,7 @@ Use these groups when deciding what to open, edit, copy, or discard:
 | Generated views/artifacts | `.codex/dashboard/*`, `workflow/artifacts/*` | Human inspection aids and evidence attachments. Regenerate or validate; do not edit as canonical memory. |
 | Mutable telemetry/cache | `state/*`, `runtime/*` | Delete-safe diagnostics only. Passing records can embed compact summaries from telemetry, but telemetry itself is not durable proof. |
 
-When a new directory or root workflow file is added, update `inventory.roleTaxonomy` and run `npm run workflow:policy-check` plus `npm run workflow:inventory-check`.
+When a new directory or root workflow file is added, update `inventory.roleTaxonomy` and run `npm run workflow:policy-check` plus `npm run workflow:inventory-check`. When a new fixed-path output is added, add it to `.codex/workflow/policy/adapters.json`, declare its source owner, place exact-file sources under `.codex/workflow/project/adapters/` or policy-map sources such as `gates.packageScripts` in their policy owner, and run `npm run workflow:adapter-check`.
 
 ## Data Shape
 
@@ -127,22 +136,26 @@ For workflow migration, architecture changes, or second-project setup:
 
 1. `AGENTS.md`
 2. `.codex/workflow/principles.md`
-3. `.codex/workflow/templates/project-bootstrap.md`
-4. `.codex/workflow/research/workflow-engine-profile-extraction-2026-05-10.md`
-5. `npm run workflow:policy-check`
-6. `npm run workflow:inventory-check`
-7. `npm run workflow:self-test`
+3. `.codex/workflow/system/README.md`
+4. `.codex/workflow/project/README.md`
+5. `.codex/workflow/templates/project-bootstrap.md`
+6. `.codex/workflow/research/workflow-engine-profile-extraction-2026-05-10.md`
+7. `npm run workflow:policy-check`
+8. `npm run workflow:inventory-check`
+9. `npm run workflow:adapter-check`
+10. `npm run workflow:self-test`
 
 ## How To Decide Where A Change Belongs
 
 Use this order:
 
 1. Policy/profile if it is project data, classification, expected file paths, command names, URLs, or gate contract.
-2. Knowledge if it is human/agent guidance about project patterns, invariants, or operational practice.
-3. Record if it is evidence of something that happened.
-4. Template if it changes the shape future records should follow.
-5. Script only if deterministic behavior or parsing/enforcement must change.
-6. Hook only if a thin lifecycle trigger must call the script.
+2. Adapter source owner if it must appear at a fixed tool path. Use `.codex/workflow/policy/adapters.json`: exact-file outputs go under `.codex/workflow/project/adapters/`; package workflow scripts go under `.codex/workflow/policy/gates.json` `gates.packageScripts`.
+3. Knowledge if it is human/agent guidance about project patterns, invariants, or operational practice.
+4. Record if it is evidence of something that happened.
+5. Template if it changes the shape future records should follow.
+6. Script only if deterministic behavior or parsing/enforcement must change.
+7. Hook only if a thin lifecycle trigger must call the script.
 
 If two places seem to own the same rule, consolidate toward policy/profile plus one script consumer. The goal is not zero duplication; the goal is one authoritative owner for each rule.
 
@@ -169,6 +182,7 @@ Before claiming the workflow works in another project:
 2. Rename the wrapper and package scripts.
 3. Replace Nexus knowledge files with target-project knowledge.
 4. Start fresh records and current state.
-5. Run policy, inventory, trace, self-test, and release gates.
-6. Exercise at least one easy task, one hard/escalation task, one review-trigger task, and one failure-path test.
-7. Record what failed and whether the fix changed policy, knowledge, script behavior, or only documentation.
+5. Rewrite adapter source owners, sync fixed-path outputs, and run adapter checks.
+6. Run policy, inventory, adapter, trace, self-test, and release gates.
+7. Exercise at least one easy task, one hard/escalation task, one review-trigger task, and one failure-path test.
+8. Record what failed and whether the fix changed policy, knowledge, script behavior, adapters, or only documentation.

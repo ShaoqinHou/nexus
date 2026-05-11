@@ -1,0 +1,4 @@
+interface:
+  display_name: "Nexus Verify"
+  short_description: "Run browser, test, and deployment verification for Nexus."
+  default_prompt: "Use nexus-verify to verify the Nexus change end to end."

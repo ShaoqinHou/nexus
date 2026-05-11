@@ -26,7 +26,7 @@ No active work slice is open in this compact handover.
 
 Latest completed workflow architecture slice:
 
-- `WORK-SLICE-20260511T061540Z-work-slice-done-audit-workflow-command-telemetry`
+- `WORK-SLICE-20260511T092322Z-work-slice-done-implement-behavior-preserving-wo`
 
 Use detailed records and research notes for history. This file is only the compact handover.
 
@@ -78,9 +78,19 @@ Current performance audit closeout:
 - verification: `TEST-20260511T061518Z-verification-pass-worktree`
 - audit: `AUDIT-20260511T061531Z-audit-pass-worktree`
 
+Current adapter-backed workflow refactor closeout:
+
+- decision: `DECISION-20260511T090116Z-clarify-adapter-source-owners-for-exact-files-an`
+- patch: `PATCH-20260511T091852Z-adapter-backed-workflow-refactor-with-fixed-path`
+- reviews: `REVIEW-20260511T091908Z-review-general-pass-worktree`, `REVIEW-20260511T091918Z-review-workflow-pass-worktree`, `REVIEW-20260511T091934Z-review-pattern-pass-worktree`, `REVIEW-20260511T091946Z-review-design-pass-worktree`, `REVIEW-20260511T091958Z-review-integrated-pass-worktree`
+- verification: `TEST-20260511T092132Z-verification-pass-worktree`
+- audit: `AUDIT-20260511T092206Z-audit-pass-worktree`
+
+The refactor centralizes fixed-path workflow files through `.codex/workflow/policy/adapters.json`. Exact-file adapter sources live in `.codex/workflow/project/adapters/`; package workflow scripts are owned by `.codex/workflow/policy/gates.json` `gates.packageScripts`. A routing-cache bug found during closeout was fixed in `.codex/scripts/nexus-workflow.mjs` and regression-tested in `workflow:self-test`.
+
 ## Open Risks
 
-- Hook loading is session/config dependent. Use trusted `Custom (config.toml)` when hooks matter; explicit workflow gates remain the enforcement source.
+- Hook loading is still session/config dependent even though this session has now seen the project hook runtime. Use trusted `Custom (config.toml)` when hooks matter; explicit workflow gates remain the enforcement source.
 - The engine/profile extraction is conservative. A second project should rewrite profile/policy and adapt the wrapper before extracting more generic code.
 - Dependency audit baseline expires on 2026-06-09. Recheck before then or when `drizzle-kit` changes.
 - Design-system contrast coverage is stronger for primary-colored surfaces than for every possible token pair across all themes.

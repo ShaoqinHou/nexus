@@ -1,0 +1,43 @@
+name: Nexus Workflow Gates
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - codex/**
+
+jobs:
+  workflow-gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Design Token Lint
+        timeout-minutes: 2
+        run: npm run workflow:run -- --id ci-design-lint --timeout-ms 90000 -- npm run lint:design
+
+      - name: Unit Tests
+        timeout-minutes: 6
+        run: npm run workflow:run -- --id ci-unit-tests --timeout-ms 330000 -- npm test
+
+      - name: Build
+        timeout-minutes: 4
+        run: npm run workflow:run -- --id ci-build --timeout-ms 210000 -- npm run build
+
+      - name: Workflow Release Gate
+        timeout-minutes: 3
+        run: npm run workflow:run -- --id ci-release-gate --timeout-ms 150000 -- npm run workflow:release-gate

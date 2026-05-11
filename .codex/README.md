@@ -29,6 +29,8 @@ For workflow migration, architecture changes, or second-project setup, read `wor
 - `workflow/capabilities.md` maps required and optional workflow capabilities to their policy, scripts, guide sections, records, gates, and porting rules.
 - `workflow/current-state.md` is the compact resumable state.
 - `workflow/profile.json` declares reusable workflow roots, generated surfaces, and project identity.
+- `workflow/system/` documents reusable workflow-system contracts.
+- `workflow/project/` holds project-specific workflow overlays, including canonical adapter sources for fixed-path files.
 - `workflow/policy/*.json` is the project-specific policy pack consumed by the workflow engine.
 - `workflow/research/codex-capabilities-2026-05-09.md` records the Codex behavior research.
 - `workflow/research/workflow-engine-profile-extraction-2026-05-10.md` records the first reusable engine/profile extraction boundary.
@@ -50,13 +52,15 @@ For workflow migration, architecture changes, or second-project setup, read `wor
 - `scripts/capture-design-zoo-visuals.mjs` captures the live `/design` zoo into the deployable visual guide at `dashboard/zoo/index.html`.
 - `scripts/run-hook.mjs` is the only command hooks call; it forwards hook events to the workflow kernel.
 - `hooks.json` wires Codex lifecycle hooks when project hooks are enabled and trusted.
+- `workflow/project/adapters/` is the canonical source for exact-file adapter outputs such as `AGENTS.md`, `WORKFLOW.md`, `.codex/config.toml`, `.codex/hooks.json`, `.codex/agents/*.toml`, `.agents/skills/*`, and GitHub workflow gates.
+- `.codex/workflow/policy/adapters.json` is the adapter owner map. It also declares the `package-scripts` adapter, whose canonical source is `.codex/workflow/policy/gates.json` `gates.packageScripts`.
 - `.github/workflows/nexus-workflow-gates.yml` runs the same workflow gates in CI so enforcement is not hook-only.
 - `workflow/templates/` describes record shapes for humans and agents.
 - `workflow/artifacts/` stores bounded screenshots and summaries referenced by records or generated visual guides. These are evidence attachments, not canonical memory, and should not be copied to new projects as live state.
 - `workflow/state/` stores mutable workflow cache JSON. It is not durable evidence.
 - `workflow/runtime/` stores operational telemetry, hook heartbeats, PIDs, and local logs. It is not durable evidence.
 - `npm run workflow:status`, `npm run workflow:health`, `npm run workflow:release-gate`, and `npm run workflow:deployed-gate` are the public workflow ladder.
-- `npm run workflow:inventory-check`, `npm run workflow:policy-check`, and `npm run workflow:trace-check` are deterministic checks for workflow file placement, policy consumption, and command execution telemetry.
+- `npm run workflow:inventory-check`, `npm run workflow:adapter-check`, `npm run workflow:policy-check`, and `npm run workflow:trace-check` are deterministic checks for workflow file placement, fixed adapter drift, policy consumption, and command execution telemetry.
 - `npm run workflow:work-intake-check` validates user-intent/work-slice traceability, orphan patch coverage, stale active slices, and optional external tracker references.
 - `npm run workflow:guide-browser-finalize` is the deterministic final guide-evidence step when guide artifacts are in scope. Run it after review, verification, and audit records are in place; it regenerates guide artifacts, captures browser evidence, and records the hash-bound guide-browser pass.
 
