@@ -4,6 +4,8 @@
   "zooVisualManifestSchema": "nexus-design-zoo-visual-manifest/v1",
   "zooVisualGuideTitle": "Nexus Design Zoo / Gym",
   "zooVisualSurfaceLabel": "Visual Demo Surface",
+  "zooVisualCapturedHeading": "Captured From Real /design Routes",
+  "zooVisualThemeMatrixDescription": "The themes capture is the high-signal parity view: every cuisine theme renders real Button, Badge, Card, palette, radius, and typography tokens side by side.",
   "zooVisualGuideRequiredStrings": [
     "Nexus Design Zoo / Gym",
     "Visual Demo Surface",

@@ -68,10 +68,10 @@
     },
     {
       "id": "generated-guide",
-      "state": "active-optional",
+      "state": "required",
       "portingAction": "regenerate",
       "owner": "guide policy",
-      "emptyProjectRule": "bootstrap guide shows stubs"
+      "emptyProjectRule": "bootstrap guide shows target-owned stubs"
     },
     {
       "id": "deployment-validation",

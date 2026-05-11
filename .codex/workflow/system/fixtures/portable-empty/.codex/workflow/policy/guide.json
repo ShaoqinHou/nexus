@@ -14,6 +14,25 @@
     "dashboard": "Portable Workflow Dashboard",
     "public": "Portable Workflow Guide"
   },
+  "introNote": "This bootstrap guide is generated from target policy and records; replace project facts before release.",
+  "workflowShapeCards": [
+    {
+      "title": "Lead",
+      "body": "Plans, records state, runs gates, and owns final quality."
+    },
+    {
+      "title": "Fast Worker",
+      "body": "Use only for narrow, explicit, testable slices after project routing policy exists."
+    },
+    {
+      "title": "Strong Worker",
+      "body": "Use for architecture, ambiguity, cross-cutting changes, visual judgment, and failed fast-worker fallback."
+    },
+    {
+      "title": "Review/Audit",
+      "body": "Focused checks against target project patterns, related updates, deprecated approaches, and evidence quality."
+    }
+  ],
   "publicSanitizer": {
     "redactions": [
       {

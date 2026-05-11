@@ -61,7 +61,11 @@ const PUBLIC_GUIDE_CONTENT_HASH_PLACEHOLDER = requiredPolicyString('guide', 'con
 const GUIDE_META_NAMES = requiredPolicyObject('guide', 'metaNames');
 const GUIDE_TOKEN_SOURCE_LABEL = requiredPolicyString('guide', 'tokenSourceLabel');
 const GUIDE_TITLES = requiredPolicyObject('guide', 'titles');
+const GUIDE_INTRO_NOTE = optionalPolicyString('guide', 'introNote', '');
+const GUIDE_WORKFLOW_SHAPE_CARDS = optionalPolicyArray('guide', 'workflowShapeCards', []);
 const ZOO_VISUAL_GUIDE_TITLE = DESIGN_ACTIVE ? requiredPolicyString('design', 'zooVisualGuideTitle') : optionalPolicyString('design', 'zooVisualGuideTitle', 'Design Zoo / Gym');
+const ZOO_VISUAL_CAPTURED_HEADING = DESIGN_ACTIVE ? requiredPolicyString('design', 'zooVisualCapturedHeading') : optionalPolicyString('design', 'zooVisualCapturedHeading', 'Captured From Real Component Routes');
+const ZOO_VISUAL_THEME_MATRIX_DESCRIPTION = DESIGN_ACTIVE ? requiredPolicyString('design', 'zooVisualThemeMatrixDescription') : optionalPolicyString('design', 'zooVisualThemeMatrixDescription', 'The theme capture is the high-signal parity view for this project.');
 const ZOO_VISUAL_REQUIRED_STRINGS = optionalPolicyArray('design', 'zooVisualGuideRequiredStrings', []);
 const LOCAL_WEB_URL = (DESIGN_ACTIVE ? requiredPolicyString('design', 'localWebUrl') : optionalPolicyString('design', 'localWebUrl', '')).replace(/\/$/, '');
 const DESIGN_ROUTE_VALUE = DESIGN_ACTIVE ? requiredPolicyString('design', 'designRoute') : optionalPolicyString('design', 'designRoute', '');
@@ -1253,6 +1257,43 @@ function validEvidenceForWorkSlice(records = [], rootId, index, extra = {}) {
   });
 }
 
+function branchCloseoutWorkSliceProblems(workSliceIds = [], options = {}) {
+  const ids = csv(Array.isArray(workSliceIds) ? workSliceIds.join(',') : workSliceIds);
+  const label = options.label || 'branch closeout evidence';
+  const created = options.created || '';
+  const workSlices = options.workSlices || recordFrontmatters(WORK_SLICE_RECORD_KIND);
+  const index = options.index || workSliceIndex(workSlices);
+  const closedStatuses = new Set(allowedPolicyValues('closedWorkSliceStatuses', ['verified', 'done', 'deferred', 'superseded']));
+  const problems = [];
+  if (!ids.length) return [`${label} must link to a closed work slice before branch closeout.`];
+  for (const id of ids) {
+    const root = workSliceRefRoot(id, index);
+    if (!root) {
+      problems.push(`${label} references missing work slice ${id}.`);
+      continue;
+    }
+    const latest = index.latestByRoot.get(root);
+    const status = String(latest?.status || '').toLowerCase();
+    if (!closedStatuses.has(status)) {
+      problems.push(`${label} for work slice ${root} was recorded before the slice was closed; latest status is ${status || '(missing)'}.`);
+      continue;
+    }
+    if (created && latest.created && String(created).localeCompare(String(latest.created)) < 0) {
+      problems.push(`${label} for work slice ${root} was recorded at ${created} before closeout ${latest.id || '(unknown)'} at ${latest.created}.`);
+    }
+  }
+  return problems;
+}
+
+function rejectBranchCloseoutWriteProblems(scope, workSliceIds = [], commandName = 'record') {
+  if (String(scope || '') !== 'branch') return;
+  const problems = branchCloseoutWorkSliceProblems(workSliceIds, { label: `${commandName} branch scope` });
+  if (!problems.length) return;
+  console.error(`${commandName} refused branch-scope evidence:`);
+  for (const problem of problems) console.error(`- ${problem}`);
+  process.exit(2);
+}
+
 function staleWorkSliceProblem(record, now = Date.now()) {
   const status = String(record.status || '').toLowerCase();
   const active = allowedPolicyValues('activeWorkSliceStatuses', ['ready', 'active', 'review']);
@@ -1844,34 +1885,15 @@ function slugFromZooRoute(route) {
 
 function zooVisualEntries() {
   if (!designCapabilityActive()) return [];
-  const tokenPath = designTokenSourceFile();
   const registry = loadJson(join(ROOT, DESIGN_REGISTRY_PATH), { primitives: [], patterns: [], tokens: {} });
-  const foundations = [
-    {
-      slug: 'index',
-      title: 'Zoo Index',
-      kind: 'foundation',
-      route: DESIGN_ROUTE,
-      path: DESIGN_ZOO_ROUTE_PATH,
-      purpose: 'Entry page for the live component catalog.',
-    },
-    {
-      slug: 'tokens',
-      title: 'Token Foundations',
-      kind: 'foundation',
-      route: `${DESIGN_ROUTE}/tokens`,
-      path: tokenPath,
-      purpose: 'Production token swatches for colors, radii, shadows, and hit targets.',
-    },
-    {
-      slug: 'themes',
-      title: 'Theme Matrix',
-      kind: 'foundation',
-      route: `${DESIGN_ROUTE}/themes`,
-      path: DESIGN_THEME_MATRIX_PATH,
-      purpose: 'All cuisine themes rendered side by side from real components.',
-    },
-  ];
+  const foundations = (POLICY.design?.zooVisualCapture?.foundations || []).map((entry) => ({
+    slug: entry.slug,
+    title: entry.title,
+    kind: entry.kind || 'foundation',
+    route: entry.route,
+    path: entry.path,
+    purpose: entry.purpose || '',
+  }));
   const components = [...(registry.primitives || []), ...(registry.patterns || [])].map((entry) => ({
     slug: slugFromZooRoute(entry.zooRoute),
     title: entry.name || slugFromZooRoute(entry.zooRoute),
@@ -3533,15 +3555,12 @@ function commandPublicGuide(args = {}) {
     <section>
       <h2>What This Is</h2>
       <p>This is the public-safe guide for the ${publicHtml(projectDisplayName())} workflow. The complete internal workflow system lives in the repository under <code>.codex/</code>, with the compact handover at <code>${publicHtml(profileProjectRel('currentState'))}</code>.</p>
-      <p>The old Claude Code setup is archived in the repo and is no longer active.</p>
+      ${GUIDE_INTRO_NOTE ? `<p>${publicHtml(GUIDE_INTRO_NOTE)}</p>` : ''}
     </section>
     <section>
       <h2>Workflow Shape</h2>
       <div class="grid">
-        <div class="card"><strong>Lead</strong><p>Plans, routes, integrates, records state, and owns final quality.</p></div>
-        <div class="card"><strong>Spark Worker</strong><p>Only narrow, explicit, testable coding slices. Must escalate when scope or reasoning gets hard.</p></div>
-        <div class="card"><strong>Strong Worker</strong><p>GPT-5.5 class coding for ambiguous debugging, architecture, cross-cutting changes, visual/design judgment, and Spark fallback.</p></div>
-        <div class="card"><strong>Review/Audit</strong><p>Focused checks against project patterns, related updates, deprecated approaches, and deployment evidence.</p></div>
+        ${GUIDE_WORKFLOW_SHAPE_CARDS.map((card) => `<div class="card"><strong>${publicHtml(card.title || 'Workflow Role')}</strong><p>${publicHtml(card.body || '')}</p></div>`).join('\n')}
       </div>
     </section>
     <section>
@@ -3773,7 +3792,7 @@ function commandZooVisualGuide(args = {}) {
   <main>
     <section class="intro">
       <div class="panel">
-        <h2>Captured From Real /design Routes</h2>
+        <h2>${publicHtml(ZOO_VISUAL_CAPTURED_HEADING)}</h2>
         <p>This page is the deployable visual guide for the dev-only component gym. Screenshots are captured from real ${publicHtml(PROFILE.projectId || 'project')} components rendered by <code>${publicHtml(DESIGN_ZOO_ROUTE_PATH)}</code>, and coverage is driven by <code>${publicHtml(DESIGN_REGISTRY_PATH)}</code>.</p>
         <p>Production <code>${publicHtml(PRODUCTION_DESIGN_PATH)}</code> is intentionally not mounted. Use this guide at <code>${publicHtml(PUBLIC_ZOO_GUIDE_URL)}</code> for deployed visual inspection, and run the local web dev server to open <code>${publicHtml(DESIGN_ROUTE)}</code> for live interaction.</p>
         <p><strong>Visual Contexts:</strong> ${publicHtml(contextSummary || 'not captured')}</p>
@@ -3789,7 +3808,7 @@ function commandZooVisualGuide(args = {}) {
     <section>
       <h2>Theme Matrix</h2>
       <div class="panel callout">
-        <p>The <code>themes</code> capture is the high-signal parity view: every cuisine theme renders real Button, Badge, Card, palette, radius, and typography tokens side by side.</p>
+        <p>${publicHtml(ZOO_VISUAL_THEME_MATRIX_DESCRIPTION)}</p>
       </div>
     </section>
     ${contextSections}
@@ -4670,6 +4689,14 @@ function policyProblems() {
   for (const key of ['dashboard', 'public']) {
     if (!POLICY.guide?.titles?.[key]) problems.push(`.codex/workflow/policy/guide.json titles.${key} is required.`);
   }
+  if (!Array.isArray(POLICY.guide?.workflowShapeCards) || !POLICY.guide.workflowShapeCards.length) {
+    problems.push('.codex/workflow/policy/guide.json workflowShapeCards must be a non-empty array.');
+  } else {
+    POLICY.guide.workflowShapeCards.forEach((card, index) => {
+      if (!card?.title) problems.push(`.codex/workflow/policy/guide.json workflowShapeCards[${index}].title is required.`);
+      if (!card?.body) problems.push(`.codex/workflow/policy/guide.json workflowShapeCards[${index}].body is required.`);
+    });
+  }
   const generatedSizeLimits = POLICY.guide?.generatedSizeLimits || {};
   for (const file of ['index.html', 'public.html']) {
     const value = Number(generatedSizeLimits[file]);
@@ -4715,9 +4742,21 @@ function policyProblems() {
     if (!POLICY.design?.zooVisualGuideVersion) problems.push('.codex/workflow/policy/design.json zooVisualGuideVersion is required.');
     if (!POLICY.design?.zooVisualManifestSchema) problems.push('.codex/workflow/policy/design.json zooVisualManifestSchema is required.');
     if (!POLICY.design?.zooVisualSurfaceLabel) problems.push('.codex/workflow/policy/design.json zooVisualSurfaceLabel is required.');
+    if (!POLICY.design?.zooVisualCapturedHeading) problems.push('.codex/workflow/policy/design.json zooVisualCapturedHeading is required.');
+    if (!POLICY.design?.zooVisualThemeMatrixDescription) problems.push('.codex/workflow/policy/design.json zooVisualThemeMatrixDescription is required.');
     if (!Number.isFinite(Number(POLICY.design?.zooVisualMinImages)) || Number(POLICY.design?.zooVisualMinImages) <= 0) problems.push('.codex/workflow/policy/design.json zooVisualMinImages must be a positive number.');
     if (!POLICY.design?.zooVisualCapture?.defaultTheme) problems.push('.codex/workflow/policy/design.json zooVisualCapture.defaultTheme is required.');
     if (!POLICY.design?.zooVisualCapture?.waitForText) problems.push('.codex/workflow/policy/design.json zooVisualCapture.waitForText is required.');
+    const foundations = POLICY.design?.zooVisualCapture?.foundations;
+    if (!Array.isArray(foundations) || !foundations.length) {
+      problems.push('.codex/workflow/policy/design.json zooVisualCapture.foundations must be a non-empty array.');
+    } else {
+      foundations.forEach((entry, index) => {
+        for (const key of ['slug', 'title', 'route', 'path', 'purpose']) {
+          if (!entry?.[key]) problems.push(`.codex/workflow/policy/design.json zooVisualCapture.foundations[${index}].${key} is required.`);
+        }
+      });
+    }
     if (!Array.isArray(POLICY.design?.zooVisualCapture?.contexts) || !POLICY.design.zooVisualCapture.contexts.length) problems.push('.codex/workflow/policy/design.json zooVisualCapture.contexts must be a non-empty array.');
   }
   if (!sameStringSet(canonicalLadder(), POLICY.gates?.canonicalLadder || [])) problems.push('canonical ladder must come from .codex/workflow/policy/gates.json.');
@@ -5831,6 +5870,7 @@ function commandRecordPatch(args, hookPayload = null) {
   const agent = args.worker || args.agent || activeRouting?.worker || leadWorkerId();
   const explicitWorkSliceIds = workSliceIdsFromArgs(args);
   const workSliceIds = explicitWorkSliceIds.length ? explicitWorkSliceIds : csv(activeRouting?.workSliceIds);
+  rejectBranchCloseoutWriteProblems(scope, workSliceIds, 'record-patch');
   const body = [
     `Summary: ${title}`,
     `Scope: ${scope}`,
@@ -5889,6 +5929,7 @@ function commandRecordReview(args) {
   const files = scope === 'branch' ? branch.files : (args.files ? csv(args.files) : substantiveFiles());
   const patchId = reviewPatchIdForArgs(args, { scope, branch, hash, patchState });
   const workSliceIds = inferredWorkSliceIds(args, { scope, hash, branch, patchId });
+  rejectBranchCloseoutWriteProblems(scope, workSliceIds, 'record-review');
   if (substantiveFiles().length && !patchId) {
     console.error('record-review requires a patch record for substantive changes. Run record-patch first or pass --patch <PATCH-id>.');
     process.exit(2);
@@ -5980,6 +6021,7 @@ function commandRecordVerification(args) {
   const artifacts = csv(args.artifacts || args.evidence || args['summary-files']);
   const patchId = args.patch || args['patch-id'] || (scope === 'branch' ? latestBranchPatchForBranch(branch)?.id || '' : '');
   const workSliceIds = inferredWorkSliceIds(args, { scope, hash, branch });
+  rejectBranchCloseoutWriteProblems(scope, workSliceIds, 'record-verify');
   if (verdict === 'pass' && !commandIds.length && !artifacts.length) {
     console.error('record-verify pass requires --commands/--command-ids or --artifacts/--evidence so execution evidence is reference-based.');
     process.exit(2);
@@ -6079,6 +6121,7 @@ function commandRecordDeployment(args) {
   const checks = csv(args.checks);
   const artifacts = csv(args.artifacts || args.evidence || args['summary-files']);
   const workSliceIds = inferredWorkSliceIds(args, { scope: 'branch', branch });
+  rejectBranchCloseoutWriteProblems('branch', workSliceIds, 'record-deployment');
   if (!args.summary || !target || !args.notes) {
     console.error('record-deployment requires --summary, --target, and --notes.');
     process.exit(2);
@@ -6176,6 +6219,7 @@ function commandRecordAudit(args) {
   const artifacts = csv(args.artifacts || args.evidence || args['summary-files']);
   const patchId = args.patch || args['patch-id'] || (scope === 'branch' ? latestBranchPatchForBranch(branch)?.id || '' : '');
   const workSliceIds = inferredWorkSliceIds(args, { scope, hash, branch });
+  rejectBranchCloseoutWriteProblems(scope, workSliceIds, 'record-audit');
   if (verdict === 'pass' && !commandIds.length && !artifacts.length) {
     console.error('record-audit pass requires --commands/--command-ids or --artifacts/--evidence so audit evidence is reference-based.');
     process.exit(2);
@@ -6684,9 +6728,26 @@ function branchEvidenceProblemsForState(branch, recordsByKind) {
   if (!branch.base) return [`branch evidence check could not find a base ref. Set ${BRANCH_BASE_ENV} or fetch origin/main.`];
   if (!branch.mergeBase) return [`branch evidence check could not compute merge-base for ${branch.base}.`];
   if (!branch.files.length) return problems;
+  const workSlices = recordsByKind.workSlices || recordsByKind['work-slices'];
+  const branchWorkSliceIndex = workSlices ? workSliceIndex(workSlices) : null;
 
   const patches = recordsByKind.patches || [];
   const branchPatches = patches.filter((record) => branchRecordMatches(record, branch));
+  if (branchWorkSliceIndex) {
+    const branchCloseoutRecords = [
+      ...branchPatches.filter((record) => String(record.scope || '') === 'branch').map((record) => ({ kind: 'patch', record })),
+      ...(recordsByKind.reviews || []).filter((record) => branchRecordMatches(record, branch)).map((record) => ({ kind: `${record.kind || 'general'} review`, record })),
+      ...(recordsByKind.tests || []).filter((record) => branchRecordMatches(record, branch)).map((record) => ({ kind: 'verification', record })),
+      ...(recordsByKind.audits || []).filter((record) => branchRecordMatches(record, branch)).map((record) => ({ kind: 'audit', record })),
+    ];
+    for (const { kind, record } of branchCloseoutRecords) {
+      problems.push(...branchCloseoutWorkSliceProblems(record.workSliceIds, {
+        label: `branch ${kind} ${record.id || record.name || '(unknown)'}`,
+        created: record.created || '',
+        index: branchWorkSliceIndex,
+      }));
+    }
+  }
   if (!branchPatches.some((record) => String(record.scope || '') === 'branch')) {
     problems.push(`branch ${branch.hash} has substantive diff but no branch-scope PATCH record tied to branchHash ${branch.hash}.`);
   }
@@ -6765,6 +6826,7 @@ function branchEvidenceProblemsForState(branch, recordsByKind) {
 function branchEvidenceProblems() {
   const branch = branchEvidenceInfo();
   const recordsByKind = Object.fromEntries(['patches', 'routing', 'reviews', 'tests', 'audits'].map((kind) => [kind, branchRecordFrontmatters(kind, branch)]));
+  recordsByKind.workSlices = recordFrontmatters(WORK_SLICE_RECORD_KIND);
   return branchEvidenceProblemsForState(branch, recordsByKind);
 }
 
@@ -7016,11 +7078,15 @@ function workflowSelfTestChecks() {
   const delegatedFixture = fixtureFile((testCase) => testCase.substantive && !String(testCase.file || '').startsWith('.codex/'), substantiveFixture);
   const outsideDelegatedFixture = designCapabilityActive() && DESIGN_REGISTRY_PATH ? DESIGN_REGISTRY_PATH : WORKFLOW_WRAPPER_REL;
   const designFixture = designCapabilityActive() ? designTokenSourceFile() : substantiveFixture;
+  const closedBranchWorkSlice = { id: 'WORK-SLICE-branch', status: 'done', created: '2026-05-11T00:00:00.000Z' };
   const branchRecord = (extra = {}) => ({
+    id: `BRANCH-${slug(extra.kind || extra.verdict || extra.agent || 'record')}`,
+    created: '2026-05-11T00:01:00.000Z',
     branchHash: 'branch-hash',
     scope: 'branch',
     files: branchFixtureFiles,
     branchFiles: branchFixtureFiles,
+    workSliceIds: ['WORK-SLICE-branch'],
     ...extra,
   });
   const withProjectTempArtifact = (content, fn) => {
@@ -7087,6 +7153,21 @@ function workflowSelfTestChecks() {
     && zooVisualRelevantFiles(['.codex/dashboard/zoo/index.html', '.codex/dashboard/zoo/assets/button.jpg']).length === 2);
   add('guide source hash is content based', /^[a-f0-9]{24}$/.test(publicGuideSourceHash()));
   add('required guide source hash inputs come from policy', requiredGuideSourceFiles().length > 0 && requiredGuideSourceFiles().every((file) => publicGuideInputFiles().includes(file)));
+  add('generated guide is a required navigation capability', capabilityState('generated-guide') === 'required' && guideCapabilityActive());
+  add('generated guide role cards are policy-owned', GUIDE_WORKFLOW_SHAPE_CARDS.length > 0
+    && GUIDE_WORKFLOW_SHAPE_CARDS.every((card) => card.title && card.body)
+    && !readText(KERNEL_SCRIPT_REL).includes(['<strong>', 'Spark', ' Worker</strong>'].join(''))
+    && !readText(KERNEL_SCRIPT_REL).includes(['The old ', 'Claude Code setup ', 'is archived'].join('')));
+  add('visual zoo heading copy is policy-owned', !designCapabilityActive() || (ZOO_VISUAL_CAPTURED_HEADING === POLICY.design?.zooVisualCapturedHeading
+    && !readText(KERNEL_SCRIPT_REL).includes(['Captured From Real', '/design Routes'].join(' '))));
+  add('visual zoo foundation entries are policy-owned', !designCapabilityActive() || (() => {
+    const policyFoundations = POLICY.design?.zooVisualCapture?.foundations || [];
+    const entries = zooVisualEntries().filter((entry) => entry.kind === 'foundation');
+    const policyPurpose = policyFoundations.find((entry) => entry.purpose)?.purpose || '';
+    return entries.length === policyFoundations.length
+      && policyFoundations.every((entry) => entries.some((candidate) => candidate.slug === entry.slug && candidate.purpose === entry.purpose))
+      && (!policyPurpose || !readText(KERNEL_SCRIPT_REL).includes(policyPurpose));
+  })());
   add('verification knowledge is required workflow manifest', requiredWorkflowFiles().includes('.codex/knowledge/verification.md'));
   add('workflow principles are required workflow manifest', requiredWorkflowFiles().includes('.codex/workflow/principles.md'));
   add('workflow capabilities are required workflow manifest', requiredWorkflowFiles().includes('.codex/workflow/capabilities.md'));
@@ -7797,6 +7878,7 @@ function workflowSelfTestChecks() {
   add('branch evidence check accepts matching patch review verify audit records', (() => {
     const branch = { base: 'base', mergeBase: 'merge-base', hash: 'branch-hash', files: [WORKFLOW_WRAPPER_REL] };
     return branchEvidenceProblemsForState(branch, {
+      workSlices: [closedBranchWorkSlice],
       patches: [branchRecord({ agent: 'codex-lead' })],
       reviews: [
         branchRecord({ verdict: 'pass', kind: 'general' }),
@@ -7806,6 +7888,23 @@ function workflowSelfTestChecks() {
       audits: [branchRecord({ verdict: 'pass', ...workflowEvidence('audit-command', { audit: true }) })],
     }).length === 0;
   })());
+  add('branch evidence check rejects closeout recorded before work-slice close', (() => {
+    const branch = { base: 'base', mergeBase: 'merge-base', hash: 'branch-hash', files: [WORKFLOW_WRAPPER_REL] };
+    return branchEvidenceProblemsForState(branch, {
+      workSlices: [{ ...closedBranchWorkSlice, created: '2026-05-11T00:02:00.000Z' }],
+      patches: [branchRecord({ agent: 'codex-lead', created: '2026-05-11T00:01:00.000Z' })],
+      reviews: [
+        branchRecord({ verdict: 'pass', kind: 'general', created: '2026-05-11T00:03:00.000Z' }),
+        branchRecord({ verdict: 'pass', kind: 'workflow', created: '2026-05-11T00:03:00.000Z' }),
+      ],
+      tests: [branchRecord({ verdict: 'pass', created: '2026-05-11T00:03:00.000Z', ...workflowEvidence('test-command') })],
+      audits: [branchRecord({ verdict: 'pass', created: '2026-05-11T00:03:00.000Z', ...workflowEvidence('audit-command', { audit: true }) })],
+    }).some((problem) => problem.includes('before closeout'));
+  })());
+  add('branch closeout write requires an already closed slice', branchCloseoutWorkSliceProblems(['WORK-SLICE-branch'], {
+    workSlices: [{ ...closedBranchWorkSlice, status: 'active' }],
+    label: 'self-test branch closeout',
+  }).some((problem) => problem.includes('latest status is active')));
   add('branch evidence checks verification relevance against actual branch files', (() => {
     const branch = { base: 'base', mergeBase: 'merge-base', hash: 'branch-hash', files: [WORKFLOW_WRAPPER_REL] };
     const problems = branchEvidenceProblemsForState(branch, {

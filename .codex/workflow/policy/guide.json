@@ -14,6 +14,25 @@
     "dashboard": "Nexus Workflow Dashboard",
     "public": "Nexus Workflow Guide"
   },
+  "introNote": "The old Claude Code setup is archived in the repo and is no longer active.",
+  "workflowShapeCards": [
+    {
+      "title": "Lead",
+      "body": "Plans, routes, integrates, records state, and owns final quality."
+    },
+    {
+      "title": "Spark Worker",
+      "body": "Only narrow, explicit, testable coding slices. Must escalate when scope or reasoning gets hard."
+    },
+    {
+      "title": "Strong Worker",
+      "body": "GPT-5.5 class coding for ambiguous debugging, architecture, cross-cutting changes, visual/design judgment, and Spark fallback."
+    },
+    {
+      "title": "Review/Audit",
+      "body": "Focused checks against project patterns, related updates, deprecated approaches, and deployment evidence."
+    }
+  ],
   "publicSanitizer": {
     "redactions": [
       {
