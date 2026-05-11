@@ -47,7 +47,7 @@ const GUIDE_BROWSER_FINAL_ARTIFACTS_DIR = profileProjectPath('guideBrowserFinalA
 const ROUTING_STATE_FILE = join(STATE_DIR, 'routing-state.json');
 const COMMAND_RUNS_FILE = join(RUNTIME_DIR, 'command-runs.jsonl');
 const PROFILE_ENV = PROFILE.env || {};
-const PUBLIC_WORKFLOW_URL_ENV = PROFILE_ENV.publicWorkflowUrl || 'NEXUS_PUBLIC_WORKFLOW_URL';
+const PUBLIC_WORKFLOW_URL_ENV = requiredProfileEnv('publicWorkflowUrl');
 const PUBLIC_GUIDE_URL = requiredPolicyString('deployment', 'publicGuideUrl');
 const PUBLIC_ZOO_GUIDE_URL = requiredPolicyString('deployment', 'visualZooGuideUrl');
 const PUBLIC_GUIDE_VERSION = requiredPolicyString('guide', 'version');
@@ -104,6 +104,14 @@ function profileProjectPath(key) {
 
 function profileProjectRel(key) {
   return projectRel(profileProjectPath(key));
+}
+
+function requiredProfileEnv(key) {
+  const value = PROFILE_ENV[key];
+  if (!value || typeof value !== 'string') {
+    throw new Error(`Workflow profile env.${key} must be configured.`);
+  }
+  return value;
 }
 
 function recordKindDirRel(kind) {
@@ -190,7 +198,7 @@ function hasTopLevelHelp(argv) {
 }
 
 function helpTextForCommand(commandName = '') {
-  const script = 'node .codex/scripts/nexus-workflow.mjs';
+  const script = `node ${profileProjectRel('workflowWrapper')}`;
   const usage = {
     'record-intent': `${script} record-intent --kind <kind> --status captured --summary "<user intent>"`,
     'record-work-slice': `${script} record-work-slice --intent <INTENT-id> --status active --summary "<lead interpretation>" --acceptance "<done signals>" --verification "<checks>"`,
@@ -6083,6 +6091,8 @@ function workflowSelfTestChecks() {
   add('guide source hash is content based', /^[a-f0-9]{24}$/.test(publicGuideSourceHash()));
   add('required guide source hash inputs come from policy', requiredGuideSourceFiles().length > 0 && requiredGuideSourceFiles().every((file) => publicGuideInputFiles().includes(file)));
   add('verification knowledge is required workflow manifest', requiredWorkflowFiles().includes('.codex/knowledge/verification.md'));
+  add('workflow principles are required workflow manifest', requiredWorkflowFiles().includes('.codex/workflow/principles.md'));
+  add('workflow capabilities are required workflow manifest', requiredWorkflowFiles().includes('.codex/workflow/capabilities.md'));
   add('policy manifest is required workflow manifest', requiredWorkflowFiles().includes('.codex/workflow/policy/manifest.json'));
   add('work intake policy is required workflow manifest', requiredWorkflowFiles().includes('.codex/workflow/policy/intake.json'));
   add('work intake templates are required workflow manifest', requiredWorkflowFiles().includes('.codex/workflow/templates/intent.md') && requiredWorkflowFiles().includes('.codex/workflow/templates/work-slice.md'));
@@ -6113,6 +6123,8 @@ function workflowSelfTestChecks() {
   add('visual zoo capture asserts themed parity showcases', Array.isArray(POLICY.design?.zooVisualCapture?.interactiveShowcases?.['themed-empty-state']?.expectedTexts)
     && Array.isArray(POLICY.design?.zooVisualCapture?.interactiveShowcases?.['themed-toast']?.expectedTexts));
   add('workflow research reports participate in public guide source hash', publicGuideInputFiles().some((file) => file.startsWith('.codex/workflow/research/') && file.endsWith('.md')));
+  add('workflow principles participate in public guide source hash', publicGuideInputFiles().includes('.codex/workflow/principles.md'));
+  add('workflow capabilities participate in public guide source hash', publicGuideInputFiles().includes('.codex/workflow/capabilities.md'));
   add('workflow policy check passes current policy pack', policyProblems().length === 0);
   add('workflow policy pins package script command bodies', packageScriptContractProblems().length === 0);
   add('workflow policy rejects package script bypasses', (() => {
@@ -6432,6 +6444,8 @@ function workflowSelfTestChecks() {
     const original = readText('.codex/hooks.json');
     return original.includes('run-hook.mjs') && !original.includes('node -e');
   })());
+  add('hook dispatcher has no Nexus wrapper fallback', !readText('.codex/scripts/run-hook.mjs').includes('nexus-workflow.mjs'));
+  add('public workflow URL env name is profile-owned without fallback assignment', !/const\s+PUBLIC_WORKFLOW_URL_ENV\s*=\s*[^;\n]*\|\|/.test(readText('.codex/scripts/nexus-workflow.mjs')));
   add('hook runtime accepts tool heartbeat without startup event', (() => {
     const at = nowIso();
     const health = hookRuntimeDiagnostics({ lastSeenAt: at, events: [{ at, event: 'post-tool-use' }], lastEvent: 'post-tool-use' }, {

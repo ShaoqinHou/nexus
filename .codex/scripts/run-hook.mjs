@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { existsSync, readFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { findWorkflowRoot, loadCodexWorkflow } from './workflow-engine.mjs';
 
@@ -12,13 +12,15 @@ if (!allowed.has(event)) {
 }
 
 const root = findWorkflowRoot(process.cwd());
-let script = join(root, '.codex', 'scripts', 'nexus-workflow.mjs');
+let script = '';
 try {
   const workflow = loadCodexWorkflow(root);
   const configured = workflow.profile?.paths?.workflowWrapper;
-  if (configured) script = resolve(root, configured);
+  if (!configured) throw new Error('profile.paths.workflowWrapper is missing');
+  script = resolve(root, configured);
 } catch (error) {
   console.error(`Could not load Codex workflow profile for hook dispatch: ${error.message || error}`);
+  process.exit(event === 'pre-tool-use' ? 1 : 0);
 }
 
 if (!existsSync(script)) {

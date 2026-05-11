@@ -163,6 +163,8 @@
     ".codex/config.toml",
     ".codex/hooks.json",
     ".codex/dashboard/README.md",
+    ".codex/workflow/principles.md",
+    ".codex/workflow/capabilities.md",
     ".codex/workflow/profile.json",
     ".codex/workflow/policy/manifest.json",
     ".codex/workflow/policy/records.json",
@@ -203,6 +205,8 @@
     ".codex/README.md",
     ".codex/config.toml",
     ".codex/hooks.json",
+    ".codex/workflow/principles.md",
+    ".codex/workflow/capabilities.md",
     ".codex/workflow/profile.json",
     ".codex/workflow/policy/manifest.json",
     ".codex/workflow/policy/files.json",
@@ -225,7 +229,9 @@
     ".codex/knowledge/model-routing.md",
     ".codex/knowledge/hooks.md",
     ".codex/knowledge/verification.md",
-    ".codex/knowledge/deployment.md"
+    ".codex/knowledge/deployment.md",
+    ".codex/workflow/principles.md",
+    ".codex/workflow/capabilities.md"
   ],
   "documentDirectories": [
     {

@@ -20,9 +20,13 @@ Use one canonical route:
 
 Other workflow commands are helpers for creating evidence records or diagnosing a failed gate. Do not treat them as a second closeout process.
 
+For workflow migration, architecture changes, or second-project setup, read `workflow/principles.md` and `workflow/capabilities.md` before editing scripts or policy. They define the intended separation between reusable mechanics, project-specific data, durable evidence, generated views, hooks, skills, and optional capabilities.
+
 ## Navigation
 
 - `workflow/briefs/2026-05-09-original-user-brief.md` preserves the original migration request.
+- `workflow/principles.md` is the base workflow design, responsibility map, loose-document policy, and second-project portability guide for humans and agents.
+- `workflow/capabilities.md` maps required and optional workflow capabilities to their policy, scripts, guide sections, records, gates, and porting rules.
 - `workflow/current-state.md` is the compact resumable state.
 - `workflow/profile.json` declares reusable workflow roots, generated surfaces, and project identity.
 - `workflow/policy/*.json` is the project-specific policy pack consumed by the workflow engine.

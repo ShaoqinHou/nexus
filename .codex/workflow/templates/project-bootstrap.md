@@ -2,6 +2,8 @@
 
 Use this when adapting this Codex workflow to another project or checking that a new Nexus session is loaded correctly.
 
+Read `.codex/workflow/principles.md` and `.codex/workflow/capabilities.md` first. Those files explain what is reusable, what is project-specific, what is generated, what is durable evidence, which capabilities are optional, and what must not be copied as live truth.
+
 ## Per-Project Config
 
 Each project should have its own `.codex/config.toml`. It is project-local because trust, hooks, agent limits, sandbox posture, and workflow policy belong to the repository being worked on.
@@ -25,7 +27,7 @@ That keeps the same no-prompt posture as `Full access` while also letting Codex 
 
 Ask the lead agent to:
 
-1. Read this template and the target project's `AGENTS.md`.
+1. Read `.codex/workflow/principles.md`, `.codex/workflow/capabilities.md`, this template, and the target project's `AGENTS.md`.
 2. Copy the reusable loader and the thin hook dispatcher:
    - `.codex/scripts/workflow-engine.mjs`
    - `.codex/scripts/run-hook.mjs`
@@ -44,18 +46,23 @@ Ask the lead agent to:
    - `workflow:policy-check`
    - `workflow:inventory-check`
    - `workflow:trace-check`
-5. Copy/adapt `.github/workflows/nexus-workflow-gates.yml` if the project uses GitHub CI. The policy pack should pin the exact package-script command bodies and CI run commands so drift is detected.
-6. Create a project-local `.codex/config.toml`, `.codex/hooks.json`, `.codex/README.md`, `.codex/workflow/profile.json`, `.codex/workflow/policy/manifest.json`, and the manifest-listed `.codex/workflow/policy/*.json`.
-7. Keep workflow mechanics in scripts and policy, not in bulky hook bodies.
-8. Add a work-intake policy and knowledge file if the project will be driven by user prompts, vague feature ideas, or solo-dev AI sessions:
+5. Copy/adapt project agents and repo skills if the target project will use subagents or specialized review/verify/audit behavior:
+   - `.codex/agents/*.toml`
+   - `.agents/skills/*/SKILL.md`
+   - rename `nexus-*` roles, command names, worker names, and project facts.
+6. Copy/adapt `.github/workflows/nexus-workflow-gates.yml` if the project uses GitHub CI. The policy pack should pin the exact package-script command bodies and CI run commands so drift is detected.
+7. Create a project-local `WORKFLOW.md`, `.codex/config.toml`, `.codex/hooks.json`, `.codex/README.md`, `.codex/workflow/principles.md`, `.codex/workflow/capabilities.md`, `.codex/workflow/current-state.md`, `.codex/workflow/profile.json`, `.codex/workflow/policy/manifest.json`, and the manifest-listed `.codex/workflow/policy/*.json`. Create `current-state.md` from `.codex/workflow/templates/current-state.md`, not from Nexus live state.
+8. Keep workflow mechanics in scripts and policy, not in bulky hook bodies.
+9. Add a work-intake policy and knowledge file if the project will be driven by user prompts, vague feature ideas, or solo-dev AI sessions:
    - `.codex/workflow/policy/intake.json` defines record kinds, statuses, stale-slice limits, external tracker policy, and guide presentation limits.
    - `.codex/knowledge/work-intake.md` explains how to capture compact user intent, lead-interpreted work slices, evidence links, and external tracker references.
    - `.codex/workflow/templates/intent.md` and `.codex/workflow/templates/work-slice.md` define the durable record shapes.
-9. If the target project has no design Zoo/Gym yet, make that an explicit policy capability decision instead of leaving dead Nexus checks in place:
+10. Use `.codex/workflow/capabilities.md` to decide which capabilities are active. If the target project has no design Zoo/Gym yet, make that an explicit capability decision instead of leaving dead Nexus checks in place:
    - remove `design` from the policy manifest and disable design/Zoo scripts in the wrapper, or
    - keep a minimal design policy with empty/disabled visual checks and document what will enable them later.
-10. Put project-specific facts in the target project's profile, policy, and knowledge files.
-11. Run the target project's equivalents of:
+11. Put project-specific facts in the target project's profile, policy, and knowledge files.
+12. Start fresh target-project records. Do not copy Nexus `.codex/workflow/records/`, `.codex/workflow/current-state.md`, `.codex/dashboard/`, `.codex/workflow/artifacts/`, `.codex/workflow/research/`, `.codex/archive/`, runtime telemetry, or state cache as live truth. Copy selected research/archive files only into an explicitly historical reference folder if they help explain the migration.
+13. Run the target project's equivalents of:
 
 ```bash
 npm run workflow:policy-check
@@ -105,3 +112,9 @@ Project-specific policy:
 - project-specific intent kinds, feature labels, external tracker prefixes, and guide presentation limits.
 
 When porting, copy the shape first, then replace project-specific facts before claiming the workflow works.
+
+## Human Orientation Rule
+
+The target project should have a short root entry point like `WORKFLOW.md`, a detailed `.codex/README.md`, a principles/map document like `.codex/workflow/principles.md`, and a capability matrix like `.codex/workflow/capabilities.md`.
+
+If a human cannot answer "what is truth, what is generated, what do I copy, what do I rewrite, and where do project facts live" without reading scripts, the port is not ready.

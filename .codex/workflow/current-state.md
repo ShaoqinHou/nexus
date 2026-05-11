@@ -105,6 +105,11 @@ Workflow simplification, Work Intake, guide/Zoo surfaces, and the first engine/p
   - fresh worktree evidence includes `final-primary-text-design-lint-confirm-20260511`, `final-primary-text-self-test-confirm-20260511`, `final-primary-text-policy-check-confirm-20260511`, `final-primary-text-full-tests-confirm-20260511`, `final-primary-text-build-confirm-20260511`, `final-primary-text-production-base-build-confirm-20260511`, `final-primary-text-theme-settings-browser-confirm-20260511`, `final-primary-text-design-zoo-confirm-20260511`, and `final-primary-text-zoo-capture-confirm-20260511`.
 - fixed the final deployment-guide stale artifact loop found by `workflow:deployed-gate`: deployment records are now gate-only in generated guide artifacts, deployment-dependent Work Intake warnings are filtered from guide views, and `workflow:self-test` covers the regression so future deployment proof cannot mutate the guide artifact it validates.
 - fixed the follow-up generated-guide determinism gap: dashboard, public guide, and Zoo/Gym guide surfaces now show source/content hashes instead of wall-clock generation timestamps, so harmless guide regeneration does not stale deployment proof.
+- opened a second-project readiness cleanup after the user flagged onboarding/documentation gaps:
+  - added `.codex/workflow/principles.md` as the workflow base-design and responsibility map,
+  - added `.codex/workflow/capabilities.md` to show which workflow capabilities are required or optional and what policy/scripts/gates each needs,
+  - updated bootstrap guidance so future projects create fresh `WORKFLOW.md`, `current-state.md`, agents/skills, profile/policy, and records instead of copying Nexus live evidence,
+  - removed the hidden Nexus wrapper fallback from the hook dispatcher and made public workflow URL env names profile-owned.
 
 The reusable boundary is intentionally conservative: `.codex/scripts/workflow-engine.mjs` is portable loader/matcher infrastructure, while `.codex/scripts/nexus-workflow.mjs` remains the Nexus deterministic wrapper until a second project proves which larger pieces should be extracted.
 

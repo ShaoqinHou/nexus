@@ -21,6 +21,8 @@ Use one canonical workflow ladder:
 
 Other workflow scripts are helpers for creating records or diagnosing a failed gate. Do not turn them into a parallel closeout checklist.
 
+For workflow migration, architecture changes, or second-project setup, also read `.codex/workflow/principles.md`, `.codex/workflow/capabilities.md`, and `.codex/workflow/templates/project-bootstrap.md` before editing workflow scripts, policy, hooks, or project instructions.
+
 ## Project Shape
 
 Nexus is a multi-tenant mini-app platform. The first module is restaurant ordering.

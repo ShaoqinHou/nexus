@@ -17,4 +17,6 @@ Do not treat a hand-written template body as a valid gate record unless the fron
 - `audit.md`: workflow/project health audit.
 - `project-bootstrap.md`: portable checklist for creating project-local Codex config, hooks, profile, policy, and workflow checks in another repo.
 
+Before using `project-bootstrap.md`, read `.codex/workflow/principles.md` and `.codex/workflow/capabilities.md`. Those documents explain the workflow's single-source-of-truth model, where project-specific data belongs, which capabilities are optional, and which Nexus files must not be copied as live evidence.
+
 `current-state.md` is not a record transcript. It must stay small, link to detailed records, avoid self-staling finalization details, and pass the canonical `npm run workflow:release-gate`; use `npm run workflow:handover-check` only as a diagnostic helper.

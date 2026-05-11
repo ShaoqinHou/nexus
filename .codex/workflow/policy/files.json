@@ -7,6 +7,8 @@
     ".codex/config.toml",
     ".codex/hooks.json",
     ".codex/dashboard/README.md",
+    ".codex/workflow/principles.md",
+    ".codex/workflow/capabilities.md",
     ".codex/workflow/current-state.md",
     ".codex/workflow/profile.json",
     ".codex/workflow/policy/manifest.json",
@@ -103,7 +105,9 @@
     ],
     "workflowRootFiles": [
       ".codex/workflow/current-state.md",
+      ".codex/workflow/capabilities.md",
       ".codex/workflow/dependency-audit-baseline.json",
+      ".codex/workflow/principles.md",
       ".codex/workflow/profile.json"
     ],
     "workflowRootDirectories": [
@@ -158,6 +162,22 @@
     },
     {
       "file": ".codex/workflow/policy/files.json",
+      "substantive": true,
+      "verification": true,
+      "audit": true,
+      "guide": true,
+      "zooVisual": false
+    },
+    {
+      "file": ".codex/workflow/principles.md",
+      "substantive": true,
+      "verification": true,
+      "audit": true,
+      "guide": true,
+      "zooVisual": false
+    },
+    {
+      "file": ".codex/workflow/capabilities.md",
       "substantive": true,
       "verification": true,
       "audit": true,
@@ -336,6 +356,8 @@
         ".codex/scripts/",
         ".codex/knowledge/",
         ".codex/workflow/current-state.md",
+        ".codex/workflow/capabilities.md",
+        ".codex/workflow/principles.md",
         ".codex/workflow/profile.json",
         ".codex/workflow/policy/",
         ".codex/workflow/state/.gitignore",
@@ -360,6 +382,8 @@
         ".codex/scripts/",
         ".codex/knowledge/",
         ".codex/workflow/current-state.md",
+        ".codex/workflow/capabilities.md",
+        ".codex/workflow/principles.md",
         ".codex/workflow/profile.json",
         ".codex/workflow/policy/",
         ".codex/workflow/dependency-audit-baseline.json",
@@ -386,6 +410,8 @@
         "packages/web/src/platform/",
         "packages/web/src/routes/",
         ".codex/",
+        ".codex/workflow/capabilities.md",
+        ".codex/workflow/principles.md",
         ".agents/",
         ".github/workflows/",
         "scripts/",

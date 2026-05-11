@@ -13,6 +13,8 @@ description: Start, resume, or coordinate Nexus work using the Codex-native work
 4. Run `npm run workflow:status`.
 5. Load only the relevant file from `.codex/knowledge/`.
 
+For workflow migration, architecture changes, or second-project setup, read `.codex/workflow/principles.md`, `.codex/workflow/capabilities.md`, and `.codex/workflow/templates/project-bootstrap.md` before editing scripts, policy, or hooks.
+
 Use one canonical ladder:
 
 1. `npm run workflow:status` for resume.
