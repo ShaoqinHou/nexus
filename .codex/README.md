@@ -130,6 +130,8 @@ Pattern proposal, routing, patch, review, test, audit, guide-browser, and deploy
 
 `.codex/dashboard/index.html` and `.codex/dashboard/public.html` are generated guide artifacts and user-facing workflow surfaces. They are snapshots, not live truth. Live worktree truth comes from `npm run workflow:status`. Generated guide artifacts are governed by the dedicated guide freshness/content-hash gate and recorded browser validation; their generator, source docs, records, and workflow rules remain part of the substantive review surface. Deployment records are gate-only for generated guide artifacts, because embedding the record proving a guide deployment would make that same guide stale.
 
+Generated guides should be deterministic for the same input files. Do not embed wall-clock generation timestamps; show source/content hashes instead so a harmless rerun does not stale deployment proof.
+
 For the same reason, Work Intake guide traces and generated-guide warnings use policy-owned self-referential exclusions and omit current deployment proof. Deployment proof remains in append-only deployment records plus `workflow:deployed-gate`; do not force the current deployment record into the guide artifact that the record validates. Generated guides can point to deployment proof, but the gate is the source of truth for current deployment state.
 
 If final deployment or records create more commits after the runtime build, describe that as "branch HEAD" or link to the deployment record instead of hardcoding a final commit that the next bookkeeping commit can invalidate.

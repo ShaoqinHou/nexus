@@ -4,9 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="nexus-guide-version" content="nexus-public-workflow-guide/v2" />
-  <meta name="nexus-guide-source-hash" content="a5b89f98138cc8a0f38b0d73" />
-  <meta name="nexus-guide-record-feed-hash" content="f84b684e41464633052e0367" />
-  <meta name="nexus-guide-content-hash" content="28e86a5b3624f77f71e5bfc9" />
+  <meta name="nexus-guide-source-hash" content="a3e2bc7eeb1739e735b50203" />
+  <meta name="nexus-guide-record-feed-hash" content="66c388f3a41f19cd5fab6066" />
+  <meta name="nexus-guide-content-hash" content="de58a65563ba0c2023f421b9" />
   <meta name="nexus-token-source" content="packages/web/src/platform/theme/tokens.css" />
   <title>Nexus Workflow Dashboard</title>
   <style>
@@ -83,7 +83,7 @@
 <body>
   <header>
     <h1>Nexus Workflow Dashboard</h1>
-    <div class="meta">Generated 2026-05-11T02:44:44.266Z · branch codex/native-workflow</div>
+    <div class="meta">Snapshot source a3e2bc7eeb1739e735b50203 · records 66c388f3a41f19cd5fab6066 · branch codex/native-workflow</div>
   </header>
   <div class="layout">
     <nav>
@@ -114,10 +114,10 @@
 <div class="card"><span class="meta">Work Slices</span><strong>16</strong></div>
 <div class="card"><span class="meta">Pattern Proposals</span><strong>16</strong></div>
 <div class="card"><span class="meta">Routing</span><strong>54</strong></div>
-<div class="card"><span class="meta">Patches</span><strong>66</strong></div>
-<div class="card"><span class="meta">Reviews</span><strong>119</strong></div>
-<div class="card"><span class="meta">Tests</span><strong>63</strong></div>
-<div class="card"><span class="meta">Audits</span><strong>42</strong></div>
+<div class="card"><span class="meta">Patches</span><strong>68</strong></div>
+<div class="card"><span class="meta">Reviews</span><strong>127</strong></div>
+<div class="card"><span class="meta">Tests</span><strong>65</strong></div>
+<div class="card"><span class="meta">Audits</span><strong>44</strong></div>
 <div class="card"><span class="meta">Deployments (display-only)</span><strong>gate</strong></div>
 <div class="card"><span class="meta">Zoo Pages</span><strong>26/26</strong></div>
         </div>
@@ -302,7 +302,7 @@
       <h3>Feature Catalog</h3>
       <ul><li data-work-intake-feature="INTENT-20260510T230845Z-intent-feature-finish-design-system-parity-using">
       <strong>Finish design-system parity using the Codex workflow, including tracing old Claude-era design work first, implementing remaining project parity gaps, validating Zoo/Gym and docs, and auditing the workflow trace so the project can call design-system integration complete for current scope.</strong> <span class="meta">captured · feature</span><br>
-      <span class="meta">linked slices:1 · latest:done · trace evidence:62</span>
+      <span class="meta">linked slices:1 · latest:done · trace evidence:76</span>
     </li>
 <li data-work-intake-feature="INTENT-20260510T145511Z-intent-feature-after-workflow-closeout-review-an">
       <strong>After workflow closeout, review and repair the partially migrated design-system integration that came from the old Claude workflow, rebuild stale/wrong documentation through the new workflow, and fix implementation gaps with proper records and validation</strong> <span class="meta">captured · feature</span><br>
@@ -417,6 +417,7 @@
 <li>fixes added the `--color-primary-text` / `text-primary-text` contract across primary-colored surfaces, hardened design lint for direct/nested source patterns and unresolved theme token contrast, and adjusted workflow self-test coverage so guide self-reference checks do not depend on unrelated live record staleness,</li>
 <li>fresh worktree evidence includes `final-primary-text-design-lint-confirm-20260511`, `final-primary-text-self-test-confirm-20260511`, `final-primary-text-policy-check-confirm-20260511`, `final-primary-text-full-tests-confirm-20260511`, `final-primary-text-build-confirm-20260511`, `final-primary-text-production-base-build-confirm-20260511`, `final-primary-text-theme-settings-browser-confirm-20260511`, `final-primary-text-design-zoo-confirm-20260511`, and `final-primary-text-zoo-capture-confirm-20260511`.</li>
 <li>fixed the final deployment-guide stale artifact loop found by `workflow:deployed-gate`: deployment records are now gate-only in generated guide artifacts, deployment-dependent Work Intake warnings are filtered from guide views, and `workflow:self-test` covers the regression so future deployment proof cannot mutate the guide artifact it validates.</li>
+<li>fixed the follow-up generated-guide determinism gap: dashboard, public guide, and Zoo/Gym guide surfaces now show source/content hashes instead of wall-clock generation timestamps, so harmless guide regeneration does not stale deployment proof.</li>
 </ul>
 <p>The reusable boundary is intentionally conservative: `.codex/scripts/workflow-engine.mjs` is portable loader/matcher infrastructure, while `.codex/scripts/nexus-workflow.mjs` remains the Nexus deterministic wrapper until a second project proves which larger pieces should be extracted.</p>
 <h2>How To Resume</h2>
@@ -2819,6 +2820,42 @@ Fallback target: n/a</pre>
 
         <article class="record">
           <div class="record-top">
+            <strong>Codex-native workflow adaptation, design-system parity, deterministic guide proof, and deployed workflow surfaces</strong>
+            <span>2026-05-11T02:59:19.679Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/patches/PATCH-20260511T025919Z-codex-native-workflow-adaptation-design-system-p.md</p>
+          <pre>Summary: Codex-native workflow adaptation, design-system parity, deterministic guide proof, and deployed workflow surfaces
+Scope: branch
+Agent: codex-lead
+Routing: n/a
+Work slices: WORK-SLICE-20260511T012455Z-work-slice-done-finish-nexus-design-system-parit
+Branch evidence hash: 13c83f815e14b79e
+
+Files:</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Make generated workflow guides deterministic and reject wall-clock generation timestamps</strong>
+            <span>2026-05-11T02:57:38.510Z</span>
+          </div>
+
+          <p class="path">.codex/workflow/records/patches/PATCH-20260511T025738Z-make-generated-workflow-guides-deterministic-and.md</p>
+          <pre>Summary: Make generated workflow guides deterministic and reject wall-clock generation timestamps
+Scope: worktree
+Agent: codex-lead
+Routing: n/a
+Work slices: WORK-SLICE-20260510T230853Z-work-slice-active-finish-nexus-design-system-par
+
+
+Files:</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
             <strong>Make deployment proof gate-only and finish workflow/design parity</strong>
             <span>2026-05-11T02:42:33.762Z</span>
           </div>
@@ -4008,6 +4045,150 @@ Files:
 
     <section id="reviews" class="panel">
       <h2>Reviews</h2>
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review integrated pass branch</strong>
+            <span>2026-05-11T03:00:03.957Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260511T030003Z-review-integrated-pass-branch.md</p>
+          <pre>Scope: branch
+Kind: integrated
+Verdict: pass
+Reviewer: codex-lead
+Patch: PATCH-20260511T025919Z-codex-native-workflow-adaptation-design-system-p
+Work slices: WORK-SLICE-20260511T012455Z-work-slice-done-finish-nexus-design-system-parit
+Worktree hash: 436ce02b9349867a
+Branch evidence hash: 13c83f815e14b79e</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review design pass branch</strong>
+            <span>2026-05-11T02:59:55.724Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260511T025955Z-review-design-pass-branch.md</p>
+          <pre>Scope: branch
+Kind: design
+Verdict: pass
+Reviewer: codex-lead
+Patch: PATCH-20260511T025919Z-codex-native-workflow-adaptation-design-system-p
+Work slices: WORK-SLICE-20260511T012455Z-work-slice-done-finish-nexus-design-system-parit
+Worktree hash: 436ce02b9349867a
+Branch evidence hash: 13c83f815e14b79e</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review pattern pass branch</strong>
+            <span>2026-05-11T02:59:47.333Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260511T025947Z-review-pattern-pass-branch.md</p>
+          <pre>Scope: branch
+Kind: pattern
+Verdict: pass
+Reviewer: codex-lead
+Patch: PATCH-20260511T025919Z-codex-native-workflow-adaptation-design-system-p
+Work slices: WORK-SLICE-20260511T012455Z-work-slice-done-finish-nexus-design-system-parit
+Worktree hash: 436ce02b9349867a
+Branch evidence hash: 13c83f815e14b79e</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review workflow pass branch</strong>
+            <span>2026-05-11T02:59:37.314Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260511T025937Z-review-workflow-pass-branch.md</p>
+          <pre>Scope: branch
+Kind: workflow
+Verdict: pass
+Reviewer: codex-lead
+Patch: PATCH-20260511T025919Z-codex-native-workflow-adaptation-design-system-p
+Work slices: WORK-SLICE-20260511T012455Z-work-slice-done-finish-nexus-design-system-parit
+Worktree hash: 436ce02b9349867a
+Branch evidence hash: 13c83f815e14b79e</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review general pass branch</strong>
+            <span>2026-05-11T02:59:28.661Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260511T025928Z-review-general-pass-branch.md</p>
+          <pre>Scope: branch
+Kind: general
+Verdict: pass
+Reviewer: codex-lead
+Patch: PATCH-20260511T025919Z-codex-native-workflow-adaptation-design-system-p
+Work slices: WORK-SLICE-20260511T012455Z-work-slice-done-finish-nexus-design-system-parit
+Worktree hash: 436ce02b9349867a
+Branch evidence hash: 13c83f815e14b79e</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review general pass worktree</strong>
+            <span>2026-05-11T02:58:06.521Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260511T025806Z-review-general-pass-worktree.md</p>
+          <pre>Scope: worktree
+Kind: general
+Verdict: pass
+Reviewer: codex-lead
+Patch: PATCH-20260511T025738Z-make-generated-workflow-guides-deterministic-and
+Work slices: WORK-SLICE-20260510T230853Z-work-slice-active-finish-nexus-design-system-par
+Worktree hash: 436ce02b9349867a
+</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review pattern pass worktree</strong>
+            <span>2026-05-11T02:57:57.488Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260511T025757Z-review-pattern-pass-worktree.md</p>
+          <pre>Scope: worktree
+Kind: pattern
+Verdict: pass
+Reviewer: codex-lead
+Patch: PATCH-20260511T025738Z-make-generated-workflow-guides-deterministic-and
+Work slices: WORK-SLICE-20260510T230853Z-work-slice-active-finish-nexus-design-system-par
+Worktree hash: 436ce02b9349867a
+</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Review workflow pass worktree</strong>
+            <span>2026-05-11T02:57:49.443Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/reviews/REVIEW-20260511T025749Z-review-workflow-pass-worktree.md</p>
+          <pre>Scope: worktree
+Kind: workflow
+Verdict: pass
+Reviewer: codex-lead
+Patch: PATCH-20260511T025738Z-make-generated-workflow-guides-deterministic-and
+Work slices: WORK-SLICE-20260510T230853Z-work-slice-active-finish-nexus-design-system-par
+Worktree hash: 436ce02b9349867a
+</pre>
+        </article>
+
 
         <article class="record">
           <div class="record-top">
@@ -6133,6 +6314,42 @@ Notes: Focused review found hook false-positive/false-negative issues, they were
         <article class="record">
           <div class="record-top">
             <strong>Verification pass branch</strong>
+            <span>2026-05-11T03:00:23.309Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/tests/TEST-20260511T030023Z-verification-pass-branch.md</p>
+          <pre>Scope: branch
+Verdict: pass
+Verifier: codex-lead
+Worktree hash: 436ce02b9349867a
+Branch evidence hash: 13c83f815e14b79e
+Work slices: WORK-SLICE-20260511T012455Z-work-slice-done-finish-nexus-design-system-parit
+Command run ids: final-primary-text-design-lint-confirm-20260511, final-primary-text-full-tests-confirm-20260511, final-primary-text-build-confirm-20260511, final-primary-text-production-base-build-confirm-20260511, final-primary-text-prod-zoo-bundle-confirm-20260511, final-primary-text-theme-settings-browser-confirm-20260511, final-primary-text-design-zoo-confirm-20260511, final-primary-text-zoo-capture-confirm-20260511, final-primary-text-dependency-audit-check-confirm-20260511, final-primary-text-model-routing-confirm-20260511, final-guide-determinism-self-test-20260511c, final-guide-determinism-idempotence-20260511c, final-guide-determinism-guide-check-20260511c, final-guide-determinism-zoo-guide-check-20260511c, final-guide-determinism-policy-check-20260511c, final-guide-determinism-inventory-check-20260511c
+</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Verification pass worktree</strong>
+            <span>2026-05-11T02:58:17.507Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/tests/TEST-20260511T025817Z-verification-pass-worktree.md</p>
+          <pre>Scope: worktree
+Verdict: pass
+Verifier: codex-lead
+Worktree hash: 436ce02b9349867a
+
+Work slices: WORK-SLICE-20260510T230853Z-work-slice-active-finish-nexus-design-system-par
+Command run ids: final-guide-determinism-self-test-20260511c, final-guide-determinism-idempotence-20260511c, final-guide-determinism-guide-check-20260511c, final-guide-determinism-zoo-guide-check-20260511c, final-guide-determinism-policy-check-20260511c, final-guide-determinism-inventory-check-20260511c
+</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Verification pass branch</strong>
             <span>2026-05-11T02:43:42.679Z</span>
           </div>
           <span class="pill">pass</span>
@@ -7086,6 +7303,42 @@ Notes: Latest full local validation passed: workflow script syntax, design-zoo s
 
     <section id="audits" class="panel">
       <h2>Audits</h2>
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Audit pass branch</strong>
+            <span>2026-05-11T03:00:38.142Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/audits/AUDIT-20260511T030038Z-audit-pass-branch.md</p>
+          <pre>Scope: branch
+Verdict: pass
+Auditor: codex-lead
+Worktree hash: 436ce02b9349867a
+Branch evidence hash: 13c83f815e14b79e
+Work slices: WORK-SLICE-20260511T012455Z-work-slice-done-finish-nexus-design-system-parit
+Command run ids: final-primary-text-design-lint-confirm-20260511, final-primary-text-full-tests-confirm-20260511, final-primary-text-build-confirm-20260511, final-primary-text-production-base-build-confirm-20260511, final-primary-text-prod-zoo-bundle-confirm-20260511, final-primary-text-theme-settings-browser-confirm-20260511, final-primary-text-design-zoo-confirm-20260511, final-primary-text-zoo-capture-confirm-20260511, final-primary-text-dependency-audit-check-confirm-20260511, final-primary-text-model-routing-confirm-20260511, final-guide-determinism-self-test-20260511c, final-guide-determinism-idempotence-20260511c, final-guide-determinism-guide-check-20260511c, final-guide-determinism-zoo-guide-check-20260511c, final-guide-determinism-policy-check-20260511c, final-guide-determinism-inventory-check-20260511c, final-guide-determinism-trace-check-20260511c
+</pre>
+        </article>
+
+
+        <article class="record">
+          <div class="record-top">
+            <strong>Audit pass worktree</strong>
+            <span>2026-05-11T02:58:27.666Z</span>
+          </div>
+          <span class="pill">pass</span>
+          <p class="path">.codex/workflow/records/audits/AUDIT-20260511T025827Z-audit-pass-worktree.md</p>
+          <pre>Scope: worktree
+Verdict: pass
+Auditor: codex-lead
+Worktree hash: 436ce02b9349867a
+
+Work slices: WORK-SLICE-20260510T230853Z-work-slice-active-finish-nexus-design-system-par
+Command run ids: final-guide-determinism-self-test-20260511c, final-guide-determinism-idempotence-20260511c, final-guide-determinism-guide-check-20260511c, final-guide-determinism-zoo-guide-check-20260511c, final-guide-determinism-policy-check-20260511c, final-guide-determinism-inventory-check-20260511c, final-guide-determinism-trace-check-20260511c
+</pre>
+        </article>
+
 
         <article class="record">
           <div class="record-top">

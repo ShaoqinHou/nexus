@@ -4,9 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="nexus-guide-version" content="nexus-public-workflow-guide/v2" />
-  <meta name="nexus-guide-source-hash" content="a5b89f98138cc8a0f38b0d73" />
-  <meta name="nexus-guide-record-feed-hash" content="f84b684e41464633052e0367" />
-  <meta name="nexus-guide-content-hash" content="fbda9a7d640dfbe4989cba3f" />
+  <meta name="nexus-guide-source-hash" content="a3e2bc7eeb1739e735b50203" />
+  <meta name="nexus-guide-record-feed-hash" content="66c388f3a41f19cd5fab6066" />
+  <meta name="nexus-guide-content-hash" content="980e93356f0ec49465687719" />
   <meta name="nexus-token-source" content="packages/web/src/platform/theme/tokens.css" />
   <title>Nexus Workflow Guide</title>
   <style>
@@ -72,7 +72,7 @@
 <body>
   <header>
     <h1>Nexus Workflow Guide</h1>
-    <div class="meta">Generated snapshot 2026-05-11T02:44:45.234Z · branch codex/native-workflow · run workflow gates for live state before deploy</div>
+    <div class="meta">Snapshot source a3e2bc7eeb1739e735b50203 · records 66c388f3a41f19cd5fab6066 · branch codex/native-workflow · run workflow gates for live state before deploy</div>
   </header>
   <main>
     <section>
@@ -292,7 +292,7 @@
       <h3>Feature Catalog</h3>
       <ul><li data-work-intake-feature="INTENT-20260510T230845Z-intent-feature-finish-design-system-parity-using">
       <strong>Finish design-system parity using the Codex workflow, including tracing old Claude-era design work first, implementing remaining project parity gaps, validating Zoo/Gym and docs, and auditing the workflow trace so the project can call design-system integration complete for current scope.</strong> <span class="meta">captured · feature</span><br>
-      <span class="meta">linked slices:1 · latest:done · trace evidence:62</span>
+      <span class="meta">linked slices:1 · latest:done · trace evidence:76</span>
     </li>
 <li data-work-intake-feature="INTENT-20260510T145511Z-intent-feature-after-workflow-closeout-review-an">
       <strong>After workflow closeout, review and repair the partially migrated design-system integration that came from the old Claude workflow, rebuild stale/wrong documentation through the new workflow, and fix implementation gaps with proper records and validation</strong> <span class="meta">captured · feature</span><br>
@@ -488,10 +488,10 @@ node .codex/scripts/nexus-workflow.mjs record-audit --scope branch --verdict pas
 <div class="card"><strong>16</strong><p>work-slices</p></div>
 <div class="card"><strong>16</strong><p>pattern-proposals</p></div>
 <div class="card"><strong>54</strong><p>routing</p></div>
-<div class="card"><strong>66</strong><p>patches</p></div>
-<div class="card"><strong>119</strong><p>reviews</p></div>
-<div class="card"><strong>63</strong><p>tests</p></div>
-<div class="card"><strong>42</strong><p>audits (first-class + legacy)</p></div>
+<div class="card"><strong>68</strong><p>patches</p></div>
+<div class="card"><strong>127</strong><p>reviews</p></div>
+<div class="card"><strong>65</strong><p>tests</p></div>
+<div class="card"><strong>44</strong><p>audits (first-class + legacy)</p></div>
 <div class="card"><strong>gate</strong><p>deployments (display-only)</p></div>
       </div>
       <p class="meta">Guide-browser evidence is tracked separately by hash-bound records and omitted from this generated guide to avoid self-referential guide freshness loops.</p>
@@ -502,7 +502,19 @@ node .codex/scripts/nexus-workflow.mjs record-audit --scope branch --verdict pas
 
         <h3>Validation</h3>
         <ul class="timeline">
-          <li><strong>audits:</strong> Audit pass branch <span class="meta">2026-05-11T02:44:06.543Z</span></li>
+          <li><strong>audits:</strong> Audit pass branch <span class="meta">2026-05-11T03:00:38.142Z</span></li>
+<li><strong>tests:</strong> Verification pass branch <span class="meta">2026-05-11T03:00:23.309Z</span></li>
+<li><strong>reviews:</strong> Review integrated pass branch <span class="meta">2026-05-11T03:00:03.957Z</span></li>
+<li><strong>reviews:</strong> Review design pass branch <span class="meta">2026-05-11T02:59:55.724Z</span></li>
+<li><strong>reviews:</strong> Review pattern pass branch <span class="meta">2026-05-11T02:59:47.333Z</span></li>
+<li><strong>reviews:</strong> Review workflow pass branch <span class="meta">2026-05-11T02:59:37.314Z</span></li>
+<li><strong>reviews:</strong> Review general pass branch <span class="meta">2026-05-11T02:59:28.661Z</span></li>
+<li><strong>audits:</strong> Audit pass worktree <span class="meta">2026-05-11T02:58:27.666Z</span></li>
+<li><strong>tests:</strong> Verification pass worktree <span class="meta">2026-05-11T02:58:17.507Z</span></li>
+<li><strong>reviews:</strong> Review general pass worktree <span class="meta">2026-05-11T02:58:06.521Z</span></li>
+<li><strong>reviews:</strong> Review pattern pass worktree <span class="meta">2026-05-11T02:57:57.488Z</span></li>
+<li><strong>reviews:</strong> Review workflow pass worktree <span class="meta">2026-05-11T02:57:49.443Z</span></li>
+<li><strong>audits:</strong> Audit pass branch <span class="meta">2026-05-11T02:44:06.543Z</span></li>
 <li><strong>tests:</strong> Verification pass branch <span class="meta">2026-05-11T02:43:42.679Z</span></li>
 <li><strong>reviews:</strong> Review integrated pass branch <span class="meta">2026-05-11T02:43:26.791Z</span></li>
 <li><strong>reviews:</strong> Review design pass branch <span class="meta">2026-05-11T02:43:16.541Z</span></li>
@@ -767,7 +779,8 @@ node .codex/scripts/nexus-workflow.mjs record-audit --scope branch --verdict pas
 
         <h3>Deployment</h3>
         <ul class="timeline">
-          <li><strong>patches:</strong> Make deployment proof gate-only and finish workflow/design parity <span class="meta">2026-05-11T02:42:33.762Z</span></li>
+          <li><strong>patches:</strong> Codex-native workflow adaptation, design-system parity, deterministic guide proof, and deployed workflow surfaces <span class="meta">2026-05-11T02:59:19.679Z</span></li>
+<li><strong>patches:</strong> Make deployment proof gate-only and finish workflow/design parity <span class="meta">2026-05-11T02:42:33.762Z</span></li>
 <li><strong>patches:</strong> Make deployment proof gate-only in generated guides <span class="meta">2026-05-11T02:40:20.778Z</span></li>
 <li><strong>routing:</strong> Final bounded duplicate audit after design-system deployment evidence <span class="meta">2026-05-11T01:33:47.823Z</span></li>
 <li><strong>routing:</strong> Lead-owned closeout after design parity fixes, browser proof, hook parser hardening, and deployment-required work-slice update <span class="meta">2026-05-11T01:03:03.950Z</span></li>
@@ -800,7 +813,8 @@ node .codex/scripts/nexus-workflow.mjs record-audit --scope branch --verdict pas
 
         <h3>Workflow</h3>
         <ul class="timeline">
-          <li><strong>patches:</strong> Finish Codex workflow and design-system parity with primary-text contrast hardening <span class="meta">2026-05-11T02:24:06.756Z</span></li>
+          <li><strong>patches:</strong> Make generated workflow guides deterministic and reject wall-clock generation timestamps <span class="meta">2026-05-11T02:57:38.510Z</span></li>
+<li><strong>patches:</strong> Finish Codex workflow and design-system parity with primary-text contrast hardening <span class="meta">2026-05-11T02:24:06.756Z</span></li>
 <li><strong>patches:</strong> Complete final primary-text contrast hardening and workflow self-test fix <span class="meta">2026-05-11T02:19:09.027Z</span></li>
 <li><strong>patches:</strong> Codex-native workflow adaptation, Work Intake, policy-owned guide contracts, visual Zoo/Gym guide, and design-system documentation cleanup. <span class="meta">2026-05-10T15:59:15.974Z</span></li>
 <li><strong>patches:</strong> Codex-native workflow adaptation, Work Intake, guide/Zoo evidence, and design-system cleanup <span class="meta">2026-05-10T15:45:50.300Z</span></li>

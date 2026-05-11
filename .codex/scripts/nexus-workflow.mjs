@@ -1948,6 +1948,7 @@ function zooVisualGuideProblems() {
     if (!html.includes(`name="${guideMetaName('version')}" content="${ZOO_VISUAL_GUIDE_VERSION}"`)) problems.push('visual Zoo/Gym guide version is stale; regenerate zoo/index.html.');
     if (htmlMetaContent(html, guideMetaName('sourceHash')) !== zooVisualSourceHash()) problems.push('visual Zoo/Gym guide source hash is stale; regenerate zoo/index.html.');
     if (!guideContentHashOk(html)) problems.push('visual Zoo/Gym guide content hash is stale or was edited outside the generator; regenerate zoo/index.html.');
+    problems.push(...guideGenerationTimestampProblems(html, 'visual Zoo/Gym guide'));
     for (const required of ZOO_VISUAL_REQUIRED_STRINGS) {
       if (!html.includes(required)) problems.push(`visual Zoo/Gym guide is missing required content: ${required}`);
     }
@@ -2190,6 +2191,12 @@ function guideMetaTag(key, value) {
   return `<meta name="${guideMetaName(key)}" content="${escapeHtml(value)}" />`;
 }
 
+function guideSnapshotLabel(sourceHash, recordFeedHash = '') {
+  const parts = [`source ${sourceHash}`];
+  if (recordFeedHash) parts.push(`records ${recordFeedHash}`);
+  return parts.join(' · ');
+}
+
 function guideContentHash(html) {
   const escaped = guideMetaName('contentHash').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const canonical = String(html).replace(new RegExp(`(<meta\\s+name=["']${escaped}["']\\s+content=["'])[^"']*(["']\\s*\\/?>)`, 'i'), '$1$2');
@@ -2208,6 +2215,19 @@ function injectGuideContentHash(html) {
 function guideContentHashOk(html) {
   const recorded = htmlMetaContent(html, guideMetaName('contentHash'));
   return Boolean(recorded) && recorded === guideContentHash(html);
+}
+
+function guideGenerationTimestampProblems(html, label = 'guide') {
+  const problems = [];
+  const metaRows = String(html).match(/<div\s+class=["']meta["'][^>]*>[\s\S]*?<\/div>/gi) || [];
+  const generationTimestampPattern = /\bgenerated(?:\s+snapshot)?\b[\s\S]{0,120}\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/i;
+  for (const row of metaRows) {
+    if (generationTimestampPattern.test(row)) {
+      problems.push(`${label} embeds a wall-clock generation timestamp; use deterministic source/content hashes instead.`);
+      break;
+    }
+  }
+  return problems;
 }
 
 function guideShellFingerprint(name, html) {
@@ -3003,7 +3023,6 @@ function commandDashboard(args = {}) {
   const knowledgeSections = dashboardKnowledgeSections();
   const risks = readText(profileProjectRel('risks'));
   const branch = gitText(['branch', '--show-current']) || '(detached HEAD)';
-  const generated = nowIso();
   const sourceHash = publicGuideSourceHash();
   const recordFeedHash = guideRecordFeedHash();
   const tokenRootCss = productionGuideTokenCss();
@@ -3117,7 +3136,7 @@ function commandDashboard(args = {}) {
 <body>
   <header>
     <h1>${escapeHtml(GUIDE_TITLES.dashboard)}</h1>
-    <div class="meta">Generated ${escapeHtml(generated)} · branch ${escapeHtml(branch)}</div>
+    <div class="meta">Snapshot ${escapeHtml(guideSnapshotLabel(sourceHash, recordFeedHash))} · branch ${escapeHtml(branch)}</div>
   </header>
   <div class="layout">
     <nav>
@@ -3191,7 +3210,6 @@ function commandDashboard(args = {}) {
 
 function commandPublicGuide(args = {}) {
   ensureDir(DASHBOARD_DIR);
-  const generated = nowIso();
   const branch = gitText(['branch', '--show-current']) || '(detached HEAD)';
   const displayOnlyRecordKinds = new Set(POLICY.guide?.displayOnlyRecordKinds || []);
   const displayOnlyRecordNotice = String(POLICY.guide?.displayOnlyRecordNotice || '').trim();
@@ -3280,7 +3298,7 @@ function commandPublicGuide(args = {}) {
 <body>
   <header>
     <h1>${publicHtml(GUIDE_TITLES.public)}</h1>
-    <div class="meta">Generated snapshot ${publicHtml(generated)} · branch ${publicHtml(branch)} · run workflow gates for live state before deploy</div>
+    <div class="meta">Snapshot ${publicHtml(guideSnapshotLabel(sourceHash, recordFeedHash))} · branch ${publicHtml(branch)} · run workflow gates for live state before deploy</div>
   </header>
   <main>
     <section>
@@ -3396,7 +3414,6 @@ function commandPublicGuide(args = {}) {
 
 function commandZooVisualGuide(args = {}) {
   ensureDir(ZOO_GUIDE_DIR);
-  const generated = nowIso();
   const sourceHash = zooVisualSourceHash();
   const tokenRootCss = productionGuideTokenCss();
   const entries = zooVisualEntries();
@@ -3507,7 +3524,7 @@ function commandZooVisualGuide(args = {}) {
 <body>
   <header>
     <h1>${publicHtml(ZOO_VISUAL_GUIDE_TITLE)}</h1>
-    <div class="meta">${publicHtml(POLICY.design?.zooVisualSurfaceLabel || 'Visual Demo Surface')} · generated ${publicHtml(generated)} · captured ${publicHtml(capturedAt)}</div>
+    <div class="meta">${publicHtml(POLICY.design?.zooVisualSurfaceLabel || 'Visual Demo Surface')} · source ${publicHtml(sourceHash)} · captured ${publicHtml(capturedAt)}</div>
   </header>
   <main>
     <section class="intro">
@@ -5834,7 +5851,8 @@ function commandGuideCheck({ quiet = false } = {}) {
     if (htmlMetaContent(html, guideMetaName('recordFeedHash')) !== expectedRecordFeedHash) problems.push('public guide record feed hash is stale; regenerate public.html.');
     if (!guideContentHashOk(html)) problems.push('public guide content hash is stale or was edited outside the generator; regenerate public.html.');
     if (htmlMetaContent(html, guideMetaName('tokenSource')) !== GUIDE_TOKEN_SOURCE_LABEL) problems.push('public guide does not declare production token source.');
-      problems.push(...guideViewContractProblems(html, 'public guide', { intakeModel: intake }));
+    problems.push(...guideGenerationTimestampProblems(html, 'public guide'));
+    problems.push(...guideViewContractProblems(html, 'public guide', { intakeModel: intake }));
     for (const forbidden of publicGuideForbiddenStrings()) {
       if (forbidden && html.includes(forbidden)) problems.push(`public guide contains unsanitized private string: ${forbidden}`);
     }
@@ -5848,7 +5866,8 @@ function commandGuideCheck({ quiet = false } = {}) {
     if (htmlMetaContent(html, guideMetaName('recordFeedHash')) !== expectedRecordFeedHash) problems.push('dashboard record feed hash is stale; regenerate index.html.');
     if (!guideContentHashOk(html)) problems.push('dashboard content hash is stale or was edited outside the generator; regenerate index.html.');
     if (htmlMetaContent(html, guideMetaName('tokenSource')) !== GUIDE_TOKEN_SOURCE_LABEL) problems.push('dashboard does not declare production token source.');
-      problems.push(...workIntakeGuideContractProblems(html, 'dashboard', intake));
+    problems.push(...guideGenerationTimestampProblems(html, 'dashboard'));
+    problems.push(...workIntakeGuideContractProblems(html, 'dashboard', intake));
     }
   if (!quiet) {
     console.log(`guide problems: ${problems.length}`);
@@ -6680,6 +6699,9 @@ function workflowSelfTestChecks() {
     const html = injectGuideContentHash(`${guideMetaTag('contentHash', PUBLIC_GUIDE_CONTENT_HASH_PLACEHOLDER)}\n<section>ok</section>`);
     return guideContentHashOk(html) && !guideContentHashOk(html.replace('ok', 'edited'));
   })());
+  add('generated guide checks reject wall-clock generation timestamps', guideGenerationTimestampProblems('<div class="meta">Generated snapshot 2026-05-11T00:00:00.000Z</div>', 'fixture').length === 1
+    && guideGenerationTimestampProblems('<div class="meta">Snapshot source abc123 · records def456</div>', 'fixture').length === 0
+    && guideGenerationTimestampProblems('<div class="meta">Visual Demo Surface · source abc123 · captured 2026-05-11T00:00:00.000Z</div>', 'fixture').length === 0);
   add('generated guide normalizer strips trailing whitespace', !normalizeGeneratedHtml('a  \n  \n').match(/[ \t]+$/m));
   add('guide view contract rejects heading-only public guide', guideViewContractProblems('Workflow System Nodes Project Structure Design System / Zoo / Docs Model Routing Examples Workflow Event Timeline', 'fixture').length > 0);
   add('guide view contract accepts required graph, docs, zoo, routing, and timeline views', guideViewContractProblems([
