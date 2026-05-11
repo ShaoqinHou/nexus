@@ -29,6 +29,7 @@
   --color-brand-hover:   #9c63a8;
   --color-brand-light:   #f3e1f5;  /* pastel taro */
   --color-primary:       var(--color-brand);
+  --color-primary-text:  #111827;
   --color-primary-hover: var(--color-brand-hover);
   --color-primary-light: var(--color-brand-light);
 

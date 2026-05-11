@@ -473,7 +473,7 @@ export function Analytics() {
             className={[
               'px-4 py-2.5 min-h-[var(--hit-sm)] text-sm font-medium rounded-md transition-colors active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
               activeTab === 'overview'
-                ? 'bg-primary text-text-inverse'
+                ? 'bg-primary text-primary-text'
                 : 'bg-bg-muted text-text-secondary hover:bg-bg-surface',
             ].join(' ')}
           >
@@ -485,7 +485,7 @@ export function Analytics() {
             className={[
               'px-4 py-2.5 min-h-[var(--hit-sm)] text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
               activeTab === 'daily-summary'
-                ? 'bg-primary text-text-inverse'
+                ? 'bg-primary text-primary-text'
                 : 'bg-bg-muted text-text-secondary hover:bg-bg-surface',
             ].join(' ')}
           >
@@ -498,7 +498,7 @@ export function Analytics() {
             className={[
               'px-4 py-2.5 min-h-[var(--hit-sm)] text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
               activeTab === 'feedback'
-                ? 'bg-primary text-text-inverse'
+                ? 'bg-primary text-primary-text'
                 : 'bg-bg-muted text-text-secondary hover:bg-bg-surface',
             ].join(' ')}
           >
@@ -552,7 +552,7 @@ export function Analytics() {
               className={[
                 'px-4 py-2.5 min-h-[var(--hit-sm)] text-sm font-medium rounded-md transition-colors active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
                 days === d
-                  ? 'bg-primary text-text-inverse'
+                  ? 'bg-primary text-primary-text'
                   : 'bg-bg-muted text-text-secondary hover:bg-bg-surface',
               ].join(' ')}
             >

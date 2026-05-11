@@ -35,6 +35,7 @@ afterEach(() => {
   // Reset any inline brand-color vars that may have been set on <html>.
   document.documentElement.style.removeProperty('--color-brand');
   document.documentElement.style.removeProperty('--color-primary');
+  document.documentElement.style.removeProperty('--color-primary-text');
   document.documentElement.style.removeProperty('--color-brand-hover');
   document.documentElement.style.removeProperty('--color-primary-hover');
   document.documentElement.style.removeProperty('--color-accent');
@@ -149,6 +150,7 @@ describe('ThemeProvider — tenant-scoped customer mode', () => {
     // --color-primary is now the lightness-clamped palette.primary value,
     // not the raw brand. Just verify it's set to something non-empty.
     expect(wrapperStyle.getPropertyValue('--color-primary')).not.toBe('');
+    expect(wrapperStyle.getPropertyValue('--color-primary-text')).not.toBe('');
     expect(wrapperStyle.getPropertyValue('--color-primary-light')).not.toBe('');
     expect(wrapperStyle.getPropertyValue('--color-brand-light')).not.toBe('');
 
@@ -156,6 +158,7 @@ describe('ThemeProvider — tenant-scoped customer mode', () => {
     const htmlStyle = document.documentElement.style;
     expect(htmlStyle.getPropertyValue('--color-brand')).toBe('');
     expect(htmlStyle.getPropertyValue('--color-primary')).toBe('');
+    expect(htmlStyle.getPropertyValue('--color-primary-text')).toBe('');
   });
 });
 

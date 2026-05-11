@@ -249,7 +249,7 @@ const MenuItemCard = memo(function MenuItemCard({
             <button
               type="button"
               onClick={handleAdd}
-              className="h-12 w-12 flex items-center justify-center rounded-full bg-primary text-text-inverse hover:bg-primary-hover active:scale-[0.92] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              className="h-12 w-12 flex items-center justify-center rounded-full bg-primary text-primary-text hover:bg-primary-hover active:scale-[0.92] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               aria-label={`${t('Increase')} ${item.name} ${t('quantity')}`}
             >
               <Plus className="h-4 w-4" />
@@ -850,7 +850,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
               className={[
                 'text-left px-3 py-2 rounded-lg text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
                 activeCatId === category.id
-                  ? 'bg-primary text-text-inverse shadow-sm'
+                  ? 'bg-primary text-primary-text shadow-sm'
                   : 'text-text-secondary hover:bg-bg-muted hover:text-text',
               ].join(' ')}
             >
@@ -1012,7 +1012,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
                     className={[
                       'shrink-0 px-3.5 py-1.5 rounded-full text-sm font-semibold transition-all whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.95]',
                       activeCatId === category.id
-                        ? 'bg-primary text-text-inverse shadow-sm'
+                        ? 'bg-primary text-primary-text shadow-sm'
                         : 'bg-bg-muted text-text-secondary hover:text-text hover:bg-bg-strong',
                     ].join(' ')}
                   >
@@ -1217,7 +1217,7 @@ export function MenuBrowse({ tenantSlug, tableNumber, disabled = false }: MenuBr
         <button
           type="button"
           onClick={scrollToTop}
-          className="fixed bottom-20 right-4 lg:bottom-4 lg:right-8 z-30 min-h-[var(--hit-md)] min-w-[var(--hit-md)] h-14 w-14 flex items-center justify-center rounded-full bg-primary text-text-inverse shadow-lg hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          className="fixed bottom-20 right-4 lg:bottom-4 lg:right-8 z-30 min-h-[var(--hit-md)] min-w-[var(--hit-md)] h-14 w-14 flex items-center justify-center rounded-full bg-primary text-primary-text shadow-lg hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           aria-label={t('Back to top')}
         >
           <ArrowUp className="h-6 w-6" />

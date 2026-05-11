@@ -256,7 +256,7 @@ export function CheckoutSummary({
           width: '100%',
           height: 52,
           background: loading ? 'var(--color-bg-muted)' : 'var(--color-primary)',
-          color: loading ? 'var(--color-text-secondary)' : 'var(--color-text-inverse)',
+          color: loading ? 'var(--color-text-secondary)' : 'var(--color-primary-text)',
           border: 'none',
           borderRadius: 'var(--radius-btn)',
           fontWeight: 600,

@@ -27,6 +27,7 @@ This file captures durable project knowledge that coding and review agents shoul
 - Zoo showcases are implemented in the consolidated `packages/web/src/routes/__design/Zoo.tsx` slug map, not one file per component. They import real components and must not redefine them inline.
 - Use semantic shape tokens: `--radius-card`, `--radius-btn`, `--radius-chip`.
 - Use hit target tokens: `--hit-sm`, `--hit-md`, `--hit-lg`.
+- Use `--color-primary-text` / `text-primary-text` on primary-colour surfaces. Do not reuse `--color-text-inverse` for `bg-primary` unless a focused contrast check proves the theme and tenant-brand path still passes.
 - Use Lucide for generic UI icons.
 - Use `DietaryIcon` and `/dietary-icons.svg` for dietary/allergen/spice/promo markers.
 - Portal content must inherit the tenant theme. `ThemeProvider` mirrors tenant theme vars onto `document.body`.

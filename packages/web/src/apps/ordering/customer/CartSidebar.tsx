@@ -179,7 +179,7 @@ export function CartSidebar({
                     onClick={() =>
                       updateQuantity(index, item.quantity + 1)
                     }
-                    className="h-12 w-12 flex items-center justify-center rounded-full bg-primary text-text-inverse hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.95]"
+                    className="h-12 w-12 flex items-center justify-center rounded-full bg-primary text-primary-text hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.95]"
                     aria-label={`Increase ${item.name} quantity`}
                   >
                     <Plus className="h-4 w-4" />

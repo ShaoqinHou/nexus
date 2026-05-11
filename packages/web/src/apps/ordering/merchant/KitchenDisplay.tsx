@@ -806,7 +806,7 @@ export function KitchenDisplay() {
                 className={[
                   'px-2 py-1 text-xs font-semibold rounded-md transition-colors',
                   station === opt.value
-                    ? 'bg-primary text-text-inverse shadow-sm'
+                    ? 'bg-primary text-primary-text shadow-sm'
                     : 'text-text-secondary hover:text-text hover:bg-bg',
                 ].join(' ')}
               >

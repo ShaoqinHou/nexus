@@ -32,7 +32,7 @@ function DefaultErrorFallback({ error }: { error: Error | null }) {
       <button
         type="button"
         onClick={() => window.location.reload()}
-        className="px-4 py-2 rounded-[var(--radius-btn)] bg-primary text-text-inverse text-sm font-medium hover:bg-primary-hover transition-colors"
+        className="px-4 py-2 rounded-[var(--radius-btn)] bg-primary text-primary-text text-sm font-medium hover:bg-primary-hover transition-colors"
       >
         {t('Reload page')}
       </button>

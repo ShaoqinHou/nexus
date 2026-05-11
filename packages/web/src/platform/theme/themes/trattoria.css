@@ -29,6 +29,7 @@
   --color-brand-hover:   #a4441f;  /* burnt sienna */
   --color-brand-light:   #f5e1d4;  /* peach blush */
   --color-primary:       var(--color-brand);
+  --color-primary-text:  #000000;
   --color-primary-hover: var(--color-brand-hover);
   --color-primary-light: var(--color-brand-light);
 

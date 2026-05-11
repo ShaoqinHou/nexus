@@ -240,6 +240,7 @@ export function ThemeProvider({
       // surfaces. See in-render brandStyle comment for full rationale.
       body.style.setProperty('--color-brand', effectiveBrandColor);
       body.style.setProperty('--color-primary', palette.primary);
+      body.style.setProperty('--color-primary-text', palette.textOnBrand);
       body.style.setProperty('--color-brand-hover', hover);
       body.style.setProperty('--color-primary-hover', palette.primaryHover);
       body.style.setProperty('--color-primary-light', palette.primaryLight);
@@ -256,6 +257,7 @@ export function ThemeProvider({
       delete body.dataset.theme;
       body.style.removeProperty('--color-brand');
       body.style.removeProperty('--color-primary');
+      body.style.removeProperty('--color-primary-text');
       body.style.removeProperty('--color-brand-hover');
       body.style.removeProperty('--color-primary-hover');
       body.style.removeProperty('--color-primary-light');
@@ -340,6 +342,7 @@ export function ThemeProvider({
       const hover = effectiveBrandColorHover ?? palette.brandHover;
       style['--color-brand'] = effectiveBrandColor;
       style['--color-primary'] = palette.primary;
+      style['--color-primary-text'] = palette.textOnBrand;
       style['--color-brand-hover'] = hover;
       style['--color-primary-hover'] = palette.primaryHover;
       style['--color-primary-light'] = palette.primaryLight;

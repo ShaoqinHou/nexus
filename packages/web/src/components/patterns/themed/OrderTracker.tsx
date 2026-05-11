@@ -289,7 +289,7 @@ export function OrderTracker({
                     borderRadius: 'var(--radius-full)',
                     background: done ? 'var(--color-primary)' : 'var(--color-bg-muted)',
                     border: active ? '3px solid var(--color-primary-light)' : 'none',
-                    color: done ? 'var(--color-text-inverse)' : 'var(--color-text-tertiary)',
+                    color: done ? 'var(--color-primary-text)' : 'var(--color-text-tertiary)',
                     flexShrink: 0,
                     position: 'relative',
                     zIndex: 1,

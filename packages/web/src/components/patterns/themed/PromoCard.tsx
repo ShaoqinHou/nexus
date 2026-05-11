@@ -143,7 +143,7 @@ export function PromoCard({
       data-theme={theme}
       style={{
         background: 'var(--color-primary)',
-        color: 'var(--color-text-inverse)',
+        color: 'var(--color-primary-text)',
         borderRadius: 'var(--radius-card)',
         padding: 24,
         position: 'relative',

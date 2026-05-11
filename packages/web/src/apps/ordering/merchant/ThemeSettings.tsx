@@ -115,7 +115,7 @@ function CuisineThemeCard({ theme, isActive, onClick }: CuisineThemeCardProps) {
           className="absolute top-2 right-2 w-4 h-4 rounded-full flex items-center justify-center"
           style={{ backgroundColor: 'var(--color-primary)' }}
         >
-          <Check className="h-2.5 w-2.5" style={{ color: 'var(--color-text-inverse)' }} />
+          <Check className="h-2.5 w-2.5" style={{ color: 'var(--color-primary-text)' }} />
         </div>
       )}
       {/* Swatch row: bg / brand / accent / text — 4 chips */}

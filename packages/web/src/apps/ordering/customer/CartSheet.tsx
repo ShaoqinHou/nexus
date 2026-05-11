@@ -182,7 +182,7 @@ export function CartSheet({
             <div className="flex items-center gap-3">
               <div className="relative">
                 <ShoppingCart className="h-5 w-5 text-primary" />
-                <span className="absolute -top-2 -right-2 h-4 w-4 rounded-full bg-primary text-text-inverse text-xs font-bold flex items-center justify-center">
+                <span className="absolute -top-2 -right-2 h-4 w-4 rounded-full bg-primary text-primary-text text-xs font-bold flex items-center justify-center">
                   {totalItems}
                 </span>
               </div>
@@ -308,7 +308,7 @@ export function CartSheet({
                             onClick={() =>
                               updateQuantity(index, item.quantity + 1)
                             }
-                            className="h-12 w-12 flex items-center justify-center rounded-full bg-primary text-text-inverse hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                            className="h-12 w-12 flex items-center justify-center rounded-full bg-primary text-primary-text hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                             aria-label={`${t('Increase')} ${item.name} ${t('quantity')}`}
                           >
                             <Plus className="h-4 w-4" />

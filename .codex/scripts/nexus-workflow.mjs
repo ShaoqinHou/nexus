@@ -6254,13 +6254,15 @@ function workflowSelfTestChecks() {
       INTAKE_POLICY.guide.traceEvidenceKinds = original;
     }
   })());
-  add('guide check survives self-referential deployment record after guide generation', (() => {
-    if (!commandGuideCheck({ quiet: true })) return false;
+  add('guide feed hash survives self-referential deployment record after guide generation', (() => {
+    const beforeHash = guideRecordFeedHash();
+    const beforeFiles = guideRecordFeedFiles();
     const currentModel = intakeModel();
     const rootId = currentModel.latestSlices[0]?.rootId || currentModel.latestSlices[0]?.id;
     if (!rootId) return false;
     const id = `DEPLOYMENT-SELF-TEST-${process.pid}`;
     const path = join(RECORDS, 'deployments', `${id}.md`);
+    const rel = relative(ROOT, path).replaceAll('\\', '/');
     const text = [
       '---',
       'schema: "nexus-deployment/v1"',
@@ -6279,7 +6281,9 @@ function workflowSelfTestChecks() {
     ].join('\n');
     try {
       writeFileSync(path, text, { flag: 'wx' });
-      return commandGuideCheck({ quiet: true });
+      return guideRecordFeedHash() === beforeHash
+        && !guideRecordFeedFiles().includes(rel)
+        && !beforeFiles.includes(rel);
     } finally {
       rmSync(path, { force: true });
     }

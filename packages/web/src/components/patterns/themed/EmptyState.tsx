@@ -88,7 +88,7 @@ export function ThemedEmptyState({
             minHeight: 'var(--hit-sm)',
             padding: '0 22px',
             background: 'var(--color-primary)',
-            color: 'var(--color-text-inverse)',
+            color: 'var(--color-primary-text)',
             border: 'none',
             borderRadius: 'var(--radius-btn)',
             fontWeight: 600,

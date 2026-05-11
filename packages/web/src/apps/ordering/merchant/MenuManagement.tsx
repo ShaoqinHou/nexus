@@ -352,7 +352,7 @@ function ItemDialog({
                   className={[
                     'min-h-[var(--hit-sm)] px-2.5 py-2.5 rounded-[var(--radius-chip)] text-xs font-medium border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
                     isSelected
-                      ? 'bg-primary text-text-inverse border-primary'
+                      ? 'bg-primary text-primary-text border-primary'
                       : 'bg-bg-muted text-text-secondary border-border hover:border-border-strong',
                   ].join(' ')}
                 >

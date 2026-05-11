@@ -94,6 +94,7 @@
 
   /* Semantic */
   --color-primary: #2563eb;
+  --color-primary-text: var(--color-text-inverse);
   --color-primary-hover: #1d4ed8;
   --color-primary-light: #dbeafe;
   --color-danger: #dc2626;
@@ -173,6 +174,7 @@
   --color-border: #334155;
   --color-border-strong: #475569;
   --color-primary-light: #1e3a5f;
+  --color-primary-text: var(--color-text-inverse);
   --color-danger-light: #450a0a;
   --color-success-light: #052e16;
   --color-warning-light: #451a03;
@@ -197,6 +199,7 @@
   --color-border: var(--color-border);
   --color-border-strong: var(--color-border-strong);
   --color-primary: var(--color-primary);
+  --color-primary-text: var(--color-primary-text);
   --color-primary-hover: var(--color-primary-hover);
   --color-primary-light: var(--color-primary-light);
   --color-danger: var(--color-danger);

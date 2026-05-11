@@ -28,12 +28,14 @@ Production implementation is under:
 - Cuisine theme identity lives on tenant-scoped wrappers via `data-theme`.
 - Pre-tenant routes stay neutral and should not set `data-theme` on `<html>`.
 - Tenant brand overrides layer as CSS variables on the tenant wrapper and on `body` for portals.
+- Primary-colour surfaces use `--color-primary-text` / `text-primary-text`, not `--color-text-inverse`. `--color-text-inverse` remains the shared inverse text token for non-primary semantic fills; separating the primary text token prevents light cuisine primaries and custom tenant brands from losing contrast while preserving status/destructive semantics.
 - Dark cuisine selectors must support `.dark [data-theme="<id>"]`; compound `[data-theme="<id>"].dark` may exist only as compatibility fallback.
 - Cuisine themes must not rely on `.light` inversion; the platform does not set a `.light` class.
 - `initialThemeId` is a prop-sync signal for saved tenant settings, not a reason to overwrite local live-preview state on every render.
 - Body-mounted portals must inherit tenant theme variables and must clean them up when tenant-scoped providers unmount.
 
 Evidence: `PATTERN-PROPOSAL-20260508T170332Z-pattern-accepted-theme-cascade-changes-require-s`.
+Primary text evidence: `PATTERN-PROPOSAL-20260511T015357Z-pattern-proposed-primary-colored-surfaces-need-a`.
 
 ## Canonical Theme IDs
 
@@ -53,7 +55,7 @@ Evidence: `PATTERN-PROPOSAL-20260508T170332Z-pattern-accepted-theme-cascade-chan
 - Reference bundle themed component parity is implemented for current project scope: production includes themed `OrderTracker`, `Receipt`, `PromoCard`, `EmptyState`, `Toast`, and `CheckoutSummary`. The production export names for the two ambiguous entries are `ThemedEmptyState` and `ThemedToast` because generic `EmptyState` and runtime `ToastContainer` already exist.
 - Tenant settings support optional `accentColor` as a tenant-scoped override layered on top of the cuisine theme's default accent. Leaving it empty keeps the cuisine accent. Accent override variables must stay on tenant-scoped wrappers and `body` portal scope, then be removed on unmount/clear so pre-tenant chrome remains neutral. Evidence: `PATTERN-PROPOSAL-20260511T000635Z-pattern-accepted-tenant-accent-override-stays-te`.
 - Theme semantic-token policy changed over time. Current implementation and reference re-theme semantic variants per cuisine; reviews should follow the current standards, not stale comments.
-- Current proof covers the ThemeProvider live-preview regression, tenant wrapper scoping, brand/accent wrapper and body portal inheritance, desktop/light and mobile/dark Zoo screenshots for every registry-backed page, design-token lint, full app tests, and production Zoo-bundle exclusion. It does not yet prove every possible text/background contrast pairing across all 10 themes or every possible body-mounted portal cleanup order.
+- Current proof covers the ThemeProvider live-preview regression, tenant wrapper scoping, brand/accent wrapper and body portal inheritance, primary-surface text contrast for every cuisine theme through `npm run lint:design`, desktop/light and mobile/dark Zoo screenshots for every registry-backed page, full app tests, and production Zoo-bundle exclusion. It does not yet prove every possible non-primary text/background contrast pairing across all 10 themes or every possible body-mounted portal cleanup order.
 
 ## Claude-Era Notes Reconciled
 
@@ -68,6 +70,7 @@ Evidence: `PATTERN-PROPOSAL-20260508T170332Z-pattern-accepted-theme-cascade-chan
 - Spark is acceptable for narrow component parity slices with explicit files and tests, such as adding one isolated component variant. Tenant accent cascade, portal mirroring, or Zoo capture behavior requires lead/strong-model handling.
 - Strong-model implementation or review is required for cuisine cascade, tenant theme scope, body portals, live-preview synchronization, route/basepath behavior, cross-app imports, or visual judgment.
 - Theme cascade changes require both code tests and browser evidence. At minimum check `/design` across a non-classic theme in dark mode, a body-mounted portal, and return to neutral pre-tenant chrome.
+- Primary-surface changes require `npm run lint:design` because it validates `--color-primary` against `--color-primary-text` for cuisine theme CSS. Components with `bg-primary` or `background: var(--color-primary)` should use `text-primary-text` / `var(--color-primary-text)`.
 
 ## Design Zoo / Gym
 

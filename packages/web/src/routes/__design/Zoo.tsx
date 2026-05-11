@@ -392,7 +392,7 @@ function TokensShowcase() {
           {[['sm', 44], ['md', 48], ['lg', 52]].map(([n, px]) => (
             <div key={n as string} className="flex flex-col items-center gap-1">
               <button
-                className="bg-primary text-text-inverse rounded-md px-4 min-w-[88px]"
+                className="bg-primary text-primary-text rounded-md px-4 min-w-[88px]"
                 style={{ minHeight: `var(--hit-${n as string})` }}
                 type="button"
               >

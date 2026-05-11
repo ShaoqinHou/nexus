@@ -1,6 +1,6 @@
 {
   "schema": "nexus-design-zoo-visual-manifest/v1",
-  "capturedAt": "2026-05-11T01:20:16.389Z",
+  "capturedAt": "2026-05-11T02:18:02.158Z",
   "contexts": [
     {
       "id": "desktop-light-sichuan",
@@ -76,7 +76,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/tokens.jpg",
-      "sha256": "2304f0d0f3a1731b7b01d2cf240949f26a243f2587f922700355d757c79c6ddd"
+      "sha256": "2c056bf416dac90b1622657a4cbbb8dd14eba04e6f2e729722994d24fc120ea4"
     },
     {
       "slug": "themes",
@@ -103,7 +103,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/themes.jpg",
-      "sha256": "57a216542d89af4b7b2779b91edd6c3afe0751de1b14e7dff9a9a6f719fbb0d0"
+      "sha256": "8fb7c78818272f45afbcfe94d57acb8fddbec65084d5dbf6779ffc8d5071aba6"
     },
     {
       "slug": "button",
@@ -130,7 +130,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/button.jpg",
-      "sha256": "0960fb9e157088bce9085b313cb30864f746d77dd9261e8523e22a0527684899"
+      "sha256": "373c21554c8c1663e8ac4864fa3518775b44f1bec4ff2c16a6ffa02e4e372861"
     },
     {
       "slug": "badge",
@@ -184,7 +184,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/card.jpg",
-      "sha256": "78f4b6a0188bd54b6dcb181bbaa53e4b417ad321de328a3b8b84d93755f9e54e"
+      "sha256": "3b9f6e430918c09fce1977580fae1394d8e5ee8d6ce44848f2c624507ae87e3c"
     },
     {
       "slug": "dialog",
@@ -211,7 +211,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/dialog.jpg",
-      "sha256": "9c952b80dda3ddcfe1bee449fba0dec24a185116568b60b88c09a57dfbcd3b86"
+      "sha256": "3dfbdfeb4bdd65fb4c8cc9d0695bead8960f8cda8221c28bb8cb40283aa15bc6"
     },
     {
       "slug": "input",
@@ -373,7 +373,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/tour-overlay.jpg",
-      "sha256": "ebc89d3ba5c8f0d69bb17e08d94264a1bf4dc0928306d55320a4745776441e42"
+      "sha256": "8ea9eab5516bffe1f7eea2cae570dd7f04a49793f376150fb54db8728700a1d7"
     },
     {
       "slug": "language-picker",
@@ -535,7 +535,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/empty-state.jpg",
-      "sha256": "88e2a5a000d59491453dba14d416ec961abb403e46a590ebb0cc194436d98180"
+      "sha256": "6f39192602041ec6c91712eafbfc72c57ad9b1447a8c897a024572512736af1f"
     },
     {
       "slug": "themed-empty-state",
@@ -562,7 +562,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/themed-empty-state.jpg",
-      "sha256": "bf88cd96e789f64a81a43b076f014894eb6693560a576fdd60724c67483857e9"
+      "sha256": "0882a7d0f0ee6babbc9d054e64e7b3102ca1ec7200ecf855056668708a8e65f5"
     },
     {
       "slug": "confirm-button",
@@ -670,7 +670,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/add-to-cart-toast.jpg",
-      "sha256": "c1e34c1023e7ee162633d2f686bc6c4a5b8d4188f5510b1d34de1ee2a5b75d92"
+      "sha256": "702502fa52dade09431eb898dbf0a50dfc366f9e8c8f195555ae76665dd87278"
     },
     {
       "slug": "order-tracker",
@@ -697,7 +697,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/order-tracker.jpg",
-      "sha256": "8e570b37b829a49137b233b5119907ca05ca10c2070171a2bfb1cd6ad3b00bc6"
+      "sha256": "2b0fc5868929bf7710c05774e49651a5e12b54bfe13ea2c27507599f67c46a6f"
     },
     {
       "slug": "receipt",
@@ -724,7 +724,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/receipt.jpg",
-      "sha256": "5758b284899d1e631c4a45ab1dc71dd9a0a9b53862ab9977655603fd4fe5fb9a"
+      "sha256": "7a9d1f8c36cc75dca6fabed728f83aea917a8695d39cd331cbbd021d5f629421"
     },
     {
       "slug": "promo-card",
@@ -751,7 +751,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/promo-card.jpg",
-      "sha256": "c187b5ae475de2a433db59e5451772bed25d135edecadb37079eb2a23c1f64eb"
+      "sha256": "2e61fff43bc898e7555f19715a3d05b62a153b7eb838254797874bd6a8cc68aa"
     },
     {
       "slug": "checkout-summary",
@@ -778,7 +778,7 @@
       },
       "fullPage": true,
       "asset": "assets/desktop-light-sichuan/checkout-summary.jpg",
-      "sha256": "c97beb9261b95d0ea70d1eccb9f61b25d291241cd3391979cd75d6d154bc9610"
+      "sha256": "9299802de8db5137cbe5c55a4f12355e78c07d3ef7c8b189cdb28dfcf545fd77"
     },
     {
       "slug": "themed-toast",
@@ -859,7 +859,7 @@
       },
       "fullPage": true,
       "asset": "assets/mobile-dark-sichuan/tokens.jpg",
-      "sha256": "167e7c536be4fe9bc90c78620286438d6d273406cb78a4919c6a949c91c4809e"
+      "sha256": "f6105d24a3cbc8ff7ea4dc04c60c13580948a09c93c30a857a8f6fc168562cff"
     },
     {
       "slug": "themes",
@@ -886,7 +886,7 @@
       },
       "fullPage": true,
       "asset": "assets/mobile-dark-sichuan/themes.jpg",
-      "sha256": "c4845c6135dcd89c56f5da3499b81ff86fb2acb1e7f8e50856f544b3124bf0a9"
+      "sha256": "ae5a8194ecf3f619c9a54f12e74d326dacadd903cc6b69016b2f2dcd21a830d6"
     },
     {
       "slug": "button",
@@ -913,7 +913,7 @@
       },
       "fullPage": true,
       "asset": "assets/mobile-dark-sichuan/button.jpg",
-      "sha256": "0414b9a1da1d51ee85be81302439d6b958555e427411f163a023c44b6578e0fe"
+      "sha256": "bb673cd86b127aa46ce2924ad905e28f539020bb4b14dc4e74d248bdb9715440"
     },
     {
       "slug": "badge",
@@ -967,7 +967,7 @@
       },
       "fullPage": true,
       "asset": "assets/mobile-dark-sichuan/card.jpg",
-      "sha256": "798fa154eb697faa5602ed25b0d942bc639b54f82e07682dc25b386c1981dc15"
+      "sha256": "336317e0dfe0f5a9e0b74b64ff03a5a8e15a86e5cf371f56ce08c648a8b99e48"
     },
     {
       "slug": "dialog",
@@ -994,7 +994,7 @@
       },
       "fullPage": true,
       "asset": "assets/mobile-dark-sichuan/dialog.jpg",
-      "sha256": "9def9d4fb83ff77728bca0c0fefb31134803bfa982f197c2773895f56730f912"
+      "sha256": "9fa8ca829b06143bd1215865938aa04b31dd41fe47f242bf5ca379bf9d72c421"
     },
     {
       "slug": "input",
@@ -1156,7 +1156,7 @@
       },
       "fullPage": true,
       "asset": "assets/mobile-dark-sichuan/tour-overlay.jpg",
-      "sha256": "08c3ea2dc91d143735fbbaa01d9de50026dd1fb53fb3192bafc6c726071837cf"
+      "sha256": "e6dec704f8ff0daf3c8bffc1e2a9194b3e91896ddaa68a153f3c86c10bd2235f"
     },
     {
       "slug": "language-picker",
@@ -1318,7 +1318,7 @@
       },
       "fullPage": true,
       "asset": "assets/mobile-dark-sichuan/empty-state.jpg",
-      "sha256": "84f6b9d76dad17809b0583a5458328a60b6ccdb0886734c31d9c76c64eed5afc"
+      "sha256": "4ab2833c0b939df02260be4de0055da784c6c03abbe28626b597d7c6ae1dd226"
     },
     {
       "slug": "themed-empty-state",
@@ -1345,7 +1345,7 @@
       },
       "fullPage": true,
       "asset": "assets/mobile-dark-sichuan/themed-empty-state.jpg",
-      "sha256": "6dd066ae2374739ecefd69e85f606d1874fb78da4102e1c45422df29874020c6"
+      "sha256": "a1aad5096e3dfadded88046a9a58fa4b44854bff3231e256980e03c8d6d65496"
     },
     {
       "slug": "confirm-button",
@@ -1453,7 +1453,7 @@
       },
       "fullPage": true,
       "asset": "assets/mobile-dark-sichuan/add-to-cart-toast.jpg",
-      "sha256": "c15d6fd324a9b1d34c17356cf88a2374ab63dc1acdbc3b7ab89238277ef501c4"
+      "sha256": "7ccd65ca3f648634b5e4afe5bef3200ec7df3caa38f8a4a713cf437febeff0d2"
     },
     {
       "slug": "order-tracker",
@@ -1480,7 +1480,7 @@
       },
       "fullPage": true,
       "asset": "assets/mobile-dark-sichuan/order-tracker.jpg",
-      "sha256": "335eb5673e1e5fbf7a8b92a5729ae1a312287b16b125e2d95d6271467680c9bf"
+      "sha256": "f00aa69773f8abec631bd78014433d11ff1489f9393c7d627437d2e476402c29"
     },
     {
       "slug": "receipt",
@@ -1507,7 +1507,7 @@
       },
       "fullPage": true,
       "asset": "assets/mobile-dark-sichuan/receipt.jpg",
-      "sha256": "0251c7a556469826f4593b210a7d82311243a4c3adf0ab0b04e015765b70ac6a"
+      "sha256": "d6cc89d73a6194fa1ce98e8d14ab6e4e2ec2f999738bbfdb4bd16e77eb6fb335"
     },
     {
       "slug": "promo-card",
@@ -1534,7 +1534,7 @@
       },
       "fullPage": true,
       "asset": "assets/mobile-dark-sichuan/promo-card.jpg",
-      "sha256": "076e95428db8eca8cd2f5f1294f3e015c215b4735d74ff741f1d027423f1ec3d"
+      "sha256": "dedfaf49a34593a3cf9dd8e6153c3a16c0cdcce033a23a6bc0e2ab9f943e6521"
     },
     {
       "slug": "checkout-summary",
@@ -1561,7 +1561,7 @@
       },
       "fullPage": true,
       "asset": "assets/mobile-dark-sichuan/checkout-summary.jpg",
-      "sha256": "a5664c27154f4345c3f09a26f98493a33b9b2903fadd96d9705585ce82ed95ac"
+      "sha256": "2a139c2db807980c54a1160172a6ca5172f83ae45c4e5d052f66a341b0219711"
     },
     {
       "slug": "themed-toast",

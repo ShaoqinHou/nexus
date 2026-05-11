@@ -29,6 +29,7 @@
   --color-brand-hover:   #d92418;
   --color-brand-light:   #ffe0dd;
   --color-primary:       var(--color-brand);
+  --color-primary-text:  #111827;
   --color-primary-hover: var(--color-brand-hover);
   --color-primary-light: var(--color-brand-light);
 

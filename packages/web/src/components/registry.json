@@ -20,7 +20,7 @@
         "children": "ReactNode",
         "...": "native ButtonHTMLAttributes"
       },
-      "tokensUsed": ["--color-primary", "--color-primary-hover", "--color-bg-surface", "--color-bg-muted", "--color-border", "--color-text", "--color-text-inverse", "--color-danger", "--color-danger-hover", "--hit-sm", "--hit-md", "--hit-lg"],
+      "tokensUsed": ["--color-primary", "--color-primary-text", "--color-primary-hover", "--color-bg-surface", "--color-bg-muted", "--color-border", "--color-text", "--color-text-inverse", "--color-danger", "--color-danger-hover", "--hit-sm", "--hit-md", "--hit-lg"],
       "dependencies": ["lucide-react"],
       "zooRoute": "/design/button"
     },
@@ -151,7 +151,7 @@
         "onComplete": "() => void",
         "onSkip": "() => void"
       },
-      "tokensUsed": ["--color-primary", "--color-text-inverse", "--color-bg-elevated", "--shadow-lg"],
+      "tokensUsed": ["--color-primary", "--color-primary-text", "--color-bg-elevated", "--shadow-lg"],
       "dependencies": ["@web/lib/i18n"],
       "zooRoute": "/design/tour-overlay"
     },
@@ -255,7 +255,7 @@
         "description": "string (optional)",
         "action": "{ label: string; onClick: () => void } (optional)"
       },
-      "tokensUsed": ["--color-bg-surface", "--color-border-strong", "--color-primary", "--color-primary-light", "--color-text", "--color-text-secondary", "--radius-card", "--radius-btn", "--radius-full", "--font-sans", "--font-display", "--font-display-weight", "--font-display-tracking", "--hit-sm"],
+      "tokensUsed": ["--color-bg-surface", "--color-border-strong", "--color-primary", "--color-primary-text", "--color-primary-light", "--color-text", "--color-text-secondary", "--radius-card", "--radius-btn", "--radius-full", "--font-sans", "--font-display", "--font-display-weight", "--font-display-tracking", "--hit-sm"],
       "dependencies": ["lucide-react"],
       "zooRoute": "/design/themed-empty-state"
     },
@@ -328,7 +328,7 @@
         "orderNumber": "string | number",
         "eta": "string (e.g. '8 min'; defaults to type-based placeholder)"
       },
-      "tokensUsed": ["--color-bg-elevated", "--color-border", "--color-primary", "--color-primary-light", "--color-bg-muted", "--color-text", "--color-text-tertiary", "--color-text-inverse", "--radius-card", "--radius-full", "--font-sans", "--font-display", "--font-display-weight"],
+      "tokensUsed": ["--color-bg-elevated", "--color-border", "--color-primary", "--color-primary-text", "--color-primary-light", "--color-bg-muted", "--color-text", "--color-text-tertiary", "--radius-card", "--radius-full", "--font-sans", "--font-display", "--font-display-weight"],
       "dependencies": ["@web/lib/i18n"],
       "zooRoute": "/design/order-tracker"
     },
@@ -363,7 +363,7 @@
         "description": "string (supporting copy)",
         "code": "string (promo code; omit to hide chip)"
       },
-      "tokensUsed": ["--color-primary", "--color-text-inverse", "--color-accent", "--radius-card", "--radius-full", "--radius-chip", "--font-sans", "--font-display", "--font-display-weight", "--font-display-tracking", "--font-mono"],
+      "tokensUsed": ["--color-primary", "--color-primary-text", "--color-text-inverse", "--color-accent", "--radius-card", "--radius-full", "--radius-chip", "--font-sans", "--font-display", "--font-display-weight", "--font-display-tracking", "--font-mono"],
       "dependencies": ["@web/lib/i18n"],
       "zooRoute": "/design/promo-card"
     },
@@ -381,7 +381,7 @@
         "loading": "boolean",
         "ctaLabel": "string (override CTA text)"
       },
-      "tokensUsed": ["--color-bg-elevated", "--color-border", "--color-bg-muted", "--color-text", "--color-text-secondary", "--color-primary", "--color-text-inverse", "--radius-card", "--radius-btn", "--font-sans", "--font-display", "--font-display-weight", "--font-mono"],
+      "tokensUsed": ["--color-bg-elevated", "--color-border", "--color-bg-muted", "--color-text", "--color-text-secondary", "--color-primary", "--color-primary-text", "--radius-card", "--radius-btn", "--font-sans", "--font-display", "--font-display-weight", "--font-mono"],
       "dependencies": ["@web/lib/i18n"],
       "zooRoute": "/design/checkout-summary"
     },

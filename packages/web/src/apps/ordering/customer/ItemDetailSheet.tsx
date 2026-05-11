@@ -375,7 +375,7 @@ export function ItemDetailSheet({ item, onClose }: ItemDetailSheetProps) {
             <button
               type="button"
               onClick={() => setQuantity((q) => q + 1)}
-              className="h-12 w-12 flex items-center justify-center rounded-full bg-primary text-text-inverse hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.95]"
+              className="h-12 w-12 flex items-center justify-center rounded-full bg-primary text-primary-text hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.95]"
               aria-label={t('Increase quantity')}
             >
               <Plus className="h-4 w-4" />

@@ -98,6 +98,11 @@ Workflow simplification, Work Intake, guide/Zoo surfaces, and the first engine/p
   - display-only record labeling is generic instead of deployment-specific,
   - generated Work Intake feature counts say `trace evidence` so intentionally omitted deployment proof is not mistaken for canonical evidence totals,
   - fresh local command evidence includes `final22-self-test-20260511` with 238 checks passing, `final22-guide-check-20260511`, `final22-zoo-visual-guide-check-20260511`, `final21-unit-tests-20260511`, and `final21-build-20260511`.
+- completed a final bounded duplicate-agent audit after design-system parity work:
+  - workflow audit found the branch was intentionally not release-ready until branch/deployment proof is recorded and found the primary contrast lint needed fail-closed behavior,
+  - design audit found one remaining nested `bg-primary`/`text-text-inverse` usage in `OrderDashboard`,
+  - fixes added the `--color-primary-text` / `text-primary-text` contract across primary-colored surfaces, hardened design lint for direct/nested source patterns and unresolved theme token contrast, and adjusted workflow self-test coverage so guide self-reference checks do not depend on unrelated live record staleness,
+  - fresh worktree evidence includes `final-primary-text-design-lint-confirm-20260511`, `final-primary-text-self-test-confirm-20260511`, `final-primary-text-policy-check-confirm-20260511`, `final-primary-text-full-tests-confirm-20260511`, `final-primary-text-build-confirm-20260511`, `final-primary-text-production-base-build-confirm-20260511`, `final-primary-text-theme-settings-browser-confirm-20260511`, `final-primary-text-design-zoo-confirm-20260511`, and `final-primary-text-zoo-capture-confirm-20260511`.
 
 The reusable boundary is intentionally conservative: `.codex/scripts/workflow-engine.mjs` is portable loader/matcher infrastructure, while `.codex/scripts/nexus-workflow.mjs` remains the Nexus deterministic wrapper until a second project proves which larger pieces should be extracted.
 
@@ -139,8 +144,8 @@ Use the generated guide and append-only records instead of this compact handover
 
 ## Open Risks
 
-- Hooks are configured but this checkout may still show `hook runtime: not seen`; explicit workflow gates remain the enforcement source when Codex project hooks are not loaded in a session. Use trusted `Custom (config.toml)` when hook loading matters. Full access grants permissions but does not prove project config or hooks loaded.
+- Hooks are configured and this checkout has now emitted hook runtime telemetry. Hook loading is still session/config dependent, so explicit workflow gates remain the enforcement source. Use trusted `Custom (config.toml)` when hook loading matters; Full access grants permissions but does not prove project config or hooks loaded.
 - The first engine/profile split is in place, but it is still a conservative extraction: future projects should copy the profile/policy shape and then decide whether more of `nexus-workflow.mjs` should move into the generic engine after a second implementation proves the boundary. This is intentional, not a hidden "done" claim.
 - Dependency audit baseline was rechecked on 2026-05-10 and still matches current npm audit output; recheck again by the 2026-06-09 expiry or sooner if `drizzle-kit` releases a fix. Evidence: `TEST-20260510T073945Z-dependency-audit-baseline-recheck`.
 - Codex config deprecation warnings were handled at the policy/engine layer on 2026-05-10: Nexus now uses `features.hooks`, rejects deprecated hook/windows-sandbox aliases, and records the architecture reasoning in `.codex/workflow/research/workflow-architecture-recheck-2026-05-10.md`.
-- Remaining design-system parity gaps are tracked in `.codex/knowledge/design-system.md`; do not treat archived Claude notes or frozen `design/reference/v1/` docs as active implementation truth without reconciliation.
+- Remaining design-system risk is contrast coverage beyond primary-colored surfaces: the primary contract is now linted and validated, but every possible non-primary foreground/background pair across all themes is not exhaustively proven. Treat `.codex/knowledge/design-system.md` as active truth and archived Claude notes or frozen `design/reference/v1/` docs as historical evidence until reconciled.
